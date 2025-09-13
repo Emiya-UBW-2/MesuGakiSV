@@ -1,0 +1,68 @@
+#pragma once
+#include <fstream>
+#include <string>
+
+#include "json.hpp"
+
+#define USE_DXLIB (false)
+//ファイル読み込み
+class InputFileStream {
+#if USE_DXLIB
+	int mdata = -1;
+#else
+	std::ifstream stream{};
+#endif
+public:
+	//コンストラクタ
+	InputFileStream(void) noexcept {}
+	//宣言時にファイルオープン版
+	InputFileStream(const char* FilePath) noexcept { Open(FilePath); }
+	//デストラクタ
+	~InputFileStream(void) noexcept { Close(); }
+public:
+	//ファイルを開き、探索ポイントを始点に移動
+	void Open(const char* FilePath) noexcept {
+#if USE_DXLIB
+		mdata = DxLib::FileRead_open(FilePath, FALSE);
+#else
+		stream.open(FilePath);
+#endif
+	}
+	// 1行そのまま取得し、次の行に探索ポイントを移る
+	std::string SeekLineAndGetStr(void) noexcept {
+#if USE_DXLIB
+		const int charLength = 512;
+		char mstr[charLength] = "";
+		DxLib::FileRead_gets(mstr, charLength, mdata);
+		return std::string(mstr);
+#else
+		std::string Buffer;
+		std::getline(stream, Buffer);
+		return Buffer;
+#endif
+	}
+	// 探索ポイントが終端(EOF)で終わる
+	bool ComeEof(void) const noexcept {
+#if USE_DXLIB
+		return DxLib::FileRead_eof(mdata) != 0;
+#else
+		return stream.eof();
+#endif
+	}
+	//　閉じる
+	void Close(void) noexcept {
+#if USE_DXLIB
+		if (mdata != -1) {
+			DxLib::FileRead_close(mdata);
+			mdata = -1;
+		}
+#else
+		stream.close();
+#endif
+	}
+public:
+	// 文字列から=より右の値取得
+	static std::string getleft(std::string tempname, const char* DivWord) noexcept { return tempname.substr(0, tempname.find(DivWord)); }
+	// 文字列から=より右の値取得
+	static std::string getright(std::string tempname, const char* DivWord) noexcept { return tempname.substr(tempname.find(DivWord) + 1); }
+};

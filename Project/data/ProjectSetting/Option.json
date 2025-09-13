@@ -1,0 +1,21 @@
+{
+	"data":[
+		{
+			"Type":"VSync",
+			"SelectType" : "Bool",
+			"DefaultValue" : "False"
+		},
+		{
+			"Type":"FPSLimit",
+			"SelectType": "Select",
+			"Value" : ["30","60","75","90","120","144","240","300","360","1000"],
+			"DefaultValue" : "60"
+		},
+		{
+			"Type":"WindowMode",
+			"SelectType": "Select",
+			"Value" : ["Window","BorderLess","FullScreen"],
+			"DefaultValue" : "Window"
+		}
+	]
+}
