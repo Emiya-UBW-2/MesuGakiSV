@@ -27,6 +27,7 @@
     <ProjectGuid>{e45d9127-d356-4c5b-95fe-8ec3ce33318f}</ProjectGuid>
     <RootNamespace>VisualStudio2022用</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Project</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
