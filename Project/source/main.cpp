@@ -7,8 +7,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	DrawerMngr->LoopStart();
 	while (DrawerMngr->CanContinueLoop()) {
 		int Count = DrawerMngr->CalcUpdateTickCount();//この周回では何回アップデートできるかをチェックする
+		DrawerMngr->Update();
 		for (int loop = 0; loop < Count; ++loop) {
-			DrawerMngr->UpdateMousePosition();
 			//更新
 		}
 		DrawerMngr->StartDraw();

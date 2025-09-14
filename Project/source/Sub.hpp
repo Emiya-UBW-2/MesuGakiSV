@@ -24,6 +24,8 @@ class DXLibDrawer : public SingletonBase<DXLibDrawer> {
 private:
 	friend class SingletonBase<DXLibDrawer>;
 private:
+	int			m_ScreenWidth{ 960 };			//スクリーンサイズX
+	int			m_ScreenHeight{ 720 };			//スクリーンサイズY
 	int			m_WindowDrawWidth{ 960 };		//ウィンドウサイズX
 	int			m_WindowDrawHeight{ 720 };		//ウィンドウサイズY
 	int			m_WindowWidth{ 960 };			//ディスプレイ表示X
@@ -55,13 +57,13 @@ private:
 	DXLibDrawer(void) noexcept {
 		OptionParam::Create();
 		//
-		int ScreenWidth = GetSystemMetrics(SM_CXSCREEN);
-		int ScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+		m_ScreenWidth = GetSystemMetrics(SM_CXSCREEN);
+		m_ScreenHeight = GetSystemMetrics(SM_CYSCREEN);
 		DxLib::SetOutApplicationLogValidFlag(FALSE);
 		DxLib::SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
 		DxLib::ChangeWindowMode(TRUE);
 		DxLib::SetUseDirect3DVersion(DX_DIRECT3D_11);
-		DxLib::SetGraphMode(ScreenWidth, ScreenHeight, 32);
+		DxLib::SetGraphMode(m_ScreenWidth, m_ScreenHeight, 32);
 		DxLib::SetUseDirectInputFlag(TRUE);
 		DxLib::SetDirectInputMouseMode(TRUE);
 		DxLib::SetWindowSizeChangeEnableFlag(TRUE, FALSE);
@@ -123,25 +125,23 @@ public:
 	const auto GetMousePositionY() const noexcept { return this->m_MouseY; }
 public:
 	void		SetWindowMode(EnumWindowMode value) noexcept {
-		int ScreenWidth = GetSystemMetrics(SM_CXSCREEN);
-		int ScreenHeight = GetSystemMetrics(SM_CYSCREEN);
 		switch (value) {
 		case EnumWindowMode::Window:
 			DxLib::SetWindowStyleMode(0);
 			DxLib::SetWindowPosition(-8, 0);
-			DxLib::SetWindowSize(ScreenWidth * GetDPI() / BaseDPI, (ScreenHeight - 79) * GetDPI() / BaseDPI);
+			DxLib::SetWindowSize(m_ScreenWidth * GetDPI() / BaseDPI, (m_ScreenHeight - 79) * GetDPI() / BaseDPI);
 			DxLib::ChangeWindowMode(TRUE);
 			break;
 		case EnumWindowMode::BorderLess:
 			DxLib::SetWindowStyleMode(4);
 			DxLib::SetWindowPosition(-8, -8);
-			DxLib::SetWindowSize(ScreenWidth * GetDPI() / BaseDPI, ScreenHeight * GetDPI() / BaseDPI);
+			DxLib::SetWindowSize(m_ScreenWidth * GetDPI() / BaseDPI, m_ScreenHeight * GetDPI() / BaseDPI);
 			DxLib::ChangeWindowMode(TRUE);
 			break;
 		case EnumWindowMode::FullScreen:
 			DxLib::SetWindowStyleMode(4);
 			DxLib::SetWindowPosition(-8, -8);
-			DxLib::SetWindowSize(ScreenWidth * GetDPI() / BaseDPI, ScreenHeight * GetDPI() / BaseDPI);
+			DxLib::SetWindowSize(m_ScreenWidth * GetDPI() / BaseDPI, m_ScreenHeight * GetDPI() / BaseDPI);
 			DxLib::SetFullScreenResolutionMode(DX_FSRESOLUTIONMODE_NATIVE);
 			DxLib::SetFullScreenScalingMode(DX_FSSCALINGMODE_NEAREST);
 			DxLib::ChangeWindowMode(FALSE);
@@ -180,29 +180,29 @@ public:
 		}
 		return 0;
 	}
-	void		UpdateMousePosition() noexcept {
-		GetMousePoint(&this->m_MouseX, &this->m_MouseY);
-		this->m_MouseX = this->m_WindowDrawWidth / 2 + (this->m_MouseX - this->m_WindowDrawWidth / 2) * this->m_DispWidth / this->m_WindowDrawWidth;
-		this->m_MouseY = this->m_WindowDrawHeight / 2 + (this->m_MouseY - this->m_WindowDrawHeight / 2) * this->m_DispHeight / this->m_WindowDrawHeight;
-	}
-	void		StartDraw() noexcept {
+	void		Update() noexcept {
 		{
 			int prevX = this->m_WindowDrawWidth;
 			int prevY = this->m_WindowDrawHeight;
 			DxLib::GetWindowSize(&this->m_WindowDrawWidth, &this->m_WindowDrawHeight);
 			if ((prevX |= this->m_WindowDrawWidth) || (prevY |= this->m_WindowDrawHeight)) {
-				int ScreenWidthT = this->m_WindowDrawWidth;
-				int ScreenHeightT = this->m_WindowDrawHeight;
-				if (ScreenHeightT >= (ScreenWidthT * this->m_DispHeight / this->m_DispWidth)) {// 4:3
-					ScreenHeightT = (ScreenWidthT * this->m_DispHeight / this->m_DispWidth);
+				int WidthT = this->m_WindowDrawWidth;
+				int HeightT = this->m_WindowDrawHeight;
+				if (HeightT >= (WidthT * this->m_DispHeight / this->m_DispWidth)) {// 4:3
+					HeightT = (WidthT * this->m_DispHeight / this->m_DispWidth);
 				}
 				else {// 16:9より横長
-					ScreenWidthT = (ScreenHeightT * this->m_DispWidth / this->m_DispHeight);
+					WidthT = (HeightT * this->m_DispWidth / this->m_DispHeight);
 				}
-				this->m_WindowWidth = ScreenWidthT * GetDPI() / BaseDPI;
-				this->m_WindowHeight = ScreenHeightT * GetDPI() / BaseDPI;
+				this->m_WindowWidth = WidthT * GetDPI() / BaseDPI;
+				this->m_WindowHeight = HeightT * GetDPI() / BaseDPI;
 			}
 		}
+		GetMousePoint(&this->m_MouseX, &this->m_MouseY);
+		this->m_MouseX = (-(this->m_WindowDrawWidth - this->m_WindowWidth) / 2 + this->m_MouseX) * this->m_DispWidth / this->m_WindowWidth;
+		this->m_MouseY = (-(this->m_WindowDrawHeight - this->m_WindowHeight) / 2 + this->m_MouseY) * this->m_DispHeight / this->m_WindowHeight;
+	}
+	void		StartDraw() noexcept {
 		DxLib::SetDrawScreen(this->m_BufferScreen);
 		DxLib::ClearDrawScreen();
 	}
