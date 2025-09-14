@@ -66,3 +66,28 @@ public:
 	// 文字列から=より右の値取得
 	static std::string getright(std::string tempname, const char* DivWord) noexcept { return tempname.substr(tempname.find(DivWord) + 1); }
 };
+
+//ファイル出力
+class OutputFileStream {
+	std::ofstream stream{};
+public:
+	//コンストラクタ
+	OutputFileStream(void) noexcept {}
+	//宣言時にファイルオープン版
+	OutputFileStream(const char* FilePath) noexcept { Open(FilePath); }
+	//デストラクタ
+	~OutputFileStream(void) noexcept { Close(); }
+public:
+	//ファイルを開き、探索ポイントを始点に移動
+	void Open(const char* FilePath) noexcept {
+		stream.open(FilePath);
+	}
+	// 1行書き込む
+	void AddLine(std::string Str) noexcept {
+		stream << Str + "\n";
+	}
+	//　閉じる
+	void Close(void) noexcept {
+		stream.close();
+	}
+};

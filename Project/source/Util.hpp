@@ -117,9 +117,11 @@ private:
 				}
 			}
 		}
+		Load();
 	}
 	//デストラクタ
 	~OptionParam(void) noexcept {
+		Save();
 		for (auto& p : m_ParamList) {
 			p.m_ValueList.clear();
 		}
@@ -140,6 +142,33 @@ public:
 				p.m_Value = Param;
 				break;
 			}
+		}
+	}
+public:
+	void Load(void) noexcept {
+		InputFileStream Istream("Save/Option.dat");
+		while (!Istream.ComeEof()) {
+			std::string Line = InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
+			std::string Left = InputFileStream::getleft(Line, "=");
+			std::string Right = InputFileStream::getright(Line, "=");
+			for (auto& p : m_ParamList) {
+				if (p.m_Type == Left) {
+					for (auto& v : p.m_ValueList) {
+						if (v == Right) {
+							p.m_Value = static_cast<int>(&v - &p.m_ValueList.front());
+							break;
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+	void Save(void) noexcept {
+		OutputFileStream Ostream("Save/Option.dat");
+		for (auto& p : m_ParamList) {
+			std::string Line = p.m_Type + "=" + p.GetValueNow();
+			Ostream.AddLine(Line);
 		}
 	}
 };
