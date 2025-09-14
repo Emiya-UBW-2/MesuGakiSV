@@ -19,19 +19,25 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\FileStream.cpp" />
+    <ClCompile Include="source\Draw\MainDraw.cpp" />
+    <ClCompile Include="source\File\FileStream.cpp" />
     <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\Option.cpp" />
-    <ClCompile Include="source\MainDraw.cpp" />
-    <ClCompile Include="source\SceneManager.cpp" />
-    <ClCompile Include="source\Util.cpp" />
+    <ClCompile Include="source\Scene\MainScene.cpp" />
+    <ClCompile Include="source\Scene\TitleScene.cpp" />
+    <ClCompile Include="source\Util\Option.cpp" />
+    <ClCompile Include="source\Util\SceneManager.cpp" />
+    <ClCompile Include="source\Util\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\FileStream.hpp" />
-    <ClInclude Include="source\Option.hpp" />
-    <ClInclude Include="source\MainDraw.hpp" />
-    <ClInclude Include="source\SceneManager.hpp" />
-    <ClInclude Include="source\Util.hpp" />
+    <ClInclude Include="source\Draw\MainDraw.hpp" />
+    <ClInclude Include="source\File\FileStream.hpp" />
+    <ClInclude Include="source\File\json.hpp" />
+    <ClInclude Include="source\Scene\MainScene.hpp" />
+    <ClInclude Include="source\Scene\TitleScene.hpp" />
+    <ClInclude Include="source\Util\Enum.hpp" />
+    <ClInclude Include="source\Util\Option.hpp" />
+    <ClInclude Include="source\Util\SceneManager.hpp" />
+    <ClInclude Include="source\Util\Util.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

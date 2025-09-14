@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Util.hpp"
-#include "FileStream.hpp"
-#include "json.hpp"
+#include "../File/FileStream.hpp"
+#include "../File/json.hpp"
 
 enum class EnumOptionSelectType {
 	Bool,

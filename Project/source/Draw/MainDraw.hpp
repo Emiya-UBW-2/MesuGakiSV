@@ -2,10 +2,9 @@
 #define NOMINMAX
 #include "DxLib.h"
 
-#include "FileStream.hpp"
-#include "json.hpp"
-#include "Util.hpp"
-#include "Option.hpp"
+#include "../File/FileStream.hpp"
+#include "../Util/Util.hpp"
+#include "../Util/Option.hpp"
 
 enum class EnumWindowMode {
 	Window,
