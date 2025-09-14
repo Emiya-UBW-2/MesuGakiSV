@@ -20,11 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\FileStream.cpp" />
-    <ClCompile Include="source\test.cpp" />
+    <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\Option.cpp" />
+    <ClCompile Include="source\Sub.cpp" />
     <ClCompile Include="source\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\FileStream.hpp" />
+    <ClInclude Include="source\Option.hpp" />
+    <ClInclude Include="source\Sub.hpp" />
     <ClInclude Include="source\Util.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

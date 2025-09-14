@@ -2,9 +2,13 @@
 #include <fstream>
 #include <string>
 
-#include "json.hpp"
-
 #define USE_DXLIB (false)
+
+#if USE_DXLIB
+#define NOMINMAX
+#include "DxLib.h"
+#endif
+
 //ÉtÉ@ÉCÉãì«Ç›çûÇ›
 class InputFileStream {
 #if USE_DXLIB
