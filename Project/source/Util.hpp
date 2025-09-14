@@ -14,10 +14,12 @@ public:
 		m_Singleton = new T();
 	}
 	static T* Instance(void) noexcept {
+#if _DEBUG
 		if (m_Singleton == nullptr) {
 			MessageBox(NULL, "Failed Instance Create", "", MB_OK);
 			exit(-1);
 		}
+#endif
 		// if (m_Singleton == nullptr) { m_Singleton = new T(); }
 		return (T*)m_Singleton;
 	}

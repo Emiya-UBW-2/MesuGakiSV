@@ -26,6 +26,9 @@
     <ClCompile Include="source\Option.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="source\SceneManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Util.hpp">
@@ -38,6 +41,9 @@
       <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="source\Option.hpp">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SceneManager.hpp">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
   </ItemGroup>
