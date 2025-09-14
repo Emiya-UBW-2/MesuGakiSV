@@ -1,14 +1,13 @@
-#include "Sub.hpp"
+#include "MainDraw.hpp"
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
-	DXLibDrawer::Create();
-	auto* DrawerMngr = DXLibDrawer::Instance();
+	MainDraw::Create();
+	auto* DrawerMngr = MainDraw::Instance();
 	//メインループ開始
 	DrawerMngr->LoopStart();
 	while (DrawerMngr->CanContinueLoop()) {
-		int Count = DrawerMngr->CalcUpdateTickCount();//この周回では何回アップデートできるかをチェックする
 		DrawerMngr->Update();
-		for (int loop = 0; loop < Count; ++loop) {
+		for (int loop = 0; loop < DrawerMngr->GetUpdateTickCount(); ++loop) {
 			//更新
 		}
 		DrawerMngr->StartDraw();
@@ -19,6 +18,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 		DrawerMngr->EndDraw();
 	}
-	DXLibDrawer::Release();
+	MainDraw::Release();
 	return 0;// ソフトの終了 
 }
