@@ -2,18 +2,20 @@
 
 #include "Util.hpp"
 
+#pragma warning( push, 3 )
 #include <vector>
+#pragma warning( pop )
 
 class SceneBase {
-	int m_SceneID{};
 	const SceneBase* m_pNextScene = nullptr;
+	int m_SceneID{};
 	bool m_IsEndGame = false;
 	bool m_IsEndScene = false;
 public:
 	SceneBase(void) noexcept {}
 	virtual ~SceneBase(void) noexcept {}
 public:
-	const auto GetID(void) const noexcept { return m_SceneID; }
+	auto GetID(void) const noexcept { return m_SceneID; }
 	const SceneBase* GetNextScene(void) const noexcept { return m_pNextScene; }
 	bool IsEndGame(void) const noexcept { return m_IsEndGame; }
 	bool IsEndScene(void) const noexcept { return m_IsEndScene; }
@@ -42,7 +44,7 @@ class SceneManager : public SingletonBase<SceneManager> {
 private:
 	friend class SingletonBase<SceneManager>;
 private:
-	enum class EnumScenePhase {
+	enum class EnumScenePhase : size_t {
 		Update,
 		GoNext,
 		GoEnd,
@@ -57,10 +59,13 @@ private:
 		m_NowScene = nullptr;
 		m_Phase = EnumScenePhase::GoNext;
 	}
-	~SceneManager(void) noexcept {
-	}
+	SceneManager(const SceneManager&) = delete;
+	SceneManager(SceneManager&&) = delete;
+	SceneManager& operator=(const SceneManager&) = delete;
+	SceneManager& operator=(SceneManager&&) = delete;
+	~SceneManager(void) noexcept {}
 public:
-	const auto IsEndScene(void) const noexcept { return (m_Phase == EnumScenePhase::GoEnd); }
+	auto IsEndScene(void) const noexcept { return (m_Phase == EnumScenePhase::GoEnd); }
 public:
 	const SceneBase* GetScene(int SceneID) const noexcept {
 		for (auto& pS : m_pScene) {

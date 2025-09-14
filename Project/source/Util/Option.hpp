@@ -1,10 +1,18 @@
 #pragma once
 
+#pragma warning(disable:4464)
+#pragma warning(disable:4505)
+#pragma warning(disable:4514)
+#pragma warning(disable:4668)
+#pragma warning(disable:5039)
+#pragma warning(disable:5045)
 #include "Util.hpp"
 #include "../File/FileStream.hpp"
+#pragma warning( push, 3 )
 #include "../File/json.hpp"
+#pragma warning( pop )
 
-enum class EnumOptionSelectType {
+enum class EnumOptionSelectType : size_t {
 	Bool,
 	Select,
 	Max,
@@ -19,12 +27,12 @@ private:
 	friend class SingletonBase<OptionParam>;
 private:
 	struct Param {
-		std::string					m_Type{};
 		EnumOptionSelectType		m_SelectType{};
-		std::vector<std::string>	m_ValueList{};
 		int							m_Value{};
+		std::string					m_Type{};
+		std::vector<std::string>	m_ValueList{};
 	public:
-		const std::string GetValueNow() const noexcept { return this->m_ValueList.at(this->m_Value); }
+		const std::string GetValueNow() const noexcept { return this->m_ValueList.at(static_cast<size_t>(this->m_Value)); }
 		bool IsActive() const noexcept {
 			if (m_SelectType == EnumOptionSelectType::Bool) {
 				return GetValueNow() == "True";
@@ -64,6 +72,8 @@ private:
 					}
 				}
 				break;
+			case EnumOptionSelectType::Max:
+				break;
 			default:
 				break;
 			}
@@ -78,6 +88,10 @@ private:
 		}
 		Load();
 	}
+	OptionParam(const OptionParam&) = delete;
+	OptionParam(OptionParam&&) = delete;
+	OptionParam& operator=(const OptionParam&) = delete;
+	OptionParam& operator=(OptionParam&&) = delete;
 	//デストラクタ
 	~OptionParam(void) noexcept {
 		Save();

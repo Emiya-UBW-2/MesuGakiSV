@@ -1,5 +1,9 @@
 #pragma once
 
+#pragma warning(disable:4464)
+#pragma warning(disable:4514)
+#pragma warning(disable:4668)
+#pragma warning(disable:5039)
 #include "../Util/Enum.hpp"
 #include "../Util/SceneManager.hpp"
 #include "../Draw/MainDraw.hpp"

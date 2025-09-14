@@ -1,3 +1,9 @@
+#pragma warning(disable:4505)
+#pragma warning(disable:4514)
+#pragma warning(disable:4668)
+#pragma warning(disable:5039)
+#pragma warning(disable:5045)
+#pragma warning(disable:5259)
 #include "MainDraw.hpp"
 
 const MainDraw* SingletonBase<MainDraw>::m_Singleton = nullptr;
@@ -95,7 +101,7 @@ void MainDraw::Update(void) noexcept {
 	this->m_MouseX = (-(this->m_WindowDrawWidth - this->m_WindowWidth) / 2 + this->m_MouseX) * GetDispWidth() / this->m_WindowWidth;
 	this->m_MouseY = (-(this->m_WindowDrawHeight - this->m_WindowHeight) / 2 + this->m_MouseY) * GetDispHeight() / this->m_WindowHeight;
 }
-void MainDraw::StartDraw(void) noexcept {
+void MainDraw::StartDraw(void) const noexcept {
 	DxLib::SetDrawScreen(this->m_BufferScreen);
 	DxLib::ClearDrawScreen();
 }

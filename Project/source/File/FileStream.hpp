@@ -1,12 +1,16 @@
 #pragma once
+#pragma warning( push, 3 )
 #include <fstream>
 #include <string>
+#pragma warning( pop )
 
 #define USE_DXLIB (false)
 
 #if USE_DXLIB
 #define NOMINMAX
+#pragma warning( push, 3 )
 #include "DxLib.h"
+#pragma warning( pop )
 #endif
 
 //ファイル読み込み
@@ -21,6 +25,12 @@ public:
 	InputFileStream(void) noexcept {}
 	//宣言時にファイルオープン版
 	InputFileStream(const char* FilePath) noexcept { Open(FilePath); }
+
+	InputFileStream(const InputFileStream&) = delete;
+	InputFileStream(InputFileStream&&) = delete;
+	InputFileStream& operator=(const InputFileStream&) = delete;
+	InputFileStream& operator=(InputFileStream&&) = delete;
+
 	//デストラクタ
 	~InputFileStream(void) noexcept { Close(); }
 public:
@@ -79,6 +89,12 @@ public:
 	OutputFileStream(void) noexcept {}
 	//宣言時にファイルオープン版
 	OutputFileStream(const char* FilePath) noexcept { Open(FilePath); }
+
+	OutputFileStream(const OutputFileStream&) = delete;
+	OutputFileStream(OutputFileStream&&) = delete;
+	OutputFileStream& operator=(const OutputFileStream&) = delete;
+	OutputFileStream& operator=(OutputFileStream&&) = delete;
+
 	//デストラクタ
 	~OutputFileStream(void) noexcept { Close(); }
 public:
