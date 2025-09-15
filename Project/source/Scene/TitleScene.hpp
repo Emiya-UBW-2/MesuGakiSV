@@ -6,6 +6,7 @@
 #pragma warning(disable:5039)
 #include "../Util/Enum.hpp"
 #include "../Util/SceneManager.hpp"
+#include "../Util/Key.hpp"
 #include "../Draw/MainDraw.hpp"
 
 class TitleScene : public SceneBase {
@@ -15,7 +16,7 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {}
 	void Update_Sub(void) noexcept override {
-		if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) {
+		if (KeyParam::Instance()->GetMenuKeyTrigger(EnumMenu::Diside)) {
 			auto* SceneMngr = SceneManager::Instance();
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
 			SceneBase::SetEndScene();

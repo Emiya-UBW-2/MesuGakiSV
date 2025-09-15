@@ -6,13 +6,15 @@
 
 #include "Util/SceneManager.hpp"
 #include "Util/Enum.hpp"
+#include "Util/Key.hpp"
 #include "Scene/TitleScene.hpp"
 #include "Scene/MainScene.hpp"
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	MainDraw::Create();
-	auto* DrawerMngr = MainDraw::Instance();
 	SceneManager::Create();
+	KeyParam::Create();
+	auto* DrawerMngr = MainDraw::Instance();
 	auto* SceneMngr = SceneManager::Instance();
 	TitleScene Title{};
 	MainScene Main{};
@@ -26,6 +28,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		//更新
 		DrawerMngr->Update();
 		for (int loop = 0; loop < DrawerMngr->GetUpdateTickCount(); ++loop) {
+			KeyParam::Instance()->Update();
 			SceneMngr->Update();
 		}
 		//描画
@@ -37,8 +40,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 	}
+	KeyParam::Release();
 	SceneManager::Release();
-
 	MainDraw::Release();
 	return 0;// ソフトの終了 
 }
