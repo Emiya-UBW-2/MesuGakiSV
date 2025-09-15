@@ -25,6 +25,14 @@
 			"Anim":[
 				{
 					"Target":"Box2",
+					"Pos":[0,0],
+					"Size":[200,36],
+					"Center":[0.5,0.5],
+					"StartFrame":0,
+					"EndFrame":6
+				},
+				{
+					"Target":"Box2",
 					"Color":[192,192,192],
 					"StartFrame":0,
 					"EndFrame":30
@@ -43,9 +51,12 @@
 			"Anim":[
 				{
 					"Target":"Box2",
+					"Pos":[0,0],
+					"Size":[190,32],
+					"Center":[0.5,0.5],
 					"Color":[255,255,255],
 					"StartFrame":0,
-					"EndFrame":1
+					"EndFrame":6
 				}
 			]
 		},
