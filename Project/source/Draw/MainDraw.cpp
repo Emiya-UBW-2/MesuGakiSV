@@ -6,6 +6,10 @@
 #pragma warning(disable:5259)
 #include "MainDraw.hpp"
 
+#include "../Util/SceneManager.hpp"
+#include "../Util/Key.hpp"
+
+
 const MainDraw* SingletonBase<MainDraw>::m_Singleton = nullptr;
 
 MainDraw::MainDraw(void) noexcept {
@@ -27,14 +31,13 @@ MainDraw::MainDraw(void) noexcept {
 	{
 		std::ifstream file("data/ProjectSetting/ProjectSetting.json");
 		nlohmann::json data = nlohmann::json::parse(file);
-		auto& d = data;
 		{
-			std::string Name = d["GameTitle"];
+			std::string Name = data["GameTitle"];
 			DxLib::SetMainWindowText(Name.c_str());
 		}
 		{
 			int loop = 0;
-			for (const int& Size : d["BaseDispSize"]) {
+			for (const int& Size : data["BaseDispSize"]) {
 				if (loop == 0) {
 					this->m_DispWidth = Size;
 				}
@@ -45,7 +48,7 @@ MainDraw::MainDraw(void) noexcept {
 			}
 		}
 		{
-			this->m_CalculateTick = d["CalculateTick"];
+			this->m_CalculateTick = data["CalculateTick"];
 		}
 	}
 	//
@@ -66,8 +69,14 @@ MainDraw::MainDraw(void) noexcept {
 	}
 	SetWaitVSync(pOption->GetParam("VSync")->IsActive());
 	this->m_FPSLimit = std::stoi(pOption->GetParam("FPSLimit")->GetValueNow());
+
+	SceneManager::Create();
+	KeyParam::Create();
 }
 MainDraw::~MainDraw(void) noexcept {
+	KeyParam::Release();
+	SceneManager::Release();
+
 	DxLib::DeleteGraph(this->m_BufferScreen);
 	DxLib::DxLib_End();
 

@@ -12,8 +12,6 @@
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	MainDraw::Create();
-	SceneManager::Create();
-	KeyParam::Create();
 	auto* DrawerMngr = MainDraw::Instance();
 	auto* SceneMngr = SceneManager::Instance();
 	auto* KeyMngr = KeyParam::Instance();
@@ -41,8 +39,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 	}
-	KeyParam::Release();
-	SceneManager::Release();
 	MainDraw::Release();
 	return 0;// ソフトの終了 
 }
