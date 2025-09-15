@@ -16,6 +16,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	KeyParam::Create();
 	auto* DrawerMngr = MainDraw::Instance();
 	auto* SceneMngr = SceneManager::Instance();
+	auto* KeyMngr = KeyParam::Instance();
 	TitleScene Title{};
 	MainScene Main{};
 	//シーン設定
@@ -28,7 +29,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		//更新
 		DrawerMngr->Update();
 		for (int loop = 0; loop < DrawerMngr->GetUpdateTickCount(); ++loop) {
-			KeyParam::Instance()->Update();
+			KeyMngr->Update();
 			SceneMngr->Update();
 		}
 		//描画

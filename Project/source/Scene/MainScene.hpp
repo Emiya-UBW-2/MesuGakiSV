@@ -16,8 +16,9 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {}
 	void Update_Sub(void) noexcept override {
-		if (KeyParam::Instance()->GetMenuKeyTrigger(EnumMenu::Diside)) {
-			auto* SceneMngr = SceneManager::Instance();
+		auto* SceneMngr = SceneManager::Instance();
+		auto* KeyMngr = KeyParam::Instance();
+		if (KeyMngr->GetMenuKeyTrigger(EnumMenu::Diside)) {
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Title)));
 			SceneBase::SetEndScene();
 		}
