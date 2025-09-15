@@ -24,22 +24,28 @@ MainDraw::MainDraw(void) noexcept {
 	DxLib::SetUsePixelLighting(TRUE);
 	DxLib::SetWaitVSyncFlag(false);
 	//プロジェクト固有設定
-	InputFileStream Istream("data/ProjectSetting/ProjectSetting.dat");
-	while (!Istream.ComeEof()) {
-		std::string Line = InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
-		std::string Left = InputFileStream::getleft(Line, "=");
-		std::string Right = InputFileStream::getright(Line, "=");
-		if (Left == "GameTitle") {
-			DxLib::SetMainWindowText(Right.c_str());
+	{
+		std::ifstream file("data/ProjectSetting/ProjectSetting.json");
+		nlohmann::json data = nlohmann::json::parse(file);
+		auto& d = data;
+		{
+			std::string Name = d["GameTitle"];
+			DxLib::SetMainWindowText(Name.c_str());
 		}
-		else if (Left == "BaseDispSize") {
-			std::string RLeft = InputFileStream::getleft(Right, ",");
-			std::string RRight = InputFileStream::getright(Right, ",");
-			this->m_DispWidth = std::stoi(RLeft);
-			this->m_DispHeight = std::stoi(RRight);
+		{
+			int loop = 0;
+			for (const int& Size : d["BaseDispSize"]) {
+				if (loop == 0) {
+					this->m_DispWidth = Size;
+				}
+				else {
+					this->m_DispHeight = Size;
+				}
+				++loop;
+			}
 		}
-		else if (Left == "CalculateTick") {
-			this->m_CalculateTick = std::stoi(Right);
+		{
+			this->m_CalculateTick = d["CalculateTick"];
 		}
 	}
 	//
