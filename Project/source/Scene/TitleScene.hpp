@@ -53,6 +53,45 @@ class DrawModule {
 		Param2D	Now{};
 		Param2D	Before{};
 	public:
+		bool IsHitPoint(int x, int y, int xpos, int ypos) const noexcept {
+			switch (this->Type) {
+			case PartsType::Box:
+			{
+				int x1 = xpos + static_cast<int>(this->Base.Pos.x - this->Base.Size.x * (1.f - this->Base.Center.x));
+				int y1 = ypos + static_cast<int>(this->Base.Pos.y - this->Base.Size.y * (1.f - this->Base.Center.y));
+				int x2 = xpos + static_cast<int>(this->Base.Pos.x + this->Base.Size.x * this->Base.Center.x);
+				int y2 = ypos + static_cast<int>(this->Base.Pos.y + this->Base.Size.y * this->Base.Center.y);
+				if ((x1 < x && x <= x2) && (y1 < y && y <= y2)) {
+					return true;
+				}
+			}
+			break;
+			case PartsType::Max:
+				break;
+			default:
+				break;
+			}
+			return false;
+		}
+
+		void Draw(int xpos, int ypos) const noexcept {
+			switch (this->Type) {
+			case PartsType::Box:
+			{
+				DxLib::DrawBox(
+					xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x)),
+					ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y)),
+					xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x),
+					ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y),
+					this->Now.Color.GetColor(), TRUE);
+			}
+			break;
+			case PartsType::Max:
+				break;
+			default:
+				break;
+			}
+		}
 	};
 	struct AnimParam {
 		size_t TargetID{};
@@ -178,16 +217,14 @@ public:
 
 			m_IsSelect = false;
 
-			auto& p = m_PartsParam.back();//Ç∆ÇËÇ†Ç¶Ç∏ç≈å„ïîÇ≈
-			int x1 = xpos + static_cast<int>(p.Base.Pos.x - p.Base.Size.x * (1.f - p.Base.Center.x));
-			int y1 = ypos + static_cast<int>(p.Base.Pos.y - p.Base.Size.y * (1.f - p.Base.Center.y));
-			int x2 = xpos + static_cast<int>(p.Base.Pos.x + p.Base.Size.x * p.Base.Center.x);
-			int y2 = ypos + static_cast<int>(p.Base.Pos.y + p.Base.Size.y * p.Base.Center.y);
-
-			if (
-				(x1 < DrawerMngr->GetMousePositionX() && DrawerMngr->GetMousePositionX() <= x2) &&
-				(y1 < DrawerMngr->GetMousePositionY() && DrawerMngr->GetMousePositionY() <= y2)
-				) {
+			bool IsSelect = false;
+			for (auto& p : m_PartsParam) {
+				if (p.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), xpos, ypos)) {
+					IsSelect = true;
+					break;
+				}
+			}
+			if (IsSelect) {
 				SelectNow = AnimType::OnSelect;
 				m_IsSelect = true;
 			}
@@ -262,22 +299,7 @@ public:
 	}
 	void Draw(int xpos, int ypos) noexcept {
 		for (auto& p : m_PartsParam) {
-			switch (p.Type) {
-			case PartsType::Box:
-			{
-				DxLib::DrawBox(
-					xpos + static_cast<int>(p.Now.Pos.x - p.Now.Size.x * (1.f - p.Now.Center.x)),
-					ypos + static_cast<int>(p.Now.Pos.y - p.Now.Size.y * (1.f - p.Now.Center.y)),
-					xpos + static_cast<int>(p.Now.Pos.x + p.Now.Size.x * p.Now.Center.x),
-					ypos + static_cast<int>(p.Now.Pos.y + p.Now.Size.y * p.Now.Center.y),
-					p.Now.Color.GetColor(), TRUE);
-			}
-			break;
-			case PartsType::Max:
-				break;
-			default:
-				break;
-			}
+			p.Draw(xpos, ypos);
 		}
 	}
 };

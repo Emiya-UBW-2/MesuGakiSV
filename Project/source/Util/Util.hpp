@@ -1,5 +1,6 @@
 #pragma once
 #define NOMINMAX
+#pragma warning(disable:4505)
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
 #pragma warning(disable:5039)
@@ -9,6 +10,7 @@
 #include <cstdint>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 #pragma warning( pop )
 
 // --------------------------------------------------------------------------------------------------
@@ -126,7 +128,7 @@ public:
 };
 
 // --------------------------------------------------------------------------------------------------
-// ベクトルデータ型
+// RGBA
 // --------------------------------------------------------------------------------------------------
 struct ColorRGBA
 {
@@ -235,6 +237,117 @@ public:
 };
 
 
+//	o1 Angleが0の場合の左上座標
+//	o2 Angleが0の場合の右下座標
+//	minp 左上角からの固定長さ
+//	maxp 右下角からの固定長さ
+//	Center　　: 画像を回転描画する画像上の中心座標(左上を(0.0f,0.0f)、右下を(1.0f,1.0f)とした割合)
+//	Angle　　　: 描画角度（ラジアン指定）
+//	GrHandle　 : 描画するグラフィックの識別番号（グラフィックハンドル）
+//	TransFlag　: 画像の透明度を有効にするかどうか( TRUE：有効にする　FALSE：無効にする )
+//	TilingFlag : 角以外の部分をタイリングするか拡縮させるか( TRUE：タイリング　FALSE：拡縮 )
+static void Draw9SliceGraph(
+	VECTOR2D o1, VECTOR2D o2, 
+	VECTOR2D minp, VECTOR2D maxp,
+	VECTOR2D Center, float Angle,
+	int GrHandle, bool TransFlag, bool TilingFlag) noexcept {
+	//最低限のサイズを指定
+	if (o2.x < o1.x + minp.x + maxp.x) { o2.x = o1.x + minp.x + maxp.x; }
+	if (o2.y < o1.y + minp.y + maxp.y) { o2.y = o1.y + minp.y + maxp.y; }
+	//用意する頂点情報
+	std::vector<VERTEX2D> Vertex;
+	std::vector<unsigned short> Index;
+
+	float xs = (o2.x - o1.x);
+	float ys = (o2.y - o1.y);
+
+	float CenterX = o1.x + xs * Center.x;
+	float CenterY = o1.y + ys * Center.y;
+
+	auto SetPoint = [&](float xper, float yper, int xc, int yc) {
+		Vertex.resize(Vertex.size() + 1);
+		Vertex.back().pos = VGet(
+			o1.x + xs * xper - CenterX,
+			o1.y + ys * yper - CenterY,
+			0.f);
+
+		Vertex.back().pos = VGet(
+			CenterX + Vertex.back().pos.x * std::cos(Angle) - Vertex.back().pos.y * std::sin(Angle),
+			CenterY + Vertex.back().pos.x * std::sin(Angle) + Vertex.back().pos.y * std::cos(Angle),
+			0.f);
+
+		Vertex.back().rhw = 1.0f;
+		Vertex.back().dif = GetColorU8(255, 255, 255, 255);
+		Vertex.back().u = static_cast<float>(xc) / 3.f;
+		Vertex.back().v = static_cast<float>(yc) / 3.f;
+		return (unsigned short)(Vertex.size() - 1);
+		};
+	auto SetBox = [&](float xmin, float ymin, float xmax, float ymax, int xc, int yc) {
+		Index.emplace_back(SetPoint(xmin, ymin, xc, yc));// 左上の頂点の情報をセット
+		auto RU = SetPoint(xmax, ymin, xc + 1, yc);
+		auto LD = SetPoint(xmin, ymax, xc, yc + 1);
+		Index.emplace_back(RU);// 右上の頂点の情報をセット
+		Index.emplace_back(LD);// 左下の頂点の情報をセット
+		Index.emplace_back(SetPoint(xmax, ymax, xc + 1, yc + 1));// 右下の頂点の情報をセット
+		Index.emplace_back(LD);// 左下の頂点の情報をセット
+		Index.emplace_back(RU);// 右上の頂点の情報をセット
+		};
+
+	float xminpt = minp.x / xs;
+	float xmaxpt = maxp.x / xs;
+	float xmaxt = 1.f - xmaxpt;
+	float xmidt = xmaxt - xminpt;
+
+	float yminpt = minp.y / ys;
+	float ymaxpt = maxp.y / ys;
+	float ymaxt = 1.f - ymaxpt;
+	float ymidt = ymaxt - yminpt;
+
+	int xtile = 1;
+	int ytile = 1;
+	//タイリング
+	if (TilingFlag) {
+		xtile = (int)(xmidt / ((xminpt + xmaxpt) / 2.f)) + 1;
+		if (xtile <= 0) { xtile = 1; }
+		ytile = (int)(ymidt / ((yminpt + ymaxpt) / 2.f)) + 1;
+		if (ytile <= 0) { ytile = 1; }
+	}
+
+	Vertex.reserve((size_t)(3 * 2 * ((xtile + 2) * (ytile + 2))));
+	float xmin = 0.f;
+	float xmax = xminpt;
+	int xc = 0;
+	for (int x = 0; x < xtile + 2; x++) {
+		float ymin = 0.f;
+		float ymax = yminpt;
+		int yc = 0;
+		for (int y = 0; y < ytile + 2; y++) {
+			SetBox(xmin, ymin, xmax, ymax, xc, yc);
+			//次
+			ymin = ymax;
+			ymax = TilingFlag ? (ymin + ymidt / static_cast<float>(ytile)) : ymaxt;
+			if (y == 0) {
+				yc = 1;
+			}
+			if (y == ytile) {
+				ymax = 1.f;
+				yc = 2;
+			}
+		}
+		//次
+		xmin = xmax;
+		xmax = TilingFlag ? (xmin + xmidt / static_cast<float>(xtile)) : xmaxt;
+		if (x == 0) {
+			xc = 1;
+		}
+		if (x == xtile) {
+			xmax = 1.f;
+			xc = 2;
+		}
+	}
+	DrawPolygonIndexed2D(Vertex.data(), (int)Vertex.size(), Index.data(), (int)Index.size() / 3, GrHandle, TransFlag ? TRUE : FALSE);
+}
+
 // 線形補完
 template <class T>
 inline T Lerp(const T& A, const T& B, float Per) noexcept {
@@ -247,4 +360,13 @@ inline T Lerp(const T& A, const T& B, float Per) noexcept {
 	else {
 		return A + (T)((B - A) * Per);
 	}
+}
+
+inline ColorRGBA Lerp(const ColorRGBA& A, const ColorRGBA& B, float Per) noexcept {
+	ColorRGBA Answer;
+	Answer.SetR(static_cast<int>(Lerp(static_cast<float>(A.GetR()), static_cast<float>(B.GetR()), Per)));
+	Answer.SetG(static_cast<int>(Lerp(static_cast<float>(A.GetG()), static_cast<float>(B.GetG()), Per)));
+	Answer.SetB(static_cast<int>(Lerp(static_cast<float>(A.GetB()), static_cast<float>(B.GetB()), Per)));
+	Answer.SetA(static_cast<int>(Lerp(static_cast<float>(A.GetA()), static_cast<float>(B.GetA()), Per)));
+	return Answer;
 }
