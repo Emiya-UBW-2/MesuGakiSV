@@ -17,10 +17,12 @@
 
 enum class PartsType {
 	Box,
+	NineSlice,
 	Max,
 };
 static const char* PartsTypeStr[static_cast<int>(PartsType::Max)] = {
 "Box",
+"NineSlice"
 };
 
 enum class AnimType {
@@ -52,10 +54,26 @@ class DrawModule {
 		Param2D	Base{};
 		Param2D	Now{};
 		Param2D	Before{};
+
+		VECTOR2D	Min{};
+		VECTOR2D	Max{};
+		std::string	ImagePath;
+		int			ImageHandle;
 	public:
 		bool IsHitPoint(int x, int y, int xpos, int ypos) const noexcept {
 			switch (this->Type) {
 			case PartsType::Box:
+			{
+				int x1 = xpos + static_cast<int>(this->Base.Pos.x - this->Base.Size.x * (1.f - this->Base.Center.x));
+				int y1 = ypos + static_cast<int>(this->Base.Pos.y - this->Base.Size.y * (1.f - this->Base.Center.y));
+				int x2 = xpos + static_cast<int>(this->Base.Pos.x + this->Base.Size.x * this->Base.Center.x);
+				int y2 = ypos + static_cast<int>(this->Base.Pos.y + this->Base.Size.y * this->Base.Center.y);
+				if ((x1 < x && x <= x2) && (y1 < y && y <= y2)) {
+					return true;
+				}
+			}
+			break;
+			case PartsType::NineSlice:
 			{
 				int x1 = xpos + static_cast<int>(this->Base.Pos.x - this->Base.Size.x * (1.f - this->Base.Center.x));
 				int y1 = ypos + static_cast<int>(this->Base.Pos.y - this->Base.Size.y * (1.f - this->Base.Center.y));
@@ -78,12 +96,35 @@ class DrawModule {
 			switch (this->Type) {
 			case PartsType::Box:
 			{
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->Now.Color.GetA());
 				DxLib::DrawBox(
 					xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x)),
 					ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y)),
 					xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x),
 					ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y),
 					this->Now.Color.GetColor(), TRUE);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+			}
+			break;
+			case PartsType::NineSlice:
+			{
+				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x));
+				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y));
+				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x);
+				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->Now.Color.GetA());
+				DxLib::SetDrawBright(this->Now.Color.GetR(), this->Now.Color.GetG(), this->Now.Color.GetB());
+				Draw9SliceGraph(
+					VECTOR2D(x1,y1), VECTOR2D(x2,y2),
+					this->Min, this->Max,
+					this->Now.Center,
+					0.f,
+					this->ImageHandle,
+					true,
+					false
+				);
+				DxLib::SetDrawBright(255, 255, 255);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 			break;
 			case PartsType::Max:
@@ -150,11 +191,35 @@ public:
 					}
 				}
 			}
-			m_PartsParam.back().Base.Pos.SetByJson(d["Pos"]);
-			m_PartsParam.back().Base.Size.SetByJson(d["Size"]);
-			m_PartsParam.back().Base.Center.SetByJson(d["Center"]);
-			m_PartsParam.back().Base.Color.SetByJson(d["BaseColor"]);
-			m_PartsParam.back().Now = m_PartsParam.back().Base;
+			if (d.contains("Pos")) {
+				m_PartsParam.back().Base.Pos.SetByJson(d["Pos"]);
+			}
+			if (d.contains("Size")) {
+				m_PartsParam.back().Base.Size.SetByJson(d["Size"]);
+			}
+			if (d.contains("Center")) {
+				m_PartsParam.back().Base.Center.SetByJson(d["Center"]);
+			}
+			if (d.contains("BaseColor")) {
+				m_PartsParam.back().Base.Color.SetByJson(d["BaseColor"]);
+			}
+			else {
+				m_PartsParam.back().Base.Color.Set(255, 255, 255, 255);
+			}
+
+			if (d.contains("Min")) {
+				m_PartsParam.back().Min.SetByJson(d["Min"]);
+			}
+			if (d.contains("Max")) {
+				m_PartsParam.back().Max.SetByJson(d["Max"]);
+			}
+
+			if (d.contains("Image")) {
+				m_PartsParam.back().ImagePath = d["Image"];
+				m_PartsParam.back().ImageHandle = LoadGraph(m_PartsParam.back().ImagePath.c_str());
+			}
+
+			m_PartsParam.back().Before = m_PartsParam.back().Now = m_PartsParam.back().Base;
 		}
 		for (auto& d : data["Anim"]) {
 			m_AnimData.emplace_back();
@@ -199,6 +264,9 @@ public:
 				if (a.contains("Color")) {
 					m_AnimData.back().m_AnimParam.back().m_ColorChanged = true;
 					m_AnimData.back().m_AnimParam.back().Target.Color.SetByJson(a["Color"]);
+				}
+				else {
+					m_AnimData.back().m_AnimParam.back().Target.Color.Set(255, 255, 255, 255);
 				}
 				//
 				m_AnimData.back().m_AnimParam.back().StartFrame = a["StartFrame"];
@@ -325,13 +393,13 @@ protected:
 			SceneBase::SetEndScene();
 		}
 
-		m_DrawModule.Update(110, 40);
+		m_DrawModule.Update(200, 200);
 	}
 	void Draw_Sub(void) noexcept override {
 		auto* DrawerMngr = MainDraw::Instance();
 		DxLib::DrawBox(5, 5, DrawerMngr->GetDispWidth() - 5, DrawerMngr->GetDispHeight() - 5, GetColor(0, 0, 255), TRUE);
 
-		m_DrawModule.Draw(110, 40);
+		m_DrawModule.Draw(200, 200);
 	}
 	void Dispose_Sub(void) noexcept override {}
 };

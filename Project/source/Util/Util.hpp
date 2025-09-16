@@ -167,10 +167,10 @@ public:
 	void SetB(int value) noexcept { color = (color & 0xffffff00) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 0)); }
 
 	void Set(int R, int G, int B, int A) noexcept {
-		SetA(R);
-		SetR(G);
-		SetG(B);
-		SetB(A);
+		SetR(R);
+		SetG(G);
+		SetB(B);
+		SetA(A);
 	}
 public:
 	// ”äŠr
@@ -217,6 +217,7 @@ public:
 	inline void operator/=(float p1) noexcept { *this *= (1.f / p1); }
 public:
 	void SetByJson(const std::vector<int>& value) noexcept {
+		this->SetA(255);
 		size_t loop = 0;
 		for (const int& dp : value) {
 			if (loop == 0) {

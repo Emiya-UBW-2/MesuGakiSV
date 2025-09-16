@@ -5,17 +5,20 @@
 			"Name":"Box1",
 			"Type":"Box",
 			"Pos":[5,5],
-			"Size":[205,41],
+			"Size":[205,211],
 			"Center":[0.5,0.5],
 			"BaseColor":[64,64,64]
 		},
 		{
 			"Name":"Box2",
-			"Type":"Box",
+			"Type":"NineSlice",
 			"Pos":[0,0],
-			"Size":[200,36],
+			"Size":[200,206],
 			"Center":[0.5,0.5],
-			"BaseColor":[192,192,192]
+			"BaseColor":[192,192,192],
+			"Min":[21,21],
+			"Max":[21,21],
+			"Image":"data/temp.png"
 		}
 	],
 	"Anim":[
@@ -26,7 +29,7 @@
 				{
 					"Target":"Box2",
 					"Pos":[0,0],
-					"Size":[200,36],
+					"Size":[200,206],
 					"Center":[0.5,0.5],
 					"StartFrame":0,
 					"EndFrame":6
@@ -52,7 +55,7 @@
 				{
 					"Target":"Box2",
 					"Pos":[0,0],
-					"Size":[190,32],
+					"Size":[190,196],
 					"Center":[0.5,0.5],
 					"Color":[255,255,255],
 					"StartFrame":0,
