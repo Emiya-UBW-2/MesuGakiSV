@@ -12,6 +12,10 @@
 class MainScene : public SceneBase {
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
+	MainScene(const MainScene&) = delete;
+	MainScene(MainScene&&) = delete;
+	MainScene& operator=(const MainScene&) = delete;
+	MainScene& operator=(MainScene&&) = delete;
 	virtual ~MainScene(void) noexcept {}
 protected:
 	void Init_Sub(void) noexcept override {}

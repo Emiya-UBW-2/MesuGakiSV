@@ -4,6 +4,7 @@
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
 #pragma warning(disable:5039)
+#pragma warning(disable:5045)
 #include "../Util/Enum.hpp"
 #include "../Util/SceneManager.hpp"
 #include "../Util/Key.hpp"
@@ -38,61 +39,30 @@ static const char* AnimTypeStr[static_cast<int>(AnimType::Max)] = {
 };
 
 class DrawModule {
+	struct Param2D {
+		VECTOR2D	Pos{};
+		VECTOR2D	Size{};
+		VECTOR2D	Center{};
+		ColorRGBA	Color{};
+	};
 	struct PartsParam {
 		std::string Name{};
 		PartsType Type{};
-		int BasePosX{};
-		int BasePosY{};
-		int BaseSizeX{};
-		int BaseSizeY{};
-		float BaseCenterX{};
-		float BaseCenterY{};
-		int BaseColorR{};
-		int BaseColorG{};
-		int BaseColorB{};
 
-		int PosX{};
-		int PosY{};
-		int BeforePosX{};
-		int BeforePosY{};
-
-		int SizeX{};
-		int SizeY{};
-		int BeforeSizeX{};
-		int BeforeSizeY{};
-
-		float CenterX{};
-		float CenterY{};
-		float BeforeCenterX{};
-		float BeforeCenterY{};
-
-		int ColorR{};
-		int ColorG{};
-		int ColorB{};
-		int BeforeColorR{};
-		int BeforeColorG{};
-		int BeforeColorB{};
+		Param2D	Base{};
+		Param2D	Now{};
+		Param2D	Before{};
 	public:
 	};
 	struct AnimParam {
 		size_t TargetID{};
 
 		bool m_PosChanged{};
-		int PosX{};
-		int PosY{};
-
 		bool m_SizeChanged{};
-		int SizeX{};
-		int SizeY{};
-
 		bool m_CenterChanged{};
-		float CenterX{};
-		float CenterY{};
-
 		bool m_ColorChanged{};
-		int ColorR{};
-		int ColorG{};
-		int ColorB{};
+
+		Param2D	Target{};
 
 		int StartFrame{};
 		int EndFrame{};
@@ -141,69 +111,11 @@ public:
 					}
 				}
 			}
-			{
-				int loop = 0;
-				for (const int& dp : d["Pos"]) {
-					if (loop == 0) {
-						m_PartsParam.back().BasePosX = dp;
-					}
-					else {
-						m_PartsParam.back().BasePosY = dp;
-					}
-					++loop;
-				}
-			}
-			{
-				int loop = 0;
-				for (const int& dp : d["Size"]) {
-					if (loop == 0) {
-						m_PartsParam.back().BaseSizeX = dp;
-					}
-					else {
-						m_PartsParam.back().BaseSizeY = dp;
-					}
-					++loop;
-				}
-			}
-			{
-				int loop = 0;
-				for (const float& dp : d["Center"]) {
-					if (loop == 0) {
-						m_PartsParam.back().BaseCenterX = dp;
-					}
-					else {
-						m_PartsParam.back().BaseCenterY = dp;
-					}
-					++loop;
-				}
-			}
-			{
-				int loop = 0;
-				for (const int& dp : d["BaseColor"]) {
-					if (loop == 0) {
-						m_PartsParam.back().BaseColorR = dp;
-					}
-					else if (loop == 1) {
-						m_PartsParam.back().BaseColorG = dp;
-					}
-					else {
-						m_PartsParam.back().BaseColorB = dp;
-					}
-					++loop;
-				}
-			}
-			m_PartsParam.back().PosX = m_PartsParam.back().BasePosX;
-			m_PartsParam.back().PosY = m_PartsParam.back().BasePosY;
-
-			m_PartsParam.back().SizeX = m_PartsParam.back().BaseSizeX;
-			m_PartsParam.back().SizeY = m_PartsParam.back().BaseSizeY;
-
-			m_PartsParam.back().CenterX = m_PartsParam.back().BaseCenterX;
-			m_PartsParam.back().CenterY = m_PartsParam.back().BaseCenterY;
-
-			m_PartsParam.back().ColorR = m_PartsParam.back().BaseColorR;
-			m_PartsParam.back().ColorG = m_PartsParam.back().BaseColorG;
-			m_PartsParam.back().ColorB = m_PartsParam.back().BaseColorB;
+			m_PartsParam.back().Base.Pos.SetByJson(d["Pos"]);
+			m_PartsParam.back().Base.Size.SetByJson(d["Size"]);
+			m_PartsParam.back().Base.Center.SetByJson(d["Center"]);
+			m_PartsParam.back().Base.Color.SetByJson(d["BaseColor"]);
+			m_PartsParam.back().Now = m_PartsParam.back().Base;
 		}
 		for (auto& d : data["Anim"]) {
 			m_AnimData.emplace_back();
@@ -235,58 +147,19 @@ public:
 				//
 				if (a.contains("Pos")) {
 					m_AnimData.back().m_AnimParam.back().m_PosChanged = true;
-					int loop = 0;
-					for (const int& dp : a["Pos"]) {
-						if (loop == 0) {
-							m_AnimData.back().m_AnimParam.back().PosX = dp;
-						}
-						else {
-							m_AnimData.back().m_AnimParam.back().PosY = dp;
-						}
-						++loop;
-					}
+					m_AnimData.back().m_AnimParam.back().Target.Pos.SetByJson(a["Pos"]);
 				}
 				if (a.contains("Size")) {
 					m_AnimData.back().m_AnimParam.back().m_SizeChanged = true;
-					int loop = 0;
-					for (const int& dp : a["Size"]) {
-						if (loop == 0) {
-							m_AnimData.back().m_AnimParam.back().SizeX = dp;
-						}
-						else {
-							m_AnimData.back().m_AnimParam.back().SizeY = dp;
-						}
-						++loop;
-					}
+					m_AnimData.back().m_AnimParam.back().Target.Size.SetByJson(a["Size"]);
 				}
 				if (a.contains("Center")) {
 					m_AnimData.back().m_AnimParam.back().m_CenterChanged = true;
-					int loop = 0;
-					for (const float& dp : a["Center"]) {
-						if (loop == 0) {
-							m_AnimData.back().m_AnimParam.back().CenterX = dp;
-						}
-						else {
-							m_AnimData.back().m_AnimParam.back().CenterY = dp;
-						}
-						++loop;
-					}
+					m_AnimData.back().m_AnimParam.back().Target.Center.SetByJson(a["Center"]);
 				}
 				if (a.contains("Color")) {
 					m_AnimData.back().m_AnimParam.back().m_ColorChanged = true;
-					int loop = 0;
-					for (const int& dp : a["Color"]) {
-						if (loop == 0) {
-							m_AnimData.back().m_AnimParam.back().ColorR = dp;
-						}
-						else if (loop == 1) {
-							m_AnimData.back().m_AnimParam.back().ColorG = dp;
-						}
-						else {
-							m_AnimData.back().m_AnimParam.back().ColorB = dp;
-						}
-						++loop;
-					}
+					m_AnimData.back().m_AnimParam.back().Target.Color.SetByJson(a["Color"]);
 				}
 				//
 				m_AnimData.back().m_AnimParam.back().StartFrame = a["StartFrame"];
@@ -306,10 +179,10 @@ public:
 			m_IsSelect = false;
 
 			auto& p = m_PartsParam.back();//Ç∆ÇËÇ†Ç¶Ç∏ç≈å„ïîÇ≈
-			int x1 = xpos + p.BasePosX - static_cast<int>(static_cast<float>(p.BaseSizeX) * (1.f - p.BaseCenterX));
-			int y1 = ypos + p.BasePosY - static_cast<int>(static_cast<float>(p.BaseSizeY) * (1.f - p.BaseCenterX));
-			int x2 = xpos + p.BasePosX + static_cast<int>(static_cast<float>(p.BaseSizeX) * p.BaseCenterX);
-			int y2 = ypos + p.BasePosY + static_cast<int>(static_cast<float>(p.BaseSizeY) * p.BaseCenterY);
+			int x1 = xpos + static_cast<int>(p.Base.Pos.x - p.Base.Size.x * (1.f - p.Base.Center.x));
+			int y1 = ypos + static_cast<int>(p.Base.Pos.y - p.Base.Size.y * (1.f - p.Base.Center.y));
+			int x2 = xpos + static_cast<int>(p.Base.Pos.x + p.Base.Size.x * p.Base.Center.x);
+			int y2 = ypos + static_cast<int>(p.Base.Pos.y + p.Base.Size.y * p.Base.Center.y);
 
 			if (
 				(x1 < DrawerMngr->GetMousePositionX() && DrawerMngr->GetMousePositionX() <= x2) &&
@@ -351,44 +224,31 @@ public:
 			//
 			for (auto& p : a.m_AnimParam) {
 				if (p.StartFrame <= this->m_Frame && this->m_Frame <= p.EndFrame) {
-					auto& Now = m_PartsParam.at(p.TargetID);
+					auto& now = m_PartsParam.at(p.TargetID);
+					float Per = static_cast<float>(this->m_Frame - p.StartFrame) / static_cast<float>(p.EndFrame - p.StartFrame);
 					if (p.m_PosChanged) {
 						if (p.StartFrame == this->m_Frame) {
-							Now.BeforePosX = Now.PosX;
-							Now.BeforePosY = Now.PosY;
+							now.Before.Pos = now.Now.Pos;
 						}
-						float Per = static_cast<float>(this->m_Frame - p.StartFrame) / static_cast<float>(p.EndFrame - p.StartFrame);
-						Now.PosX = Now.BeforePosX + static_cast<int>(static_cast<float>(p.PosX - Now.BeforePosX) * Per);
-						Now.PosY = Now.BeforePosY + static_cast<int>(static_cast<float>(p.PosY - Now.BeforePosY) * Per);
+						now.Now.Pos = Lerp(now.Before.Pos, p.Target.Pos, Per);
 					}
 					if (p.m_SizeChanged) {
 						if (p.StartFrame == this->m_Frame) {
-							Now.BeforeSizeX = Now.SizeX;
-							Now.BeforeSizeY = Now.SizeY;
+							now.Before.Size = now.Now.Size;
 						}
-						float Per = static_cast<float>(this->m_Frame - p.StartFrame) / static_cast<float>(p.EndFrame - p.StartFrame);
-						Now.SizeX = Now.BeforeSizeX + static_cast<int>(static_cast<float>(p.SizeX - Now.BeforeSizeX) * Per);
-						Now.SizeY = Now.BeforeSizeY + static_cast<int>(static_cast<float>(p.SizeY - Now.BeforeSizeY) * Per);
+						now.Now.Size = Lerp(now.Before.Size, p.Target.Size, Per);
 					}
 					if (p.m_CenterChanged) {
 						if (p.StartFrame == this->m_Frame) {
-							Now.BeforeCenterX = Now.CenterX;
-							Now.BeforeCenterY = Now.CenterY;
+							now.Before.Center = now.Now.Center;
 						}
-						float Per = static_cast<float>(this->m_Frame - p.StartFrame) / static_cast<float>(p.EndFrame - p.StartFrame);
-						Now.CenterX = Now.BeforeCenterX + static_cast<int>(static_cast<float>(p.CenterX - Now.BeforeCenterX) * Per);
-						Now.CenterY = Now.BeforeCenterY + static_cast<int>(static_cast<float>(p.CenterY - Now.BeforeCenterY) * Per);
+						now.Now.Center = Lerp(now.Before.Center, p.Target.Center, Per);
 					}
 					if (p.m_ColorChanged) {
 						if (p.StartFrame == this->m_Frame) {
-							Now.BeforeColorR = Now.ColorR;
-							Now.BeforeColorG = Now.ColorG;
-							Now.BeforeColorB = Now.ColorB;
+							now.Before.Color = now.Now.Color;
 						}
-						float Per = static_cast<float>(this->m_Frame - p.StartFrame) / static_cast<float>(p.EndFrame - p.StartFrame);
-						Now.ColorR = Now.BeforeColorR + static_cast<int>(static_cast<float>(p.ColorR - Now.BeforeColorR) * Per);
-						Now.ColorG = Now.BeforeColorG + static_cast<int>(static_cast<float>(p.ColorG - Now.BeforeColorG) * Per);
-						Now.ColorB = Now.BeforeColorB + static_cast<int>(static_cast<float>(p.ColorB - Now.BeforeColorB) * Per);
+						now.Now.Color = Lerp(now.Before.Color, p.Target.Color, Per);
 					}
 				}
 			}
@@ -396,18 +256,7 @@ public:
 		if (!IsSelectAnim) {
 			m_AnimDataLastSelect = -1;
 			for (auto& p : m_PartsParam) {
-				p.BeforePosX = p.PosX = p.BasePosX;
-				p.BeforePosY = p.PosY = p.BasePosY;
-
-				p.BeforeSizeX = p.SizeX = p.BaseSizeX;
-				p.BeforeSizeY = p.SizeY = p.BaseSizeY;
-
-				p.BeforeCenterX = p.CenterX = p.BaseCenterX;
-				p.BeforeCenterY = p.CenterY = p.BaseCenterY;
-
-				p.BeforeColorR = p.ColorR = p.BaseColorR;
-				p.BeforeColorG = p.ColorG = p.BaseColorG;
-				p.BeforeColorB = p.ColorB = p.BaseColorB;
+				p.Before = p.Now = p.Base;
 			}
 		}
 	}
@@ -417,13 +266,13 @@ public:
 			case PartsType::Box:
 			{
 				DxLib::DrawBox(
-					xpos + p.PosX - static_cast<int>(static_cast<float>(p.SizeX) * (1.f - p.CenterX)),
-					ypos + p.PosY - static_cast<int>(static_cast<float>(p.SizeY) * (1.f - p.CenterX)),
-					xpos + p.PosX + static_cast<int>(static_cast<float>(p.SizeX) * p.CenterX),
-					ypos + p.PosY + static_cast<int>(static_cast<float>(p.SizeY) * p.CenterY),
-					GetColor(p.ColorR, p.ColorG, p.ColorB), TRUE);
+					xpos + static_cast<int>(p.Now.Pos.x - p.Now.Size.x * (1.f - p.Now.Center.x)),
+					ypos + static_cast<int>(p.Now.Pos.y - p.Now.Size.y * (1.f - p.Now.Center.y)),
+					xpos + static_cast<int>(p.Now.Pos.x + p.Now.Size.x * p.Now.Center.x),
+					ypos + static_cast<int>(p.Now.Pos.y + p.Now.Size.y * p.Now.Center.y),
+					p.Now.Color.GetColor(), TRUE);
 			}
-				break;
+			break;
 			case PartsType::Max:
 				break;
 			default:
@@ -437,6 +286,10 @@ class TitleScene : public SceneBase {
 	DrawModule m_DrawModule;
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
+	TitleScene(const TitleScene&) = delete;
+	TitleScene(TitleScene&&) = delete;
+	TitleScene& operator=(const TitleScene&) = delete;
+	TitleScene& operator=(TitleScene&&) = delete;
 	virtual ~TitleScene(void) noexcept {}
 protected:
 	void Init_Sub(void) noexcept override {
