@@ -113,7 +113,15 @@ public:
 	inline VECTOR2D operator/(float p1) const noexcept { return *this * (1.f / p1); }
 	inline void operator/=(float p1) noexcept { *this *= (1.f / p1); }
 public:
+	inline VECTOR2D			Rotate(float Rad) const noexcept {
+		VECTOR2D Answer;
+		Answer.x = this->x * std::cos(Rad) - this->y * std::sin(Rad);
+		Answer.y = this->x * std::sin(Rad) + this->y * std::cos(Rad);
+		return Answer;
+	}
+public:
 	inline static float			Cross(const VECTOR2D& A, const VECTOR2D& B) noexcept { return A.x * B.y - A.y * B.x; }
+
 public:
 	void SetByJson(const std::vector<float>& value) noexcept {
 		size_t loop = 0;
@@ -278,17 +286,17 @@ static void Draw9SliceGraph(
 	float xs = (o2.x - o1.x);
 	float ys = (o2.y - o1.y);
 
-	float CenterX = o1.x + xs * Center.x;
-	float CenterY = o1.y + ys * Center.y;
+	VECTOR2D center;
+	center.x = o1.x + xs * Center.x;
+	center.y = o1.y + ys * Center.y;
 
 	auto SetPoint = [&](float xper, float yper, int xc, int yc) {
 		Vertex.resize(Vertex.size() + 1);
-		float X = o1.x + xs * xper - CenterX;
-		float Y = o1.y + ys * yper - CenterY;
-		Vertex.back().pos = VGet(
-			CenterX + X * std::cos(Angle) - Y * std::sin(Angle),
-			CenterY + X * std::sin(Angle) + Y * std::cos(Angle),
-			0.f);
+		VECTOR2D ofs;
+		ofs.x = o1.x + xs * xper;
+		ofs.y = o1.y + ys * yper;
+		VECTOR2D pos = center + (ofs - center).Rotate(Angle);
+		Vertex.back().pos = VGet(pos.x, pos.y, 0.f);
 
 		Vertex.back().rhw = 1.0f;
 		Vertex.back().dif = GetColorU8(255, 255, 255, 255);

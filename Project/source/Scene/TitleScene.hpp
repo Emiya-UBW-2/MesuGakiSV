@@ -70,25 +70,26 @@ class DrawModule {
 			case PartsType::Box:
 			case PartsType::NineSlice:
 			{
-				VECTOR2D PosOfs;
-				PosOfs.x = Pos.x + this->Now.OfsNoRad.y + this->Now.Ofs.x * std::cos(this->Now.Rad + Rad) - this->Now.Ofs.y * std::sin(this->Now.Rad + Rad);
-				PosOfs.y = Pos.y + this->Now.OfsNoRad.y + this->Now.Ofs.x * std::sin(this->Now.Rad + Rad) + this->Now.Ofs.y * std::cos(this->Now.Rad + Rad);
+				VECTOR2D PosOfs = Pos + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Rad);
 
-				float x1 = PosOfs.x - this->Now.Size.x * this->Now.Scale.x * Scale.x * (1.f - this->Now.Center.x);
-				float y1 = PosOfs.y - this->Now.Size.y * this->Now.Scale.y * Scale.y * (1.f - this->Now.Center.y);
-				float x2 = PosOfs.x + this->Now.Size.x * this->Now.Scale.x * Scale.x * this->Now.Center.x;
-				float y2 = PosOfs.y + this->Now.Size.y * this->Now.Scale.y * Scale.y * this->Now.Center.y;
+				VECTOR2D Size;
+				Size.x = this->Now.Size.x * this->Now.Scale.x * Scale.x;
+				Size.y = this->Now.Size.y * this->Now.Scale.y * Scale.y;
 
-				float centerX = PosOfs.x + this->Now.Size.x * this->Now.Scale.x * Scale.x * (this->Now.Center.x - 0.5f) * 2.f;
-				float centerY = PosOfs.y + this->Now.Size.y * this->Now.Scale.y * Scale.y * (this->Now.Center.y - 0.5f) * 2.f;
+				float x1 = PosOfs.x - Size.x * (1.f - this->Now.Center.x);
+				float y1 = PosOfs.y - Size.y * (1.f - this->Now.Center.y);
+				float x2 = PosOfs.x + Size.x * this->Now.Center.x;
+				float y2 = PosOfs.y + Size.y * this->Now.Center.y;
+
+				VECTOR2D center;
+				center.x = PosOfs.x + Size.x * (this->Now.Center.x - 0.5f) * 2.f;
+				center.y = PosOfs.y + Size.y * (this->Now.Center.y - 0.5f) * 2.f;
 
 				auto GetPoint = [&](float o1x, float o1y) {
-					float X = o1x - centerX;
-					float Y = o1y - centerY;
-					VECTOR2D Answer;
-					Answer.x = centerX + X * std::cos(this->Now.Rad + Rad) - Y * std::sin(this->Now.Rad + Rad);
-					Answer.y = centerY + X * std::sin(this->Now.Rad + Rad) + Y * std::cos(this->Now.Rad + Rad);
-					return Answer;
+					VECTOR2D ofs;
+					ofs.x = o1x;
+					ofs.y = o1y;
+					return center + (ofs - center).Rotate(this->Now.Rad + Rad);
 					};
 
 				if (HitPointToSquare(VECTOR2D(static_cast<float>(x), static_cast<float>(y)), GetPoint(x1, y1), GetPoint(x2, y1), GetPoint(x2, y2), GetPoint(x1, y2))) {
@@ -109,26 +110,28 @@ class DrawModule {
 			switch (this->Type) {
 			case PartsType::Box:
 			{
-				VECTOR2D PosOfs;
-				PosOfs.x = Pos.x + this->Now.OfsNoRad.y + this->Now.Ofs.x * std::cos(this->Now.Rad + Rad) - this->Now.Ofs.y * std::sin(this->Now.Rad + Rad);
-				PosOfs.y = Pos.y + this->Now.OfsNoRad.y + this->Now.Ofs.x * std::sin(this->Now.Rad + Rad) + this->Now.Ofs.y * std::cos(this->Now.Rad + Rad);
+				VECTOR2D PosOfs = Pos + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Rad);
 
-				float x1 = PosOfs.x - this->Now.Size.x * this->Now.Scale.x * Scale.x * (1.f - this->Now.Center.x);
-				float y1 = PosOfs.y - this->Now.Size.y * this->Now.Scale.y * Scale.y * (1.f - this->Now.Center.y);
-				float x2 = PosOfs.x + this->Now.Size.x * this->Now.Scale.x * Scale.x * this->Now.Center.x;
-				float y2 = PosOfs.y + this->Now.Size.y * this->Now.Scale.y * Scale.y * this->Now.Center.y;
+				VECTOR2D Size;
+				Size.x = this->Now.Size.x * this->Now.Scale.x * Scale.x;
+				Size.y = this->Now.Size.y * this->Now.Scale.y * Scale.y;
 
-				float centerX = PosOfs.x + this->Now.Size.x * this->Now.Scale.x * Scale.x * (this->Now.Center.x - 0.5f) * 2.f;
-				float centerY = PosOfs.y + this->Now.Size.y * this->Now.Scale.y * Scale.y * (this->Now.Center.y - 0.5f) * 2.f;
+				float x1 = PosOfs.x - Size.x * (1.f - this->Now.Center.x);
+				float y1 = PosOfs.y - Size.y * (1.f - this->Now.Center.y);
+				float x2 = PosOfs.x + Size.x * this->Now.Center.x;
+				float y2 = PosOfs.y + Size.y * this->Now.Center.y;
+
+				VECTOR2D center;
+				center.x = PosOfs.x + Size.x * (this->Now.Center.x - 0.5f) * 2.f;
+				center.y = PosOfs.y + Size.y * (this->Now.Center.y - 0.5f) * 2.f;
 
 				auto GetPoint = [&](float o1x, float o1y) {
-					float X = o1x - centerX;
-					float Y = o1y - centerY;
-					VECTOR2D Answer;
-					Answer.x = centerX + X * std::cos(this->Now.Rad + Rad) - Y * std::sin(this->Now.Rad + Rad);
-					Answer.y = centerY + X * std::sin(this->Now.Rad + Rad) + Y * std::cos(this->Now.Rad + Rad);
-					return Answer;
+					VECTOR2D ofs;
+					ofs.x = o1x;
+					ofs.y = o1y;
+					return center + (ofs - center).Rotate(this->Now.Rad + Rad);
 					};
+
 				VECTOR2D  P1 = GetPoint(x1, y1);
 				VECTOR2D  P2 = GetPoint(x2, y1);
 				VECTOR2D  P3 = GetPoint(x2, y2);
@@ -145,14 +148,16 @@ class DrawModule {
 			break;
 			case PartsType::NineSlice:
 			{
-				VECTOR2D PosOfs;
-				PosOfs.x = Pos.x + this->Now.OfsNoRad.y + this->Now.Ofs.x * std::cos(this->Now.Rad + Rad) - this->Now.Ofs.y * std::sin(this->Now.Rad + Rad);
-				PosOfs.y = Pos.y + this->Now.OfsNoRad.y + this->Now.Ofs.x * std::sin(this->Now.Rad + Rad) + this->Now.Ofs.y * std::cos(this->Now.Rad + Rad);
+				VECTOR2D PosOfs = Pos + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Rad);
 
-				float x1 = PosOfs.x - this->Now.Size.x * this->Now.Scale.x * Scale.x * (1.f - this->Now.Center.x);
-				float y1 = PosOfs.y - this->Now.Size.y * this->Now.Scale.y * Scale.y * (1.f - this->Now.Center.y);
-				float x2 = PosOfs.x + this->Now.Size.x * this->Now.Scale.x * Scale.x * this->Now.Center.x;
-				float y2 = PosOfs.y + this->Now.Size.y * this->Now.Scale.y * Scale.y * this->Now.Center.y;
+				VECTOR2D Size;
+				Size.x = this->Now.Size.x * this->Now.Scale.x * Scale.x;
+				Size.y = this->Now.Size.y * this->Now.Scale.y * Scale.y;
+
+				float x1 = PosOfs.x - Size.x * (1.f - this->Now.Center.x);
+				float y1 = PosOfs.y - Size.y * (1.f - this->Now.Center.y);
+				float x2 = PosOfs.x + Size.x * this->Now.Center.x;
+				float y2 = PosOfs.y + Size.y * this->Now.Center.y;
 				DxLib::SetDrawBright(this->Now.Color.GetR(), this->Now.Color.GetG(), this->Now.Color.GetB());
 				Draw9SliceGraph(
 					VECTOR2D(x1,y1), VECTOR2D(x2,y2),
