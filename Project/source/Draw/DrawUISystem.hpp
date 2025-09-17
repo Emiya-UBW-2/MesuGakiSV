@@ -12,8 +12,8 @@ enum class PartsType :size_t {
 	Max,
 };
 static const char* PartsTypeStr[static_cast<int>(PartsType::Max)] = {
-"Box",
-"NineSlice"
+	"Box",
+	"NineSlice"
 };
 
 enum class AnimType :size_t {
@@ -205,10 +205,36 @@ private:
 public:
 	//コンストラクタ
 	DrawModule(void) noexcept {}
-	DrawModule(const DrawModule&) = delete;
-	DrawModule(DrawModule&&) = delete;
-	DrawModule& operator=(const DrawModule&) = delete;
-	DrawModule& operator=(DrawModule&&) = delete;
+	DrawModule(const DrawModule& o) noexcept {
+		this->m_PartsParam = o.m_PartsParam;
+		this->m_AnimData = o.m_AnimData;
+		this->m_AnimDataLastSelect = o.m_AnimDataLastSelect;
+		this->m_Frame = o.m_Frame;
+		this->m_IsSelect = o.m_IsSelect;
+	}
+	DrawModule(DrawModule&& o) noexcept {
+		this->m_PartsParam = o.m_PartsParam;
+		this->m_AnimData = o.m_AnimData;
+		this->m_AnimDataLastSelect = o.m_AnimDataLastSelect;
+		this->m_Frame = o.m_Frame;
+		this->m_IsSelect = o.m_IsSelect;
+	}
+	DrawModule& operator=(const DrawModule& o) noexcept {
+		this->m_PartsParam = o.m_PartsParam;
+		this->m_AnimData = o.m_AnimData;
+		this->m_AnimDataLastSelect = o.m_AnimDataLastSelect;
+		this->m_Frame = o.m_Frame;
+		this->m_IsSelect = o.m_IsSelect;
+		return *this;
+	}
+	DrawModule& operator=(DrawModule&& o) noexcept {
+		this->m_PartsParam = o.m_PartsParam;
+		this->m_AnimData = o.m_AnimData;
+		this->m_AnimDataLastSelect = o.m_AnimDataLastSelect;
+		this->m_Frame = o.m_Frame;
+		this->m_IsSelect = o.m_IsSelect;
+		return *this;
+	}
 	//デストラクタ
 	~DrawModule(void) noexcept {
 		m_PartsParam.clear();
@@ -222,7 +248,6 @@ public:
 		m_AnimData.clear();
 		std::ifstream file(Path);
 		nlohmann::json data = nlohmann::json::parse(file);
-		//data["Type"];
 		for (auto& d : data["MainParts"]) {
 			m_PartsParam.emplace_back();
 			m_PartsParam.back().Name = d["Name"];
@@ -467,13 +492,35 @@ class DrawUISystem : public SingletonBase<DrawUISystem> {
 private:
 	friend class SingletonBase<DrawUISystem>;
 private:
+	std::vector<DrawModule> m_DrawModule;
 private://コンストラクタ、デストラクタ
-	DrawUISystem(void) noexcept {}
+	DrawUISystem(void) noexcept {
+		m_DrawModule.reserve(16);
+	}
 	DrawUISystem(const DrawUISystem&) = delete;
 	DrawUISystem(DrawUISystem&&) = delete;
 	DrawUISystem& operator=(const DrawUISystem&) = delete;
 	DrawUISystem& operator=(DrawUISystem&&) = delete;
 	~DrawUISystem(void) noexcept {}
 public:
+	void Add(const char* Path) noexcept {
+		m_DrawModule.emplace_back();
+		m_DrawModule.back().Init(Path);
+	}
+public:
+	void Init(const char* Path) noexcept {
+		Add(Path);
+	}
+	void Update(void) noexcept {
+		if (m_DrawModule.size() == 0) { return; }
+		m_DrawModule.at(0).Update(VECTOR2D(0.f, 0.f), deg2rad(0.f), VECTOR2D(1.f, 1.f));
+	}
+	void Draw(void) noexcept {
+		if (m_DrawModule.size() == 0) { return; }
+		m_DrawModule.at(0).Draw(VECTOR2D(0.f, 0.f), deg2rad(0.f), VECTOR2D(1.f, 1.f));
+	}
+	void Dispose(void) noexcept {
+		m_DrawModule.clear();
+	}
 };
 
