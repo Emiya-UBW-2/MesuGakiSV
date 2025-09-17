@@ -31,10 +31,10 @@ protected:
 		DrawUISystem::Instance()->Init("data/ui001.json");
 	}
 	void Update_Sub(void) noexcept override {
-		/*
+		//*
 		auto* SceneMngr = SceneManager::Instance();
 		auto* KeyMngr = KeyParam::Instance();
-		if (m_DrawModule.IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+		if (DrawUISystem::Instance()->Get(1).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
 			SceneBase::SetEndScene();
 		}

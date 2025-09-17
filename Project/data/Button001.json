@@ -3,7 +3,7 @@
 		{
 			"Name":"Box1",
 			"Type":"Box",
-			"OfsNoRad":[50,50],
+			"OfsNoRad":[5,5],
 			"Ofs":[0,0],
 			"Size":[205,205],
 			"Rad":0,
