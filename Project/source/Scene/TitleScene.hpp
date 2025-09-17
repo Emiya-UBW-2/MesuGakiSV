@@ -44,6 +44,7 @@ class DrawModule {
 	struct Param2D {
 		VECTOR2D	Pos{};
 		VECTOR2D	Size{};
+		VECTOR2D	Scale{};
 		VECTOR2D	Center{};
 		float		Rad{};
 		ColorRGBA	Color{};
@@ -65,10 +66,10 @@ class DrawModule {
 			switch (this->Type) {
 			case PartsType::Box:
 			{
-				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x));
-				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y));
-				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x);
-				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y);
+				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * this->Now.Scale.x * (1.f - this->Now.Center.x));
+				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * this->Now.Scale.y * (1.f - this->Now.Center.y));
+				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Scale.x * this->Now.Center.x);
+				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Scale.y * this->Now.Center.y);
 				if ((x1 < x && x <= x2) && (y1 < y && y <= y2)) {
 					return true;
 				}
@@ -76,14 +77,14 @@ class DrawModule {
 			break;
 			case PartsType::NineSlice:
 			{
-				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x));
-				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y));
-				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x);
-				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y);
+				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * this->Now.Scale.x * (1.f - this->Now.Center.x));
+				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * this->Now.Scale.y * (1.f - this->Now.Center.y));
+				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Scale.x * this->Now.Center.x);
+				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Scale.y * this->Now.Center.y);
 
 				auto GetPoint = [&](float o1x, float o1y) {
-					int centerX = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * (this->Now.Center.x - 0.5f) * 2.f);
-					int centerY = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * (this->Now.Center.y - 0.5f) * 2.f);
+					int centerX = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Scale.x * (this->Now.Center.x - 0.5f) * 2.f);
+					int centerY = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Scale.y * (this->Now.Center.y - 0.5f) * 2.f);
 					float X = o1x - centerX;
 					float Y = o1y - centerY;
 					VECTOR2D Answer;
@@ -111,20 +112,20 @@ class DrawModule {
 			{
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->Now.Color.GetA());
 				DxLib::DrawBox(
-					xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x)),
-					ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y)),
-					xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x),
-					ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y),
+					xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * this->Now.Scale.x * (1.f - this->Now.Center.x)),
+					ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * this->Now.Scale.y * (1.f - this->Now.Center.y)),
+					xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Scale.x * this->Now.Center.x),
+					ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Scale.y * this->Now.Center.y),
 					this->Now.Color.GetColor(), TRUE);
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 			break;
 			case PartsType::NineSlice:
 			{
-				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x));
-				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y));
-				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x);
-				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y);
+				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * this->Now.Scale.x * (1.f - this->Now.Center.x));
+				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * this->Now.Scale.y * (1.f - this->Now.Center.y));
+				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Scale.x * this->Now.Center.x);
+				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Scale.y * this->Now.Center.y);
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->Now.Color.GetA());
 				DxLib::SetDrawBright(this->Now.Color.GetR(), this->Now.Color.GetG(), this->Now.Color.GetB());
 				Draw9SliceGraph(
@@ -152,6 +153,7 @@ class DrawModule {
 
 		bool m_PosChanged{};
 		bool m_SizeChanged{};
+		bool m_ScaleChanged{};
 		bool m_CenterChanged{};
 		bool m_RadChanged{};
 		bool m_ColorChanged{};
@@ -210,6 +212,9 @@ public:
 			}
 			if (d.contains("Size")) {
 				m_PartsParam.back().Base.Size.SetByJson(d["Size"]);
+			}
+			if (d.contains("Scale")) {
+				m_PartsParam.back().Base.Scale.SetByJson(d["Scale"]);
 			}
 			if (d.contains("Center")) {
 				m_PartsParam.back().Base.Center.SetByJson(d["Center"]);
@@ -274,6 +279,10 @@ public:
 				if (a.contains("Size")) {
 					m_AnimData.back().m_AnimParam.back().m_SizeChanged = true;
 					m_AnimData.back().m_AnimParam.back().Target.Size.SetByJson(a["Size"]);
+				}
+				if (a.contains("Scale")) {
+					m_AnimData.back().m_AnimParam.back().m_ScaleChanged = true;
+					m_AnimData.back().m_AnimParam.back().Target.Scale.SetByJson(a["Scale"]);
 				}
 				if (a.contains("Center")) {
 					m_AnimData.back().m_AnimParam.back().m_CenterChanged = true;
@@ -365,6 +374,12 @@ public:
 							now.Before.Size = now.Now.Size;
 						}
 						now.Now.Size = Lerp(now.Before.Size, p.Target.Size, Per);
+					}
+					if (p.m_ScaleChanged) {
+						if (p.StartFrame == this->m_Frame) {
+							now.Before.Scale = now.Now.Scale;
+						}
+						now.Now.Scale = Lerp(now.Before.Scale, p.Target.Scale, Per);
 					}
 					if (p.m_CenterChanged) {
 						if (p.StartFrame == this->m_Frame) {
