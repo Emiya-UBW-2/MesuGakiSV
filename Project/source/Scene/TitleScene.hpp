@@ -45,6 +45,7 @@ class DrawModule {
 		VECTOR2D	Pos{};
 		VECTOR2D	Size{};
 		VECTOR2D	Center{};
+		float		Rad{};
 		ColorRGBA	Color{};
 	};
 	struct PartsParam {
@@ -64,10 +65,10 @@ class DrawModule {
 			switch (this->Type) {
 			case PartsType::Box:
 			{
-				int x1 = xpos + static_cast<int>(this->Base.Pos.x - this->Base.Size.x * (1.f - this->Base.Center.x));
-				int y1 = ypos + static_cast<int>(this->Base.Pos.y - this->Base.Size.y * (1.f - this->Base.Center.y));
-				int x2 = xpos + static_cast<int>(this->Base.Pos.x + this->Base.Size.x * this->Base.Center.x);
-				int y2 = ypos + static_cast<int>(this->Base.Pos.y + this->Base.Size.y * this->Base.Center.y);
+				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x));
+				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y));
+				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x);
+				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y);
 				if ((x1 < x && x <= x2) && (y1 < y && y <= y2)) {
 					return true;
 				}
@@ -75,11 +76,23 @@ class DrawModule {
 			break;
 			case PartsType::NineSlice:
 			{
-				int x1 = xpos + static_cast<int>(this->Base.Pos.x - this->Base.Size.x * (1.f - this->Base.Center.x));
-				int y1 = ypos + static_cast<int>(this->Base.Pos.y - this->Base.Size.y * (1.f - this->Base.Center.y));
-				int x2 = xpos + static_cast<int>(this->Base.Pos.x + this->Base.Size.x * this->Base.Center.x);
-				int y2 = ypos + static_cast<int>(this->Base.Pos.y + this->Base.Size.y * this->Base.Center.y);
-				if ((x1 < x && x <= x2) && (y1 < y && y <= y2)) {
+				int x1 = xpos + static_cast<int>(this->Now.Pos.x - this->Now.Size.x * (1.f - this->Now.Center.x));
+				int y1 = ypos + static_cast<int>(this->Now.Pos.y - this->Now.Size.y * (1.f - this->Now.Center.y));
+				int x2 = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * this->Now.Center.x);
+				int y2 = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * this->Now.Center.y);
+
+				auto GetPoint = [&](float o1x, float o1y) {
+					int centerX = xpos + static_cast<int>(this->Now.Pos.x + this->Now.Size.x * (this->Now.Center.x - 0.5f) * 2.f);
+					int centerY = ypos + static_cast<int>(this->Now.Pos.y + this->Now.Size.y * (this->Now.Center.y - 0.5f) * 2.f);
+					float X = o1x - centerX;
+					float Y = o1y - centerY;
+					VECTOR2D Answer;
+					Answer.x = centerX + X * std::cos(this->Now.Rad) - Y * std::sin(this->Now.Rad);
+					Answer.y = centerY + X * std::sin(this->Now.Rad) + Y * std::cos(this->Now.Rad);
+					return Answer;
+					};
+
+				if (HitPointToSquare(VECTOR2D(x,y), GetPoint(x1, y1), GetPoint(x2, y1), GetPoint(x2, y2), GetPoint(x1, y2))) {
 					return true;
 				}
 			}
@@ -118,7 +131,7 @@ class DrawModule {
 					VECTOR2D(x1,y1), VECTOR2D(x2,y2),
 					this->Min, this->Max,
 					this->Now.Center,
-					0.f,
+					this->Now.Rad,
 					this->ImageHandle,
 					true,
 					false
@@ -140,6 +153,7 @@ class DrawModule {
 		bool m_PosChanged{};
 		bool m_SizeChanged{};
 		bool m_CenterChanged{};
+		bool m_RadChanged{};
 		bool m_ColorChanged{};
 
 		Param2D	Target{};
@@ -199,6 +213,10 @@ public:
 			}
 			if (d.contains("Center")) {
 				m_PartsParam.back().Base.Center.SetByJson(d["Center"]);
+			}
+			if (d.contains("Rad")) {
+				m_PartsParam.back().Base.Rad = d["Rad"];
+				m_PartsParam.back().Base.Rad = deg2rad(m_PartsParam.back().Base.Rad);
 			}
 			if (d.contains("BaseColor")) {
 				m_PartsParam.back().Base.Color.SetByJson(d["BaseColor"]);
@@ -260,6 +278,11 @@ public:
 				if (a.contains("Center")) {
 					m_AnimData.back().m_AnimParam.back().m_CenterChanged = true;
 					m_AnimData.back().m_AnimParam.back().Target.Center.SetByJson(a["Center"]);
+				}
+				if (a.contains("Rad")) {
+					m_AnimData.back().m_AnimParam.back().m_RadChanged = true;
+					m_AnimData.back().m_AnimParam.back().Target.Rad = a["Rad"];
+					m_AnimData.back().m_AnimParam.back().Target.Rad = deg2rad(m_AnimData.back().m_AnimParam.back().Target.Rad);
 				}
 				if (a.contains("Color")) {
 					m_AnimData.back().m_AnimParam.back().m_ColorChanged = true;
@@ -349,6 +372,12 @@ public:
 						}
 						now.Now.Center = Lerp(now.Before.Center, p.Target.Center, Per);
 					}
+					if (p.m_RadChanged) {
+						if (p.StartFrame == this->m_Frame) {
+							now.Before.Rad = now.Now.Rad;
+						}
+						now.Now.Rad = Lerp(now.Before.Rad, p.Target.Rad, Per);
+					}
 					if (p.m_ColorChanged) {
 						if (p.StartFrame == this->m_Frame) {
 							now.Before.Color = now.Now.Color;
@@ -393,13 +422,13 @@ protected:
 			SceneBase::SetEndScene();
 		}
 
-		m_DrawModule.Update(200, 200);
+		m_DrawModule.Update(400, 200);
 	}
 	void Draw_Sub(void) noexcept override {
 		auto* DrawerMngr = MainDraw::Instance();
 		DxLib::DrawBox(5, 5, DrawerMngr->GetDispWidth() - 5, DrawerMngr->GetDispHeight() - 5, GetColor(0, 0, 255), TRUE);
 
-		m_DrawModule.Draw(200, 200);
+		m_DrawModule.Draw(400, 200);
 	}
 	void Dispose_Sub(void) noexcept override {}
 };

@@ -113,6 +113,8 @@ public:
 	inline VECTOR2D operator/(float p1) const noexcept { return *this * (1.f / p1); }
 	inline void operator/=(float p1) noexcept { *this *= (1.f / p1); }
 public:
+	inline static float			Cross(const VECTOR2D& A, const VECTOR2D& B) noexcept { return A.x * B.y - A.y * B.x; }
+public:
 	void SetByJson(const std::vector<float>& value) noexcept {
 		size_t loop = 0;
 		for (const float& dp : value) {
@@ -126,6 +128,20 @@ public:
 		}
 	}
 };
+
+
+// 点と矩形との2D判定
+static bool HitPointToRectangle(int xp, int yp, int x1, int y1, int x2, int y2) noexcept { return (xp >= x1 && xp <= x2 && yp >= y1 && yp <= y2); }
+// 矩形と矩形との2D判定
+static bool HitRectangleToRectangle(int xp1, int yp1, int xp2, int yp2, int x1, int y1, int x2, int y2) noexcept { return (xp1 < x2 && x1 < xp2) && (yp1 < y2 && y1 < yp2); }
+// 点と四角形との2D判定
+static bool HitPointToSquare(VECTOR2D point, VECTOR2D c1, VECTOR2D c2, VECTOR2D c3, VECTOR2D c4) noexcept {
+	if (0 > VECTOR2D::Cross(c2 - c1, point - c1)) { return false; }
+	if (0 > VECTOR2D::Cross(c3 - c2, point - c2)) { return false; }
+	if (0 > VECTOR2D::Cross(c4 - c3, point - c3)) { return false; }
+	if (0 > VECTOR2D::Cross(c1 - c4, point - c4)) { return false; }
+	return true;
+}
 
 // --------------------------------------------------------------------------------------------------
 // RGBA
@@ -267,14 +283,11 @@ static void Draw9SliceGraph(
 
 	auto SetPoint = [&](float xper, float yper, int xc, int yc) {
 		Vertex.resize(Vertex.size() + 1);
+		float X = o1.x + xs * xper - CenterX;
+		float Y = o1.y + ys * yper - CenterY;
 		Vertex.back().pos = VGet(
-			o1.x + xs * xper - CenterX,
-			o1.y + ys * yper - CenterY,
-			0.f);
-
-		Vertex.back().pos = VGet(
-			CenterX + Vertex.back().pos.x * std::cos(Angle) - Vertex.back().pos.y * std::sin(Angle),
-			CenterY + Vertex.back().pos.x * std::sin(Angle) + Vertex.back().pos.y * std::cos(Angle),
+			CenterX + X * std::cos(Angle) - Y * std::sin(Angle),
+			CenterY + X * std::sin(Angle) + Y * std::cos(Angle),
 			0.f);
 
 		Vertex.back().rhw = 1.0f;
@@ -371,3 +384,14 @@ inline ColorRGBA Lerp(const ColorRGBA& A, const ColorRGBA& B, float Per) noexcep
 	Answer.SetA(static_cast<int>(Lerp(static_cast<float>(A.GetA()), static_cast<float>(B.GetA()), Per)));
 	return Answer;
 }
+
+// --------------------------------------------------------------------------------------------------
+// 角度変換
+// --------------------------------------------------------------------------------------------------
+// 角度からラジアンに
+extern void* enabler;// ダミー変数
+template <class T, typename std::enable_if<std::is_arithmetic<T>::value>::type*& = enabler>
+constexpr float deg2rad(T p1) noexcept { return static_cast<float>(p1) * DX_PI_F / 180.f; }
+// ラジアンから角度に
+template <class T, typename std::enable_if<std::is_arithmetic<T>::value>::type*& = enabler>
+constexpr float rad2deg(T p1) noexcept { return static_cast<float>(p1) * 180.f / DX_PI_F; }

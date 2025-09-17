@@ -200,7 +200,7 @@ enum class EnumInput {
 	Max = DInput_Max,
 };
 
-static int MouseInput[static_cast<size_t>(EnumInput::Mouse_Max)- static_cast<size_t>(EnumInput::Mouse_Begin)] = {
+static int MouseInput[static_cast<size_t>(EnumInput::Mouse_Max) - static_cast<size_t>(EnumInput::Mouse_Begin)] = {
 	MOUSE_INPUT_1,
 	MOUSE_INPUT_2,
 	MOUSE_INPUT_3,
@@ -631,7 +631,7 @@ public:
 				if (abs(LS_Y) < 10) { LS_Y = 0; }
 				if (!(LS_X == 0 && LS_Y == 0)) {
 					LS_Active = true;
-					LS_Degree = std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)) * 180.f / DX_PI_F;
+					LS_Degree = rad2deg(std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)));
 				}
 			}
 			{
@@ -645,7 +645,7 @@ public:
 				if (abs(RS_Y) < 10) { RS_Y = 0; }
 				if (!(RS_X == 0 && RS_Y == 0)) {
 					RS_Active = true;
-					RS_Degree = std::atan2f(static_cast<float>(RS_X), static_cast<float>(-RS_Y)) * 180.f / DX_PI_F;
+					RS_Degree = rad2deg(std::atan2f(static_cast<float>(RS_X), static_cast<float>(-RS_Y)));
 				}
 			}
 			for (size_t loop = static_cast<size_t>(EnumInput::XInput_Begin); loop < static_cast<size_t>(EnumInput::XInput_Max); ++loop) {
@@ -732,7 +732,7 @@ public:
 				if (abs(LS_Y) < 10) { LS_Y = 0; }
 				if (!(LS_X == 0 && LS_Y == 0)) {
 					LS_Active = true;
-					LS_Degree = std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)) * 180.f / DX_PI_F;
+					LS_Degree = rad2deg(std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)));
 				}
 			}
 			{
@@ -746,7 +746,7 @@ public:
 				if (abs(RS_Y) < 10) { RS_Y = 0; }
 				if (!(RS_X == 0 && RS_Y == 0)) {
 					RS_Active = true;
-					RS_Degree = std::atan2f(static_cast<float>(RS_X), static_cast<float>(-RS_Y)) * 180.f / DX_PI_F;
+					RS_Degree = rad2deg(std::atan2f(static_cast<float>(RS_X), static_cast<float>(-RS_Y)));
 				}
 			}
 			{
