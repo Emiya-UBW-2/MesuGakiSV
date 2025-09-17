@@ -29,6 +29,7 @@ private:
 	struct Param {
 		EnumOptionSelectType		m_SelectType{};
 		int							m_Value{};
+		char		padding[4]{};
 		std::string					m_Type{};
 		std::vector<std::string>	m_ValueList{};
 	public:

@@ -157,7 +157,7 @@ static bool HitPointToSquare(VECTOR2D point, VECTOR2D c1, VECTOR2D c2, VECTOR2D 
 struct ColorRGBA
 {
 	uint32_t				color{};
-
+	char		padding[4]{};
 public:
 	ColorRGBA(void) noexcept {}
 	ColorRGBA(const ColorRGBA& o) noexcept {
@@ -272,7 +272,7 @@ public:
 //	TransFlag　: 画像の透明度を有効にするかどうか( TRUE：有効にする　FALSE：無効にする )
 //	TilingFlag : 角以外の部分をタイリングするか拡縮させるか( TRUE：タイリング　FALSE：拡縮 )
 static void Draw9SliceGraph(
-	VECTOR2D o1, VECTOR2D o2, 
+	VECTOR2D o1, VECTOR2D o2,
 	VECTOR2D minp, VECTOR2D maxp,
 	VECTOR2D Center, float Angle,
 	int GrHandle, bool TransFlag, bool TilingFlag) noexcept {

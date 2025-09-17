@@ -46,6 +46,7 @@ private:
 	int			m_UpdateTickCount = 1;
 	int			m_FPSLimit = 60;			//更新レート
 	bool		m_WaitVSync = true;
+	char		padding[7]{};
 private:
 	static const int		BaseDPI = 96;
 	static int GetDPI(void) noexcept {

@@ -11,13 +11,13 @@
 #include "../File/json.hpp"
 #pragma warning( pop )
 
-enum class InputType {
+enum class InputType :size_t {
 	KeyBoard,
 	XInput,
 	DInput,
 };
 
-enum class EnumInput {
+enum class EnumInput :size_t {
 	Mouse_Begin,
 	Mouse_Left = Mouse_Begin,
 	Mouse_Right,
@@ -384,7 +384,7 @@ static int DInputInput[static_cast<size_t>(EnumInput::DInput_Max) - static_cast<
 	0xF028,
 };
 
-enum class EnumMenu {
+enum class EnumMenu :size_t {
 	Esc,
 	Diside,
 	Cancel,
@@ -395,7 +395,7 @@ enum class EnumMenu {
 	Max,
 };
 
-enum class EnumBattle {
+enum class EnumBattle :size_t {
 	A,
 	W,
 	D,
@@ -412,6 +412,7 @@ private:
 		bool m_Press{ false };
 		bool m_PrevPress{ false };
 		bool m_IsRepeat{ false };
+		char		padding[1]{};
 	public:
 		void Update(bool PressButton) noexcept {
 			m_PrevPress = m_Press;

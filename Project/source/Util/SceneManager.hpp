@@ -11,6 +11,7 @@ class SceneBase {
 	int m_SceneID{};
 	bool m_IsEndGame = false;
 	bool m_IsEndScene = false;
+	char		padding[2]{};
 public:
 	SceneBase(void) noexcept {}
 	virtual ~SceneBase(void) noexcept {}

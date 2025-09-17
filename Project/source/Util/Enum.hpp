@@ -1,6 +1,6 @@
 #pragma once
 
-enum class EnumScene {
+enum class EnumScene :size_t {
 	Title,
 	Main,
 };
