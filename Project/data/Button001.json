@@ -4,23 +4,30 @@
 		{
 			"Name":"Box1",
 			"Type":"Box",
-			"Pos":[5,5],
+			"OfsNoRad":[50,50],
+			"Ofs":[0,0],
 			"Size":[205,205],
+			"Rad":0,
 			"Scale":[1.0,1.0],
 			"Center":[0.5,0.5],
-			"BaseColor":[8,8,8]
+			"BaseColor":[8,8,8],
+			"IsHitCheck":true
 		},
 		{
 			"Name":"Box2",
 			"Type":"NineSlice",
-			"Pos":[0,0],
+			"OfsNoRad":[0,0],
+			"Ofs":[0,0],
 			"Size":[200,200],
+			"Rad":0,
 			"Scale":[1.0,1.0],
 			"Center":[0.5,0.5],
 			"BaseColor":[192,192,192],
 			"Min":[21,21],
 			"Max":[21,21],
-			"Image":"data/temp.png"
+			"Image":"data/temp.png",
+			"IsHitCheck":false
+
 		}
 	],
 	"Anim":[
