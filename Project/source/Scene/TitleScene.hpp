@@ -28,13 +28,13 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {
 		DrawUISystem::Create();
-		DrawUISystem::Instance()->Init("data/ui001.json");
+		DrawUISystem::Instance()->Init("data/UI001A.json");
 	}
 	void Update_Sub(void) noexcept override {
 		//*
 		auto* SceneMngr = SceneManager::Instance();
 		auto* KeyMngr = KeyParam::Instance();
-		if (DrawUISystem::Instance()->Get(1).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+		if (DrawUISystem::Instance()->Get(0).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
 			SceneBase::SetEndScene();
 		}
