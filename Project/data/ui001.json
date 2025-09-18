@@ -1,4 +1,5 @@
 {
+	"Branch":"OptionBack",
 	"MainParts":[
 		{
 			"Name":"Box1",
@@ -88,97 +89,9 @@
 			"Type":"Json",
 			"OfsNoRad":[1170,220],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
 			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
-		}
-		,
-		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[1170,310],
-			"Rad":0,
-			"Scale":[3.6,0.75],
-			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
-		}
-		,
-		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[1170,400],
-			"Rad":0,
-			"Scale":[3.6,0.75],
-			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
-		}
-		,
-		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[1170,490],
-			"Rad":0,
-			"Scale":[3.6,0.75],
-			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
-		}
-		,
-		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[1170,580],
-			"Rad":0,
-			"Scale":[3.6,0.75],
-			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
-		}
-		,
-		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[1170,670],
-			"Rad":0,
-			"Scale":[3.6,0.75],
-			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
-		}
-		,
-		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[1170,760],
-			"Rad":0,
-			"Scale":[3.6,0.75],
-			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
-		}
-		,
-		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[1170,850],
-			"Rad":0,
-			"Scale":[3.6,0.75],
-			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
-		}
-		,
-		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[1170,940],
-			"Rad":0,
-			"Scale":[3.6,0.75],
-			"BaseColor":[255,255,255],
-			"FilePath":"data/Button001.json",
+			"FilePath":"data/UI001B.json",
 			"IsHitCheck":true
 		}
 	],
