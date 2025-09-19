@@ -1,5 +1,4 @@
 {
-	"Branch":"OptionFront1",
 	"MainParts":[
 		{
 			"Name":"Box1",
@@ -9,7 +8,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 		,
 		{
@@ -20,7 +19,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 		,
 		{
@@ -31,7 +30,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 		,
 		{
@@ -42,7 +41,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 		,
 		{
@@ -53,7 +52,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 		,
 		{
@@ -64,7 +63,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 		,
 		{
@@ -75,7 +74,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 		,
 		{
@@ -86,7 +85,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 		,
 		{
@@ -97,7 +96,7 @@
 			"Scale":[3.6,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 	],
 	"Anim":[

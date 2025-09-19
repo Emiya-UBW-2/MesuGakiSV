@@ -1,5 +1,4 @@
 {
-	"Branch":"OptionBase",
 	"MainParts":[
 		{
 			"Name":"Box1",
@@ -14,14 +13,14 @@
 			"IsHitCheck":true
 		},
 		{
-			"Name":"Box2",
+			"Name":"OptionUI",
 			"Type":"Json",
 			"OfsNoRad":[0,1080],
 			"Rad":0,
 			"Scale":[1.0,1.0],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/UI001.json",
-			"IsHitCheck":true
+			"IsHitCheck":false
 		}
 	],
 	"Anim":[
@@ -37,7 +36,7 @@
 				}
 				,
 				{
-					"Target":"Box2",
+					"Target":"OptionUI",
 					"OfsNoRad":[0,0],
 					"StartFrame":0,
 					"EndFrame":6

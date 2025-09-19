@@ -35,14 +35,14 @@ static const char* AnimTypeStr[static_cast<int>(AnimType::Max)] = {
 
 class DrawModule {
 	struct Param2D {
-		VECTOR2D	OfsNoRad{};
+		VECTOR2D	OfsNoRad = VECTOR2D(0.f, 0.f);
 		VECTOR2D	Ofs{};
 		VECTOR2D	Size{};
-		VECTOR2D	Scale{};
+		VECTOR2D	Scale = VECTOR2D(1.f, 1.f);
 		VECTOR2D	Center{};
-		float		Rad{};
+		float		Rad = deg2rad(0.f);
 		char		padding[4]{};
-		ColorRGBA	Color{};
+		ColorRGBA	Color = ColorRGBA(255, 255, 255, 255);
 	};
 	struct PartsParam {
 		std::string Name{};
@@ -60,9 +60,9 @@ class DrawModule {
 		bool		m_IsHitCheck{};
 		char		padding2[7]{};
 	public:
-		bool IsHitPoint(int x, int y, VECTOR2D Pos, float Rad, VECTOR2D Scale) const noexcept;
-		void Update(VECTOR2D Pos, float Rad, VECTOR2D Scale) const noexcept;
-		void Draw(VECTOR2D Pos, float Rad, VECTOR2D Scale) const noexcept;
+		bool IsHitPoint(int x, int y, Param2D Parent) const noexcept;
+		void Update(Param2D Parent) const noexcept;
+		void Draw(Param2D Parent) const noexcept;
 	};
 	struct AnimParam {
 		size_t TargetID{};
@@ -94,6 +94,8 @@ private:
 	int m_Frame{};
 	bool m_IsSelect{};
 	char		padding[7]{};
+public:
+	std::string BranchName{};
 public:
 	//コンストラクタ
 	DrawModule(void) noexcept {}
@@ -135,8 +137,8 @@ public:
 public:
 	bool IsSelectButton(void) const noexcept { return m_IsSelect; }
 public:
-	void Init(const char* Path) noexcept;
-	void Update(VECTOR2D Pos, float Rad, VECTOR2D Scale) noexcept {
+	void Init(const char* Path, std::string Branch) noexcept;
+	void Update(Param2D Parent = Param2D()) noexcept {
 		AnimType SelectNow = AnimType::Normal;
 		{
 			auto* DrawerMngr = MainDraw::Instance();
@@ -146,7 +148,7 @@ public:
 
 			bool IsSelect = false;
 			for (auto& p : m_PartsParam) {
-				if (p.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Pos, Rad, Scale)) {
+				if (p.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Parent)) {
 					IsSelect = true;
 					break;
 				}
@@ -243,13 +245,14 @@ public:
 		}
 
 		for (auto& p : m_PartsParam) {
-			p.Update(Pos, Rad, Scale);
+			p.Update(Parent);
 		}
 	}
-	void Draw(VECTOR2D Pos, float Rad, VECTOR2D Scale) noexcept {
+	void Draw(Param2D Parent = Param2D()) noexcept {
 		for (auto& p : m_PartsParam) {
-			p.Draw(Pos, Rad, Scale);
+			p.Draw(Parent);
 		}
+		//DrawString(Parent.OfsNoRad.x, Parent.OfsNoRad.y, this->BranchName.c_str(), GetColor(255, 0, 0));
 	}
 };
 
@@ -262,7 +265,7 @@ private:
 	std::vector<DrawModule> m_DrawModule;
 private://コンストラクタ、デストラクタ
 	DrawUISystem(void) noexcept {
-		m_DrawModule.reserve(16);
+		m_DrawModule.reserve(128);
 	}
 	DrawUISystem(const DrawUISystem&) = delete;
 	DrawUISystem(DrawUISystem&&) = delete;
@@ -270,24 +273,32 @@ private://コンストラクタ、デストラクタ
 	DrawUISystem& operator=(DrawUISystem&&) = delete;
 	~DrawUISystem(void) noexcept {}
 public:
-	int Add(const char* Path) noexcept {
+	int Add(const char* Path, std::string Branch) noexcept {
 		int ID = static_cast<int>(m_DrawModule.size());
 		m_DrawModule.emplace_back();
-		m_DrawModule.back().Init(Path);
+		m_DrawModule.back().Init(Path, Branch);
 		return ID;
 	}
 	DrawModule& Get(int ID) noexcept { return m_DrawModule.at(static_cast<size_t>(ID)); }
+	int GetID(std::string Value) noexcept {
+		for (auto& d : m_DrawModule) {
+			if (Value == d.BranchName) {
+				return &d - &m_DrawModule.front();
+			}
+		}
+		return -1;
+	}
 public:
 	void Init(const char* Path) noexcept {
-		Add(Path);
+		Add(Path, "");
 	}
 	void Update(void) noexcept {
 		if (m_DrawModule.size() == 0) { return; }
-		m_DrawModule.at(0).Update(VECTOR2D(0.f, 0.f), deg2rad(0.f), VECTOR2D(1.f, 1.f));
+		m_DrawModule.at(0).Update();
 	}
 	void Draw(void) noexcept {
 		if (m_DrawModule.size() == 0) { return; }
-		m_DrawModule.at(0).Draw(VECTOR2D(0.f, 0.f), deg2rad(0.f), VECTOR2D(1.f, 1.f));
+		m_DrawModule.at(0).Draw();
 	}
 	void Dispose(void) noexcept {
 		m_DrawModule.clear();

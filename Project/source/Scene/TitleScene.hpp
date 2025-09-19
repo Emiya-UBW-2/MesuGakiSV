@@ -18,6 +18,8 @@
 #pragma warning( pop )
 
 class TitleScene : public SceneBase {
+
+	int m_CloseButton = -1;
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
 	TitleScene(const TitleScene&) = delete;
@@ -28,13 +30,15 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {
 		DrawUISystem::Create();
-		DrawUISystem::Instance()->Init("data/UI001A.json");
+		DrawUISystem::Instance()->Init("data/UI000.json");
+
+		m_CloseButton = DrawUISystem::Instance()->GetID("OptionUI/CloseButton");
 	}
 	void Update_Sub(void) noexcept override {
 		//*
 		auto* SceneMngr = SceneManager::Instance();
 		auto* KeyMngr = KeyParam::Instance();
-		if (DrawUISystem::Instance()->Get(0).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+		if (DrawUISystem::Instance()->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
 			SceneBase::SetEndScene();
 		}

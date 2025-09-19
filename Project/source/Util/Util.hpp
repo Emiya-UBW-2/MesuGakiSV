@@ -159,6 +159,10 @@ struct ColorRGBA
 	uint32_t				color{};
 	char		padding[4]{};
 public:
+	ColorRGBA(int R, int G, int B, int A) noexcept {
+		Set(R, G, B, A);
+	}
+
 	ColorRGBA(void) noexcept {}
 	ColorRGBA(const ColorRGBA& o) noexcept {
 		this->color = o.color;

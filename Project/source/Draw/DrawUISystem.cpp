@@ -4,17 +4,17 @@
 
 const DrawUISystem* SingletonBase<DrawUISystem>::m_Singleton = nullptr;
 
-bool DrawModule::PartsParam::IsHitPoint(int x, int y, VECTOR2D Pos, float Rad, VECTOR2D Scale) const noexcept {
+bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noexcept {
 	if (!m_IsHitCheck) { return false; }
 	switch (this->Type) {
 	case PartsType::Box:
 	case PartsType::NineSlice:
 	{
-		VECTOR2D PosOfs = Pos + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Rad);
+		VECTOR2D PosOfs = Parent.OfsNoRad + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Parent.Rad);
 
 		VECTOR2D Size;
-		Size.x = this->Now.Size.x * this->Now.Scale.x * Scale.x;
-		Size.y = this->Now.Size.y * this->Now.Scale.y * Scale.y;
+		Size.x = this->Now.Size.x * this->Now.Scale.x * Parent.Scale.x;
+		Size.y = this->Now.Size.y * this->Now.Scale.y * Parent.Scale.y;
 
 		float x1 = PosOfs.x - Size.x * (1.f - this->Now.Center.x);
 		float y1 = PosOfs.y - Size.y * (1.f - this->Now.Center.y);
@@ -29,7 +29,7 @@ bool DrawModule::PartsParam::IsHitPoint(int x, int y, VECTOR2D Pos, float Rad, V
 			VECTOR2D ofs;
 			ofs.x = o1x;
 			ofs.y = o1y;
-			return center + (ofs - center).Rotate(this->Now.Rad + Rad);
+			return center + (ofs - center).Rotate(this->Now.Rad + Parent.Rad);
 			};
 
 		if (HitPointToSquare(VECTOR2D(static_cast<float>(x), static_cast<float>(y)), GetPoint(x1, y1), GetPoint(x2, y1), GetPoint(x2, y2), GetPoint(x1, y2))) {
@@ -46,16 +46,26 @@ bool DrawModule::PartsParam::IsHitPoint(int x, int y, VECTOR2D Pos, float Rad, V
 	}
 	return false;
 }
-void DrawModule::PartsParam::Update(VECTOR2D Pos, float Rad, VECTOR2D Scale) const noexcept {
-	VECTOR2D PosOfs = Pos + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Rad);
+void DrawModule::PartsParam::Update(Param2D Parent) const noexcept {
+	VECTOR2D PosOfs = Parent.OfsNoRad + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Parent.Rad);
 
 	VECTOR2D scale;
-	scale.x = this->Now.Scale.x * Scale.x;
-	scale.y = this->Now.Scale.y * Scale.y;
+	scale.x = this->Now.Scale.x * Parent.Scale.x;
+	scale.y = this->Now.Scale.y * Parent.Scale.y;
 
 	switch (this->Type) {
 	case PartsType::Json:
-		DrawUISystem::Instance()->Get(this->DrawModuleHandle).Update(PosOfs, this->Now.Rad + Rad, scale);
+	{
+		Param2D Child;
+		Child.OfsNoRad = PosOfs;
+		Child.Rad = this->Now.Rad + Parent.Rad;
+		Child.Scale = scale;
+		Child.Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetR()) / 255.f * static_cast<float>(Parent.Color.GetR()) / 255.f)));
+		Child.Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetG()) / 255.f * static_cast<float>(Parent.Color.GetG()) / 255.f)));
+		Child.Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetB()) / 255.f * static_cast<float>(Parent.Color.GetB()) / 255.f)));
+		Child.Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetA()) / 255.f * static_cast<float>(Parent.Color.GetA()) / 255.f)));
+		DrawUISystem::Instance()->Get(this->DrawModuleHandle).Update(Child);
+	}
 		break;
 	case PartsType::Box:
 	case PartsType::NineSlice:
@@ -65,12 +75,12 @@ void DrawModule::PartsParam::Update(VECTOR2D Pos, float Rad, VECTOR2D Scale) con
 		break;
 	}
 }
-void DrawModule::PartsParam::Draw(VECTOR2D Pos, float Rad, VECTOR2D Scale) const noexcept {
-	VECTOR2D PosOfs = Pos + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Rad);
+void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
+	VECTOR2D PosOfs = Parent.OfsNoRad + this->Now.OfsNoRad + this->Now.Ofs.Rotate(this->Now.Rad + Parent.Rad);
 
 	VECTOR2D scale;
-	scale.x = this->Now.Scale.x * Scale.x;
-	scale.y = this->Now.Scale.y * Scale.y;
+	scale.x = this->Now.Scale.x * Parent.Scale.x;
+	scale.y = this->Now.Scale.y * Parent.Scale.y;
 
 	VECTOR2D Size;
 	Size.x = this->Now.Size.x * scale.x;
@@ -92,20 +102,27 @@ void DrawModule::PartsParam::Draw(VECTOR2D Pos, float Rad, VECTOR2D Scale) const
 			VECTOR2D ofs;
 			ofs.x = o1x;
 			ofs.y = o1y;
-			return center + (ofs - center).Rotate(this->Now.Rad + Rad);
+			return center + (ofs - center).Rotate(this->Now.Rad + Parent.Rad);
 			};
 
 		VECTOR2D  P1 = GetPoint(x1, y1);
 		VECTOR2D  P2 = GetPoint(x2, y1);
 		VECTOR2D  P3 = GetPoint(x2, y2);
 		VECTOR2D  P4 = GetPoint(x1, y2);
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->Now.Color.GetA());
+
+		ColorRGBA	Color{};
+		Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetR()) / 255.f * static_cast<float>(Parent.Color.GetR()) / 255.f)));
+		Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetG()) / 255.f * static_cast<float>(Parent.Color.GetG()) / 255.f)));
+		Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetB()) / 255.f * static_cast<float>(Parent.Color.GetB()) / 255.f)));
+		Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetA()) / 255.f * static_cast<float>(Parent.Color.GetA()) / 255.f)));
+
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 		DxLib::DrawQuadrangle(
 			static_cast<int>(P1.x), static_cast<int>(P1.y),
 			static_cast<int>(P2.x), static_cast<int>(P2.y),
 			static_cast<int>(P3.x), static_cast<int>(P3.y),
 			static_cast<int>(P4.x), static_cast<int>(P4.y),
-			this->Now.Color.GetColor(),
+			Color.GetColor(),
 			TRUE
 		);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
@@ -117,13 +134,20 @@ void DrawModule::PartsParam::Draw(VECTOR2D Pos, float Rad, VECTOR2D Scale) const
 		float y1 = PosOfs.y - Size.y * (1.f - this->Now.Center.y);
 		float x2 = PosOfs.x + Size.x * this->Now.Center.x;
 		float y2 = PosOfs.y + Size.y * this->Now.Center.y;
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->Now.Color.GetA());
-		DxLib::SetDrawBright(this->Now.Color.GetR(), this->Now.Color.GetG(), this->Now.Color.GetB());
+
+		ColorRGBA	Color{};
+		Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetR()) / 255.f * static_cast<float>(Parent.Color.GetR()) / 255.f)));
+		Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetG()) / 255.f * static_cast<float>(Parent.Color.GetG()) / 255.f)));
+		Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetB()) / 255.f * static_cast<float>(Parent.Color.GetB()) / 255.f)));
+		Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetA()) / 255.f * static_cast<float>(Parent.Color.GetA()) / 255.f)));
+
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
+		DxLib::SetDrawBright(Color.GetR(), Color.GetG(), Color.GetB());
 		Draw9SliceGraph(
 			VECTOR2D(x1, y1), VECTOR2D(x2, y2),
 			this->Min, this->Max,
 			this->Now.Center,
-			this->Now.Rad + Rad,
+			this->Now.Rad + Parent.Rad,
 			this->ImageHandle,
 			true,
 			false
@@ -133,7 +157,17 @@ void DrawModule::PartsParam::Draw(VECTOR2D Pos, float Rad, VECTOR2D Scale) const
 	}
 	break;
 	case PartsType::Json:
-		DrawUISystem::Instance()->Get(this->DrawModuleHandle).Draw(PosOfs, this->Now.Rad + Rad, scale);
+	{
+		Param2D Child;
+		Child.OfsNoRad = PosOfs;
+		Child.Rad = this->Now.Rad + Parent.Rad;
+		Child.Scale = scale;
+		Child.Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetR()) / 255.f * static_cast<float>(Parent.Color.GetR()) / 255.f)));
+		Child.Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetG()) / 255.f * static_cast<float>(Parent.Color.GetG()) / 255.f)));
+		Child.Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetB()) / 255.f * static_cast<float>(Parent.Color.GetB()) / 255.f)));
+		Child.Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetA()) / 255.f * static_cast<float>(Parent.Color.GetA()) / 255.f)));
+		DrawUISystem::Instance()->Get(this->DrawModuleHandle).Draw(Child);
+	}
 		break;
 	case PartsType::Max:
 		break;
@@ -142,11 +176,14 @@ void DrawModule::PartsParam::Draw(VECTOR2D Pos, float Rad, VECTOR2D Scale) const
 	}
 }
 
-void DrawModule::Init(const char* Path) noexcept {
+void DrawModule::Init(const char* Path, std::string Branch) noexcept {
 	m_PartsParam.clear();
 	m_AnimData.clear();
 	std::ifstream file(Path);
 	nlohmann::json data = nlohmann::json::parse(file);
+
+	BranchName = Branch;
+
 	for (auto& d : data["MainParts"]) {
 		m_PartsParam.emplace_back();
 		m_PartsParam.back().Name = d["Name"];
@@ -198,7 +235,14 @@ void DrawModule::Init(const char* Path) noexcept {
 		}
 		if (d.contains("FilePath")) {
 			std::string FilePath = d["FilePath"];
-			m_PartsParam.back().DrawModuleHandle = DrawUISystem::Instance()->Add(FilePath.c_str());
+			std::string Child;
+			if (BranchName == "") {
+				Child = m_PartsParam.back().Name;
+			}
+			else {
+				Child = BranchName + "/" + m_PartsParam.back().Name;
+			}
+			m_PartsParam.back().DrawModuleHandle = DrawUISystem::Instance()->Add(FilePath.c_str(), Child);
 		}
 		;
 		if (d.contains("IsHitCheck")) {
