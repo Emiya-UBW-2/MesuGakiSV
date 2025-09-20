@@ -16,6 +16,20 @@
 
 // フォントハンドル
 class GraphHandle : public DXHandle {
+public:
+	GraphHandle(void) noexcept {}
+	GraphHandle(const GraphHandle&o) = delete;
+	GraphHandle(GraphHandle&& o) noexcept {
+		DXHandle::SetHandleDirect(o.get());
+		o.SetHandleDirect(-1);
+	}
+	GraphHandle& operator=(const GraphHandle& o) = delete;
+	GraphHandle& operator=(GraphHandle&& o) noexcept {
+		DXHandle::SetHandleDirect(o.get());
+		o.SetHandleDirect(-1);
+		return *this;
+	}
+	virtual ~GraphHandle(void) noexcept {}
 protected:
 	void	Dispose_Sub(void) noexcept override {
 		DeleteGraph(DXHandle::get());
@@ -148,7 +162,7 @@ public:
 		DxLib::LoadDivGraphWithStrLen(FileName.data(), FileName.length(), AllNum, XNum, YNum, XSize, YSize, HandleArray, NotUse3DFlag);
 
 		Handles->clear();
-		for (size_t loop = 0; loop < AllNum; ++loop) {
+		for (size_t loop = 0; loop < static_cast<size_t>(AllNum); ++loop) {
 			Handles->emplace_back();
 			Handles->back().SetHandleDirect(HandleArray[loop]);
 		}

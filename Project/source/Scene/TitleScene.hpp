@@ -52,39 +52,21 @@ private:
 		Param2D Param;
 		Param.OfsNoRad = VECTOR2D(980, 220);
 		m_DrawUI->AddChild(ChildBase.c_str(), "data/UI/Option/Tab001.json", Param);
-		int TabID = m_DrawUI->GetID(ChildBase.c_str());
 		for (int loop = 0; loop < 9; ++loop) {
+			std::string Child = ChildBase;
+			Child += "/Column";
+			Child += std::to_string(loop + 1);
+			int TabID = m_DrawUI->GetID(Child.c_str());
 			{
-				std::string Path = "";
-				Path += "String";
-				Path += std::to_string(loop + 1);
-				Path += "_0";
-				m_DrawUI->Get(TabID).GetParts(Path.c_str())->SetString("00");
-			}
-			{
-				std::string Path = "";
-				Path += "String";
-				Path += std::to_string(loop + 1);
-				Path += "_1";
-
 				std::string Str = "text";
 				Str += std::to_string(m_NowSelect + 1);
-				m_DrawUI->Get(TabID).GetParts(Path.c_str())->SetString(Str);
+				m_DrawUI->Get(TabID).GetParts("String1")->SetString(Str);
 			}
 			{
-				std::string Path = ChildBase;
-				Path += "/Box";
-				Path += std::to_string(loop + 1);
-				Path += "_0";
-				m_DrawUI->Get(m_DrawUI->GetID(Path.c_str())).GetParts("String1")->SetString(">");
+				m_DrawUI->Get(TabID).GetParts("String0")->SetString("00");
 			}
-			{
-				std::string Path = ChildBase;
-				Path += "/Box";
-				Path += std::to_string(loop + 1);
-				Path += "_1";
-				m_DrawUI->Get(m_DrawUI->GetID(Path.c_str())).GetParts("String1")->SetString("<");
-			}
+			m_DrawUI->Get(m_DrawUI->GetID((Child + "/Box1").c_str())).GetParts("String1")->SetString("<");
+			m_DrawUI->Get(m_DrawUI->GetID((Child + "/Box0").c_str())).GetParts("String1")->SetString(">");
 		}
 	}
 	void EndTab() noexcept {

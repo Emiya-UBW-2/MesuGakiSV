@@ -31,14 +31,12 @@ enum class FontType {
 // フォントハンドル
 class FontHandle : public DXHandle {
 public:
-	//*
 	FontHandle(void) noexcept {}
 	FontHandle(const FontHandle&) = delete;
 	FontHandle(FontHandle&&) = delete;
 	FontHandle& operator=(const FontHandle&) = delete;
 	FontHandle& operator=(FontHandle&&) = delete;
 	virtual ~FontHandle(void) noexcept {}
-	//*/
 protected:
 	void Dispose_Sub(void) noexcept override {
 		DeleteFontToHandle(DXHandle::get());

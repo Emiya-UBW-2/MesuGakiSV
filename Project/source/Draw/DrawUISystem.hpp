@@ -77,6 +77,7 @@ class DrawModule {
 		VECTOR2D			Max{};
 		std::string			ImagePath{};
 		int					DrawModuleHandle{};
+		char		padding[4]{};
 		const GraphHandle*	ImageHandle{};
 		bool				m_IsHitCheck{};
 		char		padding2[7]{};
