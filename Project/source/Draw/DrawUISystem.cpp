@@ -33,6 +33,7 @@ bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noex
 		}
 	}
 	break;
+	case PartsType::Image:
 	case PartsType::String:
 	case PartsType::Json:
 	case PartsType::Max:
@@ -64,6 +65,7 @@ void DrawModule::PartsParam::Update(DrawUISystem* DrawUI, Param2D Parent) const 
 	break;
 	case PartsType::Box:
 	case PartsType::NineSlice:
+	case PartsType::Image:
 	case PartsType::String:
 	case PartsType::Max:
 	default:
@@ -84,15 +86,14 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 
 	ColorRGBA	Color = this->Now.Color.GetMult(Parent.Color);
 
+	float x1 = PosOfs.x - Size.x * this->Now.Center.x;
+	float y1 = PosOfs.y - Size.y * this->Now.Center.y;
+	float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
+	float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
+
 	switch (this->Type) {
 	case PartsType::Box:
 	{
-		float x1 = PosOfs.x - Size.x * this->Now.Center.x;
-		float y1 = PosOfs.y - Size.y * this->Now.Center.y;
-		float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
-		float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
-
-
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 
 		if (Rad == 0.f) {
@@ -126,11 +127,6 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 	break;
 	case PartsType::NineSlice:
 	{
-		float x1 = PosOfs.x - Size.x * this->Now.Center.x;
-		float y1 = PosOfs.y - Size.y * this->Now.Center.y;
-		float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
-		float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
-
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 		DxLib::SetDrawBright(Color.GetR(), Color.GetG(), Color.GetB());
 		Draw9SliceGraph(
@@ -146,13 +142,27 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
 	break;
+	case PartsType::Image:
+	{
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
+		DxLib::SetDrawBright(Color.GetR(), Color.GetG(), Color.GetB());
+
+		/*
+		DxLib::DrawRotaGraph3(
+			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
+			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
+			scale.x, scale.y, Rad, this->ImageHandle, true);
+		//*/
+
+		DxLib::DrawRotaGraph(
+			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
+			scale.y, Rad, this->ImageHandle, true);
+		DxLib::SetDrawBright(255, 255, 255);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+	}
+	break;
 	case PartsType::String:
 	{
-		float x1 = PosOfs.x - Size.x * this->Now.Center.x;
-		float y1 = PosOfs.y - Size.y * this->Now.Center.y;
-		float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
-		float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
-
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 		if (Rad == 0.f) {
 			/*
@@ -194,29 +204,101 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 	}
 }
 
-void DrawModule::AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param) noexcept {
-	m_PartsParam.emplace_back();
-	auto& Back = m_PartsParam.back();
-	Back.Name = ChildName;
-	Back.Type = PartsType::Json;
-	Back.Base = Param;
+void DrawModule::PartsParam::AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* ChildBranch, const char* FilePath, Param2D Param) noexcept {
+	this->Name = ChildName;
+	this->Type = PartsType::Json;
+	this->Base = Param;
+	this->DrawModuleHandle = DrawUI->Add(FilePath, ChildBranch);
+	SetDefault();
+}
 
-	std::string Child;
-	if (BranchName == "") {
-		Child = Back.Name;
+void DrawModule::PartsParam::SetByJson(DrawUISystem* DrawUI, nlohmann::json& d, std::string BranchName) noexcept {
+	this->Name = d["Name"];
+	{
+		std::string TypeStr = d["Type"];
+		for (int loop = 0; loop < static_cast<int>(PartsType::Max); ++loop) {
+			if (TypeStr == PartsTypeStr[loop]) {
+				this->Type = static_cast<PartsType>(loop);
+				break;
+			}
+		}
+	}
+	if (d.contains("OfsNoRad")) {
+		this->Base.OfsNoRad.SetByJson(d["OfsNoRad"]);
+	}
+	if (d.contains("Ofs")) {
+		this->Base.Ofs.SetByJson(d["Ofs"]);
+	}
+	if (d.contains("Size")) {
+		this->Base.Size.SetByJson(d["Size"]);
+	}
+	if (d.contains("Scale")) {
+		this->Base.Scale.SetByJson(d["Scale"]);
+	}
+	if (d.contains("Center")) {
+		this->Base.Center.SetByJson(d["Center"]);
+	}
+	if (d.contains("Rad")) {
+		this->Base.Rad = d["Rad"];
+		this->Base.Rad = deg2rad(this->Base.Rad);
+	}
+	if (d.contains("BaseColor")) {
+		this->Base.Color.SetByJson(d["BaseColor"]);
 	}
 	else {
-		Child = BranchName + "/" + Back.Name;
+		this->Base.Color.Set(255, 255, 255, 255);
 	}
-	Back.DrawModuleHandle = DrawUI->Add(FilePath, Child.c_str());
 
-	Back.Before = Back.Now = Back.Base;
+	if (d.contains("FontID")) {
+		this->String = d["FontID"];
+	}
+	if (d.contains("Min")) {
+		this->Min.SetByJson(d["Min"]);
+	}
+	if (d.contains("Max")) {
+		this->Max.SetByJson(d["Max"]);
+	}
+
+	if (d.contains("Image")) {
+		this->ImagePath = d["Image"];
+		this->ImageHandle = LoadGraph(this->ImagePath.c_str());
+	}
+	if (d.contains("FilePath")) {
+		std::string FilePath = d["FilePath"];
+		std::string Child;
+		if (BranchName == "") {
+			Child = this->Name;
+		}
+		else {
+			Child = BranchName + "/" + this->Name;
+		}
+		this->DrawModuleHandle = DrawUI->Add(FilePath.c_str(), Child.c_str());
+	}
+	;
+	if (d.contains("IsHitCheck")) {
+		this->m_IsHitCheck = d["IsHitCheck"];
+	}
+
+	this->SetDefault();
+}
+
+void DrawModule::AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param) noexcept {
+	m_PartsParam.emplace_back();
+
+	std::string ChildBranch;
+	if (BranchName == "") {
+		ChildBranch = ChildName;
+	}
+	else {
+		ChildBranch = BranchName + "/" + ChildName;
+	}
+	m_PartsParam.back().AddChild(DrawUI, ChildName, ChildBranch.c_str(), FilePath, Param);
 }
 
 void DrawModule::DeleteChild(const char* ChildName) noexcept {
 	for (int loop = 0, max = static_cast<int>(this->m_PartsParam.size()); loop < max; ++loop) {
 		auto& p = m_PartsParam.at(static_cast<size_t>(loop));
-		if (p.Name == ChildName) {
+		if (p.GetName() == ChildName) {
 			m_PartsParam.erase(m_PartsParam.begin() + loop);
 			break;
 		}
@@ -233,74 +315,7 @@ void DrawModule::Init(DrawUISystem* DrawUI, const char* Path, const char* Branch
 
 	for (auto& d : data["MainParts"]) {
 		m_PartsParam.emplace_back();
-		auto& Back = m_PartsParam.at(static_cast<size_t>(m_PartsParam.size() - 1));
-		Back.Name = d["Name"];
-		{
-			std::string Type = d["Type"];
-			for (int loop = 0; loop < static_cast<int>(PartsType::Max); ++loop) {
-				if (Type == PartsTypeStr[loop]) {
-					Back.Type = static_cast<PartsType>(loop);
-					break;
-				}
-			}
-		}
-		if (d.contains("OfsNoRad")) {
-			Back.Base.OfsNoRad.SetByJson(d["OfsNoRad"]);
-		}
-		if (d.contains("Ofs")) {
-			Back.Base.Ofs.SetByJson(d["Ofs"]);
-		}
-		if (d.contains("Size")) {
-			Back.Base.Size.SetByJson(d["Size"]);
-		}
-		if (d.contains("Scale")) {
-			Back.Base.Scale.SetByJson(d["Scale"]);
-		}
-		if (d.contains("Center")) {
-			Back.Base.Center.SetByJson(d["Center"]);
-		}
-		if (d.contains("Rad")) {
-			Back.Base.Rad = d["Rad"];
-			Back.Base.Rad = deg2rad(Back.Base.Rad);
-		}
-		if (d.contains("BaseColor")) {
-			Back.Base.Color.SetByJson(d["BaseColor"]);
-		}
-		else {
-			Back.Base.Color.Set(255, 255, 255, 255);
-		}
-
-		if (d.contains("FontID")) {
-			Back.String = d["FontID"];
-		}
-		if (d.contains("Min")) {
-			Back.Min.SetByJson(d["Min"]);
-		}
-		if (d.contains("Max")) {
-			Back.Max.SetByJson(d["Max"]);
-		}
-
-		if (d.contains("Image")) {
-			Back.ImagePath = d["Image"];
-			Back.ImageHandle = LoadGraph(Back.ImagePath.c_str());
-		}
-		if (d.contains("FilePath")) {
-			std::string FilePath = d["FilePath"];
-			std::string Child;
-			if (BranchName == "") {
-				Child = Back.Name;
-			}
-			else {
-				Child = BranchName + "/" + Back.Name;
-			}
-			Back.DrawModuleHandle = DrawUI->Add(FilePath.c_str(), Child.c_str());
-		}
-		;
-		if (d.contains("IsHitCheck")) {
-			Back.m_IsHitCheck = d["IsHitCheck"];
-		}
-
-		Back.Before = Back.Now = Back.Base;
+		m_PartsParam.back().SetByJson(DrawUI, d, BranchName);
 	}
 	for (auto& d : data["Anim"]) {
 		m_AnimData.emplace_back();
@@ -325,7 +340,7 @@ void DrawModule::Init(DrawUISystem* DrawUI, const char* Path, const char* Branch
 			{
 				std::string Target = a["Target"];
 				for (auto& p : m_PartsParam) {
-					if (Target == p.Name) {
+					if (Target == p.GetName()) {
 						AnimParamBack.TargetID = static_cast<size_t>(&p - &m_PartsParam.front());
 						break;
 					}

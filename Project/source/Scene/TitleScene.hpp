@@ -35,14 +35,53 @@ public:
 	bool IsActive(void) const noexcept {
 		return m_DrawUI->Get(m_UIBase).IsActive();
 	}
+
+	void Setup() noexcept {
+		std::string ChildBase = "OptionUI/Child";
+		ChildBase += std::to_string(m_NowSelect + 1);
+		Param2D Param;
+		Param.OfsNoRad = VECTOR2D(980, 220);
+		m_DrawUI->AddChild(ChildBase.c_str(), "data/UI/Option/Tab001.json", Param);
+		int TabID = m_DrawUI->GetID(ChildBase.c_str());
+		for (int loop = 0; loop < 9; ++loop) {
+			{
+				std::string Path = "";
+				Path += "String";
+				Path += std::to_string(loop + 1);
+				Path += "_0";
+				m_DrawUI->Get(TabID).GetParts(Path.c_str())->SetString("00");
+			}
+			{
+				std::string Path = "";
+				Path += "String";
+				Path += std::to_string(loop + 1);
+				Path += "_1";
+
+				std::string Str = "text";
+				Str += std::to_string(m_NowSelect + 1);
+				m_DrawUI->Get(TabID).GetParts(Path.c_str())->SetString(Str);
+			}
+			{
+				std::string Path = ChildBase;
+				Path += "/Box";
+				Path += std::to_string(loop + 1);
+				Path += "_0";
+				m_DrawUI->Get(m_DrawUI->GetID(Path.c_str())).GetParts("String1")->SetString(">");
+			}
+			{
+				std::string Path = ChildBase;
+				Path += "/Box";
+				Path += std::to_string(loop + 1);
+				Path += "_1";
+				m_DrawUI->Get(m_DrawUI->GetID(Path.c_str())).GetParts("String1")->SetString("<");
+			}
+		}
+	}
+
 	void SetActive(bool value) noexcept {
 		m_DrawUI->Get(m_UIBase).SetActive(value);
 		if (IsActive()) {
-			std::string Path = "OptionUI/Child";
-			Path += std::to_string(m_NowSelect + 1);
-			Param2D Param;
-			Param.OfsNoRad = VECTOR2D(980, 220);
-			m_DrawUI->AddChild(Path.c_str(), "data/UI/Option/Tab001.json", Param);
+			Setup();
 		}
 		else {
 			std::string Path = "OptionUI/Child";
@@ -59,9 +98,16 @@ public:
 
 		m_UIBase = m_DrawUI->GetID("");
 		for (int loop = 0; loop < 4; ++loop) {
-			std::string Path = "OptionUI/Tab";
-			Path += std::to_string(loop + 1);
-			m_TabButton[loop] = m_DrawUI->GetID(Path.c_str());
+			{
+				std::string Path = "OptionUI/Tab";
+				Path += std::to_string(loop + 1);
+				m_TabButton[loop] = m_DrawUI->GetID(Path.c_str());
+			}
+			{
+				std::string Path = "Tab";
+				Path += std::to_string(loop + 1);
+				m_DrawUI->Get(m_TabButton[loop]).GetParts("String1")->SetString(Path);
+			}
 		}
 		m_NowSelect = 0;
 		m_CloseButton = m_DrawUI->GetID("OptionUI/CloseButton");
@@ -79,13 +125,7 @@ public:
 						m_DrawUI->DeleteChild(Path.c_str());
 					}
 					m_NowSelect = loop;
-					{
-						std::string Path = "OptionUI/Child";
-						Path += std::to_string(m_NowSelect + 1);
-						Param2D Param;
-						Param.OfsNoRad = VECTOR2D(980, 220);
-						m_DrawUI->AddChild(Path.c_str(), "data/UI/Option/Tab001.json", Param);
-					}
+					Setup();
 				}
 			}
 			if (m_DrawUI->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
