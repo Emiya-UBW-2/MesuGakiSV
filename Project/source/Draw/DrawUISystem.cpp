@@ -154,7 +154,7 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 			scale.x, scale.y, Rad, this->ImageHandle->get(), true);
 		//*/
 
-		DxLib::DrawRotaGraph(
+		DxLib::DrawRotaGraphFast(
 			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
 			scale.y, Rad, this->ImageHandle->get(), true);
 		DxLib::SetDrawBright(255, 255, 255);

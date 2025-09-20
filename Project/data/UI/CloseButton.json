@@ -24,7 +24,7 @@
 			"BaseColor":[216,0,0],
 			"Min":[21,21],
 			"Max":[21,21],
-			"Image":"data/Button.png",
+			"Image":"data/Image/Button.png",
 			"IsHitCheck":true
 
 		}
@@ -39,7 +39,7 @@
 			"Scale":[0.9,0.9],
 			"Center":[0.5,0.5],
 			"BaseColor":[255,0,0],
-			"Image":"data/Cross.png",
+			"Image":"data/Image/Cross.png",
 			"IsHitCheck":true
 		}
 	],

@@ -24,7 +24,7 @@
 			"BaseColor":[216,216,216],
 			"Min":[21,21],
 			"Max":[21,21],
-			"Image":"data/Button.png",
+			"Image":"data/Image/Button.png",
 			"IsHitCheck":true
 
 		}

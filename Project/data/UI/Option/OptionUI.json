@@ -24,7 +24,7 @@
 			"BaseColor":[128,128,128],
 			"Min":[21,21],
 			"Max":[21,21],
-			"Image":"data/Back.png",
+			"Image":"data/Image/Back.png",
 			"IsHitCheck":false
 		},
 		{
@@ -39,7 +39,7 @@
 			"BaseColor":[164,164,164],
 			"Min":[21,21],
 			"Max":[21,21],
-			"Image":"data/Back.png",
+			"Image":"data/Image/Back.png",
 			"IsHitCheck":false
 		},
 		{
