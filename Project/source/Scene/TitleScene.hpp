@@ -42,7 +42,7 @@ public:
 			Path += std::to_string(m_NowSelect + 1);
 			Param2D Param;
 			Param.OfsNoRad = VECTOR2D(980, 220);
-			m_DrawUI->AddChild(Path.c_str(), "data/UI001B.json", Param);
+			m_DrawUI->AddChild(Path.c_str(), "data/UI/Option/Tab001.json", Param);
 		}
 		else {
 			std::string Path = "OptionUI/Child";
@@ -55,7 +55,7 @@ public:
 	void Init(void) noexcept {
 		m_DrawUI = new DrawUISystem();
 
-		m_DrawUI->Init("data/UI000.json");
+		m_DrawUI->Init("data/UI/Option/OptionBase.json");
 
 		m_UIBase = m_DrawUI->GetID("");
 		for (int loop = 0; loop < 4; ++loop) {
@@ -84,7 +84,7 @@ public:
 						Path += std::to_string(m_NowSelect + 1);
 						Param2D Param;
 						Param.OfsNoRad = VECTOR2D(980, 220);
-						m_DrawUI->AddChild(Path.c_str(), "data/UI001B.json", Param);
+						m_DrawUI->AddChild(Path.c_str(), "data/UI/Option/Tab001.json", Param);
 					}
 				}
 			}

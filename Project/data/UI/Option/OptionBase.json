@@ -7,7 +7,7 @@
 			"Rad":0,
 			"Scale":[1.0,1.0],
 			"BaseColor":[255,255,255],
-			"FilePath":"data/UI001.json",
+			"FilePath":"data/UI/Option/OptionUI.json",
 			"IsHitCheck":false
 		}
 	],
