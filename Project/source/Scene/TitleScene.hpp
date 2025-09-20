@@ -20,6 +20,7 @@
 class TitleScene : public SceneBase {
 
 	int m_CloseButton = -1;
+	char		padding[4]{};
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
 	TitleScene(const TitleScene&) = delete;

@@ -60,10 +60,7 @@ void DrawModule::PartsParam::Update(Param2D Parent) const noexcept {
 		Child.OfsNoRad = PosOfs;
 		Child.Rad = this->Now.Rad + Parent.Rad;
 		Child.Scale = scale;
-		Child.Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetR()) / 255.f * static_cast<float>(Parent.Color.GetR()) / 255.f)));
-		Child.Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetG()) / 255.f * static_cast<float>(Parent.Color.GetG()) / 255.f)));
-		Child.Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetB()) / 255.f * static_cast<float>(Parent.Color.GetB()) / 255.f)));
-		Child.Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetA()) / 255.f * static_cast<float>(Parent.Color.GetA()) / 255.f)));
+		Child.Color = this->Now.Color.GetMult(Parent.Color);
 		DrawUISystem::Instance()->Get(this->DrawModuleHandle).Update(Child);
 	}
 		break;
@@ -110,11 +107,7 @@ void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
 		VECTOR2D  P3 = GetPoint(x2, y2);
 		VECTOR2D  P4 = GetPoint(x1, y2);
 
-		ColorRGBA	Color{};
-		Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetR()) / 255.f * static_cast<float>(Parent.Color.GetR()) / 255.f)));
-		Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetG()) / 255.f * static_cast<float>(Parent.Color.GetG()) / 255.f)));
-		Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetB()) / 255.f * static_cast<float>(Parent.Color.GetB()) / 255.f)));
-		Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetA()) / 255.f * static_cast<float>(Parent.Color.GetA()) / 255.f)));
+		ColorRGBA	Color = this->Now.Color.GetMult(Parent.Color);
 
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 		DxLib::DrawQuadrangle(
@@ -135,11 +128,7 @@ void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
 		float x2 = PosOfs.x + Size.x * this->Now.Center.x;
 		float y2 = PosOfs.y + Size.y * this->Now.Center.y;
 
-		ColorRGBA	Color{};
-		Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetR()) / 255.f * static_cast<float>(Parent.Color.GetR()) / 255.f)));
-		Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetG()) / 255.f * static_cast<float>(Parent.Color.GetG()) / 255.f)));
-		Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetB()) / 255.f * static_cast<float>(Parent.Color.GetB()) / 255.f)));
-		Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetA()) / 255.f * static_cast<float>(Parent.Color.GetA()) / 255.f)));
+		ColorRGBA	Color = this->Now.Color.GetMult(Parent.Color);
 
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 		DxLib::SetDrawBright(Color.GetR(), Color.GetG(), Color.GetB());
@@ -162,10 +151,7 @@ void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
 		Child.OfsNoRad = PosOfs;
 		Child.Rad = this->Now.Rad + Parent.Rad;
 		Child.Scale = scale;
-		Child.Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetR()) / 255.f * static_cast<float>(Parent.Color.GetR()) / 255.f)));
-		Child.Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetG()) / 255.f * static_cast<float>(Parent.Color.GetG()) / 255.f)));
-		Child.Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetB()) / 255.f * static_cast<float>(Parent.Color.GetB()) / 255.f)));
-		Child.Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->Now.Color.GetA()) / 255.f * static_cast<float>(Parent.Color.GetA()) / 255.f)));
+		Child.Color = this->Now.Color.GetMult(Parent.Color);
 		DrawUISystem::Instance()->Get(this->DrawModuleHandle).Draw(Child);
 	}
 		break;

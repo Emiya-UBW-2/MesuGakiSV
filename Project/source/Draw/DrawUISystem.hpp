@@ -283,7 +283,7 @@ public:
 	int GetID(std::string Value) noexcept {
 		for (auto& d : m_DrawModule) {
 			if (Value == d.BranchName) {
-				return &d - &m_DrawModule.front();
+				return static_cast<int>(&d - &m_DrawModule.front());
 			}
 		}
 		return -1;

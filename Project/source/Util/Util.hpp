@@ -201,6 +201,15 @@ public:
 		SetA(A);
 	}
 public:
+	ColorRGBA GetMult(const ColorRGBA& Target) const noexcept {
+		ColorRGBA	Color{};
+		Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->GetR()) / 255.f * static_cast<float>(Target.GetR()) / 255.f)));
+		Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->GetG()) / 255.f * static_cast<float>(Target.GetG()) / 255.f)));
+		Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->GetB()) / 255.f * static_cast<float>(Target.GetB()) / 255.f)));
+		Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->GetA()) / 255.f * static_cast<float>(Target.GetA()) / 255.f)));
+		return Color;
+	}
+public:
 	// ”äŠr
 	inline bool operator==(const ColorRGBA& obj) const noexcept { return (this->color == obj.color); }
 	inline bool operator!=(const ColorRGBA& obj) const noexcept { return !(*this == obj); }
