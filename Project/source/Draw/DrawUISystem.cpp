@@ -16,23 +16,25 @@ bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noex
 		Size.x = this->Now.Size.x * this->Now.Scale.x * Parent.Scale.x;
 		Size.y = this->Now.Size.y * this->Now.Scale.y * Parent.Scale.y;
 
-		float x1 = PosOfs.x - Size.x * (1.f - this->Now.Center.x);
-		float y1 = PosOfs.y - Size.y * (1.f - this->Now.Center.y);
-		float x2 = PosOfs.x + Size.x * this->Now.Center.x;
-		float y2 = PosOfs.y + Size.y * this->Now.Center.y;
+		float x1 = PosOfs.x - Size.x * this->Now.Center.x;
+		float y1 = PosOfs.y - Size.y * this->Now.Center.y;
+		float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
+		float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
 
 		VECTOR2D center;
-		center.x = PosOfs.x + Size.x * (this->Now.Center.x - 0.5f) * 2.f;
-		center.y = PosOfs.y + Size.y * (this->Now.Center.y - 0.5f) * 2.f;
+		center.x = PosOfs.x + Size.x * (0.5f - this->Now.Center.x) * 2.f;
+		center.y = PosOfs.y + Size.y * (0.5f - this->Now.Center.y) * 2.f;
 
-		auto GetPoint = [&](float o1x, float o1y) {
-			VECTOR2D ofs;
-			ofs.x = o1x;
-			ofs.y = o1y;
+		auto GetPoint = [&](VECTOR2D ofs) {
 			return center + (ofs - center).Rotate(this->Now.Rad + Parent.Rad);
 			};
 
-		if (HitPointToSquare(VECTOR2D(static_cast<float>(x), static_cast<float>(y)), GetPoint(x1, y1), GetPoint(x2, y1), GetPoint(x2, y2), GetPoint(x1, y2))) {
+		if (HitPointToSquare(VECTOR2D(static_cast<float>(x), static_cast<float>(y)),
+			GetPoint(VECTOR2D(x1, y1)),
+			GetPoint(VECTOR2D(x2, y1)),
+			GetPoint(VECTOR2D(x2, y2)),
+			GetPoint(VECTOR2D(x1, y2))
+			)) {
 			return true;
 		}
 	}
@@ -86,47 +88,54 @@ void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
 	switch (this->Type) {
 	case PartsType::Box:
 	{
-		float x1 = PosOfs.x - Size.x * (1.f - this->Now.Center.x);
-		float y1 = PosOfs.y - Size.y * (1.f - this->Now.Center.y);
-		float x2 = PosOfs.x + Size.x * this->Now.Center.x;
-		float y2 = PosOfs.y + Size.y * this->Now.Center.y;
-
-		VECTOR2D center;
-		center.x = PosOfs.x + Size.x * (this->Now.Center.x - 0.5f) * 2.f;
-		center.y = PosOfs.y + Size.y * (this->Now.Center.y - 0.5f) * 2.f;
-
-		auto GetPoint = [&](float o1x, float o1y) {
-			VECTOR2D ofs;
-			ofs.x = o1x;
-			ofs.y = o1y;
-			return center + (ofs - center).Rotate(this->Now.Rad + Parent.Rad);
-			};
-
-		VECTOR2D  P1 = GetPoint(x1, y1);
-		VECTOR2D  P2 = GetPoint(x2, y1);
-		VECTOR2D  P3 = GetPoint(x2, y2);
-		VECTOR2D  P4 = GetPoint(x1, y2);
+		float x1 = PosOfs.x - Size.x * this->Now.Center.x;
+		float y1 = PosOfs.y - Size.y * this->Now.Center.y;
+		float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
+		float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
 
 		ColorRGBA	Color = this->Now.Color.GetMult(Parent.Color);
 
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
-		DxLib::DrawQuadrangle(
-			static_cast<int>(P1.x), static_cast<int>(P1.y),
-			static_cast<int>(P2.x), static_cast<int>(P2.y),
-			static_cast<int>(P3.x), static_cast<int>(P3.y),
-			static_cast<int>(P4.x), static_cast<int>(P4.y),
-			Color.GetColor(),
-			TRUE
-		);
+
+		if (this->Now.Rad + Parent.Rad == 0.f) {
+			DxLib::DrawBox(
+				static_cast<int>(x1), static_cast<int>(y1),
+				static_cast<int>(x2), static_cast<int>(y2),
+				Color.GetColor(),
+				TRUE
+			);
+		}
+		else {
+			VECTOR2D center;
+			center.x = PosOfs.x + Size.x * (0.5f - this->Now.Center.x) * 2.f;
+			center.y = PosOfs.y + Size.y * (0.5f - this->Now.Center.y) * 2.f;
+
+			auto GetPoint = [&](VECTOR2D ofs) {
+				return center + (ofs - center).Rotate(this->Now.Rad + Parent.Rad);
+				};
+
+			VECTOR2D  P1 = GetPoint(VECTOR2D(x1, y1));
+			VECTOR2D  P2 = GetPoint(VECTOR2D(x2, y1));
+			VECTOR2D  P3 = GetPoint(VECTOR2D(x2, y2));
+			VECTOR2D  P4 = GetPoint(VECTOR2D(x1, y2));
+			DxLib::DrawQuadrangle(
+				static_cast<int>(P1.x), static_cast<int>(P1.y),
+				static_cast<int>(P2.x), static_cast<int>(P2.y),
+				static_cast<int>(P3.x), static_cast<int>(P3.y),
+				static_cast<int>(P4.x), static_cast<int>(P4.y),
+				Color.GetColor(),
+				TRUE
+			);
+		}
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
 	break;
 	case PartsType::NineSlice:
 	{
-		float x1 = PosOfs.x - Size.x * (1.f - this->Now.Center.x);
-		float y1 = PosOfs.y - Size.y * (1.f - this->Now.Center.y);
-		float x2 = PosOfs.x + Size.x * this->Now.Center.x;
-		float y2 = PosOfs.y + Size.y * this->Now.Center.y;
+		float x1 = PosOfs.x - Size.x * this->Now.Center.x;
+		float y1 = PosOfs.y - Size.y * this->Now.Center.y;
+		float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
+		float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
 
 		ColorRGBA	Color = this->Now.Color.GetMult(Parent.Color);
 
@@ -135,7 +144,7 @@ void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
 		Draw9SliceGraph(
 			VECTOR2D(x1, y1), VECTOR2D(x2, y2),
 			this->Min, this->Max,
-			this->Now.Center,
+			VECTOR2D(1.f, 1.f) - this->Now.Center,
 			this->Now.Rad + Parent.Rad,
 			this->ImageHandle,
 			true,
@@ -305,4 +314,19 @@ void DrawModule::Init(const char* Path, std::string Branch) noexcept {
 
 	m_AnimDataLastSelect = -1;
 	m_Frame = 0;
+
+	m_IsActive = true;
+	m_IsSelect = false;
+
+	m_UseActive = false;
+	for (auto& a : m_AnimData) {
+		if (AnimType::Active != a.m_Type && AnimType::DisActive != a.m_Type) { continue; }
+		m_UseActive = true;
+	}
+
+	m_UseButton = false;
+	for (auto& a : m_AnimData) {
+		if (AnimType::OnSelect != a.m_Type && AnimType::OnPress != a.m_Type) { continue; }
+		m_UseButton = true;
+	}
 }

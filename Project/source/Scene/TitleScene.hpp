@@ -19,6 +19,7 @@
 
 class TitleScene : public SceneBase {
 
+	int m_UIBase = 0;
 	int m_CloseButton = -1;
 	char		padding[4]{};
 public:
@@ -31,20 +32,33 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {
 		DrawUISystem::Create();
-		DrawUISystem::Instance()->Init("data/UI000.json");
+		auto* DrawUI = DrawUISystem::Instance();
+		DrawUI->Init("data/UI000.json");
 
-		m_CloseButton = DrawUISystem::Instance()->GetID("OptionUI/CloseButton");
+		DrawUI->Get(m_UIBase).SetActive(false);
+
+		m_CloseButton = DrawUI->GetID("OptionUI/CloseButton");
 	}
 	void Update_Sub(void) noexcept override {
-		//*
 		auto* SceneMngr = SceneManager::Instance();
 		auto* KeyMngr = KeyParam::Instance();
-		if (DrawUISystem::Instance()->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+		auto* DrawUI = DrawUISystem::Instance();
+		if (DrawUI->Get(m_UIBase).IsActive()) {
+			if (DrawUI->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+				DrawUI->Get(m_UIBase).SetActive(false);
+			}
+		}
+		else {
+			if (KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+				DrawUI->Get(m_UIBase).SetActive(true);
+			}
+		}
+
+		if (KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Cancel)) {
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
 			SceneBase::SetEndScene();
 		}
-		//*/
-		DrawUISystem::Instance()->Update();
+		DrawUI->Update();
 	}
 	void Draw_Sub(void) noexcept override {
 		auto* DrawerMngr = MainDraw::Instance();

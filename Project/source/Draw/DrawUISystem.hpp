@@ -23,6 +23,8 @@ enum class AnimType :size_t {
 	Normal,
 	OnSelect,
 	OnPress,
+	Active,
+	DisActive,
 	Max,
 };
 
@@ -31,6 +33,8 @@ static const char* AnimTypeStr[static_cast<int>(AnimType::Max)] = {
 	"Normal",
 	"OnSelect",
 	"OnPress",
+	"Active",
+	"DisActive",
 };
 
 class DrawModule {
@@ -93,7 +97,10 @@ private:
 	int m_AnimDataLastSelect{};
 	int m_Frame{};
 	bool m_IsSelect{};
-	char		padding[7]{};
+	bool m_IsActive{ true };
+	bool m_UseActive{};
+	bool m_UseButton{};
+	char		padding[5]{};
 public:
 	std::string BranchName{};
 public:
@@ -136,15 +143,26 @@ public:
 	}
 public:
 	bool IsSelectButton(void) const noexcept { return m_IsSelect; }
+
+	bool IsActive(void) const noexcept { return m_IsActive; }
+
+	void SetActive(bool value) noexcept { this->m_IsActive = value; }
 public:
 	void Init(const char* Path, std::string Branch) noexcept;
 	void Update(Param2D Parent = Param2D()) noexcept {
 		AnimType SelectNow = AnimType::Normal;
-		{
+		if (m_UseActive) {
+			if (m_IsActive) {
+				SelectNow = AnimType::Active;
+			}
+			else {
+				SelectNow = AnimType::DisActive;
+			}
+		}
+		m_IsSelect = false;
+		if(m_UseButton) {
 			auto* DrawerMngr = MainDraw::Instance();
 			auto* KeyMngr = KeyParam::Instance();
-
-			m_IsSelect = false;
 
 			bool IsSelect = false;
 			for (auto& p : m_PartsParam) {
