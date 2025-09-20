@@ -28,6 +28,7 @@
     <ClCompile Include="source\Scene\MainScene.cpp" />
     <ClCompile Include="source\Scene\TitleScene.cpp" />
     <ClCompile Include="source\Util\Key.cpp" />
+    <ClCompile Include="source\Util\Localize.cpp" />
     <ClCompile Include="source\Util\Option.cpp" />
     <ClCompile Include="source\Util\SceneManager.cpp" />
     <ClCompile Include="source\Util\Util.cpp" />
@@ -44,6 +45,7 @@
     <ClInclude Include="source\Util\Algorithm.hpp" />
     <ClInclude Include="source\Util\Enum.hpp" />
     <ClInclude Include="source\Util\Key.hpp" />
+    <ClInclude Include="source\Util\Localize.hpp" />
     <ClInclude Include="source\Util\Option.hpp" />
     <ClInclude Include="source\Util\SceneManager.hpp" />
     <ClInclude Include="source\Util\Util.hpp" />

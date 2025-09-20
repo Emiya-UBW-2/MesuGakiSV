@@ -8,6 +8,7 @@
 
 #include "../Util/SceneManager.hpp"
 #include "../Util/Key.hpp"
+#include "../Util/Localize.hpp"
 
 #include "FontDraw.hpp"
 
@@ -77,8 +78,10 @@ MainDraw::MainDraw(void) noexcept {
 	KeyParam::Create();
 	FontPool::Create();
 	GraphPool::Create();
+	LocalizePool::Create();
 }
 MainDraw::~MainDraw(void) noexcept {
+	LocalizePool::Release();
 	GraphPool::Release();
 	FontPool::Release();
 	KeyParam::Release();

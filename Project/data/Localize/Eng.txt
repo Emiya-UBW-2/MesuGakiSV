@@ -1,0 +1,201 @@
+0000=MS UI Gothic
+0001=MS UI Gothic
+
+0010=Your System does not support DirectX11 version. Working with old version.
+
+0020=Close
+
+0100=Exit
+0101=Return to Desktop?
+0102=Yes
+2101=Restart Game?
+2102=Restart
+
+0120=Credit
+
+0130=Game Over
+
+0109=initial settings. Please check gamepad input system or graphics.
+
+2000=Check PC
+2001=Check CPU
+2002=Good
+2003=Enough
+2004=Not Good
+2005=CPU Not Found
+
+2011=Check RAM(≧2GB)
+2012=Enough
+2013=Not Good
+
+2021=Check GPU
+2022=Good
+2023=Enough
+2024=Not Good
+2025=GPU Not Found
+
+2035=Using DirectX
+
+2040=You can get enough FPS.
+2041=Have to Set Middle Graphics Preset.
+2042=Have to Set Low Graphics Preset.
+2043=There is enough memory so no need to change any settings.
+2044=FPS may drop due to lack of memory.
+2045=You can get enough FPS.
+2046=Have to Set Middle Graphics Preset.
+2047=Have to Set Low Graphics Preset.
+2048=If DirectX11 is not available, screen effects cannot be used.
+
+2050=GraphicタブのPresetを左に設定することで画質を犠牲にFPSを向上できます。ゲーム起動後、プリセット最低の状態でも60FPSを切ってしまう場合はRender Scaleを落としてください。　　　　　　　　　コントローラーはリアルタイムの抜き差しに対応しています。キーボードで操作する際にはElseタブのGamePadTypeを指定してください。　　　　　　　　　　　　　ゲームはこのウィンドウが閉じられた後メインディスプレイのサイズで再度開かれます。
+
+0110=Option
+1110=Change BGM volume
+1111=Change SE volume
+1112=Change VOICE volume
+1120=Select Graphics Preset
+1121=Select Window or Borderless
+1122=Change Vertical Fov
+1123=Enable VSync
+1124=Change FPS Limit When Disable VSync
+1125=Change DirectX version(Need Restart)
+1126=Enable FXAA
+1127=Enable Screen Space AO
+1128=Change Reflection Level
+1129=Change Shadow Level
+1130=Enable Draw Objects
+1131=Enable bloom Effect
+1132=Enable Screen Effect
+1133=Enable DoF
+1134=Enable Motion Blur
+1135=Window
+1136=Borderless
+1137=Change Render Scale(Need Restart)
+1138=Adds GodRay to shadow(with the shadow settings)
+1139=Flat terrain at initialization
+1146=Lock on Enemy When Aim Down Sight
+1147=Increases enemy spawn count (decreases performance)
+
+1140=Change X Sensitivity
+1141=Change Y Sensitivity
+1142=Enable Head Bobbing
+1144=Change Pad Input System
+1145=Change Language(Need Restart)
+
+1150=[Need Mouse]Reset Change
+1151=[Need Mouse]Over Pointer and Press Button to Set
+1152=[Need Mouse]Save Key Config
+1153=Go Front/Select Prev
+1154=Go Back/Select Next
+1155=Go Left/Select Left
+1156=Go Right/Select Right
+1157=Select Left Tab
+1158=Select Right Tab
+1159=Return
+1160=Decision
+1161=Grenade
+1162=(Not Use)
+1163=(Not Use)
+1164=Run
+1165=Slow Walk
+1166=Shot
+1167=Aim Down Sight
+1168=Change Weapon
+1169=Squat
+1170=(Not Use)
+1171=Watch Gun
+1172=Delete Item1
+1173=Delete Item2
+1174=Delete Item3
+1175=Delete Item4
+1176=Delete Item5
+1177=Delete Left Item
+
+0200=Damage
+0201=Armor Saved me
+0202=Armor has been Changed
+0203=You Are Dead
+0204=Kill
+0205=Delivery
+0206=TaskClear
+0250=Delivery Item
+0251=Kill Enemy
+
+0300=(注意表示)
+
+9990=Exit
+9991=Return
+9992=Decision
+9993=Select
+9994=Change Tab
+9995=Pause
+9980=Equip Select
+9981=Weapon Change
+9982=Go to Parts Select
+9983=Parts Select
+9984=Point Change
+
+
+9900=Move
+9902=Lean
+9903=Walk
+9905=Grenade
+9906=Shot
+9907=Change Weapon
+9908=Aim Down Sight
+9909=Squat
+9913=Pause
+
+3000=Swap Armor by ItemSlot
+3001=Reload
+3002=Delete Left Item
+3003=Stand up
+3004=Delivery Item
+3005=Request for return
+3006=Return Title
+3007=Earn 1000pts or Complete 1 task, Can request return.
+3008=Skip
+3009=Next Mission
+
+4000=Find Container
+4001=Delivery Items in container
+4002=Get into the container and wait for the helicopter to arrive.
+
+5000=Runner
+5100=Can Run [d] second
+5001=Guts
+5101=Regist [d] Damage to Death
+5002=AP
+5102=Ammo Penetration Armor(Damage Down [d]%%)
+5003=ItemEater
+5103=Fill Item In [d]m when Press Interact Button
+5004=Peace Maker
+5104=Enemy Not Shoot In [d]m
+5005=Teiji Taisha
+5105=Less [d] %% Time when Request for return
+5006=Adrenaline
+5106=Can Move Faster When Get Item After [d] second
+5007=DamageCut
+5107=[d] %% Damage Cut
+5008=ScoreUp
+5108=Get [d] Score When Next Round
+
+6000=helicopter deployment of the container is complete, Roll Out!
+6001=Find the container.
+6002=Dodge enemies and collect supplies in containers.
+6003=Helicopter support is at its limit. retreat! Hold on to the container!
+6004=Well done.
+6005=30 seconds left, hurry!
+
+6010=Good
+6011=Nice
+
+6100=Let's start training.
+6101=Kill the enemies ahead. That's your first task.
+6102=Killing enemies will drop armor, which when put on will make you immune to bullet damage.
+6103=You can also blow them up with grenades or gunfire. Try throwing a grenade at a wall.
+6104=There are containers and enemies on the other side of the wall, so first eliminate the enemies to ensure safety.
+6105=Once you reach a certain level of success, the container will be collected and you can deliver the armor inside to complete the mission.
+
+6106=There are other items on the left. Deliver them to earn points.
+6107=press the interact button near the container to return.
+6108=This concludes your training. Take what you've learned from this experience and apply it to the real world. Now, go back and prepare for battle. Good luck.

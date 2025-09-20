@@ -59,6 +59,9 @@
     <ClCompile Include="source\Draw\ImageDraw.cpp">
       <Filter>ソース ファイル\Draw</Filter>
     </ClCompile>
+    <ClCompile Include="source\Util\Localize.cpp">
+      <Filter>ソース ファイル\Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\File\json.hpp">
@@ -102,6 +105,9 @@
     </ClInclude>
     <ClInclude Include="source\Draw\ImageDraw.hpp">
       <Filter>ソース ファイル\Draw</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Util\Localize.hpp">
+      <Filter>ソース ファイル\Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
