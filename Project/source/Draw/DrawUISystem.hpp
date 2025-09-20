@@ -10,6 +10,7 @@
 
 #include "MainDraw.hpp"
 #include "FontDraw.hpp"
+#include "ImageDraw.hpp"
 
 enum class PartsType :size_t {
 	Box,
@@ -63,21 +64,21 @@ class DrawModule {
 	struct AnimParam;
 	struct PartsParam {
 	private:
-		std::string Name{};
-		PartsType Type{};
+		std::string			Name{};
+		PartsType			Type{};
 
-		Param2D	Base{};
-		Param2D	Now{};
-		Param2D	Before{};
+		Param2D				Base{};
+		Param2D				Now{};
+		Param2D				Before{};
 
-		std::string	String{};
+		std::string			String{};
 
-		VECTOR2D	Min{};
-		VECTOR2D	Max{};
-		std::string	ImagePath{};
-		int			DrawModuleHandle{};
-		int			ImageHandle{};
-		bool		m_IsHitCheck{};
+		VECTOR2D			Min{};
+		VECTOR2D			Max{};
+		std::string			ImagePath{};
+		int					DrawModuleHandle{};
+		const GraphHandle*	ImageHandle{};
+		bool				m_IsHitCheck{};
 		char		padding2[7]{};
 	public:
 		void		SetString(std::string value) noexcept { String = value; }

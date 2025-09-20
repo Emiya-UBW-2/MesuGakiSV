@@ -134,7 +134,7 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 			this->Min, this->Max,
 			VECTOR2D(1.f, 1.f) - this->Now.Center,
 			Rad,
-			this->ImageHandle,
+			this->ImageHandle->get(),
 			true,
 			false
 		);
@@ -151,12 +151,12 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 		DxLib::DrawRotaGraph3(
 			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
 			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
-			scale.x, scale.y, Rad, this->ImageHandle, true);
+			scale.x, scale.y, Rad, this->ImageHandle->get(), true);
 		//*/
 
 		DxLib::DrawRotaGraph(
 			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
-			scale.y, Rad, this->ImageHandle, true);
+			scale.y, Rad, this->ImageHandle->get(), true);
 		DxLib::SetDrawBright(255, 255, 255);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
@@ -261,7 +261,7 @@ void DrawModule::PartsParam::SetByJson(DrawUISystem* DrawUI, nlohmann::json& d, 
 
 	if (d.contains("Image")) {
 		this->ImagePath = d["Image"];
-		this->ImageHandle = LoadGraph(this->ImagePath.c_str());
+		this->ImageHandle = GraphPool::Instance()->Get(this->ImagePath)->Get();
 	}
 	if (d.contains("FilePath")) {
 		std::string FilePath = d["FilePath"];

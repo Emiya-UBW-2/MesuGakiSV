@@ -35,8 +35,18 @@ public:
 	bool IsActive(void) const noexcept {
 		return m_DrawUI->Get(m_UIBase).IsActive();
 	}
-
-	void Setup() noexcept {
+	void SetActive(bool value) noexcept {
+		m_DrawUI->Get(m_UIBase).SetActive(value);
+		if (IsActive()) {
+			SetTab();
+		}
+		else {
+			EndTab();
+		}
+		m_NowSelect = 0;
+	}
+private:
+	void SetTab() noexcept {
 		std::string ChildBase = "OptionUI/Child";
 		ChildBase += std::to_string(m_NowSelect + 1);
 		Param2D Param;
@@ -77,18 +87,10 @@ public:
 			}
 		}
 	}
-
-	void SetActive(bool value) noexcept {
-		m_DrawUI->Get(m_UIBase).SetActive(value);
-		if (IsActive()) {
-			Setup();
-		}
-		else {
-			std::string Path = "OptionUI/Child";
-			Path += std::to_string(m_NowSelect + 1);
-			m_DrawUI->DeleteChild(Path.c_str());
-		}
-		m_NowSelect = 0;
+	void EndTab() noexcept {
+		std::string Path = "OptionUI/Child";
+		Path += std::to_string(m_NowSelect + 1);
+		m_DrawUI->DeleteChild(Path.c_str());
 	}
 public:
 	void Init(void) noexcept {
@@ -98,16 +100,12 @@ public:
 
 		m_UIBase = m_DrawUI->GetID("");
 		for (int loop = 0; loop < 4; ++loop) {
-			{
-				std::string Path = "OptionUI/Tab";
-				Path += std::to_string(loop + 1);
-				m_TabButton[loop] = m_DrawUI->GetID(Path.c_str());
-			}
-			{
-				std::string Path = "Tab";
-				Path += std::to_string(loop + 1);
-				m_DrawUI->Get(m_TabButton[loop]).GetParts("String1")->SetString(Path);
-			}
+			std::string Path = "OptionUI/Tab";
+			Path += std::to_string(loop + 1);
+			m_TabButton[loop] = m_DrawUI->GetID(Path.c_str());
+			std::string Name = "Tab";
+			Name += std::to_string(loop + 1);
+			m_DrawUI->Get(m_TabButton[loop]).GetParts("String1")->SetString(Name);
 		}
 		m_NowSelect = 0;
 		m_CloseButton = m_DrawUI->GetID("OptionUI/CloseButton");
@@ -119,13 +117,9 @@ public:
 		if (m_DrawUI->Get(m_UIBase).IsActive()) {
 			for (int loop = 0; loop < 4; ++loop) {
 				if (m_DrawUI->Get(m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
-					{
-						std::string Path = "OptionUI/Child";
-						Path += std::to_string(m_NowSelect + 1);
-						m_DrawUI->DeleteChild(Path.c_str());
-					}
+					EndTab();
 					m_NowSelect = loop;
-					Setup();
+					SetTab();
 				}
 			}
 			if (m_DrawUI->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {

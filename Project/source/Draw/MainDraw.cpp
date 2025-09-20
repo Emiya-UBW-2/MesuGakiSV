@@ -11,6 +11,7 @@
 
 #include "FontDraw.hpp"
 
+#include "ImageDraw.hpp"
 
 const MainDraw* SingletonBase<MainDraw>::m_Singleton = nullptr;
 
@@ -75,8 +76,10 @@ MainDraw::MainDraw(void) noexcept {
 	SceneManager::Create();
 	KeyParam::Create();
 	FontPool::Create();
+	GraphPool::Create();
 }
 MainDraw::~MainDraw(void) noexcept {
+	GraphPool::Release();
 	FontPool::Release();
 	KeyParam::Release();
 	SceneManager::Release();
