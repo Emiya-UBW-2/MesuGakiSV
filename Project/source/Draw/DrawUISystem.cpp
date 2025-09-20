@@ -33,6 +33,7 @@ bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noex
 		}
 	}
 	break;
+	case PartsType::String:
 	case PartsType::Json:
 	case PartsType::Max:
 	default:
@@ -63,6 +64,7 @@ void DrawModule::PartsParam::Update(DrawUISystem* DrawUI, Param2D Parent) const 
 	break;
 	case PartsType::Box:
 	case PartsType::NineSlice:
+	case PartsType::String:
 	case PartsType::Max:
 	default:
 		break;
@@ -141,6 +143,38 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 			false
 		);
 		DxLib::SetDrawBright(255, 255, 255);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+	}
+	break;
+	case PartsType::String:
+	{
+		float x1 = PosOfs.x - Size.x * this->Now.Center.x;
+		float y1 = PosOfs.y - Size.y * this->Now.Center.y;
+		float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
+		float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
+
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
+		if (Rad == 0.f) {
+			/*
+			DxLib::DrawBox(
+				static_cast<int>(x1), static_cast<int>(y1),
+				static_cast<int>(x2), static_cast<int>(y2),
+				Color.GetColor(),
+				TRUE
+			);
+			this->m_FontHandle->DrawStringAutoFit(
+				static_cast<int>(x1), static_cast<int>(y1),
+				static_cast<int>(x2), static_cast<int>(y2),
+				Color.GetColor(), GetColor(0, 0, 0), this->String);
+			//*/
+			FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 24, 3)->DrawString(
+				FontXCenter::MIDDLE, FontYCenter::MIDDLE,
+				static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
+				Color.GetColor(), GetColor(0, 0, 0),
+				this->String);
+		}
+		else {
+		}
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
 	break;
@@ -236,6 +270,9 @@ void DrawModule::Init(DrawUISystem* DrawUI, const char* Path, const char* Branch
 			Back.Base.Color.Set(255, 255, 255, 255);
 		}
 
+		if (d.contains("FontID")) {
+			Back.String = d["FontID"];
+		}
 		if (d.contains("Min")) {
 			Back.Min.SetByJson(d["Min"]);
 		}

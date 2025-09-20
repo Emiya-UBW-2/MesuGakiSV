@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Draw\DrawUISystem.cpp" />
+    <ClCompile Include="source\Draw\FontDraw.cpp" />
     <ClCompile Include="source\Draw\MainDraw.cpp" />
     <ClCompile Include="source\File\FileStream.cpp" />
     <ClCompile Include="source\main.cpp" />
@@ -32,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Draw\DrawUISystem.hpp" />
+    <ClInclude Include="source\Draw\FontDraw.hpp" />
     <ClInclude Include="source\Draw\MainDraw.hpp" />
     <ClInclude Include="source\File\FileStream.hpp" />
     <ClInclude Include="source\File\json.hpp" />

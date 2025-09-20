@@ -41,7 +41,7 @@ public:
 			std::string Path = "OptionUI/Child";
 			Path += std::to_string(m_NowSelect + 1);
 			Param2D Param;
-			Param.OfsNoRad = VECTOR2D(1170, 220);
+			Param.OfsNoRad = VECTOR2D(980, 220);
 			m_DrawUI->AddChild(Path.c_str(), "data/UI001B.json", Param);
 		}
 		else {
@@ -83,7 +83,7 @@ public:
 						std::string Path = "OptionUI/Child";
 						Path += std::to_string(m_NowSelect + 1);
 						Param2D Param;
-						Param.OfsNoRad = VECTOR2D(1170, 220);
+						Param.OfsNoRad = VECTOR2D(980, 220);
 						m_DrawUI->AddChild(Path.c_str(), "data/UI001B.json", Param);
 					}
 				}

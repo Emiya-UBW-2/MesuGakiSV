@@ -53,6 +53,9 @@
     <ClCompile Include="source\Draw\DrawUISystem.cpp">
       <Filter>ソース ファイル\Draw</Filter>
     </ClCompile>
+    <ClCompile Include="source\Draw\FontDraw.cpp">
+      <Filter>ソース ファイル\Draw</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\File\json.hpp">
@@ -90,6 +93,9 @@
     </ClInclude>
     <ClInclude Include="source\Util\Algorithm.hpp">
       <Filter>ソース ファイル\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Draw\FontDraw.hpp">
+      <Filter>ソース ファイル\Draw</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

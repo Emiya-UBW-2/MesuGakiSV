@@ -3,102 +3,452 @@
 		{
 			"Name":"Box1",
 			"Type":"Json",
-			"OfsNoRad":[0,0],
+			"OfsNoRad":[310,0],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
 		,
 		{
-			"Name":"Box2",
-			"Type":"Json",
-			"OfsNoRad":[0,90],
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,0],
+			"Ofs":[0,0],
+			"Size":[100,100],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,0],
+			"Rad":0,
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
 		,
 		{
-			"Name":"Box3",
-			"Type":"Json",
-			"OfsNoRad":[0,180],
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,0],
+			"Ofs":[0,0],
+			"Size":[100,100],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[310,90],
+			"Rad":0,
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
 		,
 		{
-			"Name":"Box4",
-			"Type":"Json",
-			"OfsNoRad":[0,270],
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,90],
+			"Ofs":[0,0],
+			"Size":[100,100],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,90],
+			"Rad":0,
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
 		,
 		{
-			"Name":"Box5",
-			"Type":"Json",
-			"OfsNoRad":[0,360],
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,90],
+			"Ofs":[0,0],
+			"Size":[100,100],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[310,180],
+			"Rad":0,
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
 		,
 		{
-			"Name":"Box6",
-			"Type":"Json",
-			"OfsNoRad":[0,450],
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,180],
+			"Ofs":[0,0],
+			"Size":[100,100],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,180],
+			"Rad":0,
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
 		,
 		{
-			"Name":"Box7",
-			"Type":"Json",
-			"OfsNoRad":[0,540],
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,180],
+			"Ofs":[0,0],
+			"Size":[100,100],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[310,270],
+			"Rad":0,
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
 		,
 		{
-			"Name":"Box8",
-			"Type":"Json",
-			"OfsNoRad":[0,630],
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,270],
+			"Ofs":[0,0],
+			"Size":[100,100],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,270],
+			"Rad":0,
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
 		,
 		{
-			"Name":"Box9",
-			"Type":"Json",
-			"OfsNoRad":[0,720],
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,270],
+			"Ofs":[0,0],
+			"Size":[100,100],
 			"Rad":0,
-			"Scale":[3.6,0.75],
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[310,360],
+			"Rad":0,
+			"Scale":[1.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/Button001.json",
 			"IsHitCheck":false
 		}
-	],
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,360],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,360],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,360],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[310,450],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,450],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,450],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,450],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[310,540],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,540],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,540],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,540],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[310,630],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,630],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,630],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,630],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[310,720],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[210,720],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}
+		,
+		{
+			"Name":"Box1",
+			"Type":"Json",
+			"OfsNoRad":[110,720],
+			"Rad":0,
+			"Scale":[1.0,0.75],
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button001.json",
+			"IsHitCheck":false
+		}
+		,
+		{
+			"Name":"String1",
+			"Type":"String",
+			"OfsNoRad":[-210,720],
+			"Ofs":[0,0],
+			"Size":[100,100],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255],
+			"IsHitCheck":false,
+			"FontID":"test"
+		}	],
 	"Anim":[
 	]
 }

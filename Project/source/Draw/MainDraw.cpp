@@ -9,6 +9,8 @@
 #include "../Util/SceneManager.hpp"
 #include "../Util/Key.hpp"
 
+#include "FontDraw.hpp"
+
 
 const MainDraw* SingletonBase<MainDraw>::m_Singleton = nullptr;
 
@@ -72,8 +74,10 @@ MainDraw::MainDraw(void) noexcept {
 
 	SceneManager::Create();
 	KeyParam::Create();
+	FontPool::Create();
 }
 MainDraw::~MainDraw(void) noexcept {
+	FontPool::Release();
 	KeyParam::Release();
 	SceneManager::Release();
 

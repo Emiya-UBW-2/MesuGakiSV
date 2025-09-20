@@ -88,8 +88,8 @@
 			"OfsNoRad":[1350,100],
 			"Rad":0,
 			"Scale":[0.75,0.75],
-			"BaseColor":[255,0,0],
-			"FilePath":"data/Button001.json",
+			"BaseColor":[255,255,255],
+			"FilePath":"data/Button002.json",
 			"IsHitCheck":false
 		}
 	],

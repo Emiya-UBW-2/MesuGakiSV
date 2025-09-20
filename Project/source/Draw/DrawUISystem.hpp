@@ -5,16 +5,19 @@
 #include "../Util/Key.hpp"
 #include "MainDraw.hpp"
 
+#include "FontDraw.hpp"
 
 enum class PartsType :size_t {
 	Box,
 	NineSlice,
+	String,
 	Json,
 	Max,
 };
 static const char* PartsTypeStr[static_cast<int>(PartsType::Max)] = {
 	"Box",
 	"NineSlice",
+	"String",
 	"Json",
 };
 
@@ -58,6 +61,8 @@ class DrawModule {
 		Param2D	Base{};
 		Param2D	Now{};
 		Param2D	Before{};
+
+		std::string	String{};
 
 		VECTOR2D	Min{};
 		VECTOR2D	Max{};
