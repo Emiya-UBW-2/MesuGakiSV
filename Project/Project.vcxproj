@@ -37,6 +37,7 @@
     <ClInclude Include="source\File\json.hpp" />
     <ClInclude Include="source\Scene\MainScene.hpp" />
     <ClInclude Include="source\Scene\TitleScene.hpp" />
+    <ClInclude Include="source\Util\Algorithm.hpp" />
     <ClInclude Include="source\Util\Enum.hpp" />
     <ClInclude Include="source\Util\Key.hpp" />
     <ClInclude Include="source\Util\Option.hpp" />

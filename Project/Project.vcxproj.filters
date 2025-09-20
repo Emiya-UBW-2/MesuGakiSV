@@ -88,5 +88,8 @@
     <ClInclude Include="source\Draw\DrawUISystem.hpp">
       <Filter>ソース ファイル\Draw</Filter>
     </ClInclude>
+    <ClInclude Include="source\Util\Algorithm.hpp">
+      <Filter>ソース ファイル\Util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
