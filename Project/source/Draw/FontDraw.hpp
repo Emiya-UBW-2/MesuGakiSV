@@ -24,43 +24,11 @@ enum class FontYCenter : int {
 	MIDDLE,
 	BOTTOM,
 };
-
-class DXHandle {
-private:
-	int		m_handle{ -1 };
-	char	Padding[4]{};
-protected:
-	constexpr DXHandle(int h) noexcept : m_handle(h) {}
-public:
-	constexpr DXHandle(void) noexcept : m_handle(-1) {}
-	DXHandle(const DXHandle&) = delete;
-	DXHandle(DXHandle&& o) noexcept : m_handle(o.get()) { o.SetHandleDirect(-1); }
-	DXHandle& operator=(const DXHandle&) = delete;
-	DXHandle& operator=(DXHandle&& o) noexcept {
-		SetHandleDirect(o.get());
-		o.SetHandleDirect(-1);
-		return *this;
-	}
-
-	virtual ~DXHandle(void) noexcept {
-		Dispose();
-	}
-public:
-	int get(void) const noexcept { return this->m_handle; }
-	bool IsActive(void) const noexcept { return this->m_handle != -1; }
-	operator bool(void) const noexcept { return IsActive(); }
-public:
-	void Dispose(void) noexcept {
-		if (IsActive()) {
-			Dispose_Sub();
-			SetHandleDirect(-1);
-		}
-	}
-protected:
-	void SetHandleDirect(int handle) noexcept { this->m_handle = handle; }
-	virtual void Dispose_Sub(void) noexcept {}
+enum class FontType {
+	MS_Gothic,			// MSゴシック
+	DIZ_UD_Gothic,		// DIZ UD ゴシック
 };
-
+// フォントハンドル
 class FontHandle : public DXHandle {
 public:
 	//*
@@ -219,13 +187,7 @@ private:
 		return info;
 	}
 };
-
 //
-enum class FontType {
-	MS_Gothic,			// MSゴシック
-	DIZ_UD_Gothic,		// DIZ UD ゴシック
-};
-
 class Fonthave {
 	// カスタム項目
 	FontType		m_Type{ 0 };
