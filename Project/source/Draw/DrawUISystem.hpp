@@ -48,6 +48,8 @@ struct Param2D {
 	ColorRGBA	Color = ColorRGBA(255, 255, 255, 255);
 };
 
+class DrawUISystem;
+
 class DrawModule {
 	struct PartsParam {
 		std::string Name{};
@@ -66,8 +68,8 @@ class DrawModule {
 		char		padding2[7]{};
 	public:
 		bool IsHitPoint(int x, int y, Param2D Parent) const noexcept;
-		void Update(Param2D Parent) const noexcept;
-		void Draw(Param2D Parent) const noexcept;
+		void Update(DrawUISystem* DrawUI, Param2D Parent) const noexcept;
+		void Draw(DrawUISystem* DrawUI, Param2D Parent) const noexcept;
 	};
 	struct AnimParam {
 		size_t TargetID{};
@@ -152,11 +154,11 @@ public:
 
 	void SetActive(bool value) noexcept { this->m_IsActive = value; }
 
-	void AddChild(const char* ChildName, const char* FilePath, Param2D Param = Param2D()) noexcept;
+	void AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param = Param2D()) noexcept;
 	void DeleteChild(const char* ChildName) noexcept;
 public:
-	void Init(const char* Path, const char* Branch) noexcept;
-	void Update(Param2D Param = Param2D()) noexcept {
+	void Init(DrawUISystem* DrawUI, const char* Path, const char* Branch) noexcept;
+	void Update(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept {
 		AnimType SelectNow = AnimType::Normal;
 		if (m_UseActive) {
 			if (m_IsActive) {
@@ -270,12 +272,12 @@ public:
 		}
 
 		for (auto& p : m_PartsParam) {
-			p.Update(Param);
+			p.Update(DrawUI, Param);
 		}
 	}
-	void Draw(Param2D Param = Param2D()) noexcept {
+	void Draw(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept {
 		for (auto& p : m_PartsParam) {
-			p.Draw(Param);
+			p.Draw(DrawUI, Param);
 		}
 		//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, this->BranchName.c_str(), GetColor(255, 0, 0));
 	}
@@ -283,12 +285,9 @@ public:
 
 
 
-class DrawUISystem : public SingletonBase<DrawUISystem> {
-private:
-	friend class SingletonBase<DrawUISystem>;
-private:
+class DrawUISystem {
 	std::vector<DrawModule> m_DrawModule;
-private://コンストラクタ、デストラクタ
+public://コンストラクタ、デストラクタ
 	DrawUISystem(void) noexcept {
 		m_DrawModule.reserve(128);
 	}
@@ -301,7 +300,7 @@ public:
 	int Add(const char* Path, const char* Branch) noexcept {
 		int ID = static_cast<int>(m_DrawModule.size());
 		m_DrawModule.emplace_back();
-		m_DrawModule.back().Init(Path, Branch);
+		m_DrawModule.back().Init(this, Path, Branch);
 		return ID;
 	}
 	DrawModule& Get(int ID) noexcept { return m_DrawModule.at(static_cast<size_t>(ID)); }
@@ -325,7 +324,7 @@ public:
 			ChildName = Path;
 			Name = "";
 		}
-		Get(GetID(Name.c_str())).AddChild(ChildName.c_str(), FilePath, Param);
+		Get(GetID(Name.c_str())).AddChild(this, ChildName.c_str(), FilePath, Param);
 	}
 	void DeleteChild(const char* Path) noexcept {
 		std::string Name = Path;
@@ -359,11 +358,11 @@ public:
 	}
 	void Update(void) noexcept {
 		if (m_DrawModule.size() == 0) { return; }
-		m_DrawModule.at(0).Update();
+		m_DrawModule.at(0).Update(this);
 	}
 	void Draw(void) noexcept {
 		if (m_DrawModule.size() == 0) { return; }
-		m_DrawModule.at(0).Draw();
+		m_DrawModule.at(0).Draw(this);
 	}
 	void Dispose(void) noexcept {
 		m_DrawModule.clear();

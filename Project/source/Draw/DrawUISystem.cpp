@@ -1,9 +1,6 @@
 #pragma warning(disable:5259)
 #include "DrawUISystem.hpp"
 
-
-const DrawUISystem* SingletonBase<DrawUISystem>::m_Singleton = nullptr;
-
 bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noexcept {
 	if (!m_IsHitCheck) { return false; }
 	switch (this->Type) {
@@ -43,7 +40,7 @@ bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noex
 	}
 	return false;
 }
-void DrawModule::PartsParam::Update(Param2D Parent) const noexcept {
+void DrawModule::PartsParam::Update(DrawUISystem* DrawUI, Param2D Parent) const noexcept {
 	float Rad = this->Now.Rad + Parent.Rad;
 	VECTOR2D PosOfs = Parent.OfsNoRad + this->Now.OfsNoRad + this->Now.Ofs.Rotate(Rad);
 
@@ -61,7 +58,7 @@ void DrawModule::PartsParam::Update(Param2D Parent) const noexcept {
 		Child.Rad = Rad;
 		Child.Scale = scale;
 		Child.Color = Color;
-		DrawUISystem::Instance()->Get(this->DrawModuleHandle).Update(Child);
+		DrawUI->Get(this->DrawModuleHandle).Update(DrawUI, Child);
 	}
 	break;
 	case PartsType::Box:
@@ -71,7 +68,7 @@ void DrawModule::PartsParam::Update(Param2D Parent) const noexcept {
 		break;
 	}
 }
-void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
+void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const noexcept {
 	float Rad = this->Now.Rad + Parent.Rad;
 	VECTOR2D PosOfs = Parent.OfsNoRad + this->Now.OfsNoRad + this->Now.Ofs.Rotate(Rad);
 
@@ -154,7 +151,7 @@ void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
 		Child.Rad = Rad;
 		Child.Scale = scale;
 		Child.Color = Color;
-		DrawUISystem::Instance()->Get(this->DrawModuleHandle).Draw(Child);
+		DrawUI->Get(this->DrawModuleHandle).Draw(DrawUI, Child);
 	}
 	break;
 	case PartsType::Max:
@@ -163,7 +160,7 @@ void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
 	}
 }
 
-void DrawModule::AddChild(const char* ChildName, const char* FilePath, Param2D Param) noexcept {
+void DrawModule::AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param) noexcept {
 	m_PartsParam.emplace_back();
 	auto& Back = m_PartsParam.back();
 	Back.Name = ChildName;
@@ -177,7 +174,7 @@ void DrawModule::AddChild(const char* ChildName, const char* FilePath, Param2D P
 	else {
 		Child = BranchName + "/" + Back.Name;
 	}
-	Back.DrawModuleHandle = DrawUISystem::Instance()->Add(FilePath, Child.c_str());
+	Back.DrawModuleHandle = DrawUI->Add(FilePath, Child.c_str());
 
 	Back.Before = Back.Now = Back.Base;
 }
@@ -192,7 +189,7 @@ void DrawModule::DeleteChild(const char* ChildName) noexcept {
 	}
 }
 
-void DrawModule::Init(const char* Path, const char* Branch) noexcept {
+void DrawModule::Init(DrawUISystem* DrawUI, const char* Path, const char* Branch) noexcept {
 	m_PartsParam.clear();
 	m_AnimData.clear();
 	std::ifstream file(Path);
@@ -259,7 +256,7 @@ void DrawModule::Init(const char* Path, const char* Branch) noexcept {
 			else {
 				Child = BranchName + "/" + Back.Name;
 			}
-			Back.DrawModuleHandle = DrawUISystem::Instance()->Add(FilePath.c_str(), Child.c_str());
+			Back.DrawModuleHandle = DrawUI->Add(FilePath.c_str(), Child.c_str());
 		}
 		;
 		if (d.contains("IsHitCheck")) {
