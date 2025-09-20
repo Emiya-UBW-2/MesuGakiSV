@@ -10,7 +10,7 @@
 			"Scale":[0.9,0.9],
 			"Center":[0.5,0.5],
 			"BaseColor":[8,8,8],
-			"IsHitCheck":true
+			"IsHitCheck":false
 		},
 		{
 			"Name":"Box2",
@@ -25,7 +25,7 @@
 			"Min":[21,21],
 			"Max":[21,21],
 			"Image":"data/temp.png",
-			"IsHitCheck":false
+			"IsHitCheck":true
 
 		}
 	],

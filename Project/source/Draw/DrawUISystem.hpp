@@ -42,7 +42,7 @@ struct Param2D {
 	VECTOR2D	Ofs{};
 	VECTOR2D	Size{};
 	VECTOR2D	Scale = VECTOR2D(1.f, 1.f);
-	VECTOR2D	Center{};
+	VECTOR2D	Center = VECTOR2D(0.f, 0.f);
 	float		Rad = deg2rad(0.f);
 	char		padding[4]{};
 	ColorRGBA	Color = ColorRGBA(255, 255, 255, 255);
@@ -152,11 +152,11 @@ public:
 
 	void SetActive(bool value) noexcept { this->m_IsActive = value; }
 
-	void AddChild(const char* ChildName, const char* FilePath, Param2D Parent = Param2D()) noexcept;
+	void AddChild(const char* ChildName, const char* FilePath, Param2D Param = Param2D()) noexcept;
 	void DeleteChild(const char* ChildName) noexcept;
 public:
 	void Init(const char* Path, const char* Branch) noexcept;
-	void Update(Param2D Parent = Param2D()) noexcept {
+	void Update(Param2D Param = Param2D()) noexcept {
 		AnimType SelectNow = AnimType::Normal;
 		if (m_UseActive) {
 			if (m_IsActive) {
@@ -167,13 +167,13 @@ public:
 			}
 		}
 		m_IsSelect = false;
-		if(m_UseButton) {
+		if (m_UseButton) {
 			auto* DrawerMngr = MainDraw::Instance();
 			auto* KeyMngr = KeyParam::Instance();
 
 			bool IsSelect = false;
 			for (auto& p : m_PartsParam) {
-				if (p.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Parent)) {
+				if (p.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Param)) {
 					IsSelect = true;
 					break;
 				}
@@ -270,14 +270,14 @@ public:
 		}
 
 		for (auto& p : m_PartsParam) {
-			p.Update(Parent);
+			p.Update(Param);
 		}
 	}
-	void Draw(Param2D Parent = Param2D()) noexcept {
+	void Draw(Param2D Param = Param2D()) noexcept {
 		for (auto& p : m_PartsParam) {
-			p.Draw(Parent);
+			p.Draw(Param);
 		}
-		//DrawString(Parent.OfsNoRad.x, Parent.OfsNoRad.y, this->BranchName.c_str(), GetColor(255, 0, 0));
+		//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, this->BranchName.c_str(), GetColor(255, 0, 0));
 	}
 };
 
@@ -314,7 +314,7 @@ public:
 		return -1;
 	}
 public:
-	void AddChild(const char* Path, const char* FilePath, Param2D Parent = Param2D()) noexcept {
+	void AddChild(const char* Path, const char* FilePath, Param2D Param = Param2D()) noexcept {
 		std::string Name = Path;
 		std::string ChildName;
 		if (Name.find("/") != std::string::npos) {
@@ -325,7 +325,7 @@ public:
 			ChildName = Path;
 			Name = "";
 		}
-		Get(GetID(Name.c_str())).AddChild(ChildName.c_str(), FilePath, Parent);
+		Get(GetID(Name.c_str())).AddChild(ChildName.c_str(), FilePath, Param);
 	}
 	void DeleteChild(const char* Path) noexcept {
 		std::string Name = Path;
@@ -338,7 +338,7 @@ public:
 			ChildName = Path;
 			Name = "";
 		}
-		for (int loop = 0, max = static_cast<int>(this->m_DrawModule.size()); loop < max;++loop) {
+		for (int loop = 0, max = static_cast<int>(this->m_DrawModule.size()); loop < max; ++loop) {
 			auto& d = m_DrawModule.at(static_cast<size_t>(loop));
 			if (d.BranchName.find(Path) != std::string::npos) {
 				m_DrawModule.erase(m_DrawModule.begin() + loop);

@@ -20,8 +20,10 @@
 class TitleScene : public SceneBase {
 
 	int m_UIBase = -1;
+	int m_TabButton[4] = { -1,-1,-1,-1 };
 	int m_CloseButton = -1;
-	//char		padding[4]{};
+	int m_NowSelect = 0;
+	char		padding[4]{};
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
 	TitleScene(const TitleScene&) = delete;
@@ -36,6 +38,12 @@ protected:
 		DrawUI->Init("data/UI000.json");
 
 		m_UIBase = DrawUI->GetID("");
+		for (int loop = 0; loop < 4; ++loop) {
+			std::string Path = "OptionUI/Tab";
+			Path += std::to_string(loop + 1);
+			m_TabButton[loop] = DrawUI->GetID(Path.c_str());
+		}
+		m_NowSelect = 0;
 		m_CloseButton = DrawUI->GetID("OptionUI/CloseButton");
 
 		DrawUI->Get(m_UIBase).SetActive(false);
@@ -47,16 +55,38 @@ protected:
 		if (!DrawUI->Get(m_UIBase).IsActive()) {
 			if (KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
 				DrawUI->Get(m_UIBase).SetActive(true);
+
+				std::string Path = "OptionUI/Child";
+				Path += std::to_string(m_NowSelect + 1);
 				Param2D Param;
 				Param.OfsNoRad = VECTOR2D(1170, 220);
-				DrawUI->AddChild("OptionUI/Child1", "data/UI001B.json", Param);
+				DrawUI->AddChild(Path.c_str(), "data/UI001B.json", Param);
 			}
 		}
 		else {
+			for (int loop = 0; loop < 4; ++loop) {
+				if (DrawUI->Get(m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+					{
+						std::string Path = "OptionUI/Child";
+						Path += std::to_string(m_NowSelect + 1);
+						DrawUI->DeleteChild(Path.c_str());
+					}
+					m_NowSelect = loop;
+					{
+						std::string Path = "OptionUI/Child";
+						Path += std::to_string(m_NowSelect + 1);
+						Param2D Param;
+						Param.OfsNoRad = VECTOR2D(1170, 220);
+						DrawUI->AddChild(Path.c_str(), "data/UI001B.json", Param);
+					}
+				}
+			}
 			if (DrawUI->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
 				DrawUI->Get(m_UIBase).SetActive(false);
 
-				DrawUI->DeleteChild("OptionUI/Child1");
+				std::string Path = "OptionUI/Child";
+				Path += std::to_string(m_NowSelect + 1);
+				DrawUI->DeleteChild(Path.c_str());
 			}
 		}
 

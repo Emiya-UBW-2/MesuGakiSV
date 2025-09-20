@@ -43,7 +43,7 @@
 			"IsHitCheck":false
 		},
 		{
-			"Name":"Button1",
+			"Name":"Tab1",
 			"Type":"Json",
 			"OfsNoRad":[610,100],
 			"Rad":0,
@@ -53,7 +53,7 @@
 			"IsHitCheck":false
 		},
 		{
-			"Name":"Button2",
+			"Name":"Tab2",
 			"Type":"Json",
 			"OfsNoRad":[810,100],
 			"Rad":0,
@@ -63,7 +63,7 @@
 			"IsHitCheck":false
 		},
 		{
-			"Name":"Button3",
+			"Name":"Tab3",
 			"Type":"Json",
 			"OfsNoRad":[1010,100],
 			"Rad":0,
@@ -73,7 +73,7 @@
 			"IsHitCheck":false
 		},
 		{
-			"Name":"Button4",
+			"Name":"Tab4",
 			"Type":"Json",
 			"OfsNoRad":[1210,100],
 			"Rad":0,

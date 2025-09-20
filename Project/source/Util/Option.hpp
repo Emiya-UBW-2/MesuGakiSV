@@ -50,26 +50,27 @@ private:
 		nlohmann::json data = nlohmann::json::parse(file);
 		for (auto& d : data["data"]) {
 			m_ParamList.emplace_back();
+			auto& Back = m_ParamList.back();
 			//Type
-			m_ParamList.back().m_Type = d["Type"];
+			Back.m_Type = d["Type"];
 			//SelectType
 			std::string SelType = d["SelectType"];
 			for (int loop = 0; loop < static_cast<int>(EnumOptionSelectType::Max); ++loop) {
 				if (SelType == OptionSelectTypeStr[loop]) {
-					m_ParamList.back().m_SelectType = static_cast<EnumOptionSelectType>(loop);
+					Back.m_SelectType = static_cast<EnumOptionSelectType>(loop);
 					break;
 				}
 			}
 			//Value
-			switch (m_ParamList.back().m_SelectType) {
+			switch (Back.m_SelectType) {
 			case EnumOptionSelectType::Bool:
-				m_ParamList.back().m_ValueList.emplace_back("False");
-				m_ParamList.back().m_ValueList.emplace_back("True");
+				Back.m_ValueList.emplace_back("False");
+				Back.m_ValueList.emplace_back("True");
 				break;
 			case EnumOptionSelectType::Select:
 				if (d.contains("Value")) {
 					for (auto& v : d["Value"]) {
-						m_ParamList.back().m_ValueList.emplace_back(v);
+						Back.m_ValueList.emplace_back(v);
 					}
 				}
 				break;
@@ -80,9 +81,9 @@ private:
 			}
 			//DefaultValue
 			std::string DefaultValue = d["DefaultValue"];
-			for (auto& v : m_ParamList.back().m_ValueList) {
+			for (auto& v : Back.m_ValueList) {
 				if (v == DefaultValue) {
-					m_ParamList.back().m_Value = static_cast<int>(&v - &m_ParamList.back().m_ValueList.front());
+					Back.m_Value = static_cast<int>(&v - &Back.m_ValueList.front());
 					break;
 				}
 			}
