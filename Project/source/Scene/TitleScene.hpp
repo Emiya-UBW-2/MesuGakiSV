@@ -19,9 +19,9 @@
 
 class TitleScene : public SceneBase {
 
-	int m_UIBase = 0;
+	int m_UIBase = -1;
 	int m_CloseButton = -1;
-	char		padding[4]{};
+	//char		padding[4]{};
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
 	TitleScene(const TitleScene&) = delete;
@@ -35,22 +35,28 @@ protected:
 		auto* DrawUI = DrawUISystem::Instance();
 		DrawUI->Init("data/UI000.json");
 
-		DrawUI->Get(m_UIBase).SetActive(false);
-
+		m_UIBase = DrawUI->GetID("");
 		m_CloseButton = DrawUI->GetID("OptionUI/CloseButton");
+
+		DrawUI->Get(m_UIBase).SetActive(false);
 	}
 	void Update_Sub(void) noexcept override {
 		auto* SceneMngr = SceneManager::Instance();
 		auto* KeyMngr = KeyParam::Instance();
 		auto* DrawUI = DrawUISystem::Instance();
-		if (DrawUI->Get(m_UIBase).IsActive()) {
-			if (DrawUI->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
-				DrawUI->Get(m_UIBase).SetActive(false);
+		if (!DrawUI->Get(m_UIBase).IsActive()) {
+			if (KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+				DrawUI->Get(m_UIBase).SetActive(true);
+				Param2D Param;
+				Param.OfsNoRad = VECTOR2D(1170, 220);
+				DrawUI->AddChild("OptionUI/Child1", "data/UI001B.json", Param);
 			}
 		}
 		else {
-			if (KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
-				DrawUI->Get(m_UIBase).SetActive(true);
+			if (DrawUI->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+				DrawUI->Get(m_UIBase).SetActive(false);
+
+				DrawUI->DeleteChild("OptionUI/Child1");
 			}
 		}
 

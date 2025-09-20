@@ -37,17 +37,18 @@ static const char* AnimTypeStr[static_cast<int>(AnimType::Max)] = {
 	"DisActive",
 };
 
+struct Param2D {
+	VECTOR2D	OfsNoRad = VECTOR2D(0.f, 0.f);
+	VECTOR2D	Ofs{};
+	VECTOR2D	Size{};
+	VECTOR2D	Scale = VECTOR2D(1.f, 1.f);
+	VECTOR2D	Center{};
+	float		Rad = deg2rad(0.f);
+	char		padding[4]{};
+	ColorRGBA	Color = ColorRGBA(255, 255, 255, 255);
+};
+
 class DrawModule {
-	struct Param2D {
-		VECTOR2D	OfsNoRad = VECTOR2D(0.f, 0.f);
-		VECTOR2D	Ofs{};
-		VECTOR2D	Size{};
-		VECTOR2D	Scale = VECTOR2D(1.f, 1.f);
-		VECTOR2D	Center{};
-		float		Rad = deg2rad(0.f);
-		char		padding[4]{};
-		ColorRGBA	Color = ColorRGBA(255, 255, 255, 255);
-	};
 	struct PartsParam {
 		std::string Name{};
 		PartsType Type{};
@@ -100,12 +101,15 @@ private:
 	bool m_IsActive{ true };
 	bool m_UseActive{};
 	bool m_UseButton{};
-	char		padding[5]{};
+	char		padding[4]{};
 public:
 	std::string BranchName{};
 public:
 	//コンストラクタ
-	DrawModule(void) noexcept {}
+	DrawModule(void) noexcept {
+		m_PartsParam.reserve(128);
+		m_AnimData.reserve(128);
+	}
 	DrawModule(const DrawModule& o) noexcept {
 		this->m_PartsParam = o.m_PartsParam;
 		this->m_AnimData = o.m_AnimData;
@@ -147,8 +151,11 @@ public:
 	bool IsActive(void) const noexcept { return m_IsActive; }
 
 	void SetActive(bool value) noexcept { this->m_IsActive = value; }
+
+	void AddChild(const char* ChildName, const char* FilePath, Param2D Parent = Param2D()) noexcept;
+	void DeleteChild(const char* ChildName) noexcept;
 public:
-	void Init(const char* Path, std::string Branch) noexcept;
+	void Init(const char* Path, const char* Branch) noexcept;
 	void Update(Param2D Parent = Param2D()) noexcept {
 		AnimType SelectNow = AnimType::Normal;
 		if (m_UseActive) {
@@ -291,20 +298,60 @@ private://コンストラクタ、デストラクタ
 	DrawUISystem& operator=(DrawUISystem&&) = delete;
 	~DrawUISystem(void) noexcept {}
 public:
-	int Add(const char* Path, std::string Branch) noexcept {
+	int Add(const char* Path, const char* Branch) noexcept {
 		int ID = static_cast<int>(m_DrawModule.size());
 		m_DrawModule.emplace_back();
 		m_DrawModule.back().Init(Path, Branch);
 		return ID;
 	}
 	DrawModule& Get(int ID) noexcept { return m_DrawModule.at(static_cast<size_t>(ID)); }
-	int GetID(std::string Value) noexcept {
+	int GetID(const char* Value) noexcept {
 		for (auto& d : m_DrawModule) {
 			if (Value == d.BranchName) {
 				return static_cast<int>(&d - &m_DrawModule.front());
 			}
 		}
 		return -1;
+	}
+public:
+	void AddChild(const char* Path, const char* FilePath, Param2D Parent = Param2D()) noexcept {
+		std::string Name = Path;
+		std::string ChildName;
+		if (Name.find("/") != std::string::npos) {
+			ChildName = Name.substr(Name.rfind("/") + 1);
+			Name = Name.substr(0, Name.rfind("/"));
+		}
+		else {
+			ChildName = Path;
+			Name = "";
+		}
+		Get(GetID(Name.c_str())).AddChild(ChildName.c_str(), FilePath, Parent);
+	}
+	void DeleteChild(const char* Path) noexcept {
+		std::string Name = Path;
+		std::string ChildName;
+		if (Name.find("/") != std::string::npos) {
+			ChildName = Name.substr(Name.rfind("/") + 1);
+			Name = Name.substr(0, Name.rfind("/"));
+		}
+		else {
+			ChildName = Path;
+			Name = "";
+		}
+		for (int loop = 0, max = static_cast<int>(this->m_DrawModule.size()); loop < max;++loop) {
+			auto& d = m_DrawModule.at(static_cast<size_t>(loop));
+			if (d.BranchName.find(Path) != std::string::npos) {
+				m_DrawModule.erase(m_DrawModule.begin() + loop);
+				--loop;
+				--max;
+			}
+		}
+		for (auto& d : m_DrawModule) {
+			if (d.BranchName == Name) {
+				d.DeleteChild(ChildName.c_str());
+				break;
+			}
+		}
 	}
 public:
 	void Init(const char* Path) noexcept {

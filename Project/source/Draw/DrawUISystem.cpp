@@ -171,7 +171,36 @@ void DrawModule::PartsParam::Draw(Param2D Parent) const noexcept {
 	}
 }
 
-void DrawModule::Init(const char* Path, std::string Branch) noexcept {
+void DrawModule::AddChild(const char* ChildName, const char* FilePath, Param2D Parent) noexcept {
+	m_PartsParam.emplace_back();
+	auto& Back = m_PartsParam.back();
+	Back.Name = ChildName;
+	Back.Type = PartsType::Json;
+	Back.Base = Parent;
+
+	std::string Child;
+	if (BranchName == "") {
+		Child = Back.Name;
+	}
+	else {
+		Child = BranchName + "/" + Back.Name;
+	}
+	Back.DrawModuleHandle = DrawUISystem::Instance()->Add(FilePath, Child.c_str());
+
+	Back.Before = Back.Now = Back.Base;
+}
+
+void DrawModule::DeleteChild(const char* ChildName) noexcept {
+	for (int loop = 0, max = static_cast<int>(this->m_PartsParam.size()); loop < max; ++loop) {
+		auto& p = m_PartsParam.at(static_cast<size_t>(loop));
+		if (p.Name == ChildName) {
+			m_PartsParam.erase(m_PartsParam.begin() + loop);
+			break;
+		}
+	}
+}
+
+void DrawModule::Init(const char* Path, const char* Branch) noexcept {
 	m_PartsParam.clear();
 	m_AnimData.clear();
 	std::ifstream file(Path);
@@ -181,70 +210,71 @@ void DrawModule::Init(const char* Path, std::string Branch) noexcept {
 
 	for (auto& d : data["MainParts"]) {
 		m_PartsParam.emplace_back();
-		m_PartsParam.back().Name = d["Name"];
+		auto& Back = m_PartsParam.at(static_cast<size_t>(m_PartsParam.size() - 1));
+		Back.Name = d["Name"];
 		{
 			std::string Type = d["Type"];
 			for (int loop = 0; loop < static_cast<int>(PartsType::Max); ++loop) {
 				if (Type == PartsTypeStr[loop]) {
-					m_PartsParam.back().Type = static_cast<PartsType>(loop);
+					Back.Type = static_cast<PartsType>(loop);
 					break;
 				}
 			}
 		}
 		if (d.contains("OfsNoRad")) {
-			m_PartsParam.back().Base.OfsNoRad.SetByJson(d["OfsNoRad"]);
+			Back.Base.OfsNoRad.SetByJson(d["OfsNoRad"]);
 		}
 		if (d.contains("Ofs")) {
-			m_PartsParam.back().Base.Ofs.SetByJson(d["Ofs"]);
+			Back.Base.Ofs.SetByJson(d["Ofs"]);
 		}
 		if (d.contains("Size")) {
-			m_PartsParam.back().Base.Size.SetByJson(d["Size"]);
+			Back.Base.Size.SetByJson(d["Size"]);
 		}
 		if (d.contains("Scale")) {
-			m_PartsParam.back().Base.Scale.SetByJson(d["Scale"]);
+			Back.Base.Scale.SetByJson(d["Scale"]);
 		}
 		if (d.contains("Center")) {
-			m_PartsParam.back().Base.Center.SetByJson(d["Center"]);
+			Back.Base.Center.SetByJson(d["Center"]);
 		}
 		if (d.contains("Rad")) {
-			m_PartsParam.back().Base.Rad = d["Rad"];
-			m_PartsParam.back().Base.Rad = deg2rad(m_PartsParam.back().Base.Rad);
+			Back.Base.Rad = d["Rad"];
+			Back.Base.Rad = deg2rad(Back.Base.Rad);
 		}
 		if (d.contains("BaseColor")) {
-			m_PartsParam.back().Base.Color.SetByJson(d["BaseColor"]);
+			Back.Base.Color.SetByJson(d["BaseColor"]);
 		}
 		else {
-			m_PartsParam.back().Base.Color.Set(255, 255, 255, 255);
+			Back.Base.Color.Set(255, 255, 255, 255);
 		}
 
 		if (d.contains("Min")) {
-			m_PartsParam.back().Min.SetByJson(d["Min"]);
+			Back.Min.SetByJson(d["Min"]);
 		}
 		if (d.contains("Max")) {
-			m_PartsParam.back().Max.SetByJson(d["Max"]);
+			Back.Max.SetByJson(d["Max"]);
 		}
 
 		if (d.contains("Image")) {
-			m_PartsParam.back().ImagePath = d["Image"];
-			m_PartsParam.back().ImageHandle = LoadGraph(m_PartsParam.back().ImagePath.c_str());
+			Back.ImagePath = d["Image"];
+			Back.ImageHandle = LoadGraph(Back.ImagePath.c_str());
 		}
 		if (d.contains("FilePath")) {
 			std::string FilePath = d["FilePath"];
 			std::string Child;
 			if (BranchName == "") {
-				Child = m_PartsParam.back().Name;
+				Child = Back.Name;
 			}
 			else {
-				Child = BranchName + "/" + m_PartsParam.back().Name;
+				Child = BranchName + "/" + Back.Name;
 			}
-			m_PartsParam.back().DrawModuleHandle = DrawUISystem::Instance()->Add(FilePath.c_str(), Child);
+			Back.DrawModuleHandle = DrawUISystem::Instance()->Add(FilePath.c_str(), Child.c_str());
 		}
 		;
 		if (d.contains("IsHitCheck")) {
-			m_PartsParam.back().m_IsHitCheck = d["IsHitCheck"];
+			Back.m_IsHitCheck = d["IsHitCheck"];
 		}
 
-		m_PartsParam.back().Before = m_PartsParam.back().Now = m_PartsParam.back().Base;
+		Back.Before = Back.Now = Back.Base;
 	}
 	for (auto& d : data["Anim"]) {
 		m_AnimData.emplace_back();
