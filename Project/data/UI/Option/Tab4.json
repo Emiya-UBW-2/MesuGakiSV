@@ -10,56 +10,77 @@
 		{
 			"Name":"Column2",
 			"Type":"Json",
-			"OfsNoRad":[0,90],
+			"OfsNoRad":[0,70],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column3",
 			"Type":"Json",
-			"OfsNoRad":[0,180],
+			"OfsNoRad":[0,140],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column4",
 			"Type":"Json",
-			"OfsNoRad":[0,270],
+			"OfsNoRad":[0,210],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column5",
 			"Type":"Json",
-			"OfsNoRad":[0,360],
+			"OfsNoRad":[0,280],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column6",
 			"Type":"Json",
-			"OfsNoRad":[0,450],
+			"OfsNoRad":[0,350],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column7",
 			"Type":"Json",
-			"OfsNoRad":[0,540],
+			"OfsNoRad":[0,420],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column8",
 			"Type":"Json",
-			"OfsNoRad":[0,630],
+			"OfsNoRad":[0,490],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column9",
 			"Type":"Json",
-			"OfsNoRad":[0,720],
+			"OfsNoRad":[0,560],
+			"FilePath":"data/UI/Option/TabChild001.json"
+		}
+		,
+		{
+			"Name":"Column10",
+			"Type":"Json",
+			"OfsNoRad":[0,630],
+			"FilePath":"data/UI/Option/TabChild001.json"
+		}
+		,
+		{
+			"Name":"Column11",
+			"Type":"Json",
+			"OfsNoRad":[0,700],
+			"FilePath":"data/UI/Option/TabChild001.json"
+		}
+		,
+		{
+			"Name":"Column12",
+			"Type":"Json",
+			"OfsNoRad":[0,770],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 	],

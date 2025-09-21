@@ -88,13 +88,13 @@
 			"Anim":[
 				{
 					"Target":"Box1",
-					"Scale":[1.0,1.0],
+					"Scale":[0.925,0.925],
 					"StartFrame":0,
 					"EndFrame":6
 				},
 				{
 					"Target":"Box2",
-					"Scale":[1.0,1.0],
+					"Scale":[0.925,0.925],
 					"Color":[255,255,255],
 					"StartFrame":0,
 					"EndFrame":6
@@ -107,13 +107,13 @@
 			"Anim":[
 				{
 					"Target":"Box1",
-					"Scale":[0.95,0.95],
+					"Scale":[0.85,0.85],
 					"StartFrame":0,
 					"EndFrame":3
 				},
 				{
 					"Target":"Box2",
-					"Scale":[0.95,0.95],
+					"Scale":[0.85,0.85],
 					"Color":[128,128,128],
 					"StartFrame":0,
 					"EndFrame":3

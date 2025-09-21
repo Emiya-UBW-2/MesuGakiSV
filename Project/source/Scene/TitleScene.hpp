@@ -20,13 +20,16 @@
 #pragma warning( pop )
 
 class OptionWindow {
+	constexpr static int	m_ParamMax{12};
+
 	DrawUISystem*	m_DrawUI{ nullptr };
 	int				m_UIBase = -1;
 	int				m_TabButton[4] = { -1,-1,-1,-1 };
-	int				m_ParamID[9]{};
+	int				m_ParamID[m_ParamMax]{};
 
-	int				m_ParamMinID[9]{};
-	int				m_ParamMaxID[9]{};
+	int				m_ParamMinID[m_ParamMax]{};
+	int				m_ParamMaxID[m_ParamMax]{};
+	std::string		m_ParamStr[m_ParamMax]{};
 
 	int				m_CloseButton = -1;
 	int				m_NowSelectTab = 0;
@@ -58,30 +61,29 @@ private:
 		std::string ChildBase = "OptionUI/Child";
 		ChildBase += std::to_string(m_NowSelectTab + 1);
 		Param2D Param;
-		Param.OfsNoRad = VECTOR2D(980, 220);
+		Param.OfsNoRad = VECTOR2D(980, 205);
 		{
 			std::string Path = "data/UI/Option/Tab";
 			Path += std::to_string(m_NowSelectTab + 1);
 			Path += ".json";
 			m_DrawUI->AddChild(ChildBase.c_str(), Path.c_str(), Param);
 		}
-		m_NowTabMax = 9;
-		std::string ParamStr[9]{};
+		m_NowTabMax = m_ParamMax;
 		{
 			auto* pOption = OptionParam::Instance();
 			switch (m_NowSelectTab) {
 			case 0:
 			{
-				ParamStr[0] = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
-				ParamStr[1] = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
-				ParamStr[2] = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
+				m_ParamStr[0] = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
+				m_ParamStr[1] = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
+				m_ParamStr[2] = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
 			}
 				break;
 			case 1:
 			{
-				ParamStr[0] = pOption->GetParam("WindowMode")->GetValueNow();
-				ParamStr[1] = pOption->GetParam("VSync")->GetValueNow();
-				ParamStr[2] = pOption->GetParam("FPSLimit")->GetValueNow();
+				m_ParamStr[0] = pOption->GetParam("WindowMode")->GetValueNow();
+				m_ParamStr[1] = pOption->GetParam("VSync")->GetValueNow();
+				m_ParamStr[2] = pOption->GetParam("FPSLimit")->GetValueNow();
 			}
 			break;
 			case 2:
@@ -105,7 +107,7 @@ private:
 			m_ParamMaxID[loop] = m_DrawUI->GetID((Child + "/Box0").c_str());
 
 			m_DrawUI->Get(m_ParamID[loop]).GetParts("String1")->SetString(LocalizePool::Instance()->Get(10 * (m_NowSelectTab + 1) + loop));
-			m_DrawUI->Get(m_ParamID[loop]).GetParts("String0")->SetString(ParamStr[loop]);
+			m_DrawUI->Get(m_ParamID[loop]).GetParts("String0")->SetString(m_ParamStr[loop]);
 			m_DrawUI->Get(m_ParamMinID[loop]).GetParts("String1")->SetString("<");
 			m_DrawUI->Get(m_ParamMaxID[loop]).GetParts("String1")->SetString(">");
 		}
@@ -150,7 +152,6 @@ public:
 				SetActive(false);
 			}
 			if (KeyMngr->GetMenuKeyRepeat(EnumMenu::Diside)) {
-				std::string ParamStr[9]{};
 				{
 					auto* pOption = OptionParam::Instance();
 					switch (m_NowSelectTab) {
@@ -163,7 +164,7 @@ public:
 						if (m_DrawUI->Get(m_ParamMaxID[0]).IsSelectButton()) {
 							pOption->SetParam("MasterVolume", pOption->GetParam("MasterVolume")->GetSelect() + 1);
 						}
-						ParamStr[0] = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
+						m_ParamStr[0] = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
 						//
 						if (m_DrawUI->Get(m_ParamMinID[1]).IsSelectButton()) {
 							pOption->SetParam("BGMVolume", pOption->GetParam("BGMVolume")->GetSelect() - 1);
@@ -171,7 +172,7 @@ public:
 						if (m_DrawUI->Get(m_ParamMaxID[1]).IsSelectButton()) {
 							pOption->SetParam("BGMVolume", pOption->GetParam("BGMVolume")->GetSelect() + 1);
 						}
-						ParamStr[1] = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
+						m_ParamStr[1] = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
 						//
 						if (m_DrawUI->Get(m_ParamMinID[2]).IsSelectButton()) {
 							pOption->SetParam("SEVolume", pOption->GetParam("SEVolume")->GetSelect() - 1);
@@ -179,7 +180,7 @@ public:
 						if (m_DrawUI->Get(m_ParamMaxID[2]).IsSelectButton()) {
 							pOption->SetParam("SEVolume", pOption->GetParam("SEVolume")->GetSelect() + 1);
 						}
-						ParamStr[2] = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
+						m_ParamStr[2] = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
 						//
 					}
 					break;
@@ -192,7 +193,7 @@ public:
 						if (m_DrawUI->Get(m_ParamMaxID[0]).IsSelectButton()) {
 							pOption->SetParam("WindowMode", pOption->GetParam("WindowMode")->GetSelect() + 1);
 						}
-						ParamStr[0] = pOption->GetParam("WindowMode")->GetValueNow();
+						m_ParamStr[0] = pOption->GetParam("WindowMode")->GetValueNow();
 						//
 						if (m_DrawUI->Get(m_ParamMinID[1]).IsSelectButton()) {
 							pOption->SetParam("VSync", pOption->GetParam("VSync")->GetSelect() - 1);
@@ -200,7 +201,7 @@ public:
 						if (m_DrawUI->Get(m_ParamMaxID[1]).IsSelectButton()) {
 							pOption->SetParam("VSync", pOption->GetParam("VSync")->GetSelect() + 1);
 						}
-						ParamStr[1] = pOption->GetParam("VSync")->GetValueNow();
+						m_ParamStr[1] = pOption->GetParam("VSync")->GetValueNow();
 						//
 						if (m_DrawUI->Get(m_ParamMinID[2]).IsSelectButton()) {
 							pOption->SetParam("FPSLimit", pOption->GetParam("FPSLimit")->GetSelect() - 1);
@@ -208,7 +209,7 @@ public:
 						if (m_DrawUI->Get(m_ParamMaxID[2]).IsSelectButton()) {
 							pOption->SetParam("FPSLimit", pOption->GetParam("FPSLimit")->GetSelect() + 1);
 						}
-						ParamStr[2] = pOption->GetParam("FPSLimit")->GetValueNow();
+						m_ParamStr[2] = pOption->GetParam("FPSLimit")->GetValueNow();
 						//
 					}
 					break;
@@ -221,7 +222,7 @@ public:
 					}
 				}
 				for (int loop = 0; loop < m_NowTabMax; ++loop) {
-					m_DrawUI->Get(m_ParamID[loop]).GetParts("String0")->SetString(ParamStr[loop]);
+					m_DrawUI->Get(m_ParamID[loop]).GetParts("String0")->SetString(m_ParamStr[loop]);
 				}
 			}
 		}
