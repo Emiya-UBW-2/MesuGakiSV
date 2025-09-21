@@ -655,6 +655,7 @@ private:
 	};
 	struct KeyPair {
 		EnumInput	m_ID[2] = { EnumInput::Max, EnumInput::Max };
+		EnumInput	m_DefaultID[2] = { EnumInput::Max, EnumInput::Max };
 		Key*		m_Ptr[2]{};
 	};
 private:
@@ -688,6 +689,8 @@ private:
 public:
 	void Load(InputType type) noexcept {
 		std::string Path;
+		std::string DefaultPath;
+		//
 		switch (type) {
 		case InputType::KeyBoard:
 			Path = "Save/Input_Keyboard.dat";
@@ -701,44 +704,73 @@ public:
 		default:
 			break;
 		}
+		//デフォルトデータ
+		switch (type) {
+		case InputType::KeyBoard:
+			DefaultPath = "data/ProjectSetting/Input_Keyboard.dat";
+			break;
+		case InputType::XInput:
+			DefaultPath = "data/ProjectSetting/Input_XInput.dat";
+			break;
+		case InputType::DInput:
+			DefaultPath = "data/ProjectSetting/Input_DInput.dat";
+			break;
+		default:
+			break;
+		}
 		if (!IsFileExist(Path.c_str())) {
-			//デフォルトデータ
-			switch (type) {
-			case InputType::KeyBoard:
-				Path = "data/ProjectSetting/Input_Keyboard.dat";
-				break;
-			case InputType::XInput:
-				Path = "data/ProjectSetting/Input_XInput.dat";
-				break;
-			case InputType::DInput:
-				Path = "data/ProjectSetting/Input_DInput.dat";
-				break;
-			default:
-				break;
+			Path = DefaultPath;
+		}
+		//
+		{
+			InputFileStream Istream(DefaultPath.c_str());
+			while (!Istream.ComeEof()) {
+				std::string Line = InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
+				std::string Left = InputFileStream::getleft(Line, "=");
+				std::string Left0 = InputFileStream::getleft(Left, ",");
+				std::string Left1 = InputFileStream::getright(Left, ",");
+				std::string Right = InputFileStream::getright(Line, "=");
+				for (int loop = 0; loop < static_cast<int>(EnumBattle::Max); ++loop) {
+					if (Left0 == BattleStr[static_cast<size_t>(loop)]) {
+						int ID = std::stoi(Left1);
+						EnumInput Enum = EnumInput::Max;
+						for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
+							if (Right == GetKeyStr(static_cast<EnumInput>(loop2))) {
+								Enum = static_cast<EnumInput>(loop2);
+								break;
+							}
+						}
+						//
+
+						DefaultAssignID(static_cast<EnumBattle>(loop), ID, Enum);
+						break;
+					}
+				}
 			}
 		}
-
-		InputFileStream Istream(Path.c_str());
-		while (!Istream.ComeEof()) {
-			std::string Line = InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
-			std::string Left = InputFileStream::getleft(Line, "=");
-			std::string Left0 = InputFileStream::getleft(Left, ",");
-			std::string Left1 = InputFileStream::getright(Left, ",");
-			std::string Right = InputFileStream::getright(Line, "=");
-			for (int loop = 0; loop < static_cast<int>(EnumBattle::Max); ++loop) {
-				if (Left0 == BattleStr[static_cast<size_t>(loop)]) {
-					int ID = std::stoi(Left1);
-					EnumInput Enum = EnumInput::Max;
-					for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
-						if (Right == GetKeyStr(static_cast<EnumInput>(loop2))) {
-							Enum = static_cast<EnumInput>(loop2);
-							break;
+		{
+			InputFileStream Istream(Path.c_str());
+			while (!Istream.ComeEof()) {
+				std::string Line = InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
+				std::string Left = InputFileStream::getleft(Line, "=");
+				std::string Left0 = InputFileStream::getleft(Left, ",");
+				std::string Left1 = InputFileStream::getright(Left, ",");
+				std::string Right = InputFileStream::getright(Line, "=");
+				for (int loop = 0; loop < static_cast<int>(EnumBattle::Max); ++loop) {
+					if (Left0 == BattleStr[static_cast<size_t>(loop)]) {
+						int ID = std::stoi(Left1);
+						EnumInput Enum = EnumInput::Max;
+						for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
+							if (Right == GetKeyStr(static_cast<EnumInput>(loop2))) {
+								Enum = static_cast<EnumInput>(loop2);
+								break;
+							}
 						}
-					}
-					//
+						//
 
-					AssignID(static_cast<EnumBattle>(loop), ID, Enum);
-					break;
+						AssignID(static_cast<EnumBattle>(loop), ID, Enum);
+						break;
+					}
 				}
 			}
 		}
@@ -778,14 +810,18 @@ private:
 			{
 				for (auto& k : m_MenuKey){
 					k.m_ID[0] = EnumInput::Max;
+					k.m_DefaultID[0] = EnumInput::Max;
 					k.m_Ptr[0] = nullptr;
 					k.m_ID[1] = EnumInput::Max;
+					k.m_DefaultID[1] = EnumInput::Max;
 					k.m_Ptr[1] = nullptr;
 				}
 				for (auto& k : m_BattleKey) {
 					k.m_ID[0] = EnumInput::Max;
+					k.m_DefaultID[0] = EnumInput::Max;
 					k.m_Ptr[0] = nullptr;
 					k.m_ID[1] = EnumInput::Max;
+					k.m_DefaultID[1] = EnumInput::Max;
 					k.m_Ptr[1] = nullptr;
 				}
 			}
@@ -838,6 +874,14 @@ private:
 		}
 	}
 public:
+	void DefaultAssignID(EnumMenu Select, int ID, EnumInput Input) noexcept {
+		auto& menu = m_MenuKey.at(static_cast<size_t>(Select));
+		menu.m_DefaultID[ID] = Input;
+	}
+	void DefaultAssignID(EnumBattle Select, int ID, EnumInput Input) noexcept {
+		auto& battle = m_BattleKey.at(static_cast<size_t>(Select));
+		battle.m_DefaultID[ID] = Input;
+	}
 	void AssignID(EnumMenu Select, int ID, EnumInput Input) noexcept {
 		auto& menu = m_MenuKey.at(static_cast<size_t>(Select));
 		menu.m_ID[ID] = Input;
@@ -858,6 +902,20 @@ public:
 			battle.m_Ptr[ID] = &m_Input.at(static_cast<size_t>(battle.m_ID[ID]));
 		}
 
+	}
+public:
+	void AssignBattleID(EnumBattle Battle, int ID, EnumInput Input) noexcept {
+		//それ以外のアサインで被っている奴を外す
+		for (int loop3 = 0; loop3 < static_cast<int>(EnumBattle::Max); ++loop3) {
+			EnumBattle OtherBattle = static_cast<EnumBattle>(loop3);
+			if (Battle == OtherBattle) { continue; }
+			if (Input == GetKeyAssign(OtherBattle, ID)) {
+				AssignID(OtherBattle, ID, EnumInput::Max);
+				break;
+			}
+		}
+
+		AssignID(Battle, ID, Input);
 	}
 public:
 	static const char* GetKeyStr(EnumInput ID) noexcept {
@@ -1117,12 +1175,11 @@ public:
 		}
 		return false;
 	}
-	const EnumInput& GetKeyAssign(EnumMenu Select, int ID) const noexcept {
-		return m_MenuKey.at(static_cast<size_t>(Select)).m_ID[ID];
-	}
-	const EnumInput& GetKeyAssign(EnumBattle Select, int ID) const noexcept {
-		return m_BattleKey.at(static_cast<size_t>(Select)).m_ID[ID];
-	}
+	const EnumInput& GetKeyAssign(EnumMenu Select, int ID) const noexcept { return m_MenuKey.at(static_cast<size_t>(Select)).m_ID[ID]; }
+	const EnumInput& GetKeyAssign(EnumBattle Select, int ID) const noexcept { return m_BattleKey.at(static_cast<size_t>(Select)).m_ID[ID]; }
+
+	const EnumInput& GetDefaultKeyAssign(EnumMenu Select, int ID) const noexcept { return m_MenuKey.at(static_cast<size_t>(Select)).m_DefaultID[ID]; }
+	const EnumInput& GetDefaultKeyAssign(EnumBattle Select, int ID) const noexcept { return m_BattleKey.at(static_cast<size_t>(Select)).m_DefaultID[ID]; }
 public:
 	//入力取得
 	bool GetMenuKeyTrigger(EnumMenu Select) const noexcept {

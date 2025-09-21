@@ -117,6 +117,13 @@ private:
 			if (m_Param[loop].MaxID != -1) {
 				m_DrawUI->Get(m_Param[loop].MaxID).GetParts("String1")->SetString(">");
 			}
+			if (m_NowSelectTab == 2) {
+				if (loop >= 2) {
+					if (m_Param[loop].MaxID != -1) {
+						m_DrawUI->Get(m_Param[loop].MaxID).GetParts("String1")->SetString("Reset");
+					}
+				}
+			}
 		}
 		m_DrawUI->Get(m_TabButton[m_NowSelectTab]).SetActive(true);
 	}
@@ -240,6 +247,21 @@ public:
 							pOption->SetParam("YSensing", pOption->GetParam("YSensing")->GetSelect() + 1);
 						}
 						m_Param[1].Str = std::to_string(pOption->GetParam("YSensing")->GetSelect());
+
+						bool IsChange = false;
+						for (int loop = 2; loop < m_NowTabMax; ++loop) {
+							if (m_DrawUI->Get(m_Param[loop].MaxID).IsSelectButton()) {
+								EnumBattle Battle = static_cast<EnumBattle>(loop - 2);
+								KeyMngr->AssignBattleID(Battle, 0, KeyMngr->GetDefaultKeyAssign(Battle, 0));
+								IsChange = true;
+							}
+						}
+						if (IsChange) {
+							for (int loop = 2; loop < m_NowTabMax; ++loop) {
+								EnumBattle Battle = static_cast<EnumBattle>(loop - 2);
+								m_Param[loop].Str = KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(Battle, 0));
+							}
+						}
 					}
 					break;
 					case 3:
@@ -260,17 +282,7 @@ public:
 						for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
 							EnumInput Input = static_cast<EnumInput>(loop2);
 							if (KeyMngr->GetKeyPress(Input, true)) {
-								//それ以外のアサインで被っている奴を外す
-								for (int loop3 = 0; loop3 < static_cast<int>(EnumBattle::Max); ++loop3) {
-									EnumBattle OtherBattle = static_cast<EnumBattle>(loop3);
-									if (Battle == OtherBattle) { continue; }
-									if (Input == KeyMngr->GetKeyAssign(OtherBattle, 0)) {
-										KeyMngr->AssignID(OtherBattle, 0, EnumInput::Max);
-										break;
-									}
-								}
-
-								KeyMngr->AssignID(Battle, 0, Input);
+								KeyMngr->AssignBattleID(Battle, 0, Input);
 								IsChange = true;
 								break;
 							}

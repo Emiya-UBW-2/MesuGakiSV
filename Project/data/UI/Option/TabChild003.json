@@ -1,6 +1,14 @@
 {
 	"MainParts":[
 		{
+			"Name":"Box0",
+			"Type":"Json",
+			"OfsNoRad":[310,0],
+			"Scale":[1.0,0.35],
+			"FilePath":"data/UI/Button001.json"
+		}
+		,
+		{
 			"Name":"Box1",
 			"Type":"Box",
 			"OfsNoRad":[210,0],
