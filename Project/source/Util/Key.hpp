@@ -624,10 +624,10 @@ private:
 	friend class SingletonBase<KeyParam>;
 private:
 	class Key {
-		int m_PressTimer{ 0 };
-		bool m_Press{ false };
-		bool m_PrevPress{ false };
-		bool m_IsRepeat{ false };
+		int			m_PressTimer{ 0 };
+		bool		m_Press{ false };
+		bool		m_PrevPress{ false };
+		bool		m_IsRepeat{ false };
 		char		padding[1]{};
 	public:
 		void Update(bool PressButton) noexcept {
@@ -653,21 +653,20 @@ private:
 		bool Release(void) const noexcept { return !m_Press; }
 		bool ReleaseTrigger(void) const noexcept { return !m_Press && m_PrevPress; }
 	};
-	class KeyPair {
-	public:
-		EnumInput m_ID[2] = { EnumInput::Max, EnumInput::Max };
-		Key* m_Ptr[2]{};
+	struct KeyPair {
+		EnumInput	m_ID[2] = { EnumInput::Max, EnumInput::Max };
+		Key*		m_Ptr[2]{};
 	};
 private:
-	std::vector<Key> m_Input{};
-	std::vector<KeyPair> m_MenuKey{};
-	std::vector<KeyPair> m_BattleKey{};
-	InputType	m_InputType{ InputType::XInput };
-	bool		m_DeviceChangeSwitch = true;
+	std::vector<Key>		m_Input{};
+	std::vector<KeyPair>	m_MenuKey{};
+	std::vector<KeyPair>	m_BattleKey{};
+	InputType				m_InputType{ InputType::XInput };
+	bool					m_DeviceChangeSwitch = true;
 	char		padding[3]{};
-	XINPUT_STATE inputXInput;
+	XINPUT_STATE			m_inputXInput;
 	char		padding2[2]{};
-	DINPUT_JOYSTATE inputDInput;
+	DINPUT_JOYSTATE			m_inputDInput;
 private:
 	//コンストラクタ
 	KeyParam(void) noexcept {
@@ -771,6 +770,7 @@ public:
 private:
 	void Assign(InputType type) noexcept {
 		if (m_InputType != type) {
+			Save(GetLastInputDevice());
 			m_InputType = type;
 			m_DeviceChangeSwitch = true;
 			{
@@ -910,8 +910,8 @@ public:
 				float LS_Degree = 0.f;
 				float RS_Degree = 0.f;
 				{
-					int LS_X = inputXInput.ThumbLX;
-					int LS_Y = -inputXInput.ThumbLY;
+					int LS_X = m_inputXInput.ThumbLX;
+					int LS_Y = -m_inputXInput.ThumbLY;
 					//XInputが-1000~1000になるように変換
 					LS_X = 1000 * LS_X / 32768;
 					LS_Y = 1000 * LS_Y / 32768;
@@ -924,8 +924,8 @@ public:
 					}
 				}
 				{
-					int RS_X = inputXInput.ThumbRX;
-					int RS_Y = -inputXInput.ThumbRY;
+					int RS_X = m_inputXInput.ThumbRX;
+					int RS_Y = -m_inputXInput.ThumbRY;
 					//XInputが-1000~1000になるように変換
 					RS_X = 1000 * RS_X / 32768;
 					RS_Y = 1000 * RS_Y / 32768;
@@ -939,10 +939,10 @@ public:
 				}
 				switch (XID) {
 				case 0xF100:
-					IsPress = inputXInput.LeftTrigger > 0;
+					IsPress = m_inputXInput.LeftTrigger > 0;
 					break;
 				case 0xF200:
-					IsPress = inputXInput.RightTrigger > 0;
+					IsPress = m_inputXInput.RightTrigger > 0;
 					break;
 				case 0xF001:
 					if (LS_Active) {
@@ -989,7 +989,7 @@ public:
 				}
 			}
 			else if (0 <= XID && XID < 16) {
-				IsPress = (inputXInput.Buttons[XID] != 0);
+				IsPress = (m_inputXInput.Buttons[XID] != 0);
 			}
 			return IsPress;
 		}
@@ -1010,8 +1010,8 @@ public:
 				float LS_Degree = 0.f;
 				float RS_Degree = 0.f;
 				{
-					int LS_X = inputDInput.X;
-					int LS_Y = inputDInput.Y;
+					int LS_X = m_inputDInput.X;
+					int LS_Y = m_inputDInput.Y;
 					//XInputが-1000~1000になるように変換
 					LS_X = 1000 * LS_X / 32768;
 					LS_Y = 1000 * LS_Y / 32768;
@@ -1024,8 +1024,8 @@ public:
 					}
 				}
 				{
-					int RS_X = inputDInput.Z;
-					int RS_Y = inputDInput.Rz;
+					int RS_X = m_inputDInput.Z;
+					int RS_Y = m_inputDInput.Rz;
 					//XInputが-1000~1000になるように変換
 					RS_X = 1000 * RS_X / 32768;
 					RS_Y = 1000 * RS_Y / 32768;
@@ -1038,9 +1038,9 @@ public:
 					}
 				}
 				{
-					if (inputDInput.POV[0] != 0xffffffff) {
+					if (m_inputDInput.POV[0] != 0xffffffff) {
 						LPOV_Active = true;
-						LPOV_Degree = static_cast<float>(inputDInput.POV[0]) / 100.f;
+						LPOV_Degree = static_cast<float>(m_inputDInput.POV[0]) / 100.f;
 					}
 				}
 				switch (DID) {
@@ -1109,7 +1109,7 @@ public:
 				}
 			}
 			else if (0 <= DID && DID < 16) {
-				IsPress = (inputDInput.Buttons[DID] != 0);
+				IsPress = (m_inputDInput.Buttons[DID] != 0);
 			}
 			return IsPress;
 		}
@@ -1174,7 +1174,7 @@ public:
 		if ((CheckHitKeyAll(DX_CHECKINPUT_MOUSE) != 0) || (CheckHitKeyAll(DX_CHECKINPUT_KEY) != 0)) {
 			Assign(InputType::KeyBoard);
 		}
-		if (CheckHitKeyAll(DX_CHECKINPUT_PAD) != 0) {
+		else if (CheckHitKeyAll(DX_CHECKINPUT_PAD) != 0) {
 			switch (GetJoypadType(DX_INPUT_PAD1)) {
 			case DX_PADTYPE_XBOX_360:			// Xbox360コントローラー
 			case DX_PADTYPE_XBOX_ONE:			// XboxOneコントローラー
@@ -1194,11 +1194,11 @@ public:
 		}
 		//XInput
 		if (GetLastInputDevice() == InputType::XInput) {
-			GetJoypadXInputState(DX_INPUT_PAD1, &inputXInput);
+			GetJoypadXInputState(DX_INPUT_PAD1, &m_inputXInput);
 		}
 		//DInput
 		if (GetLastInputDevice() == InputType::DInput) {
-			GetJoypadDirectInputState(DX_INPUT_PAD1, &inputDInput);
+			GetJoypadDirectInputState(DX_INPUT_PAD1, &m_inputDInput);
 		}
 		//
 		for (size_t loop = static_cast<size_t>(EnumInput::Begin); loop < static_cast<size_t>(EnumInput::Max); ++loop) {

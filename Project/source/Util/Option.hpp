@@ -90,11 +90,11 @@ private:
 			}
 		}
 	public:
-		void SetByJson(nlohmann::json& d) noexcept {
+		void SetByJson(nlohmann::json& data) noexcept {
 			//Type
-			this->m_Type = d["Type"];
+			this->m_Type = data["Type"];
 			//SelectType
-			std::string SelType = d["SelectType"];
+			std::string SelType = data["SelectType"];
 			for (int loop = 0; loop < static_cast<int>(EnumOptionSelectType::Max); ++loop) {
 				if (SelType == OptionSelectTypeStr[loop]) {
 					this->m_SelectType = static_cast<EnumOptionSelectType>(loop);
@@ -110,8 +110,8 @@ private:
 				this->m_ValueMax = static_cast<int>(this->m_ValueList.size()) - 1;
 				break;
 			case EnumOptionSelectType::Select:
-				if (d.contains("Value")) {
-					for (auto& v : d["Value"]) {
+				if (data.contains("Value")) {
+					for (auto& v : data["Value"]) {
 						this->m_ValueList.emplace_back(v);
 					}
 				}
@@ -119,9 +119,9 @@ private:
 				this->m_ValueMax = static_cast<int>(this->m_ValueList.size()) - 1;
 				break;
 			case EnumOptionSelectType::Int:
-				if (d.contains("Value")) {
+				if (data.contains("Value")) {
 					int loop = 0;
-					for (auto& v : d["Value"]) {
+					for (auto& v : data["Value"]) {
 						if (loop == 0) {
 							this->m_ValueMin = v;
 						}
@@ -142,7 +142,7 @@ private:
 			case EnumOptionSelectType::Bool:
 			case EnumOptionSelectType::Select:
 			{
-				std::string DefaultValue = d["DefaultValue"];
+				std::string DefaultValue = data["DefaultValue"];
 				for (auto& v : this->m_ValueList) {
 					if (v == DefaultValue) {
 						SetSelect(static_cast<int>(&v - &this->m_ValueList.front()));
@@ -153,7 +153,7 @@ private:
 			break;
 			case EnumOptionSelectType::Int:
 			{
-				int tmp = d["DefaultValue"];
+				int tmp = data["DefaultValue"];
 				SetSelect(tmp);
 			}
 			break;
@@ -173,10 +173,10 @@ private:
 	//コンストラクタ
 	OptionParam(void) noexcept {
 		std::ifstream file("data/ProjectSetting/Option.json");
-		nlohmann::json data = nlohmann::json::parse(file);
-		for (auto& d : data["data"]) {
+		nlohmann::json jsonData = nlohmann::json::parse(file);
+		for (auto& data : jsonData["data"]) {
 			m_ParamList.emplace_back();
-			m_ParamList.back().SetByJson(d);
+			m_ParamList.back().SetByJson(data);
 		}
 		Load();
 	}
@@ -187,24 +187,24 @@ private:
 	//デストラクタ
 	~OptionParam(void) noexcept {
 		Save();
-		for (auto& p : m_ParamList) {
-			p.Dispose();
+		for (auto& param : m_ParamList) {
+			param.Dispose();
 		}
 		m_ParamList.clear();
 	}
 public:
 	const Param* GetParam(const char* Type) const noexcept {
-		for (auto& p : m_ParamList) {
-			if (p.GetType() == Type) {
-				return &p;
+		for (auto& param : m_ParamList) {
+			if (param.GetType() == Type) {
+				return &param;
 			}
 		}
 		return nullptr;
 	}
 	void SetParam(const char* Type, int Param) noexcept {
-		for (auto& p : m_ParamList) {
-			if (p.GetType() == Type) {
-				p.SetSelect(Param);
+		for (auto& param : m_ParamList) {
+			if (param.GetType() == Type) {
+				param.SetSelect(Param);
 				break;
 			}
 		}
@@ -216,9 +216,9 @@ public:
 			std::string Line = InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
 			std::string Left = InputFileStream::getleft(Line, "=");
 			std::string Right = InputFileStream::getright(Line, "=");
-			for (auto& p : m_ParamList) {
-				if (p.GetType() == Left) {
-					p.SetSelect(Right);
+			for (auto& param : m_ParamList) {
+				if (param.GetType() == Left) {
+					param.SetSelect(Right);
 					break;
 				}
 			}
@@ -226,8 +226,8 @@ public:
 	}
 	void Save(void) noexcept {
 		OutputFileStream Ostream("Save/Option.dat");
-		for (auto& p : m_ParamList) {
-			std::string Line = p.GetType() + "=" + p.GetValueNow();
+		for (auto& param : m_ParamList) {
+			std::string Line = param.GetType() + "=" + param.GetValueNow();
 			Ostream.AddLine(Line);
 		}
 	}

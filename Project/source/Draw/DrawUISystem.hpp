@@ -62,139 +62,81 @@ struct Param2D {
 class DrawUISystem;
 
 class DrawModule {
-	struct AnimParam;
-	struct PartsParam {
-	private:
-		std::string			Name{};
-		PartsType			Type{};
+	struct AnimParam {
+		size_t			m_TargetID{};
 
-		Param2D				Base{};
-		Param2D				Now{};
-		Param2D				Before{};
+		bool			m_OfsNoRadChanged{};
+		bool			m_OfsChanged{};
+		bool			m_SizeChanged{};
+		bool			m_ScaleChanged{};
+		bool			m_CenterChanged{};
+		bool			m_RadChanged{};
+		bool			m_ColorChanged{};
+		char		padding[1]{};
 
-		std::string			String{};
+		Param2D			m_Target{};
 
-		VECTOR2D			Min{};
-		VECTOR2D			Max{};
-		std::string			ImagePath{};
-		int					DrawModuleHandle{};
+		int				m_StartFrame{};
+		int				m_EndFrame{};
+	};
+	class PartsParam {
+		std::string			m_Name{};
+		PartsType			m_Type{};
+
+		Param2D				m_Base{};
+		Param2D				m_Now{};
+		Param2D				m_Before{};
+
+		std::string			m_String{};
+
+		VECTOR2D			m_Min{};
+		VECTOR2D			m_Max{};
+		std::string			m_ImagePath{};
+		int					m_DrawModuleHandle{};
 		char		padding[4]{};
-		const GraphHandle*	ImageHandle{};
+		const GraphHandle*	m_ImageHandle{};
 		bool				m_IsHitCheck{};
 		char		padding2[7]{};
 	public:
-		void		SetString(std::string value) noexcept { String = value; }
-		const auto&	GetName(void) const noexcept { return Name; }
+		void			SetString(std::string value) noexcept { m_String = value; }
+		const auto&		GetName(void) const noexcept { return m_Name; }
 	public:
-		bool IsHitPoint(int x, int y, Param2D Parent) const noexcept;
-		void Update(DrawUISystem* DrawUI, Param2D Parent) const noexcept;
-		void Draw(DrawUISystem* DrawUI, Param2D Parent) const noexcept;
+		bool			IsHitPoint(int x, int y, Param2D Parent) const noexcept;
+		void			Update(DrawUISystem* DrawUI, Param2D Parent) const noexcept;
+		void			Draw(DrawUISystem* DrawUI, Param2D Parent) const noexcept;
 	public:
-		void CalcAnim(const AnimParam& Anim, bool IsFirstFrame,float Per) noexcept {
-			if (Anim.m_OfsNoRadChanged) {
-				if (IsFirstFrame) {
-					this->Before.OfsNoRad = this->Now.OfsNoRad;
-				}
-				this->Now.OfsNoRad = Lerp(this->Before.OfsNoRad, Anim.Target.OfsNoRad, Per);
-			}
-			if (Anim.m_OfsChanged) {
-				if (IsFirstFrame) {
-					this->Before.Ofs = this->Now.Ofs;
-				}
-				this->Now.Ofs = Lerp(this->Before.Ofs, Anim.Target.Ofs, Per);
-			}
-			if (Anim.m_SizeChanged) {
-				if (IsFirstFrame) {
-					this->Before.Size = this->Now.Size;
-				}
-				this->Now.Size = Lerp(this->Before.Size, Anim.Target.Size, Per);
-			}
-			if (Anim.m_ScaleChanged) {
-				if (IsFirstFrame) {
-					this->Before.Scale = this->Now.Scale;
-				}
-				this->Now.Scale = Lerp(this->Before.Scale, Anim.Target.Scale, Per);
-			}
-			if (Anim.m_CenterChanged) {
-				if (IsFirstFrame) {
-					this->Before.Center = this->Now.Center;
-				}
-				this->Now.Center = Lerp(this->Before.Center, Anim.Target.Center, Per);
-			}
-			if (Anim.m_RadChanged) {
-				if (IsFirstFrame) {
-					this->Before.Rad = this->Now.Rad;
-				}
-				this->Now.Rad = Lerp(this->Before.Rad, Anim.Target.Rad, Per);
-			}
-			if (Anim.m_ColorChanged) {
-				if (IsFirstFrame) {
-					this->Before.Color = this->Now.Color;
-				}
-				this->Now.Color = Lerp(this->Before.Color, Anim.Target.Color, Per);
-			}
+		void			CalcAnim(const AnimParam& Anim, bool IsFirstFrame, float Per) noexcept;
+		void			SetDefault(void) noexcept {
+			this->m_Before = this->m_Now = this->m_Base;
 		}
-		void SetDefault(void) noexcept {
-			this->Before = this->Now = this->Base;
-		}
-		void AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* ChildBranch, const char* FilePath, Param2D Param) noexcept;
-		void SetByJson(DrawUISystem* DrawUI, nlohmann::json& d, std::string BranchName) noexcept;
-	};
-	struct AnimParam {
-		size_t TargetID{};
-
-		bool m_OfsNoRadChanged{};
-		bool m_OfsChanged{};
-		bool m_SizeChanged{};
-		bool m_ScaleChanged{};
-		bool m_CenterChanged{};
-		bool m_RadChanged{};
-		bool m_ColorChanged{};
-		char		padding[1]{};
-
-		Param2D	Target{};
-
-		int StartFrame{};
-		int EndFrame{};
+		void			AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* ChildBranch, const char* FilePath, Param2D Param) noexcept;
+		void			SetByJson(DrawUISystem* DrawUI, nlohmann::json& data, std::string BranchName) noexcept;
 	};
 	struct AnimData {
-		AnimType m_Type{ AnimType::None };
-		std::vector<AnimParam> m_AnimParam;
-		bool m_IsLoop{};
+		AnimType				m_Type{ AnimType::None };
+		std::vector<AnimParam>	m_AnimParam;
+		bool					m_IsLoop{};
 		char		padding[7]{};
 	};
 private:
-	std::vector<PartsParam> m_PartsParam;
-	std::vector<AnimData> m_AnimData;
-	int m_AnimDataLastSelect{};
-	int m_Frame{};
-	bool m_IsSelect{};
-	bool m_IsActive{ true };
-	bool m_UseActive{};
-	bool m_UseButton{};
+	std::vector<PartsParam>	m_PartsParam;
+	std::vector<AnimData>	m_AnimData;
+	int						m_AnimDataLastSelect{};
+	int						m_Frame{};
+	bool					m_IsSelect{};
+	bool					m_IsActive{ true };
+	bool					m_UseActive{};
+	bool					m_UseButton{};
 	char		padding[4]{};
-public:
-	std::string BranchName{};
+	std::string				m_BranchName{};
 public:
 	//コンストラクタ
 	DrawModule(void) noexcept {
 		m_PartsParam.reserve(128);
 		m_AnimData.reserve(128);
 	}
-	DrawModule(const DrawModule& o) noexcept {
-		this->m_PartsParam = o.m_PartsParam;
-		this->m_AnimData = o.m_AnimData;
-		this->m_AnimDataLastSelect = o.m_AnimDataLastSelect;
-		this->m_Frame = o.m_Frame;
-		this->m_IsSelect = o.m_IsSelect;
-	}
-	DrawModule(DrawModule&& o) noexcept {
-		this->m_PartsParam = o.m_PartsParam;
-		this->m_AnimData = o.m_AnimData;
-		this->m_AnimDataLastSelect = o.m_AnimDataLastSelect;
-		this->m_Frame = o.m_Frame;
-		this->m_IsSelect = o.m_IsSelect;
-	}
+	DrawModule(const DrawModule& o) noexcept { *this = o; }
+	DrawModule(DrawModule&& o) noexcept { *this = o; }
 	DrawModule& operator=(const DrawModule& o) noexcept {
 		this->m_PartsParam = o.m_PartsParam;
 		this->m_AnimData = o.m_AnimData;
@@ -217,105 +159,29 @@ public:
 		m_AnimData.clear();
 	}
 public:
-	bool IsSelectButton(void) const noexcept { return m_IsSelect; }
-
-	bool IsActive(void) const noexcept { return m_IsActive; }
-
-	void SetActive(bool value) noexcept { this->m_IsActive = value; }
-
-	void AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param = Param2D()) noexcept;
-	void DeleteChild(const char* ChildName) noexcept;
-
-	PartsParam* GetParts(const char* ChildName) const noexcept {
-		for (auto& p : m_PartsParam) {
-			if (p.GetName() == ChildName) {
-				return (PartsParam*)&p;
+	bool			IsSelectButton(void) const noexcept { return m_IsSelect; }
+	bool			IsActive(void) const noexcept { return m_IsActive; }
+	std::string		GetBranchName() const noexcept { return m_BranchName; }
+	PartsParam*		GetParts(const char* ChildName) const noexcept {
+		for (auto& parts : m_PartsParam) {
+			if (parts.GetName() == ChildName) {
+				return (PartsParam*)&parts;
 			}
 		}
 		return nullptr;
 	}
 public:
-	void Init(DrawUISystem* DrawUI, const char* Path, const char* Branch) noexcept;
-	void Update(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept {
-		AnimType SelectNow = AnimType::Normal;
-		if (m_UseActive) {
-			if (m_IsActive) {
-				SelectNow = AnimType::Active;
-			}
-			else {
-				SelectNow = AnimType::DisActive;
-			}
+	void			SetActive(bool value) noexcept { this->m_IsActive = value; }
+	void			AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param = Param2D()) noexcept;
+	void			DeleteChild(const char* ChildName) noexcept;
+public:
+	void			Init(DrawUISystem* DrawUI, const char* Path, const char* Branch) noexcept;
+	void			Update(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept;
+	void			Draw(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept {
+		for (auto& parts : m_PartsParam) {
+			parts.Draw(DrawUI, Param);
 		}
-		m_IsSelect = false;
-		if (m_UseButton) {
-			auto* DrawerMngr = MainDraw::Instance();
-			auto* KeyMngr = KeyParam::Instance();
-
-			bool IsSelect = false;
-			for (auto& p : m_PartsParam) {
-				if (p.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Param)) {
-					IsSelect = true;
-					break;
-				}
-			}
-			if (IsSelect) {
-				SelectNow = AnimType::OnSelect;
-				m_IsSelect = true;
-			}
-
-			if (m_IsSelect) {
-				if (KeyMngr->GetMenuKeyPress(EnumMenu::Diside)) {
-					SelectNow = AnimType::OnPress;
-				}
-			}
-		}
-
-		bool IsSelectAnim = false;
-		for (auto& a : m_AnimData) {
-			//アニメ選択
-			if (SelectNow != a.m_Type) { continue; }
-			IsSelectAnim = true;
-			int index = static_cast<int>(&a - &m_AnimData.front());;
-			//フレーム更新
-			if (m_AnimDataLastSelect != index) {
-				m_AnimDataLastSelect = index;
-				this->m_Frame = 0;
-			}
-			else {
-				auto Max = 0;
-				for (auto& p : a.m_AnimParam) {
-					Max = std::max(Max, p.EndFrame);
-				}
-				this->m_Frame = std::clamp(this->m_Frame + 1, 0, Max);
-				if ((this->m_Frame == Max) && a.m_IsLoop) {
-					this->m_Frame = 0;
-				}
-			}
-
-			//
-			for (auto& p : a.m_AnimParam) {
-				if (p.StartFrame <= this->m_Frame && this->m_Frame <= p.EndFrame) {
-					float Per = static_cast<float>(this->m_Frame - p.StartFrame) / static_cast<float>(p.EndFrame - p.StartFrame);
-					m_PartsParam.at(p.TargetID).CalcAnim(p, (p.StartFrame == this->m_Frame), Per);
-				}
-			}
-		}
-		if (!IsSelectAnim) {
-			m_AnimDataLastSelect = -1;
-			for (auto& p : m_PartsParam) {
-				p.SetDefault();
-			}
-		}
-
-		for (auto& p : m_PartsParam) {
-			p.Update(DrawUI, Param);
-		}
-	}
-	void Draw(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept {
-		for (auto& p : m_PartsParam) {
-			p.Draw(DrawUI, Param);
-		}
-		//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, this->BranchName.c_str(), GetColor(255, 0, 0));
+		//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, GetBranchName().c_str(), GetColor(255, 0, 0));
 	}
 };
 
@@ -333,23 +199,23 @@ public://コンストラクタ、デストラクタ
 	DrawUISystem& operator=(DrawUISystem&&) = delete;
 	~DrawUISystem(void) noexcept {}
 public:
-	int Add(const char* Path, const char* Branch) noexcept {
+	int				Add(const char* Path, const char* Branch) noexcept {
 		int ID = static_cast<int>(m_DrawModule.size());
 		m_DrawModule.emplace_back();
 		m_DrawModule.back().Init(this, Path, Branch);
 		return ID;
 	}
-	DrawModule& Get(int ID) noexcept { return m_DrawModule.at(static_cast<size_t>(ID)); }
-	int GetID(const char* Value) noexcept {
-		for (auto& d : m_DrawModule) {
-			if (Value == d.BranchName) {
-				return static_cast<int>(&d - &m_DrawModule.front());
+	DrawModule&		Get(int ID) noexcept { return m_DrawModule.at(static_cast<size_t>(ID)); }
+	int				GetID(const char* Value) noexcept {
+		for (auto& Module : m_DrawModule) {
+			if (Value == Module.GetBranchName()) {
+				return static_cast<int>(&Module - &m_DrawModule.front());
 			}
 		}
 		return -1;
 	}
 public:
-	void AddChild(const char* Path, const char* FilePath, Param2D Param = Param2D()) noexcept {
+	void			AddChild(const char* Path, const char* FilePath, Param2D Param = Param2D()) noexcept {
 		std::string Name = Path;
 		std::string ChildName;
 		if (Name.find("/") != std::string::npos) {
@@ -362,7 +228,7 @@ public:
 		}
 		Get(GetID(Name.c_str())).AddChild(this, ChildName.c_str(), FilePath, Param);
 	}
-	void DeleteChild(const char* Path) noexcept {
+	void			DeleteChild(const char* Path) noexcept {
 		std::string Name = Path;
 		std::string ChildName;
 		if (Name.find("/") != std::string::npos) {
@@ -374,33 +240,33 @@ public:
 			Name = "";
 		}
 		for (int loop = 0, max = static_cast<int>(this->m_DrawModule.size()); loop < max; ++loop) {
-			auto& d = m_DrawModule.at(static_cast<size_t>(loop));
-			if (d.BranchName.find(Path) != std::string::npos) {
+			auto& Module = m_DrawModule.at(static_cast<size_t>(loop));
+			if (Module.GetBranchName().find(Path) != std::string::npos) {
 				m_DrawModule.erase(m_DrawModule.begin() + loop);
 				--loop;
 				--max;
 			}
 		}
-		for (auto& d : m_DrawModule) {
-			if (d.BranchName == Name) {
-				d.DeleteChild(ChildName.c_str());
+		for (auto& Module : m_DrawModule) {
+			if (Module.GetBranchName() == Name) {
+				Module.DeleteChild(ChildName.c_str());
 				break;
 			}
 		}
 	}
 public:
-	void Init(const char* Path) noexcept {
+	void			Init(const char* Path) noexcept {
 		Add(Path, "");
 	}
-	void Update(void) noexcept {
+	void			Update(void) noexcept {
 		if (m_DrawModule.size() == 0) { return; }
 		m_DrawModule.at(0).Update(this);
 	}
-	void Draw(void) noexcept {
+	void			Draw(void) noexcept {
 		if (m_DrawModule.size() == 0) { return; }
 		m_DrawModule.at(0).Draw(this);
 	}
-	void Dispose(void) noexcept {
+	void			Dispose(void) noexcept {
 		m_DrawModule.clear();
 	}
 };

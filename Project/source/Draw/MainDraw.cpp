@@ -36,14 +36,14 @@ MainDraw::MainDraw(void) noexcept {
 	//プロジェクト固有設定
 	{
 		std::ifstream file("data/ProjectSetting/ProjectSetting.json");
-		nlohmann::json data = nlohmann::json::parse(file);
+		nlohmann::json jsonData = nlohmann::json::parse(file);
 		{
-			std::string Name = data["GameTitle"];
+			std::string Name = jsonData["GameTitle"];
 			DxLib::SetMainWindowText(Name.c_str());
 		}
 		{
 			int loop = 0;
-			for (const int& Size : data["BaseDispSize"]) {
+			for (const int& Size : jsonData["BaseDispSize"]) {
 				if (loop == 0) {
 					this->m_DispWidth = Size;
 				}
@@ -54,7 +54,7 @@ MainDraw::MainDraw(void) noexcept {
 			}
 		}
 		{
-			this->m_CalculateTick = data["CalculateTick"];
+			this->m_CalculateTick = jsonData["CalculateTick"];
 		}
 	}
 	//

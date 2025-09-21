@@ -4,26 +4,26 @@
 #include "DrawUISystem.hpp"
 
 bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noexcept {
-	if (!m_IsHitCheck) { return false; }
-	switch (this->Type) {
+	if (!this->m_IsHitCheck) { return false; }
+	switch (this->m_Type) {
 	case PartsType::Box:
 	case PartsType::NineSlice:
 	{
-		float Rad = this->Now.Rad + Parent.Rad;
-		VECTOR2D PosOfs = Parent.OfsNoRad + this->Now.OfsNoRad + this->Now.Ofs.Rotate(Rad);
+		float Rad = this->m_Now.Rad + Parent.Rad;
+		VECTOR2D PosOfs = Parent.OfsNoRad + this->m_Now.OfsNoRad + this->m_Now.Ofs.Rotate(Rad);
 
 		VECTOR2D Size;
-		Size.x = this->Now.Size.x * this->Now.Scale.x * Parent.Scale.x;
-		Size.y = this->Now.Size.y * this->Now.Scale.y * Parent.Scale.y;
+		Size.x = this->m_Now.Size.x * this->m_Now.Scale.x * Parent.Scale.x;
+		Size.y = this->m_Now.Size.y * this->m_Now.Scale.y * Parent.Scale.y;
 
-		float x1 = PosOfs.x - Size.x * this->Now.Center.x;
-		float y1 = PosOfs.y - Size.y * this->Now.Center.y;
-		float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
-		float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
+		float x1 = PosOfs.x - Size.x * this->m_Now.Center.x;
+		float y1 = PosOfs.y - Size.y * this->m_Now.Center.y;
+		float x2 = PosOfs.x + Size.x * (1.f - this->m_Now.Center.x);
+		float y2 = PosOfs.y + Size.y * (1.f - this->m_Now.Center.y);
 
 		VECTOR2D center;
-		center.x = PosOfs.x + Size.x * (0.5f - this->Now.Center.x) * 2.f;
-		center.y = PosOfs.y + Size.y * (0.5f - this->Now.Center.y) * 2.f;
+		center.x = PosOfs.x + Size.x * (0.5f - this->m_Now.Center.x) * 2.f;
+		center.y = PosOfs.y + Size.y * (0.5f - this->m_Now.Center.y) * 2.f;
 
 		if (HitPointToSquare(VECTOR2D(static_cast<float>(x), static_cast<float>(y)),
 			center + (VECTOR2D(x1, y1) - center).Rotate(Rad),
@@ -45,16 +45,16 @@ bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noex
 	return false;
 }
 void DrawModule::PartsParam::Update(DrawUISystem* DrawUI, Param2D Parent) const noexcept {
-	float Rad = this->Now.Rad + Parent.Rad;
-	VECTOR2D PosOfs = Parent.OfsNoRad + this->Now.OfsNoRad + this->Now.Ofs.Rotate(Rad);
+	float Rad = this->m_Now.Rad + Parent.Rad;
+	VECTOR2D PosOfs = Parent.OfsNoRad + this->m_Now.OfsNoRad + this->m_Now.Ofs.Rotate(Rad);
 
 	VECTOR2D scale;
-	scale.x = this->Now.Scale.x * Parent.Scale.x;
-	scale.y = this->Now.Scale.y * Parent.Scale.y;
+	scale.x = this->m_Now.Scale.x * Parent.Scale.x;
+	scale.y = this->m_Now.Scale.y * Parent.Scale.y;
 
-	ColorRGBA	Color = this->Now.Color.GetMult(Parent.Color);
+	ColorRGBA	Color = this->m_Now.Color.GetMult(Parent.Color);
 
-	switch (this->Type) {
+	switch (this->m_Type) {
 	case PartsType::Json:
 	{
 		Param2D Child;
@@ -62,7 +62,7 @@ void DrawModule::PartsParam::Update(DrawUISystem* DrawUI, Param2D Parent) const 
 		Child.Rad = Rad;
 		Child.Scale = scale;
 		Child.Color = Color;
-		DrawUI->Get(this->DrawModuleHandle).Update(DrawUI, Child);
+		DrawUI->Get(this->m_DrawModuleHandle).Update(DrawUI, Child);
 	}
 	break;
 	case PartsType::Box:
@@ -75,25 +75,25 @@ void DrawModule::PartsParam::Update(DrawUISystem* DrawUI, Param2D Parent) const 
 	}
 }
 void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const noexcept {
-	float Rad = this->Now.Rad + Parent.Rad;
-	VECTOR2D PosOfs = Parent.OfsNoRad + this->Now.OfsNoRad + this->Now.Ofs.Rotate(Rad);
+	float Rad = this->m_Now.Rad + Parent.Rad;
+	VECTOR2D PosOfs = Parent.OfsNoRad + this->m_Now.OfsNoRad + this->m_Now.Ofs.Rotate(Rad);
 
 	VECTOR2D scale;
-	scale.x = this->Now.Scale.x * Parent.Scale.x;
-	scale.y = this->Now.Scale.y * Parent.Scale.y;
+	scale.x = this->m_Now.Scale.x * Parent.Scale.x;
+	scale.y = this->m_Now.Scale.y * Parent.Scale.y;
 
 	VECTOR2D Size;
-	Size.x = this->Now.Size.x * scale.x;
-	Size.y = this->Now.Size.y * scale.y;
+	Size.x = this->m_Now.Size.x * scale.x;
+	Size.y = this->m_Now.Size.y * scale.y;
 
-	ColorRGBA	Color = this->Now.Color.GetMult(Parent.Color);
+	ColorRGBA	Color = this->m_Now.Color.GetMult(Parent.Color);
 
-	float x1 = PosOfs.x - Size.x * this->Now.Center.x;
-	float y1 = PosOfs.y - Size.y * this->Now.Center.y;
-	float x2 = PosOfs.x + Size.x * (1.f - this->Now.Center.x);
-	float y2 = PosOfs.y + Size.y * (1.f - this->Now.Center.y);
+	float x1 = PosOfs.x - Size.x * this->m_Now.Center.x;
+	float y1 = PosOfs.y - Size.y * this->m_Now.Center.y;
+	float x2 = PosOfs.x + Size.x * (1.f - this->m_Now.Center.x);
+	float y2 = PosOfs.y + Size.y * (1.f - this->m_Now.Center.y);
 
-	switch (this->Type) {
+	switch (this->m_Type) {
 	case PartsType::Box:
 	{
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
@@ -108,8 +108,8 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 		}
 		else {
 			VECTOR2D center;
-			center.x = PosOfs.x + Size.x * (0.5f - this->Now.Center.x) * 2.f;
-			center.y = PosOfs.y + Size.y * (0.5f - this->Now.Center.y) * 2.f;
+			center.x = PosOfs.x + Size.x * (0.5f - this->m_Now.Center.x) * 2.f;
+			center.y = PosOfs.y + Size.y * (0.5f - this->m_Now.Center.y) * 2.f;
 
 			VECTOR2D  P1 = center + (VECTOR2D(x1, y1) - center).Rotate(Rad);
 			VECTOR2D  P2 = center + (VECTOR2D(x2, y1) - center).Rotate(Rad);
@@ -133,10 +133,10 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 		DxLib::SetDrawBright(Color.GetR(), Color.GetG(), Color.GetB());
 		Draw9SliceGraph(
 			VECTOR2D(x1, y1), VECTOR2D(x2, y2),
-			this->Min, this->Max,
-			VECTOR2D(1.f, 1.f) - this->Now.Center,
+			this->m_Min, this->m_Max,
+			VECTOR2D(1.f, 1.f) - this->m_Now.Center,
 			Rad,
-			this->ImageHandle->get(),
+			this->m_ImageHandle->get(),
 			true,
 			false
 		);
@@ -153,7 +153,7 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 			DxLib::DrawExtendGraph(
 				static_cast<int>(x1), static_cast<int>(y1),
 				static_cast<int>(x2), static_cast<int>(y2),
-				this->ImageHandle->get(),
+				this->m_ImageHandle->get(),
 				true
 			);
 		}
@@ -166,7 +166,7 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 			//*/
 			DxLib::DrawRotaGraphFast(
 				static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
-				scale.y, Rad, this->ImageHandle->get(), true);
+				scale.y, Rad, this->m_ImageHandle->get(), true);
 		}
 		DxLib::SetDrawBright(255, 255, 255);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
@@ -192,7 +192,7 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 				FontXCenter::MIDDLE, FontYCenter::MIDDLE,
 				static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
 				Color.GetColor(), GetColor(0, 0, 0),
-				SjistoUTF8(this->String));
+				SjistoUTF8(this->m_String));
 		}
 		else {
 		}
@@ -206,7 +206,7 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 		Child.Rad = Rad;
 		Child.Scale = scale;
 		Child.Color = Color;
-		DrawUI->Get(this->DrawModuleHandle).Draw(DrawUI, Child);
+		DrawUI->Get(this->m_DrawModuleHandle).Draw(DrawUI, Child);
 	}
 	break;
 	case PartsType::Max:
@@ -214,126 +214,167 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 		break;
 	}
 }
-
+void DrawModule::PartsParam::CalcAnim(const AnimParam& Anim, bool IsFirstFrame, float Per) noexcept {
+	if (Anim.m_OfsNoRadChanged) {
+		if (IsFirstFrame) {
+			this->m_Before.OfsNoRad = this->m_Now.OfsNoRad;
+		}
+		this->m_Now.OfsNoRad = Lerp(this->m_Before.OfsNoRad, Anim.m_Target.OfsNoRad, Per);
+	}
+	if (Anim.m_OfsChanged) {
+		if (IsFirstFrame) {
+			this->m_Before.Ofs = this->m_Now.Ofs;
+		}
+		this->m_Now.Ofs = Lerp(this->m_Before.Ofs, Anim.m_Target.Ofs, Per);
+	}
+	if (Anim.m_SizeChanged) {
+		if (IsFirstFrame) {
+			this->m_Before.Size = this->m_Now.Size;
+		}
+		this->m_Now.Size = Lerp(this->m_Before.Size, Anim.m_Target.Size, Per);
+	}
+	if (Anim.m_ScaleChanged) {
+		if (IsFirstFrame) {
+			this->m_Before.Scale = this->m_Now.Scale;
+		}
+		this->m_Now.Scale = Lerp(this->m_Before.Scale, Anim.m_Target.Scale, Per);
+	}
+	if (Anim.m_CenterChanged) {
+		if (IsFirstFrame) {
+			this->m_Before.Center = this->m_Now.Center;
+		}
+		this->m_Now.Center = Lerp(this->m_Before.Center, Anim.m_Target.Center, Per);
+	}
+	if (Anim.m_RadChanged) {
+		if (IsFirstFrame) {
+			this->m_Before.Rad = this->m_Now.Rad;
+		}
+		this->m_Now.Rad = Lerp(this->m_Before.Rad, Anim.m_Target.Rad, Per);
+	}
+	if (Anim.m_ColorChanged) {
+		if (IsFirstFrame) {
+			this->m_Before.Color = this->m_Now.Color;
+		}
+		this->m_Now.Color = Lerp(this->m_Before.Color, Anim.m_Target.Color, Per);
+	}
+}
 void DrawModule::PartsParam::AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* ChildBranch, const char* FilePath, Param2D Param) noexcept {
-	this->Name = ChildName;
-	this->Type = PartsType::Json;
-	this->Base = Param;
-	this->DrawModuleHandle = DrawUI->Add(FilePath, ChildBranch);
+	this->m_Name = ChildName;
+	this->m_Type = PartsType::Json;
+	this->m_Base = Param;
+	this->m_DrawModuleHandle = DrawUI->Add(FilePath, ChildBranch);
 	SetDefault();
 }
-
-void DrawModule::PartsParam::SetByJson(DrawUISystem* DrawUI, nlohmann::json& d, std::string BranchName) noexcept {
-	this->Name = d["Name"];
+void DrawModule::PartsParam::SetByJson(DrawUISystem* DrawUI, nlohmann::json& data, std::string BranchName) noexcept {
+	this->m_Name = data["Name"];
 	{
-		std::string TypeStr = d["Type"];
+		std::string TypeStr = data["Type"];
 		for (int loop = 0; loop < static_cast<int>(PartsType::Max); ++loop) {
 			if (TypeStr == PartsTypeStr[loop]) {
-				this->Type = static_cast<PartsType>(loop);
+				this->m_Type = static_cast<PartsType>(loop);
 				break;
 			}
 		}
 	}
-	if (d.contains("OfsNoRad")) {
-		this->Base.OfsNoRad.SetByJson(d["OfsNoRad"]);
+	if (data.contains("OfsNoRad")) {
+		this->m_Base.OfsNoRad.SetByJson(data["OfsNoRad"]);
 	}
-	if (d.contains("Ofs")) {
-		this->Base.Ofs.SetByJson(d["Ofs"]);
+	if (data.contains("Ofs")) {
+		this->m_Base.Ofs.SetByJson(data["Ofs"]);
 	}
-	if (d.contains("Size")) {
-		this->Base.Size.SetByJson(d["Size"]);
+	if (data.contains("Size")) {
+		this->m_Base.Size.SetByJson(data["Size"]);
 	}
-	if (d.contains("Scale")) {
-		this->Base.Scale.SetByJson(d["Scale"]);
+	if (data.contains("Scale")) {
+		this->m_Base.Scale.SetByJson(data["Scale"]);
 	}
-	if (d.contains("Center")) {
-		this->Base.Center.SetByJson(d["Center"]);
+	if (data.contains("Center")) {
+		this->m_Base.Center.SetByJson(data["Center"]);
 	}
-	if (d.contains("Rad")) {
-		this->Base.Rad = d["Rad"];
-		this->Base.Rad = deg2rad(this->Base.Rad);
+	if (data.contains("Rad")) {
+		this->m_Base.Rad = data["Rad"];
+		this->m_Base.Rad = deg2rad(this->m_Base.Rad);
 	}
-	if (d.contains("BaseColor")) {
-		this->Base.Color.SetByJson(d["BaseColor"]);
+	if (data.contains("BaseColor")) {
+		this->m_Base.Color.SetByJson(data["BaseColor"]);
 	}
 	else {
-		this->Base.Color.Set(255, 255, 255, 255);
+		this->m_Base.Color.Set(255, 255, 255, 255);
 	}
 
-	if (d.contains("FontID")) {
-		this->String = d["FontID"];
+	if (data.contains("FontID")) {
+		this->m_String = data["FontID"];
 	}
-	if (d.contains("Min")) {
-		this->Min.SetByJson(d["Min"]);
+	if (data.contains("Min")) {
+		this->m_Min.SetByJson(data["Min"]);
 	}
-	if (d.contains("Max")) {
-		this->Max.SetByJson(d["Max"]);
+	if (data.contains("Max")) {
+		this->m_Max.SetByJson(data["Max"]);
 	}
 
-	if (d.contains("Image")) {
-		this->ImagePath = d["Image"];
-		this->ImageHandle = GraphPool::Instance()->Get(this->ImagePath)->Get();
+	if (data.contains("Image")) {
+		this->m_ImagePath = data["Image"];
+		this->m_ImageHandle = GraphPool::Instance()->Get(this->m_ImagePath)->Get();
 	}
-	if (d.contains("FilePath")) {
-		std::string FilePath = d["FilePath"];
-		std::string Child;
+	if (data.contains("FilePath")) {
+		std::string FilePath = data["FilePath"];
+		std::string ChildBranch;
 		if (BranchName == "") {
-			Child = this->Name;
+			ChildBranch = this->m_Name;
 		}
 		else {
-			Child = BranchName + "/" + this->Name;
+			ChildBranch = BranchName + "/" + this->m_Name;
 		}
-		this->DrawModuleHandle = DrawUI->Add(FilePath.c_str(), Child.c_str());
+		this->m_DrawModuleHandle = DrawUI->Add(FilePath.c_str(), ChildBranch.c_str());
 	}
 	;
-	if (d.contains("IsHitCheck")) {
-		this->m_IsHitCheck = d["IsHitCheck"];
+	if (data.contains("IsHitCheck")) {
+		this->m_IsHitCheck = data["IsHitCheck"];
 	}
 
-	this->SetDefault();
+	SetDefault();
 }
 
 void DrawModule::AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param) noexcept {
-	m_PartsParam.emplace_back();
+	this->m_PartsParam.emplace_back();
 
 	std::string ChildBranch;
-	if (BranchName == "") {
+	if (m_BranchName == "") {
 		ChildBranch = ChildName;
 	}
 	else {
-		ChildBranch = BranchName + "/" + ChildName;
+		ChildBranch = m_BranchName + "/" + ChildName;
 	}
-	m_PartsParam.back().AddChild(DrawUI, ChildName, ChildBranch.c_str(), FilePath, Param);
+	this->m_PartsParam.back().AddChild(DrawUI, ChildName, ChildBranch.c_str(), FilePath, Param);
 }
-
 void DrawModule::DeleteChild(const char* ChildName) noexcept {
 	for (int loop = 0, max = static_cast<int>(this->m_PartsParam.size()); loop < max; ++loop) {
-		auto& p = m_PartsParam.at(static_cast<size_t>(loop));
-		if (p.GetName() == ChildName) {
-			m_PartsParam.erase(m_PartsParam.begin() + loop);
+		auto& parts = this->m_PartsParam.at(static_cast<size_t>(loop));
+		if (parts.GetName() == ChildName) {
+			this->m_PartsParam.erase(this->m_PartsParam.begin() + loop);
 			break;
 		}
 	}
 }
 
 void DrawModule::Init(DrawUISystem* DrawUI, const char* Path, const char* Branch) noexcept {
-	m_PartsParam.clear();
-	m_AnimData.clear();
+	this->m_PartsParam.clear();
+	this->m_AnimData.clear();
 	std::ifstream file(Path);
-	nlohmann::json data = nlohmann::json::parse(file);
+	nlohmann::json jsonData = nlohmann::json::parse(file);
 
-	BranchName = Branch;
+	m_BranchName = Branch;
 
-	for (auto& d : data["MainParts"]) {
-		m_PartsParam.emplace_back();
-		m_PartsParam.back().SetByJson(DrawUI, d, BranchName);
+	for (auto& data : jsonData["MainParts"]) {
+		this->m_PartsParam.emplace_back();
+		this->m_PartsParam.back().SetByJson(DrawUI, data, m_BranchName);
 	}
-	for (auto& d : data["Anim"]) {
-		m_AnimData.emplace_back();
-		auto& AnimBack = m_AnimData.back();
+	for (auto& data : jsonData["Anim"]) {
+		this->m_AnimData.emplace_back();
+		auto& AnimBack = this->m_AnimData.back();
 		//
 		{
-			std::string Type = d["Type"];
+			std::string Type = data["Type"];
 			for (int loop = 0; loop < static_cast<int>(AnimType::Max); ++loop) {
 				if (Type == AnimTypeStr[loop]) {
 					AnimBack.m_Type = static_cast<AnimType>(loop);
@@ -342,17 +383,17 @@ void DrawModule::Init(DrawUISystem* DrawUI, const char* Path, const char* Branch
 			}
 		}
 		//
-		AnimBack.m_IsLoop = d["Loop"];
+		AnimBack.m_IsLoop = data["Loop"];
 		//
-		for (auto& a : d["Anim"]) {
+		for (auto& a : data["Anim"]) {
 			AnimBack.m_AnimParam.emplace_back();
 			auto& AnimParamBack = AnimBack.m_AnimParam.back();
 			//
 			{
 				std::string Target = a["Target"];
-				for (auto& p : m_PartsParam) {
-					if (Target == p.GetName()) {
-						AnimParamBack.TargetID = static_cast<size_t>(&p - &m_PartsParam.front());
+				for (auto& parts : this->m_PartsParam) {
+					if (Target == parts.GetName()) {
+						AnimParamBack.m_TargetID = static_cast<size_t>(&parts - &this->m_PartsParam.front());
 						break;
 					}
 				}
@@ -360,57 +401,132 @@ void DrawModule::Init(DrawUISystem* DrawUI, const char* Path, const char* Branch
 			//
 			if (a.contains("OfsNoRad")) {
 				AnimParamBack.m_OfsNoRadChanged = true;
-				AnimParamBack.Target.OfsNoRad.SetByJson(a["OfsNoRad"]);
+				AnimParamBack.m_Target.OfsNoRad.SetByJson(a["OfsNoRad"]);
 			}
 			if (a.contains("Ofs")) {
 				AnimParamBack.m_OfsChanged = true;
-				AnimParamBack.Target.Ofs.SetByJson(a["Ofs"]);
+				AnimParamBack.m_Target.Ofs.SetByJson(a["Ofs"]);
 			}
 			if (a.contains("Size")) {
 				AnimParamBack.m_SizeChanged = true;
-				AnimParamBack.Target.Size.SetByJson(a["Size"]);
+				AnimParamBack.m_Target.Size.SetByJson(a["Size"]);
 			}
 			if (a.contains("Scale")) {
 				AnimParamBack.m_ScaleChanged = true;
-				AnimParamBack.Target.Scale.SetByJson(a["Scale"]);
+				AnimParamBack.m_Target.Scale.SetByJson(a["Scale"]);
 			}
 			if (a.contains("Center")) {
 				AnimParamBack.m_CenterChanged = true;
-				AnimParamBack.Target.Center.SetByJson(a["Center"]);
+				AnimParamBack.m_Target.Center.SetByJson(a["Center"]);
 			}
 			if (a.contains("Rad")) {
 				AnimParamBack.m_RadChanged = true;
-				AnimParamBack.Target.Rad = a["Rad"];
-				AnimParamBack.Target.Rad = deg2rad(AnimParamBack.Target.Rad);
+				AnimParamBack.m_Target.Rad = a["Rad"];
+				AnimParamBack.m_Target.Rad = deg2rad(AnimParamBack.m_Target.Rad);
 			}
 			if (a.contains("Color")) {
 				AnimParamBack.m_ColorChanged = true;
-				AnimParamBack.Target.Color.SetByJson(a["Color"]);
+				AnimParamBack.m_Target.Color.SetByJson(a["Color"]);
 			}
 			else {
-				AnimParamBack.Target.Color.Set(255, 255, 255, 255);
+				AnimParamBack.m_Target.Color.Set(255, 255, 255, 255);
 			}
 			//
-			AnimParamBack.StartFrame = a["StartFrame"];
-			AnimParamBack.EndFrame = a["EndFrame"];
+			AnimParamBack.m_StartFrame = a["StartFrame"];
+			AnimParamBack.m_EndFrame = a["EndFrame"];
 		}
 	}
 
-	m_AnimDataLastSelect = -1;
-	m_Frame = 0;
+	this->m_AnimDataLastSelect = -1;
+	this->m_Frame = 0;
 
-	m_IsActive = true;
-	m_IsSelect = false;
+	this->m_IsActive = true;
+	this->m_IsSelect = false;
 
-	m_UseActive = false;
-	for (auto& a : m_AnimData) {
+	this->m_UseActive = false;
+	for (auto& a : this->m_AnimData) {
 		if (AnimType::Active != a.m_Type && AnimType::DisActive != a.m_Type) { continue; }
-		m_UseActive = true;
+		this->m_UseActive = true;
 	}
 
-	m_UseButton = false;
-	for (auto& a : m_AnimData) {
+	this->m_UseButton = false;
+	for (auto& a : this->m_AnimData) {
 		if (AnimType::OnSelect != a.m_Type && AnimType::OnPress != a.m_Type) { continue; }
-		m_UseButton = true;
+		this->m_UseButton = true;
+	}
+}
+void DrawModule::Update(DrawUISystem* DrawUI, Param2D Param) noexcept {
+	AnimType SelectNow = AnimType::Normal;
+	if (m_UseActive) {
+		if (m_IsActive) {
+			SelectNow = AnimType::Active;
+		}
+		else {
+			SelectNow = AnimType::DisActive;
+		}
+	}
+	m_IsSelect = false;
+	if (m_UseButton) {
+		auto* DrawerMngr = MainDraw::Instance();
+		auto* KeyMngr = KeyParam::Instance();
+
+		bool IsSelect = false;
+		for (auto& parts : m_PartsParam) {
+			if (parts.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Param)) {
+				IsSelect = true;
+				break;
+			}
+		}
+		if (IsSelect) {
+			SelectNow = AnimType::OnSelect;
+			m_IsSelect = true;
+		}
+
+		if (m_IsSelect) {
+			if (KeyMngr->GetMenuKeyPress(EnumMenu::Diside)) {
+				SelectNow = AnimType::OnPress;
+			}
+		}
+	}
+
+	bool IsSelectAnim = false;
+	for (auto& a : m_AnimData) {
+		//アニメ選択
+		if (SelectNow != a.m_Type) { continue; }
+		IsSelectAnim = true;
+		int index = static_cast<int>(&a - &m_AnimData.front());;
+		//フレーム更新
+		if (m_AnimDataLastSelect != index) {
+			m_AnimDataLastSelect = index;
+			this->m_Frame = 0;
+		}
+		else {
+			auto Max = 0;
+			for (auto& anim : a.m_AnimParam) {
+				Max = std::max(Max, anim.m_EndFrame);
+			}
+			this->m_Frame = std::clamp(this->m_Frame + 1, 0, Max);
+			if ((this->m_Frame == Max) && a.m_IsLoop) {
+				this->m_Frame = 0;
+			}
+		}
+
+		//
+		for (auto& anim : a.m_AnimParam) {
+			if (anim.m_StartFrame <= this->m_Frame && this->m_Frame <= anim.m_EndFrame) {
+				float Per = static_cast<float>(this->m_Frame - anim.m_StartFrame) / static_cast<float>(anim.m_EndFrame - anim.m_StartFrame);
+				m_PartsParam.at(anim.m_TargetID).CalcAnim(anim, (anim.m_StartFrame == this->m_Frame), Per);
+			}
+		}
+	}
+	if (!IsSelectAnim) {
+		m_AnimDataLastSelect = -1;
+		for (auto& parts : m_PartsParam) {
+			parts.SetDefault();
+		}
+	}
+
+	for (auto& parts : m_PartsParam) {
+		parts.Update(DrawUI, Param);
 	}
 }
