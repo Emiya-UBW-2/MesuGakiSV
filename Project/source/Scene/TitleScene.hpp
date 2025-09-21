@@ -20,21 +20,24 @@
 #pragma warning( pop )
 
 class OptionWindow {
-	constexpr static int	m_ParamMax{12};
+	struct ParamButton {
+		std::string		Str{};
+		std::string		SubStr{};
+		int				ID{};
+		int				MinID{};
+		int				MaxID{};
+		char		padding[4]{};
+	};
+
+	constexpr static int	m_ParamMax{17};
 
 	DrawUISystem*	m_DrawUI{ nullptr };
-	int				m_UIBase = -1;
 	int				m_TabButton[4] = { -1,-1,-1,-1 };
-	int				m_ParamID[m_ParamMax]{};
-
-	int				m_ParamMinID[m_ParamMax]{};
-	int				m_ParamMaxID[m_ParamMax]{};
-	std::string		m_ParamStr[m_ParamMax]{};
-
+	int				m_UIBase = -1;
 	int				m_CloseButton = -1;
 	int				m_NowSelectTab = 0;
 	int				m_NowTabMax = 0;
-	char		padding[4]{};
+	ParamButton		m_Param[m_ParamMax]{};
 public:
 	OptionWindow(void) noexcept {}
 	OptionWindow(const OptionWindow&) = delete;
@@ -74,20 +77,56 @@ private:
 			switch (m_NowSelectTab) {
 			case 0:
 			{
-				m_ParamStr[0] = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
-				m_ParamStr[1] = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
-				m_ParamStr[2] = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
+				m_Param[0].Str = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
+				m_Param[1].Str = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
+				m_Param[2].Str = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
 			}
 				break;
 			case 1:
 			{
-				m_ParamStr[0] = pOption->GetParam("WindowMode")->GetValueNow();
-				m_ParamStr[1] = pOption->GetParam("VSync")->GetValueNow();
-				m_ParamStr[2] = pOption->GetParam("FPSLimit")->GetValueNow();
+				m_Param[0].Str = pOption->GetParam("WindowMode")->GetValueNow();
+				m_Param[1].Str = pOption->GetParam("VSync")->GetValueNow();
+				m_Param[2].Str = pOption->GetParam("FPSLimit")->GetValueNow();
 			}
 			break;
 			case 2:
-				break;
+			{
+				m_Param[0].Str = std::to_string(pOption->GetParam("XSensing")->GetSelect());
+				m_Param[1].Str = std::to_string(pOption->GetParam("YSensing")->GetSelect());
+
+				m_Param[2].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::W, 0));
+				m_Param[2].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::W, 1));
+				m_Param[3].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::S, 0));
+				m_Param[3].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::S, 1));
+				m_Param[4].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::A, 0));
+				m_Param[4].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::A, 1));
+				m_Param[5].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::D, 0));
+				m_Param[5].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::D, 1));
+
+				m_Param[6].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Q, 0));
+				m_Param[6].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Q, 1));
+				m_Param[7].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::E, 0));
+				m_Param[7].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::E, 1));
+				m_Param[8].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Run, 0));
+				m_Param[8].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Run, 1));
+				m_Param[9].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Walk, 0));
+				m_Param[9].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Walk, 1));
+				m_Param[10].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Squat, 0));
+				m_Param[10].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Squat, 1));
+				m_Param[11].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Prone, 0));
+				m_Param[11].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Prone, 1));
+				m_Param[12].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Jump, 0));
+				m_Param[12].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Jump, 1));
+				m_Param[13].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Attack, 0));
+				m_Param[13].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Attack, 1));
+				m_Param[14].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Aim, 0));
+				m_Param[14].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Aim, 1));
+				m_Param[15].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::ChangeWeapon, 0));
+				m_Param[15].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::ChangeWeapon, 1));
+				m_Param[16].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Reload, 0));
+				m_Param[16].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Reload, 1));
+			}
+			break;
 			case 3:
 				break;
 			default:
@@ -98,18 +137,25 @@ private:
 			std::string Child = ChildBase;
 			Child += "/Column";
 			Child += std::to_string(loop + 1);
-			m_ParamID[loop] = m_DrawUI->GetID(Child.c_str());
-			if (m_ParamID[loop] == -1) {
+			m_Param[loop].ID = m_DrawUI->GetID(Child.c_str());
+			if (m_Param[loop].ID == -1) {
 				m_NowTabMax = loop;
 				break;
 			}
-			m_ParamMinID[loop] = m_DrawUI->GetID((Child + "/Box1").c_str());
-			m_ParamMaxID[loop] = m_DrawUI->GetID((Child + "/Box0").c_str());
+			m_Param[loop].MinID = m_DrawUI->GetID((Child + "/Box1").c_str());
+			m_Param[loop].MaxID = m_DrawUI->GetID((Child + "/Box0").c_str());
 
-			m_DrawUI->Get(m_ParamID[loop]).GetParts("String1")->SetString(LocalizePool::Instance()->Get(10 * (m_NowSelectTab + 1) + loop));
-			m_DrawUI->Get(m_ParamID[loop]).GetParts("String0")->SetString(m_ParamStr[loop]);
-			m_DrawUI->Get(m_ParamMinID[loop]).GetParts("String1")->SetString("<");
-			m_DrawUI->Get(m_ParamMaxID[loop]).GetParts("String1")->SetString(">");
+			m_DrawUI->Get(m_Param[loop].ID).GetParts("String1")->SetString(LocalizePool::Instance()->Get(100 * (m_NowSelectTab + 1) + loop));
+			m_DrawUI->Get(m_Param[loop].ID).GetParts("String0")->SetString(m_Param[loop].Str);
+			if (m_Param[loop].MinID != -1) {
+				m_DrawUI->Get(m_Param[loop].MinID).GetParts("String1")->SetString("<");
+			}
+			if (m_Param[loop].MaxID != -1) {
+				m_DrawUI->Get(m_Param[loop].MaxID).GetParts("String1")->SetString(">");
+			}
+			if (m_DrawUI->Get(m_Param[loop].ID).GetParts("String2")) {
+				m_DrawUI->Get(m_Param[loop].ID).GetParts("String2")->SetString(m_Param[loop].SubStr);
+			}
 		}
 		m_DrawUI->Get(m_TabButton[m_NowSelectTab]).SetActive(true);
 	}
@@ -143,9 +189,11 @@ public:
 		if (m_DrawUI->Get(m_UIBase).IsActive()) {
 			for (int loop = 0; loop < 4; ++loop) {
 				if (m_DrawUI->Get(m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
-					EndTab();
-					m_NowSelectTab = loop;
-					SetTab();
+					if (m_NowSelectTab != loop) {
+						EndTab();
+						m_NowSelectTab = loop;
+						SetTab();
+					}
 				}
 			}
 			if (m_DrawUI->Get(m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
@@ -158,63 +206,79 @@ public:
 					case 0:
 					{
 						//
-						if (m_DrawUI->Get(m_ParamMinID[0]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[0].MinID).IsSelectButton()) {
 							pOption->SetParam("MasterVolume", pOption->GetParam("MasterVolume")->GetSelect() - 1);
 						}
-						if (m_DrawUI->Get(m_ParamMaxID[0]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[0].MaxID).IsSelectButton()) {
 							pOption->SetParam("MasterVolume", pOption->GetParam("MasterVolume")->GetSelect() + 1);
 						}
-						m_ParamStr[0] = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
+						m_Param[0].Str = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
 						//
-						if (m_DrawUI->Get(m_ParamMinID[1]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[1].MinID).IsSelectButton()) {
 							pOption->SetParam("BGMVolume", pOption->GetParam("BGMVolume")->GetSelect() - 1);
 						}
-						if (m_DrawUI->Get(m_ParamMaxID[1]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[1].MaxID).IsSelectButton()) {
 							pOption->SetParam("BGMVolume", pOption->GetParam("BGMVolume")->GetSelect() + 1);
 						}
-						m_ParamStr[1] = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
+						m_Param[1].Str = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
 						//
-						if (m_DrawUI->Get(m_ParamMinID[2]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[2].MinID).IsSelectButton()) {
 							pOption->SetParam("SEVolume", pOption->GetParam("SEVolume")->GetSelect() - 1);
 						}
-						if (m_DrawUI->Get(m_ParamMaxID[2]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[2].MaxID).IsSelectButton()) {
 							pOption->SetParam("SEVolume", pOption->GetParam("SEVolume")->GetSelect() + 1);
 						}
-						m_ParamStr[2] = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
+						m_Param[2].Str = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
 						//
 					}
 					break;
 					case 1:
 					{
 						//
-						if (m_DrawUI->Get(m_ParamMinID[0]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[0].MinID).IsSelectButton()) {
 							pOption->SetParam("WindowMode", pOption->GetParam("WindowMode")->GetSelect() - 1);
 						}
-						if (m_DrawUI->Get(m_ParamMaxID[0]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[0].MaxID).IsSelectButton()) {
 							pOption->SetParam("WindowMode", pOption->GetParam("WindowMode")->GetSelect() + 1);
 						}
-						m_ParamStr[0] = pOption->GetParam("WindowMode")->GetValueNow();
+						m_Param[0].Str = pOption->GetParam("WindowMode")->GetValueNow();
 						//
-						if (m_DrawUI->Get(m_ParamMinID[1]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[1].MinID).IsSelectButton()) {
 							pOption->SetParam("VSync", pOption->GetParam("VSync")->GetSelect() - 1);
 						}
-						if (m_DrawUI->Get(m_ParamMaxID[1]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[1].MaxID).IsSelectButton()) {
 							pOption->SetParam("VSync", pOption->GetParam("VSync")->GetSelect() + 1);
 						}
-						m_ParamStr[1] = pOption->GetParam("VSync")->GetValueNow();
+						m_Param[1].Str = pOption->GetParam("VSync")->GetValueNow();
 						//
-						if (m_DrawUI->Get(m_ParamMinID[2]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[2].MinID).IsSelectButton()) {
 							pOption->SetParam("FPSLimit", pOption->GetParam("FPSLimit")->GetSelect() - 1);
 						}
-						if (m_DrawUI->Get(m_ParamMaxID[2]).IsSelectButton()) {
+						if (m_DrawUI->Get(m_Param[2].MaxID).IsSelectButton()) {
 							pOption->SetParam("FPSLimit", pOption->GetParam("FPSLimit")->GetSelect() + 1);
 						}
-						m_ParamStr[2] = pOption->GetParam("FPSLimit")->GetValueNow();
+						m_Param[2].Str = pOption->GetParam("FPSLimit")->GetValueNow();
 						//
 					}
 					break;
 					case 2:
-						break;
+					{
+						if (m_DrawUI->Get(m_Param[0].MinID).IsSelectButton()) {
+							pOption->SetParam("XSensing", pOption->GetParam("XSensing")->GetSelect() - 1);
+						}
+						if (m_DrawUI->Get(m_Param[0].MaxID).IsSelectButton()) {
+							pOption->SetParam("XSensing", pOption->GetParam("XSensing")->GetSelect() + 1);
+						}
+						m_Param[0].Str = std::to_string(pOption->GetParam("XSensing")->GetSelect());
+						if (m_DrawUI->Get(m_Param[1].MinID).IsSelectButton()) {
+							pOption->SetParam("YSensing", pOption->GetParam("YSensing")->GetSelect() - 1);
+						}
+						if (m_DrawUI->Get(m_Param[1].MaxID).IsSelectButton()) {
+							pOption->SetParam("YSensing", pOption->GetParam("YSensing")->GetSelect() + 1);
+						}
+						m_Param[1].Str = std::to_string(pOption->GetParam("YSensing")->GetSelect());
+					}
+					break;
 					case 3:
 						break;
 					default:
@@ -222,7 +286,46 @@ public:
 					}
 				}
 				for (int loop = 0; loop < m_NowTabMax; ++loop) {
-					m_DrawUI->Get(m_ParamID[loop]).GetParts("String0")->SetString(m_ParamStr[loop]);
+					m_DrawUI->Get(m_Param[loop].ID).GetParts("String0")->SetString(m_Param[loop].Str);
+				}
+			}
+			if (false || KeyParam::Instance()->IsDeviceChange()) {
+				if (m_NowSelectTab == 2) {
+					m_Param[2].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::W, 0));
+					m_Param[2].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::W, 1));
+					m_Param[3].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::S, 0));
+					m_Param[3].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::S, 1));
+					m_Param[4].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::A, 0));
+					m_Param[4].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::A, 1));
+					m_Param[5].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::D, 0));
+					m_Param[5].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::D, 1));
+
+					m_Param[6].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Q, 0));
+					m_Param[6].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Q, 1));
+					m_Param[7].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::E, 0));
+					m_Param[7].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::E, 1));
+					m_Param[8].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Run, 0));
+					m_Param[8].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Run, 1));
+					m_Param[9].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Walk, 0));
+					m_Param[9].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Walk, 1));
+					m_Param[10].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Squat, 0));
+					m_Param[10].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Squat, 1));
+					m_Param[11].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Prone, 0));
+					m_Param[11].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Prone, 1));
+					m_Param[12].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Jump, 0));
+					m_Param[12].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Jump, 1));
+					m_Param[13].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Attack, 0));
+					m_Param[13].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Attack, 1));
+					m_Param[14].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Aim, 0));
+					m_Param[14].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Aim, 1));
+					m_Param[15].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::ChangeWeapon, 0));
+					m_Param[15].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::ChangeWeapon, 1));
+					m_Param[16].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Reload, 0));
+					m_Param[16].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Reload, 1));
+					for (int loop = 2; loop < m_NowTabMax; ++loop) {
+						m_DrawUI->Get(m_Param[loop].ID).GetParts("String0")->SetString(m_Param[loop].Str);
+						m_DrawUI->Get(m_Param[loop].ID).GetParts("String2")->SetString(m_Param[loop].SubStr);
+					}
 				}
 			}
 		}

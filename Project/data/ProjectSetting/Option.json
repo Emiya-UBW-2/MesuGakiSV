@@ -34,6 +34,18 @@
 			"SelectType" : "Int",
 			"Value" : [0,100],
 			"DefaultValue" : 50
+		},
+		{
+			"Type":"XSensing",
+			"SelectType" : "Int",
+			"Value" : [0,200],
+			"DefaultValue" : 100
+		},
+		{
+			"Type":"YSensing",
+			"SelectType" : "Int",
+			"Value" : [0,200],
+			"DefaultValue" : 100
 		}
 	]
 }

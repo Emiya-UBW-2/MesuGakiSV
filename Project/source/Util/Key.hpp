@@ -18,7 +18,8 @@ enum class InputType :size_t {
 };
 
 enum class EnumInput :size_t {
-	Mouse_Begin,
+	Begin,
+	Mouse_Begin = Begin,
 	Mouse_Left = Mouse_Begin,
 	Mouse_Right,
 	Mouse_Middle,
@@ -384,6 +385,190 @@ static int DInputInput[static_cast<size_t>(EnumInput::DInput_Max) - static_cast<
 	0xF028,
 };
 
+static const char* MouseInputStr[static_cast<size_t>(EnumInput::Mouse_Max) - static_cast<size_t>(EnumInput::Mouse_Begin)] = {
+	"LMOUSE",
+	"RMOUSE",
+	"MMOUSE",
+	"4",
+	"5",
+	"6",
+	"7",
+	"8",
+};
+
+static const char* KeyInputStr[static_cast<size_t>(EnumInput::Key_Max) - static_cast<size_t>(EnumInput::Key_Begin)] = {
+	"BACK",
+	"TAB",
+	"RETURN",
+
+	"LSHIFT",
+	"RSHIFT",
+	"LCTRL",
+	"RCTRL",
+	"ESCAPE",
+	"SPACE",
+	"PGUP",
+	"PGDN",
+	"END",
+	"HOME",
+	"LEFT",
+	"UP",
+	"RIGHT",
+	"DOWN",
+	"INSERT",
+	"DELETE",
+
+	"-",
+	"\\",
+	"^",
+	".",
+	"/",
+	"LALT",
+	"RALT",
+	"SCROLL",
+	";",
+	":",
+	"[",
+	"]",
+	"@",
+	"\\",
+	",",
+	"KANJI",
+	"CONV",
+	"NOCONV",
+	"KANA",
+	"APPS",
+	"CAPS",
+	"SYSRQ",
+	"PAUSE",
+	"L WIN",
+	"R WIN",
+
+	"NMLOCK",
+	"NUM0",
+	"NUM1",
+	"NUM2",
+	"NUM3",
+	"NUM4",
+	"NUM5",
+	"NUM6",
+	"NUM7",
+	"NUM8",
+	"NUM9",
+	"NUM*",
+	"NUM+",
+	"NUM-",
+	"NUM.",
+	"NUM/",
+	"ENTER",
+
+	"F1",
+	"F2",
+	"F3",
+	"F4",
+	"F5",
+	"F6",
+	"F7",
+	"F8",
+	"F9",
+	"F10",
+	"F11",
+	"F12",
+
+	"A",
+	"B",
+	"C",
+	"D",
+	"E",
+	"F",
+	"G",
+	"H",
+	"I",
+	"J",
+	"K",
+	"L",
+	"M",
+	"N",
+	"O",
+	"P",
+	"Q",
+	"R",
+	"S",
+	"T",
+	"U",
+	"V",
+	"W",
+	"X",
+	"Y",
+	"Z",
+
+	"0 ",
+	"1",
+	"2",
+	"3",
+	"4",
+	"5",
+	"6",
+	"7",
+	"8",
+	"9",
+
+};
+
+static const char* XInputInputStr[static_cast<size_t>(EnumInput::XInput_Max) - static_cast<size_t>(EnumInput::XInput_Begin)] = {
+	"X",
+	"A",
+	"B",
+	"Y",
+	"L1",
+	"R1",
+	"L2",
+	"R2",
+	"START",
+	"L3",
+	"R3",
+	"LEFT",
+	"UP",
+	"RIGHT",
+	"DOWN",
+	"BACK",
+	"LSLEFT",
+	"LSUP",
+	"LSRIGHT",
+	"LSDOWN",
+	"RSLEFT",
+	"RSUP",
+	"RSRIGHT",
+	"RSDOWN",
+};
+
+static const char* DInputInputStr[static_cast<size_t>(EnumInput::DInput_Max) - static_cast<size_t>(EnumInput::DInput_Begin)] = {
+	"□",
+	"×",
+	"〇",
+	"△",
+	"L1",
+	"R1",
+	"L2",
+	"R2",
+	"START",
+	"L3",
+	"R3",
+	"LEFT",
+	"UP",
+	"RIGHT",
+	"DOWN",
+	"BACK",
+	"LSLEFT",
+	"LSUP",
+	"LSRIGHT",
+	"LSDOWN",
+	"RSLEFT",
+	"RSUP",
+	"RSRIGHT",
+	"RSDOWN",
+};
+
 enum class EnumMenu :size_t {
 	Esc,
 	Diside,
@@ -400,6 +585,17 @@ enum class EnumBattle :size_t {
 	W,
 	D,
 	S,
+	Q,
+	E,
+	Run,
+	Walk,
+	Squat,
+	Prone,
+	Jump,
+	Attack,
+	Aim,
+	ChangeWeapon,
+	Reload,
 	Max,
 };
 
@@ -437,11 +633,21 @@ private:
 		bool Release(void) const noexcept { return !m_Press; }
 		bool ReleaseTrigger(void) const noexcept { return !m_Press && m_PrevPress; }
 	};
+	class KeyPair {
+	public:
+		EnumInput m_ID[2] = { EnumInput::Max, EnumInput::Max };
+		Key* m_Ptr[2]{};
+	};
 private:
 	std::vector<Key> m_Input{};
-	std::vector<std::pair<Key*, Key*>> m_MenuKey{};
-	std::vector<std::pair<Key*, Key*>> m_BattleKey{};
+	std::vector<KeyPair> m_MenuKey{};
+	std::vector<KeyPair> m_BattleKey{};
 	InputType	m_InputType{ InputType::XInput };
+	bool		m_DeviceChangeSwitch = true;
+	char		padding[3]{};
+	XINPUT_STATE inputXInput;
+	char		padding2[2]{};
+	DINPUT_JOYSTATE inputDInput;
 private:
 	//コンストラクタ
 	KeyParam(void) noexcept {
@@ -464,70 +670,121 @@ private:
 	void Assign(InputType type) noexcept {
 		if (m_InputType != type) {
 			m_InputType = type;
+			m_DeviceChangeSwitch = true;
+			{
+				for (auto& k : m_MenuKey){
+					k.m_ID[0] = EnumInput::Max;
+					k.m_Ptr[0] = nullptr;
+					k.m_ID[1] = EnumInput::Max;
+					k.m_Ptr[1] = nullptr;
+				}
+				for (auto& k : m_BattleKey) {
+					k.m_ID[0] = EnumInput::Max;
+					k.m_Ptr[0] = nullptr;
+					k.m_ID[1] = EnumInput::Max;
+					k.m_Ptr[1] = nullptr;
+				}
+			}
 			switch (m_InputType) {
 			case InputType::KeyBoard:
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Esc)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_ESCAPE));
+				AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
 				//
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Diside)).first = &m_Input.at(static_cast<size_t>(EnumInput::Mouse_Left));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Diside)).second = &m_Input.at(static_cast<size_t>(EnumInput::Key_F));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Cancel)).first = &m_Input.at(static_cast<size_t>(EnumInput::Mouse_Right));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Cancel)).second = &m_Input.at(static_cast<size_t>(EnumInput::Key_R));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::LEFT)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_A));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::UP)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_W));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::RIGHT)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_D));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::DOWN)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_S));
+				AssignID(EnumMenu::Diside, 0, EnumInput::Mouse_Left);
+				AssignID(EnumMenu::Diside, 1, EnumInput::Key_F);
+				AssignID(EnumMenu::Cancel, 0, EnumInput::Mouse_Right);
+				AssignID(EnumMenu::Cancel, 1, EnumInput::Key_R);
+				AssignID(EnumMenu::LEFT, 0, EnumInput::Key_A);
+				AssignID(EnumMenu::UP, 0, EnumInput::Key_W);
+				AssignID(EnumMenu::RIGHT, 0, EnumInput::Key_D);
+				AssignID(EnumMenu::DOWN, 0, EnumInput::Key_S);
 				//
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::A)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_A));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::W)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_W));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::D)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_D));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::S)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_S));
+				AssignID(EnumBattle::A, 0, EnumInput::Key_A);
+				AssignID(EnumBattle::W, 0, EnumInput::Key_W);
+				AssignID(EnumBattle::D, 0, EnumInput::Key_D);
+				AssignID(EnumBattle::S, 0, EnumInput::Key_S);
+				AssignID(EnumBattle::Q, 0, EnumInput::Key_Q);
+				AssignID(EnumBattle::E, 0, EnumInput::Key_E);
+				AssignID(EnumBattle::Run, 0, EnumInput::Key_LSHIFT);
+				AssignID(EnumBattle::Walk, 0, EnumInput::Key_LCONTROL);
+				AssignID(EnumBattle::Squat, 0, EnumInput::Key_C);
+				AssignID(EnumBattle::Prone, 0, EnumInput::Key_X);
+				AssignID(EnumBattle::Jump, 0, EnumInput::Key_SPACE);
+				AssignID(EnumBattle::Attack, 0, EnumInput::Mouse_Left);
+				AssignID(EnumBattle::Aim, 0, EnumInput::Mouse_Right);
+				AssignID(EnumBattle::ChangeWeapon, 0, EnumInput::Mouse_Middle);
+				AssignID(EnumBattle::Reload, 0, EnumInput::Key_R);
+
 				break;
 			case InputType::XInput:
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Esc)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_ESCAPE));
+				AssignID(EnumMenu::Esc, 0, EnumInput::XInput_ESCAPE);
 				//
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Diside)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_OK));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Cancel)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_NG));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::LEFT)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LEFT));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::LEFT)).second = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LSTICKLEFT));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::UP)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_UP));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::UP)).second = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LSTICKUP));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::RIGHT)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_RIGHT));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::RIGHT)).second = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LSTICKRIGHT));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::DOWN)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_DOWN));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::DOWN)).second = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LSTICKDOWN));
+				AssignID(EnumMenu::Diside, 0, EnumInput::XInput_OK);
+				AssignID(EnumMenu::Cancel, 0, EnumInput::XInput_NG);
+				AssignID(EnumMenu::LEFT, 0, EnumInput::XInput_LEFT);
+				AssignID(EnumMenu::LEFT, 1, EnumInput::XInput_LSTICKLEFT);
+				AssignID(EnumMenu::UP, 0, EnumInput::XInput_UP);
+				AssignID(EnumMenu::UP, 1, EnumInput::XInput_LSTICKUP);
+				AssignID(EnumMenu::RIGHT, 0, EnumInput::XInput_RIGHT);
+				AssignID(EnumMenu::RIGHT, 1, EnumInput::XInput_LSTICKRIGHT);
+				AssignID(EnumMenu::DOWN, 0, EnumInput::XInput_DOWN);
+				AssignID(EnumMenu::DOWN, 1, EnumInput::XInput_LSTICKDOWN);
 				//
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::A)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LEFT));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::A)).second = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LSTICKLEFT));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::W)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_UP));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::W)).second = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LSTICKUP));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::D)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_RIGHT));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::D)).second = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LSTICKRIGHT));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::S)).first = &m_Input.at(static_cast<size_t>(EnumInput::XInput_DOWN));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::S)).second = &m_Input.at(static_cast<size_t>(EnumInput::XInput_LSTICKDOWN));
+				AssignID(EnumBattle::A, 0, EnumInput::XInput_LEFT);
+				AssignID(EnumBattle::A, 1, EnumInput::XInput_LSTICKLEFT);
+				AssignID(EnumBattle::W, 0, EnumInput::XInput_UP);
+				AssignID(EnumBattle::W, 1, EnumInput::XInput_LSTICKUP);
+				AssignID(EnumBattle::D, 0, EnumInput::XInput_RIGHT);
+				AssignID(EnumBattle::D, 1, EnumInput::XInput_LSTICKRIGHT);
+				AssignID(EnumBattle::S, 0, EnumInput::XInput_DOWN);
+				AssignID(EnumBattle::S, 1, EnumInput::XInput_LSTICKDOWN);
+
+				AssignID(EnumBattle::Q, 0, EnumInput::XInput_L1);
+				AssignID(EnumBattle::E, 0, EnumInput::XInput_R1);
+				AssignID(EnumBattle::Run, 0, EnumInput::XInput_L3);
+				AssignID(EnumBattle::Walk, 0, EnumInput::XInput_UP);
+				AssignID(EnumBattle::Squat, 0, EnumInput::XInput_LEFT);
+				AssignID(EnumBattle::Prone, 0, EnumInput::XInput_DOWN);
+				AssignID(EnumBattle::Jump, 0, EnumInput::XInput_NG);
+				AssignID(EnumBattle::Attack, 0, EnumInput::XInput_R2);
+				AssignID(EnumBattle::Aim, 0, EnumInput::XInput_R1);
+				AssignID(EnumBattle::ChangeWeapon, 0, EnumInput::XInput_OK);
+				AssignID(EnumBattle::Reload, 0, EnumInput::XInput_SQUARE);
 				break;
 			case InputType::DInput:
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Esc)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_ESCAPE));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Esc)).first = &m_Input.at(static_cast<size_t>(EnumInput::Key_ESCAPE));
+				AssignID(EnumMenu::Esc, 0, EnumInput::DInput_ESCAPE);
+				AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
 				//
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Diside)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_OK));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::Cancel)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_NG));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::LEFT)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LEFT));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::LEFT)).second = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LSTICKLEFT));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::UP)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_UP));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::UP)).second = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LSTICKUP));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::RIGHT)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_RIGHT));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::RIGHT)).second = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LSTICKRIGHT));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::DOWN)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_DOWN));
-				m_MenuKey.at(static_cast<size_t>(EnumMenu::DOWN)).second = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LSTICKDOWN));
+				AssignID(EnumMenu::Diside, 0, EnumInput::DInput_OK);
+				AssignID(EnumMenu::Cancel, 0, EnumInput::DInput_NG);
+				AssignID(EnumMenu::LEFT, 0, EnumInput::DInput_LEFT);
+				AssignID(EnumMenu::LEFT, 1, EnumInput::DInput_LSTICKLEFT);
+				AssignID(EnumMenu::UP, 0, EnumInput::DInput_UP);
+				AssignID(EnumMenu::UP, 1, EnumInput::DInput_LSTICKUP);
+				AssignID(EnumMenu::RIGHT, 0, EnumInput::DInput_RIGHT);
+				AssignID(EnumMenu::RIGHT, 1, EnumInput::DInput_LSTICKRIGHT);
+				AssignID(EnumMenu::DOWN, 0, EnumInput::DInput_DOWN);
+				AssignID(EnumMenu::DOWN, 1, EnumInput::DInput_LSTICKDOWN);
 				//
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::A)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LEFT));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::A)).second = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LSTICKLEFT));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::W)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_UP));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::W)).second = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LSTICKUP));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::D)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_RIGHT));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::D)).second = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LSTICKRIGHT));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::S)).first = &m_Input.at(static_cast<size_t>(EnumInput::DInput_DOWN));
-				m_BattleKey.at(static_cast<size_t>(EnumBattle::S)).second = &m_Input.at(static_cast<size_t>(EnumInput::DInput_LSTICKDOWN));
+				AssignID(EnumBattle::A, 0, EnumInput::DInput_LEFT);
+				AssignID(EnumBattle::A, 1, EnumInput::DInput_LSTICKLEFT);
+				AssignID(EnumBattle::W, 0, EnumInput::DInput_UP);
+				AssignID(EnumBattle::W, 1, EnumInput::DInput_LSTICKUP);
+				AssignID(EnumBattle::D, 0, EnumInput::DInput_RIGHT);
+				AssignID(EnumBattle::D, 1, EnumInput::DInput_LSTICKRIGHT);
+				AssignID(EnumBattle::S, 0, EnumInput::DInput_DOWN);
+				AssignID(EnumBattle::S, 1, EnumInput::DInput_LSTICKDOWN);
+
+				AssignID(EnumBattle::Q, 0, EnumInput::DInput_L1);
+				AssignID(EnumBattle::E, 0, EnumInput::DInput_R1);
+				AssignID(EnumBattle::Run, 0, EnumInput::DInput_L3);
+				AssignID(EnumBattle::Walk, 0, EnumInput::DInput_UP);
+				AssignID(EnumBattle::Squat, 0, EnumInput::DInput_LEFT);
+				AssignID(EnumBattle::Prone, 0, EnumInput::DInput_DOWN);
+				AssignID(EnumBattle::Jump, 0, EnumInput::DInput_NG);
+				AssignID(EnumBattle::Attack, 0, EnumInput::DInput_R2);
+				AssignID(EnumBattle::Aim, 0, EnumInput::DInput_R1);
+				AssignID(EnumBattle::ChangeWeapon, 0, EnumInput::DInput_OK);
+				AssignID(EnumBattle::Reload, 0, EnumInput::DInput_SQUARE);
 				break;
 			default:
 				break;
@@ -535,52 +792,340 @@ private:
 		}
 	}
 public:
+	void AssignID(EnumMenu Select, int ID, EnumInput Input) noexcept {
+		auto& menu = m_MenuKey.at(static_cast<size_t>(Select));
+		menu.m_ID[ID] = Input;
+		if (Input == EnumInput::Max) {
+			menu.m_Ptr[ID] = nullptr;;
+		}
+		else {
+			menu.m_Ptr[ID] = &m_Input.at(static_cast<size_t>(menu.m_ID[ID]));
+		}
+	}
+	void AssignID(EnumBattle Select, int ID, EnumInput Input) noexcept {
+		auto& battle = m_BattleKey.at(static_cast<size_t>(Select));
+		battle.m_ID[ID] = Input;
+		if (Input == EnumInput::Max) {
+			battle.m_Ptr[ID] = nullptr;;
+		}
+		else {
+			battle.m_Ptr[ID] = &m_Input.at(static_cast<size_t>(battle.m_ID[ID]));
+		}
+
+	}
+public:
+	static const char* GetKeyStr(EnumInput ID) noexcept {
+		if (static_cast<size_t>(EnumInput::Mouse_Max) > static_cast<size_t>(ID)) {
+			return MouseInputStr[static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::Mouse_Begin)];
+		}
+		else if (static_cast<size_t>(EnumInput::Key_Max) > static_cast<size_t>(ID)) {
+			return KeyInputStr[static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::Key_Begin)];
+		}
+		else if (static_cast<size_t>(EnumInput::XInput_Max) > static_cast<size_t>(ID)) {
+			return XInputInputStr[static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::XInput_Begin)];
+		}
+		else if (static_cast<size_t>(EnumInput::DInput_Max) > static_cast<size_t>(ID)) {
+			return DInputInputStr[static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::DInput_Begin)];
+		}
+		return "";
+	}
+	bool GetKeyPress(EnumInput ID, bool checkDevice) const noexcept {
+		if (!GetWindowActiveFlag()) {
+			return false;
+		}
+		if (static_cast<size_t>(EnumInput::Mouse_Max) > static_cast<size_t>(ID)) {
+			if (checkDevice) {
+				if (GetLastInputDevice() != InputType::KeyBoard) {
+					return false;
+				}
+			}
+			size_t index = static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::Mouse_Begin);
+			return (GetMouseInput() & MouseInput[index]) != 0;
+		}
+		else if (static_cast<size_t>(EnumInput::Key_Max) > static_cast<size_t>(ID)) {
+			if (checkDevice) {
+				if (GetLastInputDevice() != InputType::KeyBoard) {
+					return false;
+				}
+			}
+			size_t index = static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::Key_Begin);
+			return (CheckHitKey(KeyInput[index]) != 0);
+		}
+		else if (static_cast<size_t>(EnumInput::XInput_Max) > static_cast<size_t>(ID)) {
+			if (checkDevice) {
+				if (GetLastInputDevice() != InputType::XInput) {
+					return false;
+				}
+			}
+			size_t index = static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::XInput_Begin);
+			auto XID = XInputInput[index];
+			bool IsPress = false;
+			if (XID >= 0xF100) {
+				bool LS_Active = false;
+				bool RS_Active = false;
+				float LS_Degree = 0.f;
+				float RS_Degree = 0.f;
+				{
+					int LS_X = inputXInput.ThumbLX;
+					int LS_Y = -inputXInput.ThumbLY;
+					//XInputが-1000~1000になるように変換
+					LS_X = 1000 * LS_X / 32768;
+					LS_Y = 1000 * LS_Y / 32768;
+					//変換により誤差が発生しうるのでデッドゾーンを指定
+					if (abs(LS_X) < 10) { LS_X = 0; }
+					if (abs(LS_Y) < 10) { LS_Y = 0; }
+					if (!(LS_X == 0 && LS_Y == 0)) {
+						LS_Active = true;
+						LS_Degree = rad2deg(std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)));
+					}
+				}
+				{
+					int RS_X = inputXInput.ThumbRX;
+					int RS_Y = -inputXInput.ThumbRY;
+					//XInputが-1000~1000になるように変換
+					RS_X = 1000 * RS_X / 32768;
+					RS_Y = 1000 * RS_Y / 32768;
+					//変換により誤差が発生しうるのでデッドゾーンを指定
+					if (abs(RS_X) < 10) { RS_X = 0; }
+					if (abs(RS_Y) < 10) { RS_Y = 0; }
+					if (!(RS_X == 0 && RS_Y == 0)) {
+						RS_Active = true;
+						RS_Degree = rad2deg(std::atan2f(static_cast<float>(RS_X), static_cast<float>(-RS_Y)));
+					}
+				}
+				switch (XID) {
+				case 0xF100:
+					IsPress = inputXInput.LeftTrigger > 0;
+					break;
+				case 0xF200:
+					IsPress = inputXInput.RightTrigger > 0;
+					break;
+				case 0xF001:
+					if (LS_Active) {
+						IsPress = (-140.f <= LS_Degree && LS_Degree <= -40.f);//LEFT
+					}
+					break;
+				case 0xF002:
+					if (LS_Active) {
+						IsPress = (-50.f <= LS_Degree && LS_Degree <= 50.f);//UP
+					}
+					break;
+				case 0xF004:
+					if (LS_Active) {
+						IsPress = (40.f <= LS_Degree && LS_Degree <= 140.f);//RIGHT
+					}
+					break;
+				case 0xF008:
+					if (LS_Active) {
+						IsPress = (130.f <= LS_Degree || LS_Degree <= -130.f);//DOWN
+					}
+					break;
+				case 0xF011:
+					if (RS_Active) {
+						IsPress = (-140.f <= RS_Degree && RS_Degree <= -40.f);//LEFT
+					}
+					break;
+				case 0xF012:
+					if (RS_Active) {
+						IsPress = (-50.f <= RS_Degree && RS_Degree <= 50.f);//UP
+					}
+					break;
+				case 0xF014:
+					if (RS_Active) {
+						IsPress = (40.f <= RS_Degree && RS_Degree <= 140.f);//RIGHT
+					}
+					break;
+				case 0xF018:
+					if (RS_Active) {
+						IsPress = (130.f <= RS_Degree || RS_Degree <= -130.f);//DOWN
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			else if (0 <= XID && XID < 16) {
+				IsPress = (inputXInput.Buttons[XID] != 0);
+			}
+			return IsPress;
+		}
+		else if (static_cast<size_t>(EnumInput::DInput_Max) > static_cast<size_t>(ID)) {
+			if (checkDevice) {
+				if (GetLastInputDevice() != InputType::DInput) {
+					return false;
+				}
+			}
+			size_t index = static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::DInput_Begin);
+			auto DID = DInputInput[index];
+			bool IsPress = false;
+			if (DID >= 0xF000) {
+				bool LPOV_Active = false;
+				bool LS_Active = false;
+				bool RS_Active = false;
+				float LPOV_Degree = 0.f;
+				float LS_Degree = 0.f;
+				float RS_Degree = 0.f;
+				{
+					int LS_X = inputDInput.X;
+					int LS_Y = inputDInput.Y;
+					//XInputが-1000~1000になるように変換
+					LS_X = 1000 * LS_X / 32768;
+					LS_Y = 1000 * LS_Y / 32768;
+					//変換により誤差が発生しうるのでデッドゾーンを指定
+					if (abs(LS_X) < 10) { LS_X = 0; }
+					if (abs(LS_Y) < 10) { LS_Y = 0; }
+					if (!(LS_X == 0 && LS_Y == 0)) {
+						LS_Active = true;
+						LS_Degree = rad2deg(std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)));
+					}
+				}
+				{
+					int RS_X = inputDInput.Z;
+					int RS_Y = inputDInput.Rz;
+					//XInputが-1000~1000になるように変換
+					RS_X = 1000 * RS_X / 32768;
+					RS_Y = 1000 * RS_Y / 32768;
+					//変換により誤差が発生しうるのでデッドゾーンを指定
+					if (abs(RS_X) < 10) { RS_X = 0; }
+					if (abs(RS_Y) < 10) { RS_Y = 0; }
+					if (!(RS_X == 0 && RS_Y == 0)) {
+						RS_Active = true;
+						RS_Degree = rad2deg(std::atan2f(static_cast<float>(RS_X), static_cast<float>(-RS_Y)));
+					}
+				}
+				{
+					if (inputDInput.POV[0] != 0xffffffff) {
+						LPOV_Active = true;
+						LPOV_Degree = static_cast<float>(inputDInput.POV[0]) / 100.f;
+					}
+				}
+				switch (DID) {
+				case 0xF001:
+					if (LPOV_Active) {
+						IsPress = (220.f <= LPOV_Degree && LPOV_Degree <= 320.f);
+					}
+					break;
+				case 0xF002:
+					if (LPOV_Active) {
+						IsPress = (310.f <= LPOV_Degree || LPOV_Degree <= 50.f);
+					}
+					break;
+				case 0xF004:
+					if (LPOV_Active) {
+						IsPress = (40.f <= LPOV_Degree && LPOV_Degree <= 140.f);
+					}
+					break;
+				case 0xF008:
+					if (LPOV_Active) {
+						IsPress = (130.f <= LPOV_Degree && LPOV_Degree <= 230.f);
+					}
+					break;
+				case 0xF011:
+					if (LS_Active) {
+						IsPress = (-140.f <= LS_Degree && LS_Degree <= -40.f);//LEFT
+					}
+					break;
+				case 0xF012:
+					if (LS_Active) {
+						IsPress = (-50.f <= LS_Degree && LS_Degree <= 50.f);//UP
+					}
+					break;
+				case 0xF014:
+					if (LS_Active) {
+						IsPress = (40.f <= LS_Degree && LS_Degree <= 140.f);//RIGHT
+					}
+					break;
+				case 0xF018:
+					if (LS_Active) {
+						IsPress = (130.f <= LS_Degree || LS_Degree <= -130.f);//DOWN
+					}
+					break;
+				case 0xF021:
+					if (RS_Active) {
+						IsPress = (-140.f <= RS_Degree && RS_Degree <= -40.f);//LEFT
+					}
+					break;
+				case 0xF022:
+					if (RS_Active) {
+						IsPress = (-50.f <= RS_Degree && RS_Degree <= 50.f);//UP
+					}
+					break;
+				case 0xF024:
+					if (RS_Active) {
+						IsPress = (40.f <= RS_Degree && RS_Degree <= 140.f);//RIGHT
+					}
+					break;
+				case 0xF028:
+					if (RS_Active) {
+						IsPress = (130.f <= RS_Degree || RS_Degree <= -130.f);//DOWN
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			else if (0 <= DID && DID < 16) {
+				IsPress = (inputDInput.Buttons[DID] != 0);
+			}
+			return IsPress;
+		}
+		return false;
+	}
+	const EnumInput& GetBattleKeyAssign(EnumMenu Select, int ID) const noexcept {
+		return m_MenuKey.at(static_cast<size_t>(Select)).m_ID[ID];
+	}
+	const EnumInput& GetBattleKeyAssign(EnumBattle Select, int ID) const noexcept {
+		return m_BattleKey.at(static_cast<size_t>(Select)).m_ID[ID];
+	}
+public:
 	//入力取得
 	bool GetMenuKeyTrigger(EnumMenu Select) const noexcept {
 		auto& m = m_MenuKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->Trigger()) || (m.second && m.second->Trigger());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->Trigger()) || (m.m_Ptr[1] && m.m_Ptr[1]->Trigger());
 	}
 	bool GetMenuKeyPress(EnumMenu Select) const noexcept {
 		auto& m = m_MenuKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->Press()) || (m.second && m.second->Press());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->Press()) || (m.m_Ptr[1] && m.m_Ptr[1]->Press());
 	}
 	bool GetMenuKeyRepeat(EnumMenu Select) const noexcept {
 		auto& m = m_MenuKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->Repeat()) || (m.second && m.second->Repeat());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->Repeat()) || (m.m_Ptr[1] && m.m_Ptr[1]->Repeat());
 	}
 	bool GetMenuKeyRelease(EnumMenu Select) const noexcept {
 		auto& m = m_MenuKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->Release()) || (m.second && m.second->Release());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->Release()) || (m.m_Ptr[1] && m.m_Ptr[1]->Release());
 	}
 	bool GetMenuKeyReleaseTrigger(EnumMenu Select) const noexcept {
 		auto& m = m_MenuKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->ReleaseTrigger()) || (m.second && m.second->ReleaseTrigger());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->ReleaseTrigger()) || (m.m_Ptr[1] && m.m_Ptr[1]->ReleaseTrigger());
 	}
 	bool GetBattleKeyTrigger(EnumBattle Select) const noexcept {
 		auto& m = m_BattleKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->Trigger()) || (m.second && m.second->Trigger());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->Trigger()) || (m.m_Ptr[1] && m.m_Ptr[1]->Trigger());
 	}
 	bool GetBattleKeyPress(EnumBattle Select) const noexcept {
 		auto& m = m_BattleKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->Press()) || (m.second && m.second->Press());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->Press()) || (m.m_Ptr[1] && m.m_Ptr[1]->Press());
 	}
 	bool GetBattleKeyRepeat(EnumBattle Select) const noexcept {
 		auto& m = m_BattleKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->Repeat()) || (m.second && m.second->Repeat());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->Repeat()) || (m.m_Ptr[1] && m.m_Ptr[1]->Repeat());
 	}
 	bool GetBattleKeyRelease(EnumBattle Select) const noexcept {
 		auto& m = m_BattleKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->Release()) || (m.second && m.second->Release());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->Release()) || (m.m_Ptr[1] && m.m_Ptr[1]->Release());
 	}
 	bool GetBattleKeyReleaseTrigger(EnumBattle Select) const noexcept {
 		auto& m = m_BattleKey.at(static_cast<size_t>(Select));
-		return (m.first && m.first->ReleaseTrigger()) || (m.second && m.second->ReleaseTrigger());
+		return (m.m_Ptr[0] && m.m_Ptr[0]->ReleaseTrigger()) || (m.m_Ptr[1] && m.m_Ptr[1]->ReleaseTrigger());
 	}
 	//最後に入力したデバイス
 	InputType GetLastInputDevice(void) const noexcept { return m_InputType; }
+	bool IsDeviceChange(void) const noexcept { return m_DeviceChangeSwitch; }
 public:
 	//毎フレーム更新する内容
 	void Update(void) noexcept {
+		m_DeviceChangeSwitch = false;
 		//最後に入力したデバイスに更新
 		if ((CheckHitKeyAll(DX_CHECKINPUT_MOUSE) != 0) || (CheckHitKeyAll(DX_CHECKINPUT_KEY) != 0)) {
 			Assign(InputType::KeyBoard);
@@ -603,235 +1148,17 @@ public:
 				break;
 			}
 		}
-		//マウス
-		for (size_t loop = static_cast<size_t>(EnumInput::Mouse_Begin); loop < static_cast<size_t>(EnumInput::Mouse_Max); ++loop) {
-			size_t index = loop - static_cast<size_t>(EnumInput::Mouse_Begin);
-			m_Input.at(static_cast<size_t>(loop)).Update(GetWindowActiveFlag() && (GetMouseInput() & MouseInput[index]) != 0);
-		}
-		//キー
-		for (size_t loop = static_cast<size_t>(EnumInput::Key_Begin); loop < static_cast<size_t>(EnumInput::Key_Max); ++loop) {
-			size_t index = loop - static_cast<size_t>(EnumInput::Key_Begin);
-			m_Input.at(static_cast<size_t>(loop)).Update(GetWindowActiveFlag() && (CheckHitKey(KeyInput[index]) != 0));
-		}
 		//XInput
-		{
-			XINPUT_STATE input;
-			GetJoypadXInputState(DX_INPUT_PAD1, &input);
-			bool LS_Active = false;
-			bool RS_Active = false;
-			float LS_Degree = 0.f;
-			float RS_Degree = 0.f;
-			{
-				int LS_X = input.ThumbLX;
-				int LS_Y = -input.ThumbLY;
-				//XInputが-1000~1000になるように変換
-				LS_X = 1000 * LS_X / 32768;
-				LS_Y = 1000 * LS_Y / 32768;
-				//変換により誤差が発生しうるのでデッドゾーンを指定
-				if (abs(LS_X) < 10) { LS_X = 0; }
-				if (abs(LS_Y) < 10) { LS_Y = 0; }
-				if (!(LS_X == 0 && LS_Y == 0)) {
-					LS_Active = true;
-					LS_Degree = rad2deg(std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)));
-				}
-			}
-			{
-				int RS_X = input.ThumbRX;
-				int RS_Y = -input.ThumbRY;
-				//XInputが-1000~1000になるように変換
-				RS_X = 1000 * RS_X / 32768;
-				RS_Y = 1000 * RS_Y / 32768;
-				//変換により誤差が発生しうるのでデッドゾーンを指定
-				if (abs(RS_X) < 10) { RS_X = 0; }
-				if (abs(RS_Y) < 10) { RS_Y = 0; }
-				if (!(RS_X == 0 && RS_Y == 0)) {
-					RS_Active = true;
-					RS_Degree = rad2deg(std::atan2f(static_cast<float>(RS_X), static_cast<float>(-RS_Y)));
-				}
-			}
-			for (size_t loop = static_cast<size_t>(EnumInput::XInput_Begin); loop < static_cast<size_t>(EnumInput::XInput_Max); ++loop) {
-				size_t index = loop - static_cast<size_t>(EnumInput::XInput_Begin);
-				auto ID = XInputInput[index];
-				bool IsPress = false;
-				if (ID >= 0xF100) {
-					switch (ID) {
-					case 0xF100:
-						IsPress = input.LeftTrigger > 0;
-						break;
-					case 0xF200:
-						IsPress = input.RightTrigger > 0;
-						break;
-					case 0xF001:
-						if (LS_Active) {
-							IsPress = (-140.f <= LS_Degree && LS_Degree <= -40.f);//LEFT
-						}
-						break;
-					case 0xF002:
-						if (LS_Active) {
-							IsPress = (-50.f <= LS_Degree && LS_Degree <= 50.f);//UP
-						}
-						break;
-					case 0xF004:
-						if (LS_Active) {
-							IsPress = (40.f <= LS_Degree && LS_Degree <= 140.f);//RIGHT
-						}
-						break;
-					case 0xF008:
-						if (LS_Active) {
-							IsPress = (130.f <= LS_Degree || LS_Degree <= -130.f);//DOWN
-						}
-						break;
-					case 0xF011:
-						if (RS_Active) {
-							IsPress = (-140.f <= RS_Degree && RS_Degree <= -40.f);//LEFT
-						}
-						break;
-					case 0xF012:
-						if (RS_Active) {
-							IsPress = (-50.f <= RS_Degree && RS_Degree <= 50.f);//UP
-						}
-						break;
-					case 0xF014:
-						if (RS_Active) {
-							IsPress = (40.f <= RS_Degree && RS_Degree <= 140.f);//RIGHT
-						}
-						break;
-					case 0xF018:
-						if (RS_Active) {
-							IsPress = (130.f <= RS_Degree || RS_Degree <= -130.f);//DOWN
-						}
-						break;
-					default:
-						break;
-					}
-				}
-				else if (0 <= ID && ID < 16) {
-					IsPress = (input.Buttons[ID] != 0);
-				}
-
-				m_Input.at(static_cast<size_t>(loop)).Update(GetWindowActiveFlag() && IsPress);
-			}
+		if (GetLastInputDevice() == InputType::XInput) {
+			GetJoypadXInputState(DX_INPUT_PAD1, &inputXInput);
 		}
 		//DInput
-		{
-			DINPUT_JOYSTATE input;
-			GetJoypadDirectInputState(DX_INPUT_PAD1, &input);
-			bool LPOV_Active = false;
-			bool LS_Active = false;
-			bool RS_Active = false;
-			float LPOV_Degree = 0.f;
-			float LS_Degree = 0.f;
-			float RS_Degree = 0.f;
-			{
-				int LS_X = input.X;
-				int LS_Y = input.Y;
-				//XInputが-1000~1000になるように変換
-				LS_X = 1000 * LS_X / 32768;
-				LS_Y = 1000 * LS_Y / 32768;
-				//変換により誤差が発生しうるのでデッドゾーンを指定
-				if (abs(LS_X) < 10) { LS_X = 0; }
-				if (abs(LS_Y) < 10) { LS_Y = 0; }
-				if (!(LS_X == 0 && LS_Y == 0)) {
-					LS_Active = true;
-					LS_Degree = rad2deg(std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)));
-				}
-			}
-			{
-				int RS_X = input.Z;
-				int RS_Y = input.Rz;
-				//XInputが-1000~1000になるように変換
-				RS_X = 1000 * RS_X / 32768;
-				RS_Y = 1000 * RS_Y / 32768;
-				//変換により誤差が発生しうるのでデッドゾーンを指定
-				if (abs(RS_X) < 10) { RS_X = 0; }
-				if (abs(RS_Y) < 10) { RS_Y = 0; }
-				if (!(RS_X == 0 && RS_Y == 0)) {
-					RS_Active = true;
-					RS_Degree = rad2deg(std::atan2f(static_cast<float>(RS_X), static_cast<float>(-RS_Y)));
-				}
-			}
-			{
-				if (input.POV[0] != 0xffffffff) {
-					LPOV_Active = true;
-					LPOV_Degree = static_cast<float>(input.POV[0]) / 100.f;
-				}
-			}
-			for (size_t loop = static_cast<size_t>(EnumInput::DInput_Begin); loop < static_cast<size_t>(EnumInput::DInput_Max); ++loop) {
-				size_t index = loop - static_cast<size_t>(EnumInput::DInput_Begin);
-				auto ID = DInputInput[index];
-				bool IsPress = false;
-				if (ID >= 0xF000) {
-					switch (ID) {
-					case 0xF001:
-						if (LPOV_Active) {
-							IsPress = (220.f <= LPOV_Degree && LPOV_Degree <= 320.f);
-						}
-						break;
-					case 0xF002:
-						if (LPOV_Active) {
-							IsPress = (310.f <= LPOV_Degree || LPOV_Degree <= 50.f);
-						}
-						break;
-					case 0xF004:
-						if (LPOV_Active) {
-							IsPress = (40.f <= LPOV_Degree && LPOV_Degree <= 140.f);
-						}
-						break;
-					case 0xF008:
-						if (LPOV_Active) {
-							IsPress = (130.f <= LPOV_Degree && LPOV_Degree <= 230.f);
-						}
-						break;
-					case 0xF011:
-						if (LS_Active) {
-							IsPress = (-140.f <= LS_Degree && LS_Degree <= -40.f);//LEFT
-						}
-						break;
-					case 0xF012:
-						if (LS_Active) {
-							IsPress = (-50.f <= LS_Degree && LS_Degree <= 50.f);//UP
-						}
-						break;
-					case 0xF014:
-						if (LS_Active) {
-							IsPress = (40.f <= LS_Degree && LS_Degree <= 140.f);//RIGHT
-						}
-						break;
-					case 0xF018:
-						if (LS_Active) {
-							IsPress = (130.f <= LS_Degree || LS_Degree <= -130.f);//DOWN
-						}
-						break;
-					case 0xF021:
-						if (RS_Active) {
-							IsPress = (-140.f <= RS_Degree && RS_Degree <= -40.f);//LEFT
-						}
-						break;
-					case 0xF022:
-						if (RS_Active) {
-							IsPress = (-50.f <= RS_Degree && RS_Degree <= 50.f);//UP
-						}
-						break;
-					case 0xF024:
-						if (RS_Active) {
-							IsPress = (40.f <= RS_Degree && RS_Degree <= 140.f);//RIGHT
-						}
-						break;
-					case 0xF028:
-						if (RS_Active) {
-							IsPress = (130.f <= RS_Degree || RS_Degree <= -130.f);//DOWN
-						}
-						break;
-					default:
-						break;
-					}
-				}
-				else if (0 <= ID && ID < 16) {
-					IsPress = (input.Buttons[ID] != 0);
-				}
-
-				m_Input.at(static_cast<size_t>(loop)).Update(GetWindowActiveFlag() && IsPress);
-			}
+		if (GetLastInputDevice() == InputType::DInput) {
+			GetJoypadDirectInputState(DX_INPUT_PAD1, &inputDInput);
+		}
+		//
+		for (size_t loop = static_cast<size_t>(EnumInput::Begin); loop < static_cast<size_t>(EnumInput::Max); ++loop) {
+			m_Input.at(static_cast<size_t>(loop)).Update(GetKeyPress(static_cast<EnumInput>(loop), false));
 		}
 	}
 };
