@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #pragma warning(disable:4464)
 #include "../Util/Util.hpp"
@@ -175,7 +175,7 @@ private:
 public:
 	std::string BranchName{};
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	DrawModule(void) noexcept {
 		m_PartsParam.reserve(128);
 		m_AnimData.reserve(128);
@@ -210,7 +210,7 @@ public:
 		this->m_IsSelect = o.m_IsSelect;
 		return *this;
 	}
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~DrawModule(void) noexcept {
 		m_PartsParam.clear();
 		m_AnimData.clear();
@@ -271,11 +271,11 @@ public:
 
 		bool IsSelectAnim = false;
 		for (auto& a : m_AnimData) {
-			//ƒAƒjƒ‘I‘ğ
+			//ã‚¢ãƒ‹ãƒ¡é¸æŠ
 			if (SelectNow != a.m_Type) { continue; }
 			IsSelectAnim = true;
 			int index = static_cast<int>(&a - &m_AnimData.front());;
-			//ƒtƒŒ[ƒ€XV
+			//ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°
 			if (m_AnimDataLastSelect != index) {
 				m_AnimDataLastSelect = index;
 				this->m_Frame = 0;
@@ -322,7 +322,7 @@ public:
 
 class DrawUISystem {
 	std::vector<DrawModule> m_DrawModule;
-public://ƒRƒ“ƒXƒgƒ‰ƒNƒ^AƒfƒXƒgƒ‰ƒNƒ^
+public://ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã€ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	DrawUISystem(void) noexcept {
 		m_DrawModule.reserve(128);
 	}

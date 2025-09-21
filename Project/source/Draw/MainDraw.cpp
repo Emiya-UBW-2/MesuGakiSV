@@ -1,4 +1,4 @@
-#pragma warning(disable:4505)
+ï»¿#pragma warning(disable:4505)
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
 #pragma warning(disable:5039)
@@ -31,7 +31,7 @@ MainDraw::MainDraw(void) noexcept {
 	DxLib::SetWindowSizeChangeEnableFlag(TRUE, FALSE);
 	DxLib::SetUsePixelLighting(TRUE);
 	DxLib::SetWaitVSyncFlag(false);
-	//ƒvƒƒWƒFƒNƒgŒÅ—LÝ’è
+	//ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆå›ºæœ‰è¨­å®š
 	{
 		std::ifstream file("data/ProjectSetting/ProjectSetting.json");
 		nlohmann::json data = nlohmann::json::parse(file);
@@ -114,14 +114,14 @@ void MainDraw::Update(void) noexcept {
 			if (HeightT >= (WidthT * GetDispHeight() / GetDispWidth())) {// 4:3
 				HeightT = (WidthT * GetDispHeight() / GetDispWidth());
 			}
-			else {// 16:9‚æ‚è‰¡’·
+			else {// 16:9ã‚ˆã‚Šæ¨ªé•·
 				WidthT = (HeightT * GetDispWidth() / GetDispHeight());
 			}
 			this->m_WindowWidth = WidthT * GetDPI() / BaseDPI;
 			this->m_WindowHeight = HeightT * GetDPI() / BaseDPI;
 		}
 	}
-	//ƒ}ƒEƒXÀ•WŽæ“¾
+	//ãƒžã‚¦ã‚¹åº§æ¨™å–å¾—
 	GetMousePoint(&this->m_MouseX, &this->m_MouseY);
 	this->m_MouseX = (-(this->m_WindowDrawWidth - this->m_WindowWidth) / 2 + this->m_MouseX) * GetDispWidth() / this->m_WindowWidth;
 	this->m_MouseY = (-(this->m_WindowDrawHeight - this->m_WindowHeight) / 2 + this->m_MouseY) * GetDispHeight() / this->m_WindowHeight;
@@ -132,7 +132,7 @@ void MainDraw::StartDraw(void) const noexcept {
 }
 void MainDraw::EndDraw(void) noexcept {
 #if _DEBUG
-	//ƒfƒoƒbƒO•\Ž¦
+	//ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º
 	DxLib::printfDx("FPS:[%4.1f]\n", GetFPS());
 #endif
 	DxLib::SetDrawScreen(DX_SCREEN_BACK);
@@ -148,10 +148,10 @@ void MainDraw::EndDraw(void) noexcept {
 	}
 	DxLib::ScreenFlip();
 	if (!this->m_WaitVSync) {
-		// 4ms‚¾‚¯ƒXƒŠ[ƒv
+		// 4msã ã‘ã‚¹ãƒªãƒ¼ãƒ—
 		while ((DxLib::GetNowHiPerformanceCount() - this->m_StartTime) < static_cast<LONGLONG>(1000 * (1000 / this->m_FPSLimit - 4))) {
 			if (DxLib::ProcessMessage() != 0) { return; }
-			DxLib::SleepThread(1);	// 1msecƒXƒŠ[ƒv‚·‚é
+			DxLib::SleepThread(1);	// 1msecã‚¹ãƒªãƒ¼ãƒ—ã™ã‚‹
 		}
 		while ((DxLib::GetNowHiPerformanceCount() - this->m_StartTime) < static_cast<LONGLONG>(1000 * 1000 / this->m_FPSLimit)) {
 		}

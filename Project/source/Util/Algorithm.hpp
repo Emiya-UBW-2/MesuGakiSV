@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #define NOMINMAX
 #pragma warning(disable:4505)
 #pragma warning(disable:4514)
@@ -12,7 +12,7 @@
 #pragma warning( pop )
 
 // --------------------------------------------------------------------------------------------------
-// ƒxƒNƒgƒ‹ƒf[ƒ^Œ^
+// ãƒ™ã‚¯ãƒˆãƒ«ãƒ‡ãƒ¼ã‚¿å‹
 // --------------------------------------------------------------------------------------------------
 struct VECTOR2D {
 	float					x{}, y{};
@@ -44,28 +44,28 @@ public:
 	}
 	virtual ~VECTOR2D(void) noexcept {}
 public:
-	// ”äŠr
+	// æ¯”è¼ƒ
 	inline bool operator==(const VECTOR2D& obj) const noexcept { return (this->x == obj.x) && (this->y == obj.y); }
 	inline bool operator!=(const VECTOR2D& obj) const noexcept { return !(*this == obj); }
-	// ‰ÁZ
+	// åŠ ç®—
 	inline VECTOR2D operator+(const VECTOR2D& obj) const noexcept { return VECTOR2D(this->x + obj.x, this->y + obj.y); }
 	inline void operator+=(const VECTOR2D& obj) noexcept {
 		this->x += obj.x;
 		this->y += obj.y;
 	}
-	// Œ¸Z
+	// æ¸›ç®—
 	inline VECTOR2D operator-(const VECTOR2D& obj) const noexcept { return VECTOR2D(this->x - obj.x, this->y - obj.y); }
 	inline void operator-=(const VECTOR2D& obj) noexcept {
 		this->x -= obj.x;
 		this->y -= obj.y;
 	}
-	// æZ
+	// ä¹—ç®—
 	inline VECTOR2D operator*(float p1) const noexcept { return VECTOR2D(this->x * p1, this->y * p1); }
 	inline void operator*=(float p1) noexcept {
 		this->x *= p1;
 		this->y *= p1;
 	}
-	// œZ
+	// é™¤ç®—
 	inline VECTOR2D operator/(float p1) const noexcept { return *this * (1.f / p1); }
 	inline void operator/=(float p1) noexcept { *this *= (1.f / p1); }
 public:
@@ -93,11 +93,11 @@ public:
 	}
 };
 
-// “_‚Æ‹éŒ`‚Æ‚Ì2D”»’è
+// ç‚¹ã¨çŸ©å½¢ã¨ã®2Dåˆ¤å®š
 static bool HitPointToRectangle(int xp, int yp, int x1, int y1, int x2, int y2) noexcept { return (xp >= x1 && xp <= x2 && yp >= y1 && yp <= y2); }
-// ‹éŒ`‚Æ‹éŒ`‚Æ‚Ì2D”»’è
+// çŸ©å½¢ã¨çŸ©å½¢ã¨ã®2Dåˆ¤å®š
 static bool HitRectangleToRectangle(int xp1, int yp1, int xp2, int yp2, int x1, int y1, int x2, int y2) noexcept { return (xp1 < x2 && x1 < xp2) && (yp1 < y2 && y1 < yp2); }
-// “_‚ÆlŠpŒ`‚Æ‚Ì2D”»’è
+// ç‚¹ã¨å››è§’å½¢ã¨ã®2Dåˆ¤å®š
 static bool HitPointToSquare(VECTOR2D point, VECTOR2D c1, VECTOR2D c2, VECTOR2D c3, VECTOR2D c4) noexcept {
 	if (0 > VECTOR2D::Cross(c2 - c1, point - c1)) { return false; }
 	if (0 > VECTOR2D::Cross(c3 - c2, point - c2)) { return false; }
@@ -106,24 +106,24 @@ static bool HitPointToSquare(VECTOR2D point, VECTOR2D c1, VECTOR2D c2, VECTOR2D 
 	return true;
 }
 
-//	o1 Angle‚ª0‚Ìê‡‚Ì¶ãÀ•W
-//	o2 Angle‚ª0‚Ìê‡‚Ì‰E‰ºÀ•W
-//	minp ¶ãŠp‚©‚ç‚ÌŒÅ’è’·‚³
-//	maxp ‰E‰ºŠp‚©‚ç‚ÌŒÅ’è’·‚³
-//	Center@@: ‰æ‘œ‚ğ‰ñ“]•`‰æ‚·‚é‰æ‘œã‚Ì’†SÀ•W(¶ã‚ğ(0.0f,0.0f)A‰E‰º‚ğ(1.0f,1.0f)‚Æ‚µ‚½Š„‡)
-//	Angle@@@: •`‰æŠp“xiƒ‰ƒWƒAƒ“w’èj
-//	GrHandle@ : •`‰æ‚·‚éƒOƒ‰ƒtƒBƒbƒN‚Ì¯•Ê”Ô†iƒOƒ‰ƒtƒBƒbƒNƒnƒ“ƒhƒ‹j
-//	TransFlag@: ‰æ‘œ‚Ì“§–¾“x‚ğ—LŒø‚É‚·‚é‚©‚Ç‚¤‚©( TRUEF—LŒø‚É‚·‚é@FALSEF–³Œø‚É‚·‚é )
-//	TilingFlag : ŠpˆÈŠO‚Ì•”•ª‚ğƒ^ƒCƒŠƒ“ƒO‚·‚é‚©Šgk‚³‚¹‚é‚©( TRUEFƒ^ƒCƒŠƒ“ƒO@FALSEFŠgk )
+//	o1 AngleãŒ0ã®å ´åˆã®å·¦ä¸Šåº§æ¨™
+//	o2 AngleãŒ0ã®å ´åˆã®å³ä¸‹åº§æ¨™
+//	minp å·¦ä¸Šè§’ã‹ã‚‰ã®å›ºå®šé•·ã•
+//	maxp å³ä¸‹è§’ã‹ã‚‰ã®å›ºå®šé•·ã•
+//	Centerã€€ã€€: ç”»åƒã‚’å›è»¢æç”»ã™ã‚‹ç”»åƒä¸Šã®ä¸­å¿ƒåº§æ¨™(å·¦ä¸Šã‚’(0.0f,0.0f)ã€å³ä¸‹ã‚’(1.0f,1.0f)ã¨ã—ãŸå‰²åˆ)
+//	Angleã€€ã€€ã€€: æç”»è§’åº¦ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³æŒ‡å®šï¼‰
+//	GrHandleã€€ : æç”»ã™ã‚‹ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã®è­˜åˆ¥ç•ªå·ï¼ˆã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ãƒãƒ³ãƒ‰ãƒ«ï¼‰
+//	TransFlagã€€: ç”»åƒã®é€æ˜åº¦ã‚’æœ‰åŠ¹ã«ã™ã‚‹ã‹ã©ã†ã‹( TRUEï¼šæœ‰åŠ¹ã«ã™ã‚‹ã€€FALSEï¼šç„¡åŠ¹ã«ã™ã‚‹ )
+//	TilingFlag : è§’ä»¥å¤–ã®éƒ¨åˆ†ã‚’ã‚¿ã‚¤ãƒªãƒ³ã‚°ã™ã‚‹ã‹æ‹¡ç¸®ã•ã›ã‚‹ã‹( TRUEï¼šã‚¿ã‚¤ãƒªãƒ³ã‚°ã€€FALSEï¼šæ‹¡ç¸® )
 static void Draw9SliceGraph(
 	VECTOR2D o1, VECTOR2D o2,
 	VECTOR2D minp, VECTOR2D maxp,
 	VECTOR2D Center, float Angle,
 	int GrHandle, bool TransFlag, bool TilingFlag) noexcept {
-	//Å’áŒÀ‚ÌƒTƒCƒY‚ğw’è
+	//æœ€ä½é™ã®ã‚µã‚¤ã‚ºã‚’æŒ‡å®š
 	if (o2.x < o1.x + minp.x + maxp.x) { o2.x = o1.x + minp.x + maxp.x; }
 	if (o2.y < o1.y + minp.y + maxp.y) { o2.y = o1.y + minp.y + maxp.y; }
-	//—pˆÓ‚·‚é’¸“_î•ñ
+	//ç”¨æ„ã™ã‚‹é ‚ç‚¹æƒ…å ±
 	std::vector<VERTEX2D> Vertex;
 	std::vector<unsigned short> Index;
 
@@ -149,14 +149,14 @@ static void Draw9SliceGraph(
 		return (unsigned short)(Vertex.size() - 1);
 		};
 	auto SetBox = [&](float xmin, float ymin, float xmax, float ymax, int xc, int yc) {
-		Index.emplace_back(SetPoint(xmin, ymin, xc, yc));// ¶ã‚Ì’¸“_‚Ìî•ñ‚ğƒZƒbƒg
+		Index.emplace_back(SetPoint(xmin, ymin, xc, yc));// å·¦ä¸Šã®é ‚ç‚¹ã®æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ
 		auto RU = SetPoint(xmax, ymin, xc + 1, yc);
 		auto LD = SetPoint(xmin, ymax, xc, yc + 1);
-		Index.emplace_back(RU);// ‰Eã‚Ì’¸“_‚Ìî•ñ‚ğƒZƒbƒg
-		Index.emplace_back(LD);// ¶‰º‚Ì’¸“_‚Ìî•ñ‚ğƒZƒbƒg
-		Index.emplace_back(SetPoint(xmax, ymax, xc + 1, yc + 1));// ‰E‰º‚Ì’¸“_‚Ìî•ñ‚ğƒZƒbƒg
-		Index.emplace_back(LD);// ¶‰º‚Ì’¸“_‚Ìî•ñ‚ğƒZƒbƒg
-		Index.emplace_back(RU);// ‰Eã‚Ì’¸“_‚Ìî•ñ‚ğƒZƒbƒg
+		Index.emplace_back(RU);// å³ä¸Šã®é ‚ç‚¹ã®æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ
+		Index.emplace_back(LD);// å·¦ä¸‹ã®é ‚ç‚¹ã®æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ
+		Index.emplace_back(SetPoint(xmax, ymax, xc + 1, yc + 1));// å³ä¸‹ã®é ‚ç‚¹ã®æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ
+		Index.emplace_back(LD);// å·¦ä¸‹ã®é ‚ç‚¹ã®æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ
+		Index.emplace_back(RU);// å³ä¸Šã®é ‚ç‚¹ã®æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ
 		};
 
 	float xminpt = minp.x / xs;
@@ -171,7 +171,7 @@ static void Draw9SliceGraph(
 
 	int xtile = 1;
 	int ytile = 1;
-	//ƒ^ƒCƒŠƒ“ƒO
+	//ã‚¿ã‚¤ãƒªãƒ³ã‚°
 	if (TilingFlag) {
 		xtile = (int)(xmidt / ((xminpt + xmaxpt) / 2.f)) + 1;
 		if (xtile <= 0) { xtile = 1; }
@@ -189,7 +189,7 @@ static void Draw9SliceGraph(
 		int yc = 0;
 		for (int y = 0; y < ytile + 2; y++) {
 			SetBox(xmin, ymin, xmax, ymax, xc, yc);
-			//Ÿ
+			//æ¬¡
 			ymin = ymax;
 			ymax = TilingFlag ? (ymin + ymidt / static_cast<float>(ytile)) : ymaxt;
 			if (y == 0) {
@@ -200,7 +200,7 @@ static void Draw9SliceGraph(
 				yc = 2;
 			}
 		}
-		//Ÿ
+		//æ¬¡
 		xmin = xmax;
 		xmax = TilingFlag ? (xmin + xmidt / static_cast<float>(xtile)) : xmaxt;
 		if (x == 0) {
@@ -214,7 +214,7 @@ static void Draw9SliceGraph(
 	DrawPolygonIndexed2D(Vertex.data(), (int)Vertex.size(), Index.data(), (int)Index.size() / 3, GrHandle, TransFlag ? TRUE : FALSE);
 }
 
-// üŒ`•âŠ®
+// ç·šå½¢è£œå®Œ
 template <class T>
 inline T Lerp(const T& A, const T& B, float Per) noexcept {
 	if (Per == 0.f) {
@@ -229,12 +229,12 @@ inline T Lerp(const T& A, const T& B, float Per) noexcept {
 }
 
 // --------------------------------------------------------------------------------------------------
-// Šp“x•ÏŠ·
+// è§’åº¦å¤‰æ›
 // --------------------------------------------------------------------------------------------------
-// Šp“x‚©‚çƒ‰ƒWƒAƒ“‚É
-extern void* enabler;// ƒ_ƒ~[•Ï”
+// è§’åº¦ã‹ã‚‰ãƒ©ã‚¸ã‚¢ãƒ³ã«
+extern void* enabler;// ãƒ€ãƒŸãƒ¼å¤‰æ•°
 template <class T, typename std::enable_if<std::is_arithmetic<T>::value>::type*& = enabler>
 constexpr float deg2rad(T p1) noexcept { return static_cast<float>(p1) * DX_PI_F / 180.f; }
-// ƒ‰ƒWƒAƒ“‚©‚çŠp“x‚É
+// ãƒ©ã‚¸ã‚¢ãƒ³ã‹ã‚‰è§’åº¦ã«
 template <class T, typename std::enable_if<std::is_arithmetic<T>::value>::type*& = enabler>
 constexpr float rad2deg(T p1) noexcept { return static_cast<float>(p1) * 180.f / DX_PI_F; }

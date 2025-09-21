@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #define NOMINMAX
 #pragma warning( push, 3 )
 #include "DxLib.h"
@@ -24,27 +24,27 @@ static const char* WindowModeStr[static_cast<int>(EnumWindowMode::Max)] = {
 	"FullScreen",
 };
 
-//DXLib•`‰æƒNƒ‰ƒX
+//DXLibæç”»ã‚¯ãƒ©ã‚¹
 class MainDraw : public SingletonBase<MainDraw> {
 private:
 	friend class SingletonBase<MainDraw>;
 private:
 	LONGLONG	m_TickTime = 0;
 	LONGLONG	m_StartTime = 0;
-	int			m_ScreenWidth{ 960 };			//ƒXƒNƒŠ[ƒ“ƒTƒCƒYX
-	int			m_ScreenHeight{ 720 };			//ƒXƒNƒŠ[ƒ“ƒTƒCƒYY
-	int			m_WindowDrawWidth{ 960 };		//ƒEƒBƒ“ƒhƒEƒTƒCƒYX
-	int			m_WindowDrawHeight{ 720 };		//ƒEƒBƒ“ƒhƒEƒTƒCƒYY
-	int			m_WindowWidth{ 960 };			//ƒfƒBƒXƒvƒŒƒC•\¦X
-	int			m_WindowHeight{ 720 };			//ƒfƒBƒXƒvƒŒƒC•\¦Y
+	int			m_ScreenWidth{ 960 };			//ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚µã‚¤ã‚ºX
+	int			m_ScreenHeight{ 720 };			//ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚µã‚¤ã‚ºY
+	int			m_WindowDrawWidth{ 960 };		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºX
+	int			m_WindowDrawHeight{ 720 };		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºY
+	int			m_WindowWidth{ 960 };			//ãƒ‡ã‚£ã‚¹ãƒ—ãƒ¬ã‚¤è¡¨ç¤ºX
+	int			m_WindowHeight{ 720 };			//ãƒ‡ã‚£ã‚¹ãƒ—ãƒ¬ã‚¤è¡¨ç¤ºY
 	int			m_BufferScreen{ -1 };
 	int			m_MouseX{ -1 };
 	int			m_MouseY{ -1 };
-	int			m_DispWidth{ 1920 };			//UI•`‰æ‚È‚Ç‚ÌŠî€X
-	int			m_DispHeight{ 1080 };			//UI•`‰æ‚È‚Ç‚ÌŠî€Y
-	int			m_CalculateTick = 60;			//XVƒŒ[ƒg
+	int			m_DispWidth{ 1920 };			//UIæç”»ãªã©ã®åŸºæº–X
+	int			m_DispHeight{ 1080 };			//UIæç”»ãªã©ã®åŸºæº–Y
+	int			m_CalculateTick = 60;			//æ›´æ–°ãƒ¬ãƒ¼ãƒˆ
 	int			m_UpdateTickCount = 1;
-	int			m_FPSLimit = 60;			//XVƒŒ[ƒg
+	int			m_FPSLimit = 60;			//æ›´æ–°ãƒ¬ãƒ¼ãƒˆ
 	bool		m_WaitVSync = true;
 	char		padding[7]{};
 private:
@@ -57,7 +57,7 @@ private:
 		}
 		return DPI;
 	}
-private://ƒRƒ“ƒXƒgƒ‰ƒNƒ^AƒfƒXƒgƒ‰ƒNƒ^
+private://ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã€ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	MainDraw(void) noexcept;
 	MainDraw(const MainDraw&) = delete;
 	MainDraw(MainDraw&&) = delete;
@@ -65,11 +65,11 @@ private://ƒRƒ“ƒXƒgƒ‰ƒNƒ^AƒfƒXƒgƒ‰ƒNƒ^
 	MainDraw& operator=(MainDraw&&) = delete;
 	~MainDraw(void) noexcept;
 public://Getter
-	auto	GetDispWidth(void) const noexcept { return this->m_DispWidth; }//•`‰æ”ÍˆÍ‚ÌXÀ•W
-	auto	GetDispHeight(void) const noexcept { return this->m_DispHeight; }//•`‰æ”ÍˆÍ‚ÌYÀ•W
-	auto	GetMousePositionX(void) const noexcept { return this->m_MouseX; }//ƒ}ƒEƒX‚ÌXÀ•W
-	auto	GetMousePositionY(void) const noexcept { return this->m_MouseY; }//ƒ}ƒEƒX‚ÌYÀ•W
-	auto	GetUpdateTickCount(void) const noexcept { return this->m_UpdateTickCount; }//‚±‚Ìü‰ñ‚Å‚Í‰½‰ñƒAƒbƒvƒf[ƒg‚Å‚«‚é‚©‚ğƒ`ƒFƒbƒN‚·‚é
+	auto	GetDispWidth(void) const noexcept { return this->m_DispWidth; }//æç”»ç¯„å›²ã®Xåº§æ¨™
+	auto	GetDispHeight(void) const noexcept { return this->m_DispHeight; }//æç”»ç¯„å›²ã®Yåº§æ¨™
+	auto	GetMousePositionX(void) const noexcept { return this->m_MouseX; }//ãƒã‚¦ã‚¹ã®Xåº§æ¨™
+	auto	GetMousePositionY(void) const noexcept { return this->m_MouseY; }//ãƒã‚¦ã‚¹ã®Yåº§æ¨™
+	auto	GetUpdateTickCount(void) const noexcept { return this->m_UpdateTickCount; }//ã“ã®å‘¨å›ã§ã¯ä½•å›ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆã§ãã‚‹ã‹ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 public://Setter
 	void		SetWindowMode(EnumWindowMode value) const noexcept {
 		switch (value) {
@@ -102,20 +102,20 @@ public://Setter
 	void		SetWaitVSync(bool value) noexcept {
 		this->m_WaitVSync = value;
 		if (DxLib::GetUseDirect3DVersion() != DX_DIRECT3D_11) {
-			DxLib::SetWaitVSyncFlag(FALSE);//DirectX9‚Å‚ÍŒã‚©‚ç‚Ì•ÏX‚ªŒø‚©‚È‚¢
+			DxLib::SetWaitVSyncFlag(FALSE);//DirectX9ã§ã¯å¾Œã‹ã‚‰ã®å¤‰æ›´ãŒåŠ¹ã‹ãªã„
 		}
 		else {
-			DxLib::SetWaitVSyncFlag(value);//DirectX11‚Å‚Í‚ ‚Æ‚©‚ç‚Ì•ÏX‚ªŒø‚­
+			DxLib::SetWaitVSyncFlag(value);//DirectX11ã§ã¯ã‚ã¨ã‹ã‚‰ã®å¤‰æ›´ãŒåŠ¹ã
 		}
 	}
 public:
-	//ƒ‹[ƒv‘O‚ÉÀ{
+	//ãƒ«ãƒ¼ãƒ—å‰ã«å®Ÿæ–½
 	void		LoopStart(void) noexcept {
 		this->m_TickTime = DxLib::GetNowHiPerformanceCount();
 		this->m_StartTime = DxLib::GetNowHiPerformanceCount();
 	}
 public:
-	//ƒ‹[ƒv’†‚ÉÀ{
+	//ãƒ«ãƒ¼ãƒ—ä¸­ã«å®Ÿæ–½
 	bool		CanContinueLoop(void) const noexcept {
 		return DxLib::ProcessMessage() == 0;
 	}

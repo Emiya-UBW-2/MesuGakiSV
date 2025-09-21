@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #pragma warning(disable:4464)
 #pragma warning(disable:4505)
@@ -331,10 +331,10 @@ static int KeyInput[static_cast<size_t>(EnumInput::Key_Max) - static_cast<size_t
 };
 
 static int XInputInput[static_cast<size_t>(EnumInput::XInput_Max) - static_cast<size_t>(EnumInput::XInput_Begin)] = {
-	XINPUT_BUTTON_X,			// 
-	XINPUT_BUTTON_A,		 	//~
-	XINPUT_BUTTON_B,		 	//Z
-	XINPUT_BUTTON_Y,     		//¢
+	XINPUT_BUTTON_X,			//â–¡
+	XINPUT_BUTTON_A,		 	//Ã—
+	XINPUT_BUTTON_B,		 	//ã€‡
+	XINPUT_BUTTON_Y,     		//â–³
 	XINPUT_BUTTON_LEFT_SHOULDER,
 	XINPUT_BUTTON_RIGHT_SHOULDER,
 	0xF100, 	//L2
@@ -443,7 +443,7 @@ private:
 	std::vector<std::pair<Key*, Key*>> m_BattleKey{};
 	InputType	m_InputType{ InputType::XInput };
 private:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	KeyParam(void) noexcept {
 		m_Input.resize(static_cast<size_t>(EnumInput::Max));
 		m_MenuKey.resize(static_cast<size_t>(EnumMenu::Max));
@@ -454,7 +454,7 @@ private:
 	KeyParam(KeyParam&&) = delete;
 	KeyParam& operator=(const KeyParam&) = delete;
 	KeyParam& operator=(KeyParam&&) = delete;
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~KeyParam(void) noexcept {
 		m_Input.clear();
 		m_MenuKey.clear();
@@ -535,7 +535,7 @@ private:
 		}
 	}
 public:
-	//“ü—Íæ“¾
+	//å…¥åŠ›å–å¾—
 	bool GetMenuKeyTrigger(EnumMenu Select) const noexcept {
 		auto& m = m_MenuKey.at(static_cast<size_t>(Select));
 		return (m.first && m.first->Trigger()) || (m.second && m.second->Trigger());
@@ -576,39 +576,39 @@ public:
 		auto& m = m_BattleKey.at(static_cast<size_t>(Select));
 		return (m.first && m.first->ReleaseTrigger()) || (m.second && m.second->ReleaseTrigger());
 	}
-	//ÅŒã‚É“ü—Í‚µ‚½ƒfƒoƒCƒX
+	//æœ€å¾Œã«å…¥åŠ›ã—ãŸãƒ‡ãƒã‚¤ã‚¹
 	InputType GetLastInputDevice(void) const noexcept { return m_InputType; }
 public:
-	//–ˆƒtƒŒ[ƒ€XV‚·‚é“à—e
+	//æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°ã™ã‚‹å†…å®¹
 	void Update(void) noexcept {
-		//ÅŒã‚É“ü—Í‚µ‚½ƒfƒoƒCƒX‚ÉXV
+		//æœ€å¾Œã«å…¥åŠ›ã—ãŸãƒ‡ãƒã‚¤ã‚¹ã«æ›´æ–°
 		if ((CheckHitKeyAll(DX_CHECKINPUT_MOUSE) != 0) || (CheckHitKeyAll(DX_CHECKINPUT_KEY) != 0)) {
 			Assign(InputType::KeyBoard);
 		}
 		if (CheckHitKeyAll(DX_CHECKINPUT_PAD) != 0) {
 			switch (GetJoypadType(DX_INPUT_PAD1)) {
-			case DX_PADTYPE_XBOX_360:			// Xbox360ƒRƒ“ƒgƒ[ƒ‰[
-			case DX_PADTYPE_XBOX_ONE:			// XboxOneƒRƒ“ƒgƒ[ƒ‰[
+			case DX_PADTYPE_XBOX_360:			// Xbox360ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
+			case DX_PADTYPE_XBOX_ONE:			// XboxOneã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
 				Assign(InputType::XInput);
 				break;
-			case DX_PADTYPE_DUAL_SHOCK_4:		// PS4ƒRƒ“ƒgƒ[ƒ‰[
-			case DX_PADTYPE_DUAL_SENSE:			// PS5ƒRƒ“ƒgƒ[ƒ‰[
-			case DX_PADTYPE_SWITCH_JOY_CON_L:	// Switch Joycon(¶)
-			case DX_PADTYPE_SWITCH_JOY_CON_R:	// Switch Joycon(‰E)
-			case DX_PADTYPE_SWITCH_PRO_CTRL:	// Switch ProƒRƒ“ƒgƒ[ƒ‰[
-			case DX_PADTYPE_OTHER:				// ‚»‚Ì‘¼‚ÌƒRƒ“ƒgƒ[ƒ‰[
+			case DX_PADTYPE_DUAL_SHOCK_4:		// PS4ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
+			case DX_PADTYPE_DUAL_SENSE:			// PS5ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
+			case DX_PADTYPE_SWITCH_JOY_CON_L:	// Switch Joycon(å·¦)
+			case DX_PADTYPE_SWITCH_JOY_CON_R:	// Switch Joycon(å³)
+			case DX_PADTYPE_SWITCH_PRO_CTRL:	// Switch Proã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
+			case DX_PADTYPE_OTHER:				// ãã®ä»–ã®ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
 				Assign(InputType::DInput);
 				break;
 			default:
 				break;
 			}
 		}
-		//ƒ}ƒEƒX
+		//ãƒã‚¦ã‚¹
 		for (size_t loop = static_cast<size_t>(EnumInput::Mouse_Begin); loop < static_cast<size_t>(EnumInput::Mouse_Max); ++loop) {
 			size_t index = loop - static_cast<size_t>(EnumInput::Mouse_Begin);
 			m_Input.at(static_cast<size_t>(loop)).Update(GetWindowActiveFlag() && (GetMouseInput() & MouseInput[index]) != 0);
 		}
-		//ƒL[
+		//ã‚­ãƒ¼
 		for (size_t loop = static_cast<size_t>(EnumInput::Key_Begin); loop < static_cast<size_t>(EnumInput::Key_Max); ++loop) {
 			size_t index = loop - static_cast<size_t>(EnumInput::Key_Begin);
 			m_Input.at(static_cast<size_t>(loop)).Update(GetWindowActiveFlag() && (CheckHitKey(KeyInput[index]) != 0));
@@ -624,10 +624,10 @@ public:
 			{
 				int LS_X = input.ThumbLX;
 				int LS_Y = -input.ThumbLY;
-				//XInput‚ª-1000~1000‚É‚È‚é‚æ‚¤‚É•ÏŠ·
+				//XInputãŒ-1000~1000ã«ãªã‚‹ã‚ˆã†ã«å¤‰æ›
 				LS_X = 1000 * LS_X / 32768;
 				LS_Y = 1000 * LS_Y / 32768;
-				//•ÏŠ·‚É‚æ‚èŒë·‚ª”­¶‚µ‚¤‚é‚Ì‚Åƒfƒbƒhƒ][ƒ“‚ğw’è
+				//å¤‰æ›ã«ã‚ˆã‚Šèª¤å·®ãŒç™ºç”Ÿã—ã†ã‚‹ã®ã§ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³ã‚’æŒ‡å®š
 				if (abs(LS_X) < 10) { LS_X = 0; }
 				if (abs(LS_Y) < 10) { LS_Y = 0; }
 				if (!(LS_X == 0 && LS_Y == 0)) {
@@ -638,10 +638,10 @@ public:
 			{
 				int RS_X = input.ThumbRX;
 				int RS_Y = -input.ThumbRY;
-				//XInput‚ª-1000~1000‚É‚È‚é‚æ‚¤‚É•ÏŠ·
+				//XInputãŒ-1000~1000ã«ãªã‚‹ã‚ˆã†ã«å¤‰æ›
 				RS_X = 1000 * RS_X / 32768;
 				RS_Y = 1000 * RS_Y / 32768;
-				//•ÏŠ·‚É‚æ‚èŒë·‚ª”­¶‚µ‚¤‚é‚Ì‚Åƒfƒbƒhƒ][ƒ“‚ğw’è
+				//å¤‰æ›ã«ã‚ˆã‚Šèª¤å·®ãŒç™ºç”Ÿã—ã†ã‚‹ã®ã§ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³ã‚’æŒ‡å®š
 				if (abs(RS_X) < 10) { RS_X = 0; }
 				if (abs(RS_Y) < 10) { RS_Y = 0; }
 				if (!(RS_X == 0 && RS_Y == 0)) {
@@ -725,10 +725,10 @@ public:
 			{
 				int LS_X = input.X;
 				int LS_Y = input.Y;
-				//XInput‚ª-1000~1000‚É‚È‚é‚æ‚¤‚É•ÏŠ·
+				//XInputãŒ-1000~1000ã«ãªã‚‹ã‚ˆã†ã«å¤‰æ›
 				LS_X = 1000 * LS_X / 32768;
 				LS_Y = 1000 * LS_Y / 32768;
-				//•ÏŠ·‚É‚æ‚èŒë·‚ª”­¶‚µ‚¤‚é‚Ì‚Åƒfƒbƒhƒ][ƒ“‚ğw’è
+				//å¤‰æ›ã«ã‚ˆã‚Šèª¤å·®ãŒç™ºç”Ÿã—ã†ã‚‹ã®ã§ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³ã‚’æŒ‡å®š
 				if (abs(LS_X) < 10) { LS_X = 0; }
 				if (abs(LS_Y) < 10) { LS_Y = 0; }
 				if (!(LS_X == 0 && LS_Y == 0)) {
@@ -739,10 +739,10 @@ public:
 			{
 				int RS_X = input.Z;
 				int RS_Y = input.Rz;
-				//XInput‚ª-1000~1000‚É‚È‚é‚æ‚¤‚É•ÏŠ·
+				//XInputãŒ-1000~1000ã«ãªã‚‹ã‚ˆã†ã«å¤‰æ›
 				RS_X = 1000 * RS_X / 32768;
 				RS_Y = 1000 * RS_Y / 32768;
-				//•ÏŠ·‚É‚æ‚èŒë·‚ª”­¶‚µ‚¤‚é‚Ì‚Åƒfƒbƒhƒ][ƒ“‚ğw’è
+				//å¤‰æ›ã«ã‚ˆã‚Šèª¤å·®ãŒç™ºç”Ÿã—ã†ã‚‹ã®ã§ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³ã‚’æŒ‡å®š
 				if (abs(RS_X) < 10) { RS_X = 0; }
 				if (abs(RS_Y) < 10) { RS_Y = 0; }
 				if (!(RS_X == 0 && RS_Y == 0)) {

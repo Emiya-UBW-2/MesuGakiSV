@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #pragma warning(disable:4464)
 #pragma warning(disable:4505)
@@ -44,7 +44,7 @@ private:
 
 	std::vector<Param>	m_ParamList;
 private:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	OptionParam(void) noexcept {
 		std::ifstream file("data/ProjectSetting/Option.json");
 		nlohmann::json data = nlohmann::json::parse(file);
@@ -94,7 +94,7 @@ private:
 	OptionParam(OptionParam&&) = delete;
 	OptionParam& operator=(const OptionParam&) = delete;
 	OptionParam& operator=(OptionParam&&) = delete;
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~OptionParam(void) noexcept {
 		Save();
 		for (auto& p : m_ParamList) {

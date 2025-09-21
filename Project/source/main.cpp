@@ -1,4 +1,4 @@
-#pragma warning(disable:4505)
+ï»¿#pragma warning(disable:4505)
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
 #pragma warning(disable:5039)
@@ -17,28 +17,28 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	auto* KeyMngr = KeyParam::Instance();
 	TitleScene Title{};
 	MainScene Main{};
-	//ƒV[ƒ“İ’è
+	//ã‚·ãƒ¼ãƒ³è¨­å®š
 	SceneMngr->AddScenePtrList(&Title);
 	SceneMngr->AddScenePtrList(&Main);
 	SceneMngr->SetFirstScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Title)));
-	//ƒƒCƒ“ƒ‹[ƒvŠJn
+	//ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—é–‹å§‹
 	DrawerMngr->LoopStart();
 	while (DrawerMngr->CanContinueLoop()) {
-		//XV
+		//æ›´æ–°
 		DrawerMngr->Update();
 		for (int loop = 0; loop < DrawerMngr->GetUpdateTickCount(); ++loop) {
 			KeyMngr->Update();
 			SceneMngr->Update();
 		}
-		//•`‰æ
+		//æç”»
 		DrawerMngr->StartDraw();
 		SceneMngr->Draw();
 		DrawerMngr->EndDraw();
-		//I—¹”»’è
+		//çµ‚äº†åˆ¤å®š
 		if (SceneMngr->IsEndScene()) {
 			break;
 		}
 	}
 	MainDraw::Release();
-	return 0;// ƒ\ƒtƒg‚ÌI—¹ 
+	return 0;// ã‚½ãƒ•ãƒˆã®çµ‚äº† 
 }

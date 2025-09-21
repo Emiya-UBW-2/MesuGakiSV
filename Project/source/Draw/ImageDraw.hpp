@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #define NOMINMAX
 #pragma warning( push, 3 )
 #include "DxLib.h"
@@ -14,7 +14,7 @@
 #pragma warning(disable:5039)
 #include "../Util/Util.hpp"
 
-// ƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹
+// ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«
 class GraphHandle : public DXHandle {
 public:
 	GraphHandle(void) noexcept {}
@@ -51,7 +51,7 @@ public:
 		DXHandle::SetHandleDirect(DxLib::MakeScreen(SizeX, SizeY, (trns ? TRUE : FALSE)));
 	}
 	void MakeDepth(int SizeX, int SizeY) noexcept {
-		// [“x‚ğ•`‰æ‚·‚éƒeƒNƒXƒ`ƒƒ‚Ìì¬( 2ƒ`ƒƒƒ“ƒlƒ‹•‚“®¬”“_32ƒrƒbƒgƒeƒNƒXƒ`ƒƒ )
+		// æ·±åº¦ã‚’æç”»ã™ã‚‹ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ä½œæˆ( 2ãƒãƒ£ãƒ³ãƒãƒ«æµ®å‹•å°æ•°ç‚¹32ãƒ“ãƒƒãƒˆãƒ†ã‚¯ã‚¹ãƒãƒ£ )
 		auto prevMip = GetCreateDrawValidGraphChannelNum();
 		auto prevFloatType = GetDrawValidFloatTypeGraphCreateFlag();
 		auto prevBit = GetCreateGraphChannelBitDepth();
@@ -99,22 +99,22 @@ public:
 	}
 
 	template <typename... Args>
-	void GraphFilter(int FilterType /* DX_GRAPH_FILTER_GAUSS “™ */, Args&&... args) const noexcept {
+	void GraphFilter(int FilterType /* DX_GRAPH_FILTER_GAUSS ç­‰ */, Args&&... args) const noexcept {
 		DxLib::GraphFilter(DXHandle::get(), FilterType, args...);
 	}
 
 	template <typename... Args>
-	void GraphFilterBlt(const GraphHandle& targetImage, int FilterType /* DX_GRAPH_FILTER_GAUSS “™ */, Args&&... args) const noexcept {
+	void GraphFilterBlt(const GraphHandle& targetImage, int FilterType /* DX_GRAPH_FILTER_GAUSS ç­‰ */, Args&&... args) const noexcept {
 		DxLib::GraphFilterBlt(targetImage.get(), DXHandle::get(), FilterType, args...);
 	}
 
 	template <typename... Args>
-	void GraphBlend(const GraphHandle& BlendImage, int BlendRatio /* ƒuƒŒƒ“ƒhŒø‰Ê‚Ì‰e‹¿“x( 0:‚O“  255:‚P‚O‚O“ ) */, int BlendType /* DX_GRAPH_BLEND_ADD “™ */, Args&&... args) const noexcept {
+	void GraphBlend(const GraphHandle& BlendImage, int BlendRatio /* ãƒ–ãƒ¬ãƒ³ãƒ‰åŠ¹æœã®å½±éŸ¿åº¦( 0:ï¼ï¼…  255:ï¼‘ï¼ï¼ï¼… ) */, int BlendType /* DX_GRAPH_BLEND_ADD ç­‰ */, Args&&... args) const noexcept {
 		DxLib::GraphBlend(DXHandle::get(), BlendImage.get(), BlendRatio, BlendType, args...);
 	}
 
 	template <typename... Args>
-	void GraphBlendBlt(const GraphHandle& BaseImage, const GraphHandle& BlendImage, int BlendRatio /* ƒuƒŒƒ“ƒhŒø‰Ê‚Ì‰e‹¿“x( 0:‚O“  255:‚P‚O‚O“ ) */, int BlendType /* DX_GRAPH_BLEND_ADD “™ */, Args&&... args) const noexcept {
+	void GraphBlendBlt(const GraphHandle& BaseImage, const GraphHandle& BlendImage, int BlendRatio /* ãƒ–ãƒ¬ãƒ³ãƒ‰åŠ¹æœã®å½±éŸ¿åº¦( 0:ï¼ï¼…  255:ï¼‘ï¼ï¼ï¼… ) */, int BlendType /* DX_GRAPH_BLEND_ADD ç­‰ */, Args&&... args) const noexcept {
 		DxLib::GraphBlendBlt(BaseImage.get(), BlendImage.get(), DXHandle::get(), BlendRatio, BlendType, args...);
 	}
 
@@ -173,7 +173,7 @@ public:
 };
 //
 class Graphhave {
-	// ƒJƒXƒ^ƒ€€–Ú
+	// ã‚«ã‚¹ã‚¿ãƒ é …ç›®
 	std::string		m_FilePath;
 	GraphHandle		m_Handle;
 public:
@@ -193,7 +193,7 @@ public:
 public:
 	const GraphHandle* Get(void) const noexcept { return &m_Handle; }
 };
-// ƒtƒHƒ“ƒgƒv[ƒ‹
+// ãƒ•ã‚©ãƒ³ãƒˆãƒ—ãƒ¼ãƒ«
 class GraphPool : public SingletonBase<GraphPool> {
 private:
 	friend class SingletonBase<GraphPool>;

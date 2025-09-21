@@ -1,8 +1,5 @@
-#pragma warning(disable:4464)
+ï»¿#pragma warning(disable:4464)
 #pragma warning(disable:5259)
-#pragma warning( push, 3 )
-#include <string>
-#pragma warning( pop )
 
 #include "Localize.hpp"
 
@@ -26,21 +23,22 @@ void LocalizePool::Load(void) noexcept {
 		if (FileStream.ComeEof()) { break; }
 		auto ALL = FileStream.SeekLineAndGetStr();
 		if (ALL == "") { continue; }
-		//=‚Ì‰E‘¤‚Ì•¶Žš‚ðƒJƒ“ƒ}‹æØ‚è‚Æ‚µ‚ÄŽ¯•Ê‚·‚é
+		//=ã®å³å´ã®æ–‡å­—ã‚’ã‚«ãƒ³ãƒžåŒºåˆ‡ã‚Šã¨ã—ã¦è­˜åˆ¥ã™ã‚‹
 		auto LEFT = InputFileStream::getleft(ALL, "=");
 		auto RIGHT = InputFileStream::getright(ALL, "=");
 		LocalizeID ID = (LocalizeID)(std::stoi(LEFT));
 		bool IsHit = false;
 		for (auto& h : this->havehandle) {
 			if (h.m_ID == ID) {
-				std::string Before = h.m_Str;
-				sprintfDx(h.m_Str, "%s\n%s", Before.c_str(), RIGHT.c_str());// ‰üs‚µ‚Ä“¯‚¶ƒeƒLƒXƒg‚Æ‚·‚é
+				// æ”¹è¡Œã—ã¦åŒã˜ãƒ†ã‚­ã‚¹ãƒˆã¨ã™ã‚‹
+				h.m_Str += "\n";
+				h.m_Str += RIGHT;
 				IsHit = true;
 				break;
 			}
 		}
 		if (!IsHit) {
-			this->havehandle.emplace_back((LocalizeID)(std::stoi(LEFT)), RIGHT.c_str());
+			this->havehandle.emplace_back(ID, RIGHT);
 		}
 	}
 }

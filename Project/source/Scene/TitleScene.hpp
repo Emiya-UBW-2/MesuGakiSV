@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #pragma warning(disable:4464)
 #pragma warning(disable:4514)
@@ -8,11 +8,13 @@
 #include "../Util/Enum.hpp"
 #include "../Util/SceneManager.hpp"
 #include "../Util/Key.hpp"
-#include "../Draw/MainDraw.hpp"
+#include "../Util/Util.hpp"
+#include "../Util/Localize.hpp"
 
+#include "../Draw/MainDraw.hpp"
 #include "../Draw/DrawUISystem.hpp"
 
-#include "../Util/Util.hpp"
+
 #pragma warning( push, 3 )
 #include "../File/json.hpp"
 #pragma warning( pop )
@@ -85,9 +87,7 @@ public:
 			std::string Path = "OptionUI/Tab";
 			Path += std::to_string(loop + 1);
 			m_TabButton[loop] = m_DrawUI->GetID(Path.c_str());
-			std::string Name = "Tab";
-			Name += std::to_string(loop + 1);
-			m_DrawUI->Get(m_TabButton[loop]).GetParts("String1")->SetString(Name);
+			m_DrawUI->Get(m_TabButton[loop]).GetParts("String1")->SetString(LocalizePool::Instance()->Get(loop));
 		}
 		m_NowSelect = 0;
 		m_CloseButton = m_DrawUI->GetID("OptionUI/CloseButton");

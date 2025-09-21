@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 enum class EnumScene :size_t {
 	Title,

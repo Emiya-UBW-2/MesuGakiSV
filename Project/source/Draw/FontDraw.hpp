@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #define NOMINMAX
 #pragma warning( push, 3 )
 #include "DxLib.h"
@@ -25,10 +25,10 @@ enum class FontYCenter : int {
 	BOTTOM,
 };
 enum class FontType {
-	MS_Gothic,			// MSƒSƒVƒbƒN
-	DIZ_UD_Gothic,		// DIZ UD ƒSƒVƒbƒN
+	MS_Gothic,			// MSã‚´ã‚·ãƒƒã‚¯
+	DIZ_UD_Gothic,		// DIZ UD ã‚´ã‚·ãƒƒã‚¯
 };
-// ƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹
+// ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«
 class FontHandle : public DXHandle {
 public:
 	FontHandle(void) noexcept {}
@@ -42,14 +42,14 @@ protected:
 		DeleteFontToHandle(DXHandle::get());
 	}
 public:
-	// ’·‚³æ“¾
+	// é•·ã•å–å¾—
 	int GetDrawWidth(std::basic_string_view<TCHAR> String) const noexcept { return DxLib::GetDrawNStringWidthToHandle(String.data(), String.size(), DXHandle::get(), FALSE); }
 	template <typename... Args>
 	int GetDrawWidthFormat(const std::string& String, Args&&... args) const noexcept { return DxLib::GetDrawFormatStringWidthToHandle(DXHandle::get(), String.c_str(), args...); }
 	int GetDrawExtendWidth(float siz, std::basic_string_view<TCHAR> String) const noexcept { return DxLib::GetDrawExtendNStringWidthToHandle(static_cast<double>(siz), String.data(), String.size(), DXHandle::get(), FALSE); }
 	template <typename... Args>
 	int GetDrawExtendWidthFormat(float siz, const std::string& String, Args&&... args) const noexcept { return DxLib::GetDrawExtendFormatStringWidthToHandle(static_cast<double>(siz), DXHandle::get(), String.c_str(), args...); }
-	// •¶š•`‰æ
+	// æ–‡å­—æç”»
 	template <typename... Args>
 	void DrawString(FontXCenter FontX, FontYCenter FontY, int x, int y, unsigned int Color, unsigned int EdgeColor, const std::string& String, Args&&... args) const noexcept {
 		switch (FontY) {
@@ -106,7 +106,7 @@ public:
 		}
 		DxLib::DrawExtendFormatString2ToHandle(x, y, static_cast<double>(xsiz), static_cast<double>(ysiz), Color, EdgeColor, DXHandle::get(), String.c_str(), args...);
 	}
-	// •¶š•`‰æ
+	// æ–‡å­—æç”»
 	auto DrawStringAutoFit(int x1, int y1, int x2, int y2, unsigned int Color, unsigned int EdgeColor, const std::string& String) const noexcept {
 		float draw_area_x_left = static_cast<float>(x1);
 		float draw_area_x_right = static_cast<float>(x2);
@@ -116,7 +116,7 @@ public:
 		if (0 == String.length()) { return 0.f; }
 		if (draw_area_x_right < draw_area_x_left || draw_area_y_bottom < draw_area_y_top) { return 0.f; }
 
-		// ˆê•¶š‚¸‚Â‚Ì•`‰æ•î•ñ‚ğæ“¾‚·‚é
+		// ä¸€æ–‡å­—ãšã¤ã®æç”»å¹…æƒ…å ±ã‚’å–å¾—ã™ã‚‹
 		const auto info = get_draw_string_char_info(String, DXHandle::get());
 
 		// ManageData->LineSpaceValidFlag ? ManageData->LineSpace : ManageData->BaseInfo.FontHeight
@@ -124,17 +124,17 @@ public:
 		const float area_width = draw_area_x_right - draw_area_x_left;
 		const auto total_draw_width = info.back().DrawX + info.back().SizeX - info.front().DrawX;
 		if (total_draw_width <= area_width) {
-			// ˆês‚Å‚·‚Şê‡
+			// ä¸€è¡Œã§ã™ã‚€å ´åˆ
 			const float padding = (area_width - total_draw_width) / 2.0f;
 			DxLib::DrawStringFToHandle(draw_area_x_left + padding, draw_area_y_top, String.c_str(), Color, DXHandle::get(), EdgeColor, false);
 			return static_cast<float>(line_space);
 		}
 
-		// •¡”s‚É‚È‚éê‡
+		// è¤‡æ•°è¡Œã«ãªã‚‹å ´åˆ
 
 		const float area_height = draw_area_y_bottom - draw_area_y_top;
 
-		// •`‰æŠJn
+		// æç”»é–‹å§‹
 		size_t current_string_byte_pos = 0;
 		size_t line_front_string_byte_pos = 0;
 		float current_y_relative = 0.0f;
@@ -143,21 +143,21 @@ public:
 			const auto line_width_contain_current_it_point_char = it->DrawX + it->SizeX - line_front_it->DrawX;
 			if (area_width < line_width_contain_current_it_point_char) {
 				using namespace std::string_literals;
-				// Ÿ‚Ìs‚És‚­‘O‚É•`‰æAit‚ªw‚·•¶š‚ÍŠÜ‚Ü‚È‚¢
+				// æ¬¡ã®è¡Œã«è¡Œãå‰ã«æç”»ã€itãŒæŒ‡ã™æ–‡å­—ã¯å«ã¾ãªã„
 				const size_t str_len_byte = current_string_byte_pos - line_front_string_byte_pos;
-				// it->DrawX‚Í‘O‚Ì•¶š‚Ì‰E’[‚É“™‚µ‚¢
+				// it->DrawXã¯å‰ã®æ–‡å­—ã®å³ç«¯ã«ç­‰ã—ã„
 				// const float line_width = it->DrawX - line_front_it->DrawX;
 				const float padding = 0.f;// (area_width - line_width) / 2.0f;
 				const auto line_string = String.substr(line_front_string_byte_pos / sizeof(TCHAR), (str_len_byte / sizeof(TCHAR)));
 				DxLib::DrawStringFToHandle(draw_area_x_left + padding, draw_area_y_top + current_y_relative, line_string.c_str(), Color, DXHandle::get(), EdgeColor, false);
-				// it‚ªw‚·•¶š‚ªæ“ª‚É‚È‚é
+				// itãŒæŒ‡ã™æ–‡å­—ãŒå…ˆé ­ã«ãªã‚‹
 				line_front_string_byte_pos = current_string_byte_pos;
 				current_y_relative += static_cast<float>(line_space);
 				line_front_it = it;
-				if (area_height < current_y_relative) return current_y_relative;// •`‰æ‰Â”\—Ìˆæ(y)‚ğ’´‚¦‚½‚çI—¹
+				if (area_height < current_y_relative) return current_y_relative;// æç”»å¯èƒ½é ˜åŸŸ(y)ã‚’è¶…ãˆãŸã‚‰çµ‚äº†
 			}
 		}
-		// ÅIs‚Ì•`‰æ
+		// æœ€çµ‚è¡Œã®æç”»
 		// const auto last_line_width = info.back().DrawX + info.back().SizeX - line_front_it->DrawX;
 		const float padding = 0.f;// (area_width - last_line_width) / 2.0f;
 		const auto line_string = String.substr(line_front_string_byte_pos / sizeof(TCHAR));
@@ -165,7 +165,7 @@ public:
 		return current_y_relative + static_cast<float>(line_space);
 	}
 public:
-	// DXƒtƒHƒ“ƒg—pƒnƒ“ƒhƒ‹ì¬
+	// DXãƒ•ã‚©ãƒ³ãƒˆç”¨ãƒãƒ³ãƒ‰ãƒ«ä½œæˆ
 	void Load(std::basic_string_view<TCHAR> FontDataPath, int EdgeSize) noexcept {
 		DXHandle::SetHandleDirect(DxLib::LoadFontDataToHandleWithStrLen(FontDataPath.data(), FontDataPath.length(), EdgeSize));
 	}
@@ -177,7 +177,7 @@ private:
 		if (char_info_num < 0) throw std::runtime_error("fail in function DxLib::GetDrawStringCharInfoToHandle");
 		if (info.size() < static_cast<size_t>(char_info_num)) {
 			info.resize(static_cast<size_t>(char_info_num) + 1);
-			// Äæ“¾
+			// å†å–å¾—
 			char_info_num = GetDrawStringCharInfoToHandle(info.data(), info.size(), string.c_str(), static_cast<int>(string.length() * sizeof(TCHAR)), font_handle, false);
 			if (char_info_num < 0 || static_cast<int>(info.size()) < char_info_num) throw std::runtime_error("fail to detect draw info.");
 		}
@@ -187,13 +187,13 @@ private:
 };
 //
 class Fonthave {
-	// ƒJƒXƒ^ƒ€€–Ú
+	// ã‚«ã‚¹ã‚¿ãƒ é …ç›®
 	FontType		m_Type{ 0 };
-	int				m_EdgeSize{ -1 };// ƒGƒbƒWƒTƒCƒY
-	int				m_CustomSize{ 0 };// ƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹ŒÅ—L‚ÌƒTƒCƒY
+	int				m_EdgeSize{ -1 };// ã‚¨ãƒƒã‚¸ã‚µã‚¤ã‚º
+	int				m_CustomSize{ 0 };// ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«å›ºæœ‰ã®ã‚µã‚¤ã‚º
 	// 
 	int				m_scaleType{ DX_DRAWMODE_BILINEAR };
-	int				m_CommonSize{ 0 };// ƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹ŒÅ—L‚ÌƒTƒCƒY
+	int				m_CommonSize{ 0 };// ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«å›ºæœ‰ã®ã‚µã‚¤ã‚º
 	char		padding[4]{};
 	FontHandle		m_Handle;
 public:
@@ -240,7 +240,7 @@ public:
 		}
 	}
 };
-// ƒtƒHƒ“ƒgƒv[ƒ‹
+// ãƒ•ã‚©ãƒ³ãƒˆãƒ—ãƒ¼ãƒ«
 class FontPool : public SingletonBase<FontPool> {
 private:
 	friend class SingletonBase<FontPool>;

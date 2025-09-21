@@ -1,4 +1,4 @@
-#pragma warning(disable:5259)
+﻿#pragma warning(disable:5259)
 #include "DrawUISystem.hpp"
 
 bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noexcept {
@@ -147,16 +147,25 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 		DxLib::SetDrawBright(Color.GetR(), Color.GetG(), Color.GetB());
 
-		/*
-		DxLib::DrawRotaGraph3(
-			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
-			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
-			scale.x, scale.y, Rad, this->ImageHandle->get(), true);
-		//*/
-
-		DxLib::DrawRotaGraphFast(
-			static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
-			scale.y, Rad, this->ImageHandle->get(), true);
+		if (Rad == 0.f) {
+			DxLib::DrawExtendGraph(
+				static_cast<int>(x1), static_cast<int>(y1),
+				static_cast<int>(x2), static_cast<int>(y2),
+				this->ImageHandle->get(),
+				true
+			);
+		}
+		else {
+			/*
+			DxLib::DrawRotaGraph3(
+				static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
+				static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
+				scale.x, scale.y, Rad, this->ImageHandle->get(), true);
+			//*/
+			DxLib::DrawRotaGraphFast(
+				static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
+				scale.y, Rad, this->ImageHandle->get(), true);
+		}
 		DxLib::SetDrawBright(255, 255, 255);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
@@ -177,11 +186,11 @@ void DrawModule::PartsParam::Draw(DrawUISystem* DrawUI, Param2D Parent) const no
 				static_cast<int>(x2), static_cast<int>(y2),
 				Color.GetColor(), GetColor(0, 0, 0), this->String);
 			//*/
-			FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 24, 3)->DrawString(
+			FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
 				FontXCenter::MIDDLE, FontYCenter::MIDDLE,
 				static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
 				Color.GetColor(), GetColor(0, 0, 0),
-				this->String);
+				SjistoUTF8(this->String));
 		}
 		else {
 		}

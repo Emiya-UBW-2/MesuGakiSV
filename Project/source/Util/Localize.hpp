@@ -1,5 +1,8 @@
-#pragma once
+﻿#pragma once
 #include "Util.hpp"
+#pragma warning( push, 3 )
+#include <string>
+#pragma warning( pop )
 
 class LocalizePool : public SingletonBase<LocalizePool> {
 private:
@@ -9,11 +12,15 @@ public:
 private:
 	struct LocalizeStr {
 		LocalizeID	m_ID{ 0 };
-		char		m_Str[512]{};
+		char		padding[4]{};
+		std::string	m_Str{};
 	public:
-		LocalizeStr(LocalizeID ID, const char* Str) {
+		LocalizeStr() {
+
+		}
+		LocalizeStr(LocalizeID ID, std::string	 Str) {
 			this->m_ID = ID;
-			sprintfDx(this->m_Str, Str);
+			this->m_Str = Str;
 		}
 	};
 
@@ -31,7 +38,7 @@ public:
 		this->havehandle.shrink_to_fit();
 	}
 public:
-	const char* Get(LocalizeID type) noexcept {
+	std::string Get(LocalizeID type) noexcept {
 		for (auto& s : this->havehandle) {
 			if (s.m_ID == type) {
 				return s.m_Str;

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #pragma warning(disable:4514)
 #pragma warning( push, 3 )
 #include <fstream>
@@ -14,7 +14,7 @@
 #pragma warning( pop )
 #endif
 
-//ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+//ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 class InputFileStream {
 #if USE_DXLIB
 	int mdata = -1;
@@ -22,9 +22,9 @@ class InputFileStream {
 	std::ifstream stream{};
 #endif
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	InputFileStream(void) noexcept {}
-	//éŒ¾‚Éƒtƒ@ƒCƒ‹ƒI[ƒvƒ“”Å
+	//å®£è¨€æ™‚ã«ãƒ•ã‚¡ã‚¤ãƒ«ã‚ªãƒ¼ãƒ—ãƒ³ç‰ˆ
 	InputFileStream(const char* FilePath) noexcept { Open(FilePath); }
 
 	InputFileStream(const InputFileStream&) = delete;
@@ -32,10 +32,10 @@ public:
 	InputFileStream& operator=(const InputFileStream&) = delete;
 	InputFileStream& operator=(InputFileStream&&) = delete;
 
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~InputFileStream(void) noexcept { Close(); }
 public:
-	//ƒtƒ@ƒCƒ‹‚ğŠJ‚«A’Tõƒ|ƒCƒ“ƒg‚ğn“_‚ÉˆÚ“®
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãã€æ¢ç´¢ãƒã‚¤ãƒ³ãƒˆã‚’å§‹ç‚¹ã«ç§»å‹•
 	void Open(const char* FilePath) noexcept {
 #if USE_DXLIB
 		mdata = DxLib::FileRead_open(FilePath, FALSE);
@@ -43,7 +43,7 @@ public:
 		stream.open(FilePath);
 #endif
 	}
-	// 1s‚»‚Ì‚Ü‚Üæ“¾‚µAŸ‚Ìs‚É’Tõƒ|ƒCƒ“ƒg‚ğˆÚ‚é
+	// 1è¡Œãã®ã¾ã¾å–å¾—ã—ã€æ¬¡ã®è¡Œã«æ¢ç´¢ãƒã‚¤ãƒ³ãƒˆã‚’ç§»ã‚‹
 	std::string SeekLineAndGetStr(void) noexcept {
 #if USE_DXLIB
 		const int charLength = 512;
@@ -56,7 +56,7 @@ public:
 		return Buffer;
 #endif
 	}
-	// ’Tõƒ|ƒCƒ“ƒg‚ªI’[(EOF)‚ÅI‚í‚é
+	// æ¢ç´¢ãƒã‚¤ãƒ³ãƒˆãŒçµ‚ç«¯(EOF)ã§çµ‚ã‚ã‚‹
 	bool ComeEof(void) const noexcept {
 #if USE_DXLIB
 		return DxLib::FileRead_eof(mdata) != 0;
@@ -64,7 +64,7 @@ public:
 		return stream.eof();
 #endif
 	}
-	//@•Â‚¶‚é
+	//ã€€é–‰ã˜ã‚‹
 	void Close(void) noexcept {
 #if USE_DXLIB
 		if (mdata != -1) {
@@ -76,19 +76,19 @@ public:
 #endif
 	}
 public:
-	// •¶š—ñ‚©‚ç=‚æ‚è‰E‚Ì’læ“¾
+	// æ–‡å­—åˆ—ã‹ã‚‰=ã‚ˆã‚Šå³ã®å€¤å–å¾—
 	static std::string getleft(std::string tempname, const char* DivWord) noexcept { return tempname.substr(0, tempname.find(DivWord)); }
-	// •¶š—ñ‚©‚ç=‚æ‚è‰E‚Ì’læ“¾
+	// æ–‡å­—åˆ—ã‹ã‚‰=ã‚ˆã‚Šå³ã®å€¤å–å¾—
 	static std::string getright(std::string tempname, const char* DivWord) noexcept { return tempname.substr(tempname.find(DivWord) + 1); }
 };
 
-//ƒtƒ@ƒCƒ‹o—Í
+//ãƒ•ã‚¡ã‚¤ãƒ«å‡ºåŠ›
 class OutputFileStream {
 	std::ofstream stream{};
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	OutputFileStream(void) noexcept {}
-	//éŒ¾‚Éƒtƒ@ƒCƒ‹ƒI[ƒvƒ“”Å
+	//å®£è¨€æ™‚ã«ãƒ•ã‚¡ã‚¤ãƒ«ã‚ªãƒ¼ãƒ—ãƒ³ç‰ˆ
 	OutputFileStream(const char* FilePath) noexcept { Open(FilePath); }
 
 	OutputFileStream(const OutputFileStream&) = delete;
@@ -96,18 +96,18 @@ public:
 	OutputFileStream& operator=(const OutputFileStream&) = delete;
 	OutputFileStream& operator=(OutputFileStream&&) = delete;
 
-	//ƒfƒXƒgƒ‰ƒNƒ^
+	//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~OutputFileStream(void) noexcept { Close(); }
 public:
-	//ƒtƒ@ƒCƒ‹‚ğŠJ‚«A’Tõƒ|ƒCƒ“ƒg‚ğn“_‚ÉˆÚ“®
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãã€æ¢ç´¢ãƒã‚¤ãƒ³ãƒˆã‚’å§‹ç‚¹ã«ç§»å‹•
 	void Open(const char* FilePath) noexcept {
 		stream.open(FilePath);
 	}
-	// 1s‘‚«‚Ş
+	// 1è¡Œæ›¸ãè¾¼ã‚€
 	void AddLine(std::string Str) noexcept {
 		stream << Str + "\n";
 	}
-	//@•Â‚¶‚é
+	//ã€€é–‰ã˜ã‚‹
 	void Close(void) noexcept {
 		stream.close();
 	}
