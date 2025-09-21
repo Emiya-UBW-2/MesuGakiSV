@@ -420,8 +420,8 @@ private:
 			if (Press()) {
 				m_PressTimer++;
 				m_IsRepeat = Trigger();
-				if (m_PressTimer > 6) {
-					m_PressTimer -= 6;
+				if (m_PressTimer > 3) {
+					m_PressTimer -= 3;
 					m_IsRepeat = true;
 				}
 			}

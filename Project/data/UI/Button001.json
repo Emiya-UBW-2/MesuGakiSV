@@ -45,7 +45,7 @@
 	],
 	"Anim":[
 		{
-			"Type":"Normal",
+			"Type":"Active",
 			"Loop":true,
 			"Anim":[
 				{
@@ -58,6 +58,25 @@
 					"Target":"Box2",
 					"Scale":[0.9,0.9],
 					"Color":[255,255,255],
+					"StartFrame":0,
+					"EndFrame":6
+				}
+			]
+		},
+		{
+			"Type":"DisActive",
+			"Loop":true,
+			"Anim":[
+				{
+					"Target":"Box1",
+					"Scale":[0.9,0.9],
+					"StartFrame":0,
+					"EndFrame":6
+				},
+				{
+					"Target":"Box2",
+					"Scale":[0.9,0.9],
+					"Color":[164,164,164],
 					"StartFrame":0,
 					"EndFrame":6
 				}

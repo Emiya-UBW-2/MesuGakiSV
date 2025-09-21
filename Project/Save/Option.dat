@@ -1,3 +1,6 @@
 VSync=False
 FPSLimit=60
 WindowMode=Window
+MasterVolume=50
+BGMVolume=50
+SEVolume=50

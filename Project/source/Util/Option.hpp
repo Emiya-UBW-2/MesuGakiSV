@@ -15,11 +15,13 @@
 enum class EnumOptionSelectType : size_t {
 	Bool,
 	Select,
+	Int,
 	Max,
 };
 static const char* OptionSelectTypeStr[static_cast<int>(EnumOptionSelectType::Max)] = {
 	"Bool",
 	"Select",
+	"Int",
 };
 
 class OptionParam : public SingletonBase<OptionParam> {
@@ -27,18 +29,142 @@ private:
 	friend class SingletonBase<OptionParam>;
 private:
 	struct Param {
+	private:
 		EnumOptionSelectType		m_SelectType{};
 		int							m_Value{};
-		char		padding[4]{};
+		int							m_ValueMin{};
+		int							m_ValueMax{};
+		char	Padding[4]{};
 		std::string					m_Type{};
 		std::vector<std::string>	m_ValueList{};
 	public:
-		const std::string GetValueNow() const noexcept { return this->m_ValueList.at(static_cast<size_t>(this->m_Value)); }
+		std::string GetType() const noexcept { return this->m_Type; }
+
+		int GetSelectMax() const noexcept { return this->m_ValueMax; }
+		int GetSelectMin() const noexcept { return this->m_ValueMin; }
+		int GetSelect() const noexcept { return this->m_Value; }
+
+		std::string GetValueNow() const noexcept {
+			switch (this->m_SelectType) {
+			case EnumOptionSelectType::Bool:
+			case EnumOptionSelectType::Select:
+				return this->m_ValueList.at(static_cast<size_t>(GetSelect()));
+				break;
+			case EnumOptionSelectType::Int:
+				return std::to_string(GetSelect());
+				break;
+			case EnumOptionSelectType::Max:
+			default:
+				break;
+			}
+			return "";
+		}
+
 		bool IsActive() const noexcept {
 			if (m_SelectType == EnumOptionSelectType::Bool) {
 				return GetValueNow() == "True";
 			}
 			return false;
+		}
+	public:
+		void SetSelect(int Value) noexcept {
+			this->m_Value = std::clamp(Value, GetSelectMin(), GetSelectMax());
+		}
+		void SetSelect(std::string Value) noexcept {
+			switch (this->m_SelectType) {
+			case EnumOptionSelectType::Bool:
+			case EnumOptionSelectType::Select:
+				for (auto& v : this->m_ValueList) {
+					if (v == Value) {
+						SetSelect(static_cast<int>(&v - &this->m_ValueList.front()));
+						break;
+					}
+				}
+				break;
+			case EnumOptionSelectType::Int:
+				SetSelect(std::stoi(Value));
+				break;
+			case EnumOptionSelectType::Max:
+			default:
+				break;
+			}
+		}
+	public:
+		void SetByJson(nlohmann::json& d) noexcept {
+			//Type
+			this->m_Type = d["Type"];
+			//SelectType
+			std::string SelType = d["SelectType"];
+			for (int loop = 0; loop < static_cast<int>(EnumOptionSelectType::Max); ++loop) {
+				if (SelType == OptionSelectTypeStr[loop]) {
+					this->m_SelectType = static_cast<EnumOptionSelectType>(loop);
+					break;
+				}
+			}
+			//Value
+			switch (this->m_SelectType) {
+			case EnumOptionSelectType::Bool:
+				this->m_ValueList.emplace_back("False");
+				this->m_ValueList.emplace_back("True");
+				this->m_ValueMin = 0;
+				this->m_ValueMax = static_cast<int>(this->m_ValueList.size()) - 1;
+				break;
+			case EnumOptionSelectType::Select:
+				if (d.contains("Value")) {
+					for (auto& v : d["Value"]) {
+						this->m_ValueList.emplace_back(v);
+					}
+				}
+				this->m_ValueMin = 0;
+				this->m_ValueMax = static_cast<int>(this->m_ValueList.size()) - 1;
+				break;
+			case EnumOptionSelectType::Int:
+				if (d.contains("Value")) {
+					int loop = 0;
+					for (auto& v : d["Value"]) {
+						if (loop == 0) {
+							this->m_ValueMin = v;
+						}
+						else if (loop == 1) {
+							this->m_ValueMax = v;
+						}
+						++loop;
+					}
+				}
+				break;
+			case EnumOptionSelectType::Max:
+				break;
+			default:
+				break;
+			}
+			//DefaultValue
+			switch (this->m_SelectType) {
+			case EnumOptionSelectType::Bool:
+			case EnumOptionSelectType::Select:
+			{
+				std::string DefaultValue = d["DefaultValue"];
+				for (auto& v : this->m_ValueList) {
+					if (v == DefaultValue) {
+						SetSelect(static_cast<int>(&v - &this->m_ValueList.front()));
+						break;
+					}
+				}
+			}
+			break;
+			case EnumOptionSelectType::Int:
+			{
+				int tmp = d["DefaultValue"];
+				SetSelect(tmp);
+			}
+			break;
+			case EnumOptionSelectType::Max:
+				break;
+			default:
+				break;
+			}
+		}
+		void Dispose(void) noexcept {
+			this->m_ValueList.clear();
 		}
 	};
 
@@ -50,43 +176,7 @@ private:
 		nlohmann::json data = nlohmann::json::parse(file);
 		for (auto& d : data["data"]) {
 			m_ParamList.emplace_back();
-			auto& Back = m_ParamList.back();
-			//Type
-			Back.m_Type = d["Type"];
-			//SelectType
-			std::string SelType = d["SelectType"];
-			for (int loop = 0; loop < static_cast<int>(EnumOptionSelectType::Max); ++loop) {
-				if (SelType == OptionSelectTypeStr[loop]) {
-					Back.m_SelectType = static_cast<EnumOptionSelectType>(loop);
-					break;
-				}
-			}
-			//Value
-			switch (Back.m_SelectType) {
-			case EnumOptionSelectType::Bool:
-				Back.m_ValueList.emplace_back("False");
-				Back.m_ValueList.emplace_back("True");
-				break;
-			case EnumOptionSelectType::Select:
-				if (d.contains("Value")) {
-					for (auto& v : d["Value"]) {
-						Back.m_ValueList.emplace_back(v);
-					}
-				}
-				break;
-			case EnumOptionSelectType::Max:
-				break;
-			default:
-				break;
-			}
-			//DefaultValue
-			std::string DefaultValue = d["DefaultValue"];
-			for (auto& v : Back.m_ValueList) {
-				if (v == DefaultValue) {
-					Back.m_Value = static_cast<int>(&v - &Back.m_ValueList.front());
-					break;
-				}
-			}
+			m_ParamList.back().SetByJson(d);
 		}
 		Load();
 	}
@@ -98,14 +188,14 @@ private:
 	~OptionParam(void) noexcept {
 		Save();
 		for (auto& p : m_ParamList) {
-			p.m_ValueList.clear();
+			p.Dispose();
 		}
 		m_ParamList.clear();
 	}
 public:
 	const Param* GetParam(const char* Type) const noexcept {
 		for (auto& p : m_ParamList) {
-			if (p.m_Type == Type) {
+			if (p.GetType() == Type) {
 				return &p;
 			}
 		}
@@ -113,8 +203,8 @@ public:
 	}
 	void SetParam(const char* Type, int Param) noexcept {
 		for (auto& p : m_ParamList) {
-			if (p.m_Type == Type) {
-				p.m_Value = Param;
+			if (p.GetType() == Type) {
+				p.SetSelect(Param);
 				break;
 			}
 		}
@@ -127,13 +217,8 @@ public:
 			std::string Left = InputFileStream::getleft(Line, "=");
 			std::string Right = InputFileStream::getright(Line, "=");
 			for (auto& p : m_ParamList) {
-				if (p.m_Type == Left) {
-					for (auto& v : p.m_ValueList) {
-						if (v == Right) {
-							p.m_Value = static_cast<int>(&v - &p.m_ValueList.front());
-							break;
-						}
-					}
+				if (p.GetType() == Left) {
+					p.SetSelect(Right);
 					break;
 				}
 			}
@@ -142,7 +227,7 @@ public:
 	void Save(void) noexcept {
 		OutputFileStream Ostream("Save/Option.dat");
 		for (auto& p : m_ParamList) {
-			std::string Line = p.m_Type + "=" + p.GetValueNow();
+			std::string Line = p.GetType() + "=" + p.GetValueNow();
 			Ostream.AddLine(Line);
 		}
 	}

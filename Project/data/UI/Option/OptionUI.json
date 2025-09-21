@@ -14,7 +14,7 @@
 		},
 		{
 			"Name":"Back2",
-			"Type":"Image",
+			"Type":"NineSlice",
 			"OfsNoRad":[960,540],
 			"Ofs":[0,0],
 			"Size":[920,1000],
@@ -29,7 +29,7 @@
 		},
 		{
 			"Name":"Back3",
-			"Type":"Image",
+			"Type":"NineSlice",
 			"OfsNoRad":[960,590],
 			"Ofs":[0,0],
 			"Size":[860,860],

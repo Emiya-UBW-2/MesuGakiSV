@@ -16,6 +16,24 @@
 			"SelectType": "Select",
 			"Value" : ["Window","BorderLess","FullScreen"],
 			"DefaultValue" : "Window"
+		},
+		{
+			"Type":"MasterVolume",
+			"SelectType" : "Int",
+			"Value" : [0,100],
+			"DefaultValue" : 50
+		},
+		{
+			"Type":"BGMVolume",
+			"SelectType" : "Int",
+			"Value" : [0,100],
+			"DefaultValue" : 50
+		},
+		{
+			"Type":"SEVolume",
+			"SelectType" : "Int",
+			"Value" : [0,100],
+			"DefaultValue" : 50
 		}
 	]
 }

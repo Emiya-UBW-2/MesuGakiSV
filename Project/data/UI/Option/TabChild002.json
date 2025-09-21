@@ -11,9 +11,9 @@
 		{
 			"Name":"Box1",
 			"Type":"NineSlice",
-			"OfsNoRad":[210,0],
+			"OfsNoRad":[160,0],
 			"Ofs":[0,0],
-			"Size":[90,50],
+			"Size":[190,50],
 			"Rad":0,
 			"Scale":[1.0,1.0],
 			"Center":[0.5,0.5],
@@ -27,7 +27,7 @@
 		{
 			"Name":"String0",
 			"Type":"String",
-			"OfsNoRad":[210,0],
+			"OfsNoRad":[160,0],
 			"Ofs":[0,0],
 			"Size":[100,100],
 			"Rad":0,
@@ -41,7 +41,7 @@
 		{
 			"Name":"Box1",
 			"Type":"Json",
-			"OfsNoRad":[110,0],
+			"OfsNoRad":[10,0],
 			"Scale":[1.0,0.75],
 			"FilePath":"data/UI/Button001.json"
 		}
