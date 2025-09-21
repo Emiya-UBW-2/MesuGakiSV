@@ -9,7 +9,7 @@
 #include "../Util/Key.hpp"
 #include "../Draw/MainDraw.hpp"
 
-class MainScene : public SceneBase {
+class MainScene : public Util::SceneBase {
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -20,15 +20,15 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {}
 	void Update_Sub(void) noexcept override {
-		auto* SceneMngr = SceneManager::Instance();
-		auto* KeyMngr = KeyParam::Instance();
-		if (KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+		auto* SceneMngr = Util::SceneManager::Instance();
+		auto* KeyMngr = Util::KeyParam::Instance();
+		if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Title)));
 			SceneBase::SetEndScene();
 		}
 	}
 	void Draw_Sub(void) noexcept override {
-		auto* DrawerMngr = MainDraw::Instance();
+		auto* DrawerMngr = Draw::MainDraw::Instance();
 		DxLib::DrawBox(5, 5, DrawerMngr->GetDispWidth() - 5, DrawerMngr->GetDispHeight() - 5, GetColor(0, 255, 0), TRUE);
 		DxLib::DrawCircle(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), 5, GetColor(255, 0, 0));
 	}

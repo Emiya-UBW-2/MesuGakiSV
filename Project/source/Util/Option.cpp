@@ -4,4 +4,4 @@
 #pragma warning(disable:5259)
 #include "Option.hpp"
 
-const OptionParam* SingletonBase<OptionParam>::m_Singleton = nullptr;
+const Util::OptionParam* Util::SingletonBase<Util::OptionParam>::m_Singleton = nullptr;

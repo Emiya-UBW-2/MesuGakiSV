@@ -1,7 +1,7 @@
 ﻿#include "OptionWindow.hpp"
 
 void OptionWindow::UpdateColumnStr() noexcept {
-	auto* pOption = OptionParam::Instance();
+	auto* pOption = Util::OptionParam::Instance();
 	switch (this->m_NowSelectTab) {
 	case 0:
 	{
@@ -23,7 +23,7 @@ void OptionWindow::UpdateColumnStr() noexcept {
 		this->m_Param[1].m_Str = std::to_string(pOption->GetParam("YSensing")->GetSelect());
 
 		for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
-			this->m_Param[loop].m_Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetKeyAssign(static_cast<EnumBattle>(loop - 2), 0));
+			this->m_Param[loop].m_Str = Util::KeyParam::GetKeyStr(Util::KeyParam::Instance()->GetKeyAssign(static_cast<Util::EnumBattle>(loop - 2), 0));
 		}
 	}
 	break;
@@ -40,8 +40,8 @@ void OptionWindow::UpdateColumnStr() noexcept {
 void OptionWindow::SetTab() noexcept {
 	std::string ChildBase = "OptionUI/Child";
 	ChildBase += std::to_string(this->m_NowSelectTab + 1);
-	Param2D Param;
-	Param.OfsNoRad = VECTOR2D(980, 205);
+	Draw::Param2D Param;
+	Param.OfsNoRad = Util::VECTOR2D(980, 205);
 	{
 		std::string Path = "data/UI/Option/Tab";
 		Path += std::to_string(this->m_NowSelectTab + 1);
@@ -62,7 +62,7 @@ void OptionWindow::SetTab() noexcept {
 		param.m_MinID = this->m_DrawUI->GetID((Child + "/Box1").c_str());
 		param.m_MaxID = this->m_DrawUI->GetID((Child + "/Box0").c_str());
 
-		this->m_DrawUI->Get(param.m_ID).GetParts("String1")->SetString(LocalizePool::Instance()->Get(100 * (this->m_NowSelectTab + 1) + loop));
+		this->m_DrawUI->Get(param.m_ID).GetParts("String1")->SetString(Util::LocalizePool::Instance()->Get(100 * (this->m_NowSelectTab + 1) + loop));
 		if (param.m_MinID != -1) {
 			this->m_DrawUI->Get(param.m_MinID).GetParts("String1")->SetString("<");
 		}
@@ -85,7 +85,7 @@ void OptionWindow::EndTab() noexcept {
 	this->m_DrawUI->Get(this->m_TabButton[this->m_NowSelectTab]).SetActive(false);
 }
 void OptionWindow::Init(void) noexcept {
-	this->m_DrawUI = new DrawUISystem();
+	this->m_DrawUI = new Draw::DrawUISystem();
 
 	this->m_DrawUI->Init("data/UI/Option/OptionBase.json");
 
@@ -94,7 +94,7 @@ void OptionWindow::Init(void) noexcept {
 		std::string Path = "OptionUI/Tab";
 		Path += std::to_string(loop + 1);
 		this->m_TabButton[loop] = this->m_DrawUI->GetID(Path.c_str());
-		this->m_DrawUI->Get(this->m_TabButton[loop]).GetParts("String1")->SetString(LocalizePool::Instance()->Get(loop));
+		this->m_DrawUI->Get(this->m_TabButton[loop]).GetParts("String1")->SetString(Util::LocalizePool::Instance()->Get(loop));
 		this->m_DrawUI->Get(this->m_TabButton[loop]).SetActive(false);
 	}
 	this->m_NowSelectTab = 0;
@@ -103,10 +103,10 @@ void OptionWindow::Init(void) noexcept {
 	this->m_DrawUI->Get(this->m_UIBase).SetActive(false);
 }
 void OptionWindow::Update(void) noexcept {
-	 auto* KeyMngr = KeyParam::Instance();
+	 auto* KeyMngr = Util::KeyParam::Instance();
 	 if (this->m_DrawUI->Get(this->m_UIBase).IsActive()) {
 		 for (int loop = 0; loop < 4; ++loop) {
-			 if (this->m_DrawUI->Get(this->m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+			 if (this->m_DrawUI->Get(this->m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
 				 if (this->m_NowSelectTab != loop) {
 					 EndTab();
 					 this->m_NowSelectTab = loop;
@@ -114,13 +114,13 @@ void OptionWindow::Update(void) noexcept {
 				 }
 			 }
 		 }
-		 if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+		 if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
 			 KeyMngr->Save(KeyMngr->GetLastInputDevice());
 			 SetActive(false);
 		 }
-		 if (KeyMngr->GetMenuKeyRepeat(EnumMenu::Diside)) {
+		 if (KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::Diside)) {
 			 {
-				 auto* pOption = OptionParam::Instance();
+				 auto* pOption = Util::OptionParam::Instance();
 				 switch (this->m_NowSelectTab) {
 				 case 0:
 				 {
@@ -171,7 +171,7 @@ void OptionWindow::Update(void) noexcept {
 						 pOption->SetParam("FPSLimit", pOption->GetParam("FPSLimit")->GetSelect() + 1);
 					 }
 					 //
-					 MainDraw::Instance()->FlipSetting();
+					 Draw::MainDraw::Instance()->FlipSetting();
 				 }
 				 break;
 				 case 2:
@@ -193,7 +193,7 @@ void OptionWindow::Update(void) noexcept {
 					 //
 					 for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
 						 if (this->m_DrawUI->Get(this->m_Param[loop].m_MaxID).IsSelectButton()) {
-							 EnumBattle Battle = static_cast<EnumBattle>(loop - 2);
+							 Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
 							 KeyMngr->AssignBattleID(Battle, 0, KeyMngr->GetDefaultKeyAssign(Battle, 0));
 						 }
 					 }
@@ -210,10 +210,10 @@ void OptionWindow::Update(void) noexcept {
 		 if (this->m_NowSelectTab == 2) {
 			 bool IsChange = false;
 			 for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
-				 EnumBattle Battle = static_cast<EnumBattle>(loop - 2);
+				 Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
 				 if (this->m_DrawUI->Get(this->m_Param[loop].m_ID).IsSelectButton()) {
-					 for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
-						 EnumInput Input = static_cast<EnumInput>(loop2);
+					 for (int loop2 = static_cast<int>(Util::EnumInput::Begin); loop2 < static_cast<int>(Util::EnumInput::Max); ++loop2) {
+						 Util::EnumInput Input = static_cast<Util::EnumInput>(loop2);
 						 if (KeyMngr->GetKeyPress(Input, true)) {
 							 KeyMngr->AssignBattleID(Battle, 0, Input);
 							 IsChange = true;

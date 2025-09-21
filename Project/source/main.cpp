@@ -12,10 +12,10 @@
 #include "Scene/MainScene.hpp"
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
-	MainDraw::Create();
-	auto* DrawerMngr = MainDraw::Instance();
-	auto* SceneMngr = SceneManager::Instance();
-	auto* KeyMngr = KeyParam::Instance();
+	Draw::MainDraw::Create();
+	auto* DrawerMngr = Draw::MainDraw::Instance();
+	auto* SceneMngr = Util::SceneManager::Instance();
+	auto* KeyMngr = Util::KeyParam::Instance();
 	TitleScene Title{};
 	MainScene Main{};
 	//シーン設定
@@ -40,6 +40,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 	}
-	MainDraw::Release();
+	Draw::MainDraw::Release();
 	return 0;// ソフトの終了 
 }

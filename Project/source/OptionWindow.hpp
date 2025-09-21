@@ -23,7 +23,7 @@ class OptionWindow {
 private:
 	constexpr static int	m_ParamMax{ 17 };
 
-	DrawUISystem*	m_DrawUI{ nullptr };
+	Draw::DrawUISystem*	m_DrawUI{ nullptr };
 	int				m_TabButton[4] = { -1,-1,-1,-1 };
 	int				m_UIBase = -1;
 	int				m_CloseButton = -1;

@@ -14,263 +14,265 @@
 
 #include "Algorithm.hpp"
 
-// --------------------------------------------------------------------------------------------------
-// シングルトン
-// --------------------------------------------------------------------------------------------------
-template <class T>
-class SingletonBase {
-private:
-	static const T* m_Singleton;
-public:
-	static void Create(void) noexcept {
-		m_Singleton = new T();
-	}
-	static T* Instance(void) noexcept {
+namespace Util {
+	// --------------------------------------------------------------------------------------------------
+	// シングルトン
+	// --------------------------------------------------------------------------------------------------
+	template <class T>
+	class SingletonBase {
+	private:
+		static const T* m_Singleton;
+	public:
+		static void Create(void) noexcept {
+			m_Singleton = new T();
+		}
+		static T* Instance(void) noexcept {
 #if _DEBUG
-		if (m_Singleton == nullptr) {
-			MessageBox(NULL, "Failed Instance Create", "", MB_OK);
-			exit(-1);
-		}
+			if (m_Singleton == nullptr) {
+				MessageBox(NULL, "Failed Instance Create", "", MB_OK);
+				exit(-1);
+			}
 #endif
-		// if (m_Singleton == nullptr) { m_Singleton = new T(); }
-		return (T*)m_Singleton;
-	}
-	static void Release(void) noexcept {
-		delete m_Singleton;
-	}
-protected:
-	SingletonBase(void) noexcept {}
-	virtual ~SingletonBase(void) noexcept {}
-private:
-	SingletonBase(const SingletonBase&) = delete;
-	SingletonBase& operator=(const SingletonBase&) = delete;
-	SingletonBase(SingletonBase&&) = delete;
-	SingletonBase& operator=(SingletonBase&&) = delete;
-};
-// 子のサンプル
-/*
-class A : public SingletonBase<A> {
-private:
-	friend class SingletonBase<A>;
-}
-//*/
-
-// --------------------------------------------------------------------------------------------------
-// RGBA
-// --------------------------------------------------------------------------------------------------
-struct ColorRGBA {
-	uint32_t				color{};
-	char		padding[4]{};
-public:
-	ColorRGBA(int R, int G, int B, int A) noexcept {
-		Set(R, G, B, A);
-	}
-
-	ColorRGBA(void) noexcept {}
-	ColorRGBA(const ColorRGBA& o) noexcept {
-		this->color = o.color;
-	}
-	ColorRGBA(ColorRGBA&& o) noexcept {
-		this->color = o.color;
-	}
-	ColorRGBA& operator=(const ColorRGBA& o) noexcept {
-		this->color = o.color;
-		return *this;
-	}
-	ColorRGBA& operator=(ColorRGBA&& o) noexcept {
-		this->color = o.color;
-		return *this;
-	}
-	virtual ~ColorRGBA(void) noexcept {}
-public:
-	int GetA(void) const noexcept { return static_cast<int>((color & 0xff000000) >> (8 * 3)); }
-	int GetR(void) const noexcept { return static_cast<int>((color & 0x00ff0000) >> (8 * 2)); }
-	int GetG(void) const noexcept { return static_cast<int>((color & 0x0000ff00) >> (8 * 1)); }
-	int GetB(void) const noexcept { return static_cast<int>((color & 0x000000ff) >> (8 * 0)); }
-
-	uint32_t Get(void) const noexcept { return color; }
-
-	unsigned int GetColor(void) const noexcept { return	DxLib::GetColor(GetR(), GetG(), GetB()); }
-public:
-	void SetA(int value) noexcept { color = (color & 0x00ffffff) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 3)); }
-	void SetR(int value) noexcept { color = (color & 0xff00ffff) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 2)); }
-	void SetG(int value) noexcept { color = (color & 0xffff00ff) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 1)); }
-	void SetB(int value) noexcept { color = (color & 0xffffff00) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 0)); }
-
-	void Set(int R, int G, int B, int A) noexcept {
-		SetR(R);
-		SetG(G);
-		SetB(B);
-		SetA(A);
-	}
-public:
-	ColorRGBA GetMult(const ColorRGBA& Target) const noexcept {
-		ColorRGBA	Color{};
-		Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->GetR()) / 255.f * static_cast<float>(Target.GetR()) / 255.f)));
-		Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->GetG()) / 255.f * static_cast<float>(Target.GetG()) / 255.f)));
-		Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->GetB()) / 255.f * static_cast<float>(Target.GetB()) / 255.f)));
-		Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->GetA()) / 255.f * static_cast<float>(Target.GetA()) / 255.f)));
-		return Color;
-	}
-public:
-	// 比較
-	inline bool operator==(const ColorRGBA& obj) const noexcept { return (this->color == obj.color); }
-	inline bool operator!=(const ColorRGBA& obj) const noexcept { return !(*this == obj); }
-	// 加算
-	inline ColorRGBA operator+(const ColorRGBA& obj) const noexcept {
-		ColorRGBA Answer;
-		Answer.SetR(this->GetR() + obj.GetR());
-		Answer.SetG(this->GetG() + obj.GetG());
-		Answer.SetB(this->GetB() + obj.GetB());
-		Answer.SetA(this->GetA() + obj.GetA());
-		return Answer;
-	}
-	inline void operator+=(const ColorRGBA& obj) noexcept {
-		(*this) = (*this) + obj;
-	}
-	// 減算
-	inline ColorRGBA operator-(const ColorRGBA& obj) const noexcept {
-		ColorRGBA Answer;
-		Answer.SetR(this->GetR() - obj.GetR());
-		Answer.SetG(this->GetG() - obj.GetG());
-		Answer.SetB(this->GetB() - obj.GetB());
-		Answer.SetA(this->GetA() - obj.GetA());
-		return Answer;
-	}
-	inline void operator-=(const ColorRGBA& obj) noexcept {
-		(*this) = (*this) - obj;
-	}
-	// 乗算
-	inline ColorRGBA operator*(float p1) const noexcept {
-		ColorRGBA Answer;
-		Answer.SetR(static_cast<int>(static_cast<float>(this->GetR()) * p1));
-		Answer.SetG(static_cast<int>(static_cast<float>(this->GetG()) * p1));
-		Answer.SetB(static_cast<int>(static_cast<float>(this->GetB()) * p1));
-		Answer.SetA(static_cast<int>(static_cast<float>(this->GetA()) * p1));
-		return Answer;
-	}
-	inline void operator*=(float p1) noexcept {
-		(*this) = (*this) * p1;
-	}
-	// 除算
-	inline ColorRGBA operator/(float p1) const noexcept { return *this * (1.f / p1); }
-	inline void operator/=(float p1) noexcept { *this *= (1.f / p1); }
-public:
-	void SetByJson(const std::vector<int>& value) noexcept {
-		this->SetA(255);
-		size_t loop = 0;
-		for (const int& dp : value) {
-			if (loop == 0) {
-				this->SetR(dp);
-			}
-			else if (loop == 1) {
-				this->SetG(dp);
-			}
-			else if (loop == 2) {
-				this->SetB(dp);
-			}
-			else if (loop == 3) {
-				this->SetA(dp);
-			}
-			++loop;
+			// if (m_Singleton == nullptr) { m_Singleton = new T(); }
+			return (T*)m_Singleton;
 		}
-	}
-};
-
-inline ColorRGBA Lerp(const ColorRGBA& A, const ColorRGBA& B, float Per) noexcept {
-	ColorRGBA Answer;
-	Answer.SetR(static_cast<int>(Lerp(static_cast<float>(A.GetR()), static_cast<float>(B.GetR()), Per)));
-	Answer.SetG(static_cast<int>(Lerp(static_cast<float>(A.GetG()), static_cast<float>(B.GetG()), Per)));
-	Answer.SetB(static_cast<int>(Lerp(static_cast<float>(A.GetB()), static_cast<float>(B.GetB()), Per)));
-	Answer.SetA(static_cast<int>(Lerp(static_cast<float>(A.GetA()), static_cast<float>(B.GetA()), Per)));
-	return Answer;
-}
-
-// --------------------------------------------------------------------------------------------------
-// 汎用ハンドル
-// --------------------------------------------------------------------------------------------------
-class DXHandle {
-private:
-	int		m_handle{ -1 };
-	char	Padding[4]{};
-protected:
-	constexpr DXHandle(int h) noexcept : m_handle(h) {}
-public:
-	constexpr DXHandle(void) noexcept : m_handle(-1) {}
-	DXHandle(const DXHandle&) = delete;
-	DXHandle(DXHandle&& o) noexcept : m_handle(o.get()) { o.SetHandleDirect(-1); }
-	DXHandle& operator=(const DXHandle&) = delete;
-	DXHandle& operator=(DXHandle&& o) noexcept {
-		SetHandleDirect(o.get());
-		o.SetHandleDirect(-1);
-		return *this;
-	}
-
-	virtual ~DXHandle(void) noexcept {
-		Dispose();
-	}
-public:
-	int get(void) const noexcept { return this->m_handle; }
-	bool IsActive(void) const noexcept { return this->m_handle != -1; }
-	operator bool(void) const noexcept { return IsActive(); }
-public:
-	void Dispose(void) noexcept {
-		if (IsActive()) {
-			Dispose_Sub();
-			SetHandleDirect(-1);
+		static void Release(void) noexcept {
+			delete m_Singleton;
 		}
+	protected:
+		SingletonBase(void) noexcept {}
+		virtual ~SingletonBase(void) noexcept {}
+	private:
+		SingletonBase(const SingletonBase&) = delete;
+		SingletonBase& operator=(const SingletonBase&) = delete;
+		SingletonBase(SingletonBase&&) = delete;
+		SingletonBase& operator=(SingletonBase&&) = delete;
+	};
+	// 子のサンプル
+	/*
+	class A : public SingletonBase<A> {
+	private:
+		friend class SingletonBase<A>;
 	}
-protected:
-	void SetHandleDirect(int handle) noexcept { this->m_handle = handle; }
-	virtual void Dispose_Sub(void) noexcept {}
-};
+	//*/
 
-//
-static auto		UTF8toSjis(std::string srcUTF8) {
-	//Unicodeへ変換後の文字列長を得る
-	int lenghtUnicode = (int)MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), (int)(srcUTF8.size()) + 1, nullptr, 0);
+	// --------------------------------------------------------------------------------------------------
+	// RGBA
+	// --------------------------------------------------------------------------------------------------
+	struct ColorRGBA {
+		uint32_t				color{};
+		char		padding[4]{};
+	public:
+		ColorRGBA(int R, int G, int B, int A) noexcept {
+			Set(R, G, B, A);
+		}
 
-	//必要な分だけUnicode文字列のバッファを確保
-	wchar_t* bufUnicode = new wchar_t[static_cast<size_t>(lenghtUnicode)];
+		ColorRGBA(void) noexcept {}
+		ColorRGBA(const ColorRGBA& o) noexcept {
+			this->color = o.color;
+		}
+		ColorRGBA(ColorRGBA&& o) noexcept {
+			this->color = o.color;
+		}
+		ColorRGBA& operator=(const ColorRGBA& o) noexcept {
+			this->color = o.color;
+			return *this;
+		}
+		ColorRGBA& operator=(ColorRGBA&& o) noexcept {
+			this->color = o.color;
+			return *this;
+		}
+		virtual ~ColorRGBA(void) noexcept {}
+	public:
+		int GetA(void) const noexcept { return static_cast<int>((color & 0xff000000) >> (8 * 3)); }
+		int GetR(void) const noexcept { return static_cast<int>((color & 0x00ff0000) >> (8 * 2)); }
+		int GetG(void) const noexcept { return static_cast<int>((color & 0x0000ff00) >> (8 * 1)); }
+		int GetB(void) const noexcept { return static_cast<int>((color & 0x000000ff) >> (8 * 0)); }
 
-	//UTF8からUnicodeへ変換
-	MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), (int)(srcUTF8.size()) + 1, bufUnicode, lenghtUnicode);
+		uint32_t Get(void) const noexcept { return color; }
 
-	//ShiftJISへ変換後の文字列長を得る
-	int lengthSJis = WideCharToMultiByte(CP_THREAD_ACP, 0, bufUnicode, -1, nullptr, 0, nullptr, nullptr);
+		unsigned int GetColor(void) const noexcept { return	DxLib::GetColor(GetR(), GetG(), GetB()); }
+	public:
+		void SetA(int value) noexcept { color = (color & 0x00ffffff) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 3)); }
+		void SetR(int value) noexcept { color = (color & 0xff00ffff) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 2)); }
+		void SetG(int value) noexcept { color = (color & 0xffff00ff) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 1)); }
+		void SetB(int value) noexcept { color = (color & 0xffffff00) | (static_cast<uint32_t>(std::clamp(value, 0, 255)) << (8 * 0)); }
 
-	//必要な分だけShiftJIS文字列のバッファを確保
-	char* bufShiftJis = new char[static_cast<size_t>(lengthSJis)];
+		void Set(int R, int G, int B, int A) noexcept {
+			SetR(R);
+			SetG(G);
+			SetB(B);
+			SetA(A);
+		}
+	public:
+		ColorRGBA GetMult(const ColorRGBA& Target) const noexcept {
+			ColorRGBA	Color{};
+			Color.SetR(static_cast<int>(255.f * (static_cast<float>(this->GetR()) / 255.f * static_cast<float>(Target.GetR()) / 255.f)));
+			Color.SetG(static_cast<int>(255.f * (static_cast<float>(this->GetG()) / 255.f * static_cast<float>(Target.GetG()) / 255.f)));
+			Color.SetB(static_cast<int>(255.f * (static_cast<float>(this->GetB()) / 255.f * static_cast<float>(Target.GetB()) / 255.f)));
+			Color.SetA(static_cast<int>(255.f * (static_cast<float>(this->GetA()) / 255.f * static_cast<float>(Target.GetA()) / 255.f)));
+			return Color;
+		}
+	public:
+		// 比較
+		inline bool operator==(const ColorRGBA& obj) const noexcept { return (this->color == obj.color); }
+		inline bool operator!=(const ColorRGBA& obj) const noexcept { return !(*this == obj); }
+		// 加算
+		inline ColorRGBA operator+(const ColorRGBA& obj) const noexcept {
+			ColorRGBA Answer;
+			Answer.SetR(this->GetR() + obj.GetR());
+			Answer.SetG(this->GetG() + obj.GetG());
+			Answer.SetB(this->GetB() + obj.GetB());
+			Answer.SetA(this->GetA() + obj.GetA());
+			return Answer;
+		}
+		inline void operator+=(const ColorRGBA& obj) noexcept {
+			(*this) = (*this) + obj;
+		}
+		// 減算
+		inline ColorRGBA operator-(const ColorRGBA& obj) const noexcept {
+			ColorRGBA Answer;
+			Answer.SetR(this->GetR() - obj.GetR());
+			Answer.SetG(this->GetG() - obj.GetG());
+			Answer.SetB(this->GetB() - obj.GetB());
+			Answer.SetA(this->GetA() - obj.GetA());
+			return Answer;
+		}
+		inline void operator-=(const ColorRGBA& obj) noexcept {
+			(*this) = (*this) - obj;
+		}
+		// 乗算
+		inline ColorRGBA operator*(float p1) const noexcept {
+			ColorRGBA Answer;
+			Answer.SetR(static_cast<int>(static_cast<float>(this->GetR()) * p1));
+			Answer.SetG(static_cast<int>(static_cast<float>(this->GetG()) * p1));
+			Answer.SetB(static_cast<int>(static_cast<float>(this->GetB()) * p1));
+			Answer.SetA(static_cast<int>(static_cast<float>(this->GetA()) * p1));
+			return Answer;
+		}
+		inline void operator*=(float p1) noexcept {
+			(*this) = (*this) * p1;
+		}
+		// 除算
+		inline ColorRGBA operator/(float p1) const noexcept { return *this * (1.f / p1); }
+		inline void operator/=(float p1) noexcept { *this *= (1.f / p1); }
+	public:
+		void SetByJson(const std::vector<int>& value) noexcept {
+			this->SetA(255);
+			size_t loop = 0;
+			for (const int& dp : value) {
+				if (loop == 0) {
+					this->SetR(dp);
+				}
+				else if (loop == 1) {
+					this->SetG(dp);
+				}
+				else if (loop == 2) {
+					this->SetB(dp);
+				}
+				else if (loop == 3) {
+					this->SetA(dp);
+				}
+				++loop;
+			}
+		}
+	};
 
-	//UnicodeからShiftJISへ変換
-	WideCharToMultiByte(CP_THREAD_ACP, 0, bufUnicode, lenghtUnicode + 1, bufShiftJis, lengthSJis, nullptr, nullptr);
-
-	std::string strSJis(bufShiftJis);
-
-	delete[] bufUnicode;
-	delete[] bufShiftJis;
-
-	return strSJis;
-}
-//
-static auto		SjistoUTF8(std::string srcSjis) {
-	std::wstring wide;
-	{
-		int lengthSJis = MultiByteToWideChar(CP_ACP, 0U, srcSjis.c_str(), -1, nullptr, 0U);
-		std::vector<wchar_t> dest(static_cast<size_t>(lengthSJis), L'\0');
-		MultiByteToWideChar(CP_ACP, 0, srcSjis.c_str(), -1, dest.data(), (int)dest.size());
-		dest.resize(std::char_traits<wchar_t>::length(dest.data()));
-		dest.shrink_to_fit();
-		wide = std::wstring(dest.begin(), dest.end());
+	inline ColorRGBA Lerp(const ColorRGBA& A, const ColorRGBA& B, float Per) noexcept {
+		ColorRGBA Answer;
+		Answer.SetR(static_cast<int>(Lerp(static_cast<float>(A.GetR()), static_cast<float>(B.GetR()), Per)));
+		Answer.SetG(static_cast<int>(Lerp(static_cast<float>(A.GetG()), static_cast<float>(B.GetG()), Per)));
+		Answer.SetB(static_cast<int>(Lerp(static_cast<float>(A.GetB()), static_cast<float>(B.GetB()), Per)));
+		Answer.SetA(static_cast<int>(Lerp(static_cast<float>(A.GetA()), static_cast<float>(B.GetA()), Per)));
+		return Answer;
 	}
-	std::string ret;
-	{
-		int lenghtUnicode = (int)WideCharToMultiByte(CP_UTF8, 0U, wide.c_str(), -1, nullptr, 0, nullptr, nullptr);
-		std::vector<char> dest(static_cast<size_t>(lenghtUnicode), '\0');
-		WideCharToMultiByte(CP_UTF8, 0U, wide.c_str(), -1, dest.data(), (int)dest.size(), nullptr, nullptr);
-		dest.resize(std::char_traits<char>::length(dest.data()));
-		dest.shrink_to_fit();
-		ret = std::string(dest.begin(), dest.end());
+
+	// --------------------------------------------------------------------------------------------------
+	// 汎用ハンドル
+	// --------------------------------------------------------------------------------------------------
+	class DXHandle {
+	private:
+		int		m_handle{ -1 };
+		char	Padding[4]{};
+	protected:
+		constexpr DXHandle(int h) noexcept : m_handle(h) {}
+	public:
+		constexpr DXHandle(void) noexcept : m_handle(-1) {}
+		DXHandle(const DXHandle&) = delete;
+		DXHandle(DXHandle&& o) noexcept : m_handle(o.get()) { o.SetHandleDirect(-1); }
+		DXHandle& operator=(const DXHandle&) = delete;
+		DXHandle& operator=(DXHandle&& o) noexcept {
+			SetHandleDirect(o.get());
+			o.SetHandleDirect(-1);
+			return *this;
+		}
+
+		virtual ~DXHandle(void) noexcept {
+			Dispose();
+		}
+	public:
+		int get(void) const noexcept { return this->m_handle; }
+		bool IsActive(void) const noexcept { return this->m_handle != -1; }
+		operator bool(void) const noexcept { return IsActive(); }
+	public:
+		void Dispose(void) noexcept {
+			if (IsActive()) {
+				Dispose_Sub();
+				SetHandleDirect(-1);
+			}
+		}
+	protected:
+		void SetHandleDirect(int handle) noexcept { this->m_handle = handle; }
+		virtual void Dispose_Sub(void) noexcept {}
+	};
+
+	//
+	static auto		UTF8toSjis(std::string srcUTF8) {
+		//Unicodeへ変換後の文字列長を得る
+		int lenghtUnicode = (int)MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), (int)(srcUTF8.size()) + 1, nullptr, 0);
+
+		//必要な分だけUnicode文字列のバッファを確保
+		wchar_t* bufUnicode = new wchar_t[static_cast<size_t>(lenghtUnicode)];
+
+		//UTF8からUnicodeへ変換
+		MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), (int)(srcUTF8.size()) + 1, bufUnicode, lenghtUnicode);
+
+		//ShiftJISへ変換後の文字列長を得る
+		int lengthSJis = WideCharToMultiByte(CP_THREAD_ACP, 0, bufUnicode, -1, nullptr, 0, nullptr, nullptr);
+
+		//必要な分だけShiftJIS文字列のバッファを確保
+		char* bufShiftJis = new char[static_cast<size_t>(lengthSJis)];
+
+		//UnicodeからShiftJISへ変換
+		WideCharToMultiByte(CP_THREAD_ACP, 0, bufUnicode, lenghtUnicode + 1, bufShiftJis, lengthSJis, nullptr, nullptr);
+
+		std::string strSJis(bufShiftJis);
+
+		delete[] bufUnicode;
+		delete[] bufShiftJis;
+
+		return strSJis;
 	}
-	return ret;
+	//
+	static auto		SjistoUTF8(std::string srcSjis) {
+		std::wstring wide;
+		{
+			int lengthSJis = MultiByteToWideChar(CP_ACP, 0U, srcSjis.c_str(), -1, nullptr, 0U);
+			std::vector<wchar_t> dest(static_cast<size_t>(lengthSJis), L'\0');
+			MultiByteToWideChar(CP_ACP, 0, srcSjis.c_str(), -1, dest.data(), (int)dest.size());
+			dest.resize(std::char_traits<wchar_t>::length(dest.data()));
+			dest.shrink_to_fit();
+			wide = std::wstring(dest.begin(), dest.end());
+		}
+		std::string ret;
+		{
+			int lenghtUnicode = (int)WideCharToMultiByte(CP_UTF8, 0U, wide.c_str(), -1, nullptr, 0, nullptr, nullptr);
+			std::vector<char> dest(static_cast<size_t>(lenghtUnicode), '\0');
+			WideCharToMultiByte(CP_UTF8, 0U, wide.c_str(), -1, dest.data(), (int)dest.size(), nullptr, nullptr);
+			dest.resize(std::char_traits<char>::length(dest.data()));
+			dest.shrink_to_fit();
+			ret = std::string(dest.begin(), dest.end());
+		}
+		return ret;
+	}
 }

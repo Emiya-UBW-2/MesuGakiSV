@@ -4,4 +4,4 @@
 #pragma warning(disable:5259)
 #include "Key.hpp"
 
-const KeyParam* SingletonBase<KeyParam>::m_Singleton = nullptr;
+const Util::KeyParam* Util::SingletonBase<Util::KeyParam>::m_Singleton = nullptr;

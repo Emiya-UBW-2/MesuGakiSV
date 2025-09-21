@@ -6,9 +6,11 @@
 #pragma warning(disable:5259)
 #include "ImageDraw.hpp"
 
-const GraphPool* SingletonBase<GraphPool>::m_Singleton = nullptr;
+const Draw::GraphPool* Util::SingletonBase<Draw::GraphPool>::m_Singleton = nullptr;
 
-Graphhave::Graphhave(std::string FilePath) noexcept {
-	this->m_FilePath = FilePath;
-	this->m_Handle.Load(this->m_FilePath);
+namespace Draw {
+	Graphhave::Graphhave(std::string FilePath) noexcept {
+		this->m_FilePath = FilePath;
+		this->m_Handle.Load(this->m_FilePath);
+	}
 }

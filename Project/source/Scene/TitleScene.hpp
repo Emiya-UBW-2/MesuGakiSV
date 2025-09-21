@@ -15,7 +15,7 @@
 
 #include "../Draw/MainDraw.hpp"
 
-class TitleScene : public SceneBase {
+class TitleScene : public Util::SceneBase {
 	OptionWindow m_OptionWindow;
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
@@ -29,22 +29,22 @@ protected:
 		m_OptionWindow.Init();
 	}
 	void Update_Sub(void) noexcept override {
-		auto* SceneMngr = SceneManager::Instance();
-		auto* KeyMngr = KeyParam::Instance();
+		auto* SceneMngr = Util::SceneManager::Instance();
+		auto* KeyMngr = Util::KeyParam::Instance();
 
 		if (!m_OptionWindow.IsActive()) {
-			if (KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Diside)) {
+			if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
 				m_OptionWindow.SetActive(true);
 			}
 		}
-		if (KeyMngr->GetMenuKeyReleaseTrigger(EnumMenu::Cancel)) {
+		if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Cancel)) {
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
 			SceneBase::SetEndScene();
 		}
 		m_OptionWindow.Update();
 	}
 	void Draw_Sub(void) noexcept override {
-		auto* DrawerMngr = MainDraw::Instance();
+		auto* DrawerMngr = Draw::MainDraw::Instance();
 		DxLib::DrawBox(5, 5, DrawerMngr->GetDispWidth() - 5, DrawerMngr->GetDispHeight() - 5, GetColor(0, 0, 255), TRUE);
 
 		m_OptionWindow.Draw();
