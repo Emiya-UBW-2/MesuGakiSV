@@ -14,7 +14,7 @@
 		{
 			"Type":"WindowMode",
 			"SelectType": "Select",
-			"Value" : ["Window","BorderLess","FullScreen"],
+			"Value" : ["Window","BorderLess"],
 			"DefaultValue" : "Window"
 		},
 		{

@@ -1,6 +1,8 @@
 ﻿#pragma warning(disable:4505)
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
+#pragma warning(disable:4710)
+#pragma warning(disable:4711)
 #pragma warning(disable:5039)
 #pragma warning(disable:5045)
 #pragma warning(disable:5259)
@@ -61,18 +63,7 @@ MainDraw::MainDraw(void) noexcept {
 	DxLib::SetAlwaysRunFlag(TRUE);
 	this->m_BufferScreen = DxLib::MakeScreen(this->m_DispWidth, this->m_DispHeight, FALSE);
 	//
-	auto* pOption = OptionParam::Instance();
-	{
-		const auto& ModeStr = pOption->GetParam("WindowMode")->GetValueNow();
-		for (int loop = 0; loop < static_cast<int>(EnumWindowMode::Max); ++loop) {
-			if (ModeStr == WindowModeStr[loop]) {
-				SetWindowMode(static_cast<EnumWindowMode>(loop));
-				break;
-			}
-		}
-	}
-	SetWaitVSync(pOption->GetParam("VSync")->IsActive());
-	this->m_FPSLimit = std::stoi(pOption->GetParam("FPSLimit")->GetValueNow());
+	FlipSetting();
 
 	SceneManager::Create();
 	KeyParam::Create();
@@ -91,6 +82,21 @@ MainDraw::~MainDraw(void) noexcept {
 	DxLib::DxLib_End();
 
 	OptionParam::Release();
+}
+
+void MainDraw::FlipSetting(void) noexcept {
+	auto* pOption = OptionParam::Instance();
+	{
+		const auto& ModeStr = pOption->GetParam("WindowMode")->GetValueNow();
+		for (int loop = 0; loop < static_cast<int>(EnumWindowMode::Max); ++loop) {
+			if (ModeStr == WindowModeStr[loop]) {
+				SetWindowMode(static_cast<EnumWindowMode>(loop));
+				break;
+			}
+		}
+	}
+	SetWaitVSync(pOption->GetParam("VSync")->IsActive());
+	this->m_FPSLimit = std::stoi(pOption->GetParam("FPSLimit")->GetValueNow());
 }
 
 void MainDraw::Update(void) noexcept {

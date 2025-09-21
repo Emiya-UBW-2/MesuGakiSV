@@ -3,6 +3,7 @@
 #pragma warning(disable:4505)
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
+#pragma warning(disable:4710)
 #pragma warning(disable:5039)
 #pragma warning(disable:5045)
 #pragma warning( push, 3 )

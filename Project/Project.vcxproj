@@ -25,6 +25,7 @@
     <ClCompile Include="source\Draw\MainDraw.cpp" />
     <ClCompile Include="source\File\FileStream.cpp" />
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\OptionWindow.cpp" />
     <ClCompile Include="source\Scene\MainScene.cpp" />
     <ClCompile Include="source\Scene\TitleScene.cpp" />
     <ClCompile Include="source\Util\Key.cpp" />
@@ -40,6 +41,7 @@
     <ClInclude Include="source\Draw\MainDraw.hpp" />
     <ClInclude Include="source\File\FileStream.hpp" />
     <ClInclude Include="source\File\json.hpp" />
+    <ClInclude Include="source\OptionWindow.hpp" />
     <ClInclude Include="source\Scene\MainScene.hpp" />
     <ClInclude Include="source\Scene\TitleScene.hpp" />
     <ClInclude Include="source\Util\Algorithm.hpp" />

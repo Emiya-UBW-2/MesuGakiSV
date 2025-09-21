@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #pragma warning(disable:4464)
+#pragma warning(disable:4710)
 #include "../Util/Util.hpp"
 #include "../Util/Key.hpp"
 

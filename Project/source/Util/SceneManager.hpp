@@ -2,6 +2,7 @@
 
 #include "Util.hpp"
 
+#pragma warning(disable:4710)
 #pragma warning( push, 3 )
 #include <vector>
 #pragma warning( pop )

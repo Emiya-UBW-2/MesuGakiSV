@@ -108,6 +108,8 @@ public://Setter
 			DxLib::SetWaitVSyncFlag(value);//DirectX11ではあとからの変更が効く
 		}
 	}
+
+	void		FlipSetting(void) noexcept;
 public:
 	//ループ前に実施
 	void		LoopStart(void) noexcept {

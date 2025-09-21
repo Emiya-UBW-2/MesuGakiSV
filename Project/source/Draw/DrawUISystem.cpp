@@ -1,4 +1,6 @@
-﻿#pragma warning(disable:5259)
+﻿#pragma warning(disable:4710)
+#pragma warning(disable:4711)
+#pragma warning(disable:5259)
 #include "DrawUISystem.hpp"
 
 bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noexcept {
