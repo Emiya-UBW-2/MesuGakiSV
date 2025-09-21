@@ -193,7 +193,7 @@ private:
 		m_ParamList.clear();
 	}
 public:
-	const Param* GetParam(const char* Type) const noexcept {
+	const Param* GetParam(std::string_view Type) const noexcept {
 		for (auto& param : m_ParamList) {
 			if (param.GetType() == Type) {
 				return &param;
@@ -201,7 +201,7 @@ public:
 		}
 		return nullptr;
 	}
-	void SetParam(const char* Type, int Param) noexcept {
+	void SetParam(std::string_view Type, int Param) noexcept {
 		for (auto& param : m_ParamList) {
 			if (param.GetType() == Type) {
 				param.SetSelect(Param);

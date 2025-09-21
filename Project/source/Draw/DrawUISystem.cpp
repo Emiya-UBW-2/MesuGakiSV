@@ -258,7 +258,7 @@ void DrawModule::PartsParam::CalcAnim(const AnimParam& Anim, bool IsFirstFrame, 
 		this->m_Now.Color = Lerp(this->m_Before.Color, Anim.m_Target.Color, Per);
 	}
 }
-void DrawModule::PartsParam::AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* ChildBranch, const char* FilePath, Param2D Param) noexcept {
+void DrawModule::PartsParam::AddChild(DrawUISystem* DrawUI, std::string_view ChildName, std::string_view ChildBranch, std::string_view FilePath, Param2D Param) noexcept {
 	this->m_Name = ChildName;
 	this->m_Type = PartsType::Json;
 	this->m_Base = Param;
@@ -335,19 +335,17 @@ void DrawModule::PartsParam::SetByJson(DrawUISystem* DrawUI, nlohmann::json& dat
 	SetDefault();
 }
 
-void DrawModule::AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param) noexcept {
+void DrawModule::AddChild(DrawUISystem* DrawUI, std::string_view ChildName, std::string_view FilePath, Param2D Param) noexcept {
 	this->m_PartsParam.emplace_back();
 
-	std::string ChildBranch;
-	if (m_BranchName == "") {
-		ChildBranch = ChildName;
+	std::string ChildBranch = "";
+	if (m_BranchName != "") {
+		ChildBranch = m_BranchName + "/";
 	}
-	else {
-		ChildBranch = m_BranchName + "/" + ChildName;
-	}
+	ChildBranch += ChildName;
 	this->m_PartsParam.back().AddChild(DrawUI, ChildName, ChildBranch.c_str(), FilePath, Param);
 }
-void DrawModule::DeleteChild(const char* ChildName) noexcept {
+void DrawModule::DeleteChild(std::string_view ChildName) noexcept {
 	for (int loop = 0, max = static_cast<int>(this->m_PartsParam.size()); loop < max; ++loop) {
 		auto& parts = this->m_PartsParam.at(static_cast<size_t>(loop));
 		if (parts.GetName() == ChildName) {
@@ -357,10 +355,10 @@ void DrawModule::DeleteChild(const char* ChildName) noexcept {
 	}
 }
 
-void DrawModule::Init(DrawUISystem* DrawUI, const char* Path, const char* Branch) noexcept {
+void DrawModule::Init(DrawUISystem* DrawUI, std::string_view Path, std::string_view Branch) noexcept {
 	this->m_PartsParam.clear();
 	this->m_AnimData.clear();
-	std::ifstream file(Path);
+	std::ifstream file(Path.data());
 	nlohmann::json jsonData = nlohmann::json::parse(file);
 
 	m_BranchName = Branch;

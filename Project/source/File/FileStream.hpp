@@ -29,7 +29,7 @@ public:
 	//コンストラクタ
 	InputFileStream(void) noexcept {}
 	//宣言時にファイルオープン版
-	InputFileStream(const char* FilePath) noexcept { Open(FilePath); }
+	InputFileStream(std::string_view FilePath) noexcept { Open(FilePath); }
 
 	InputFileStream(const InputFileStream&) = delete;
 	InputFileStream(InputFileStream&&) = delete;
@@ -40,7 +40,7 @@ public:
 	~InputFileStream(void) noexcept { Close(); }
 public:
 	//ファイルを開き、探索ポイントを始点に移動
-	void Open(const char* FilePath) noexcept {
+	void Open(std::string_view FilePath) noexcept {
 #if USE_DXLIB
 		mdata = DxLib::FileRead_open(FilePath, FALSE);
 #else
@@ -81,9 +81,9 @@ public:
 	}
 public:
 	// 文字列から=より右の値取得
-	static std::string getleft(std::string tempname, const char* DivWord) noexcept { return tempname.substr(0, tempname.find(DivWord)); }
+	static std::string getleft(std::string tempname, std::string_view DivWord) noexcept { return tempname.substr(0, tempname.find(DivWord)); }
 	// 文字列から=より右の値取得
-	static std::string getright(std::string tempname, const char* DivWord) noexcept { return tempname.substr(tempname.find(DivWord) + 1); }
+	static std::string getright(std::string tempname, std::string_view DivWord) noexcept { return tempname.substr(tempname.find(DivWord) + 1); }
 };
 
 //ファイル出力
@@ -93,7 +93,7 @@ public:
 	//コンストラクタ
 	OutputFileStream(void) noexcept {}
 	//宣言時にファイルオープン版
-	OutputFileStream(const char* FilePath) noexcept { Open(FilePath); }
+	OutputFileStream(std::string_view FilePath) noexcept { Open(FilePath); }
 
 	OutputFileStream(const OutputFileStream&) = delete;
 	OutputFileStream(OutputFileStream&&) = delete;
@@ -104,7 +104,7 @@ public:
 	~OutputFileStream(void) noexcept { Close(); }
 public:
 	//ファイルを開き、探索ポイントを始点に移動
-	void Open(const char* FilePath) noexcept {
+	void Open(std::string_view FilePath) noexcept {
 		stream.open(FilePath);
 	}
 	// 1行書き込む
@@ -118,7 +118,7 @@ public:
 };
 
 // ファイルが存在するかチェック
-static bool IsFileExist(const char* Path) noexcept {
+static bool IsFileExist(std::string_view Path) noexcept {
 	return std::filesystem::is_regular_file(Path);
 	//DXLIB_Initを通ってからでないと動作しない
 	/*

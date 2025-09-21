@@ -109,7 +109,7 @@ class DrawModule {
 		void			SetDefault(void) noexcept {
 			this->m_Before = this->m_Now = this->m_Base;
 		}
-		void			AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* ChildBranch, const char* FilePath, Param2D Param) noexcept;
+		void			AddChild(DrawUISystem* DrawUI, std::string_view ChildName, std::string_view ChildBranch, std::string_view FilePath, Param2D Param) noexcept;
 		void			SetByJson(DrawUISystem* DrawUI, nlohmann::json& data, std::string BranchName) noexcept;
 	};
 	struct AnimData {
@@ -162,7 +162,7 @@ public:
 	bool			IsSelectButton(void) const noexcept { return m_IsSelect; }
 	bool			IsActive(void) const noexcept { return m_IsActive; }
 	std::string		GetBranchName() const noexcept { return m_BranchName; }
-	PartsParam*		GetParts(const char* ChildName) const noexcept {
+	PartsParam*		GetParts(std::string_view ChildName) const noexcept {
 		for (auto& parts : m_PartsParam) {
 			if (parts.GetName() == ChildName) {
 				return (PartsParam*)&parts;
@@ -172,10 +172,10 @@ public:
 	}
 public:
 	void			SetActive(bool value) noexcept { this->m_IsActive = value; }
-	void			AddChild(DrawUISystem* DrawUI, const char* ChildName, const char* FilePath, Param2D Param = Param2D()) noexcept;
-	void			DeleteChild(const char* ChildName) noexcept;
+	void			AddChild(DrawUISystem* DrawUI, std::string_view ChildName, std::string_view FilePath, Param2D Param = Param2D()) noexcept;
+	void			DeleteChild(std::string_view ChildName) noexcept;
 public:
-	void			Init(DrawUISystem* DrawUI, const char* Path, const char* Branch) noexcept;
+	void			Init(DrawUISystem* DrawUI, std::string_view Path, std::string_view Branch) noexcept;
 	void			Update(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept;
 	void			Draw(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept {
 		for (auto& parts : m_PartsParam) {
@@ -199,14 +199,14 @@ public://コンストラクタ、デストラクタ
 	DrawUISystem& operator=(DrawUISystem&&) = delete;
 	~DrawUISystem(void) noexcept {}
 public:
-	int				Add(const char* Path, const char* Branch) noexcept {
+	int				Add(std::string_view Path, std::string_view Branch) noexcept {
 		int ID = static_cast<int>(m_DrawModule.size());
 		m_DrawModule.emplace_back();
 		m_DrawModule.back().Init(this, Path, Branch);
 		return ID;
 	}
 	DrawModule&		Get(int ID) noexcept { return m_DrawModule.at(static_cast<size_t>(ID)); }
-	int				GetID(const char* Value) noexcept {
+	int				GetID(std::string_view Value) noexcept {
 		for (auto& Module : m_DrawModule) {
 			if (Value == Module.GetBranchName()) {
 				return static_cast<int>(&Module - &m_DrawModule.front());
@@ -215,12 +215,12 @@ public:
 		return -1;
 	}
 public:
-	void			AddChild(const char* Path, const char* FilePath, Param2D Param = Param2D()) noexcept {
-		std::string Name = Path;
+	void			AddChild(std::string_view Path, std::string_view FilePath, Param2D Param = Param2D()) noexcept {
+		std::string Name;
 		std::string ChildName;
-		if (Name.find("/") != std::string::npos) {
-			ChildName = Name.substr(Name.rfind("/") + 1);
-			Name = Name.substr(0, Name.rfind("/"));
+		if (Path.find("/") != std::string::npos) {
+			ChildName = Path.substr(Path.rfind("/") + 1);
+			Name = Path.substr(0, Path.rfind("/"));
 		}
 		else {
 			ChildName = Path;
@@ -228,17 +228,18 @@ public:
 		}
 		Get(GetID(Name.c_str())).AddChild(this, ChildName.c_str(), FilePath, Param);
 	}
-	void			DeleteChild(const char* Path) noexcept {
-		std::string Name = Path;
+	void			DeleteChild(std::string_view Path) noexcept {
+		std::string Name;
 		std::string ChildName;
-		if (Name.find("/") != std::string::npos) {
-			ChildName = Name.substr(Name.rfind("/") + 1);
-			Name = Name.substr(0, Name.rfind("/"));
+		if (Path.find("/") != std::string::npos) {
+			ChildName = Path.substr(Path.rfind("/") + 1);
+			Name = Path.substr(0, Path.rfind("/"));
 		}
 		else {
 			ChildName = Path;
 			Name = "";
 		}
+		//子供のモジュールを削除
 		for (int loop = 0, max = static_cast<int>(this->m_DrawModule.size()); loop < max; ++loop) {
 			auto& Module = m_DrawModule.at(static_cast<size_t>(loop));
 			if (Module.GetBranchName().find(Path) != std::string::npos) {
@@ -255,7 +256,7 @@ public:
 		}
 	}
 public:
-	void			Init(const char* Path) noexcept {
+	void			Init(std::string_view Path) noexcept {
 		Add(Path, "");
 	}
 	void			Update(void) noexcept {
@@ -270,4 +271,3 @@ public:
 		m_DrawModule.clear();
 	}
 };
-

@@ -673,7 +673,7 @@ private:
 		m_Input.resize(static_cast<size_t>(EnumInput::Max));
 		m_MenuKey.resize(static_cast<size_t>(EnumMenu::Max));
 		m_BattleKey.resize(static_cast<size_t>(EnumBattle::Max));
-		Assign(InputType::KeyBoard);
+		Assign(InputType::KeyBoard, false);
 	}
 	KeyParam(const KeyParam&) = delete;
 	KeyParam(KeyParam&&) = delete;
@@ -768,9 +768,11 @@ public:
 		}
 	}
 private:
-	void Assign(InputType type) noexcept {
+	void Assign(InputType type, bool SavePrev) noexcept {
 		if (m_InputType != type) {
-			Save(GetLastInputDevice());
+			if (SavePrev) {
+				Save(GetLastInputDevice());
+			}
 			m_InputType = type;
 			m_DeviceChangeSwitch = true;
 			{
@@ -1172,13 +1174,13 @@ public:
 		m_DeviceChangeSwitch = false;
 		//最後に入力したデバイスに更新
 		if ((CheckHitKeyAll(DX_CHECKINPUT_MOUSE) != 0) || (CheckHitKeyAll(DX_CHECKINPUT_KEY) != 0)) {
-			Assign(InputType::KeyBoard);
+			Assign(InputType::KeyBoard, true);
 		}
 		else if (CheckHitKeyAll(DX_CHECKINPUT_PAD) != 0) {
 			switch (GetJoypadType(DX_INPUT_PAD1)) {
 			case DX_PADTYPE_XBOX_360:			// Xbox360コントローラー
 			case DX_PADTYPE_XBOX_ONE:			// XboxOneコントローラー
-				Assign(InputType::XInput);
+				Assign(InputType::XInput, true);
 				break;
 			case DX_PADTYPE_DUAL_SHOCK_4:		// PS4コントローラー
 			case DX_PADTYPE_DUAL_SENSE:			// PS5コントローラー
@@ -1186,7 +1188,7 @@ public:
 			case DX_PADTYPE_SWITCH_JOY_CON_R:	// Switch Joycon(右)
 			case DX_PADTYPE_SWITCH_PRO_CTRL:	// Switch Proコントローラー
 			case DX_PADTYPE_OTHER:				// その他のコントローラー
-				Assign(InputType::DInput);
+				Assign(InputType::DInput, true);
 				break;
 			default:
 				break;
