@@ -22,7 +22,6 @@
 class OptionWindow {
 	struct ParamButton {
 		std::string		Str{};
-		std::string		SubStr{};
 		int				ID{};
 		int				MinID{};
 		int				MaxID{};
@@ -94,37 +93,9 @@ private:
 				m_Param[0].Str = std::to_string(pOption->GetParam("XSensing")->GetSelect());
 				m_Param[1].Str = std::to_string(pOption->GetParam("YSensing")->GetSelect());
 
-				m_Param[2].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::W, 0));
-				m_Param[2].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::W, 1));
-				m_Param[3].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::S, 0));
-				m_Param[3].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::S, 1));
-				m_Param[4].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::A, 0));
-				m_Param[4].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::A, 1));
-				m_Param[5].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::D, 0));
-				m_Param[5].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::D, 1));
-
-				m_Param[6].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Q, 0));
-				m_Param[6].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Q, 1));
-				m_Param[7].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::E, 0));
-				m_Param[7].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::E, 1));
-				m_Param[8].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Run, 0));
-				m_Param[8].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Run, 1));
-				m_Param[9].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Walk, 0));
-				m_Param[9].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Walk, 1));
-				m_Param[10].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Squat, 0));
-				m_Param[10].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Squat, 1));
-				m_Param[11].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Prone, 0));
-				m_Param[11].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Prone, 1));
-				m_Param[12].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Jump, 0));
-				m_Param[12].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Jump, 1));
-				m_Param[13].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Attack, 0));
-				m_Param[13].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Attack, 1));
-				m_Param[14].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Aim, 0));
-				m_Param[14].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Aim, 1));
-				m_Param[15].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::ChangeWeapon, 0));
-				m_Param[15].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::ChangeWeapon, 1));
-				m_Param[16].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Reload, 0));
-				m_Param[16].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Reload, 1));
+				for (int loop = 2; loop < m_NowTabMax; ++loop) {
+					m_Param[loop].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetKeyAssign(static_cast<EnumBattle>(loop - 2), 0));
+				}
 			}
 			break;
 			case 3:
@@ -152,9 +123,6 @@ private:
 			}
 			if (m_Param[loop].MaxID != -1) {
 				m_DrawUI->Get(m_Param[loop].MaxID).GetParts("String1")->SetString(">");
-			}
-			if (m_DrawUI->Get(m_Param[loop].ID).GetParts("String2")) {
-				m_DrawUI->Get(m_Param[loop].ID).GetParts("String2")->SetString(m_Param[loop].SubStr);
 			}
 		}
 		m_DrawUI->Get(m_TabButton[m_NowSelectTab]).SetActive(true);
@@ -289,42 +257,37 @@ public:
 					m_DrawUI->Get(m_Param[loop].ID).GetParts("String0")->SetString(m_Param[loop].Str);
 				}
 			}
-			if (false || KeyParam::Instance()->IsDeviceChange()) {
-				if (m_NowSelectTab == 2) {
-					m_Param[2].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::W, 0));
-					m_Param[2].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::W, 1));
-					m_Param[3].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::S, 0));
-					m_Param[3].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::S, 1));
-					m_Param[4].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::A, 0));
-					m_Param[4].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::A, 1));
-					m_Param[5].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::D, 0));
-					m_Param[5].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::D, 1));
+			if (m_NowSelectTab == 2) {
+				bool IsChange = false;
+				for (int loop = 2; loop < m_NowTabMax; ++loop) {
+					EnumBattle Battle = static_cast<EnumBattle>(loop - 2);
+					if (m_DrawUI->Get(m_Param[loop].ID).IsSelectButton()) {
+						for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
+							EnumInput Input = static_cast<EnumInput>(loop2);
+							if (KeyParam::Instance()->GetKeyPress(Input, true)) {
+								//それ以外のアサインで被っている奴を外す
+								for (int loop3 = 0; loop3 < static_cast<int>(EnumBattle::Max); ++loop3) {
+									EnumBattle OtherBattle = static_cast<EnumBattle>(loop3);
+									if (Battle == OtherBattle) { continue; }
+									if (Input == KeyParam::Instance()->GetKeyAssign(OtherBattle, 0)) {
+										KeyParam::Instance()->AssignID(OtherBattle, 0, EnumInput::Max);
+										break;
+									}
+								}
 
-					m_Param[6].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Q, 0));
-					m_Param[6].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Q, 1));
-					m_Param[7].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::E, 0));
-					m_Param[7].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::E, 1));
-					m_Param[8].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Run, 0));
-					m_Param[8].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Run, 1));
-					m_Param[9].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Walk, 0));
-					m_Param[9].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Walk, 1));
-					m_Param[10].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Squat, 0));
-					m_Param[10].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Squat, 1));
-					m_Param[11].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Prone, 0));
-					m_Param[11].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Prone, 1));
-					m_Param[12].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Jump, 0));
-					m_Param[12].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Jump, 1));
-					m_Param[13].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Attack, 0));
-					m_Param[13].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Attack, 1));
-					m_Param[14].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Aim, 0));
-					m_Param[14].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Aim, 1));
-					m_Param[15].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::ChangeWeapon, 0));
-					m_Param[15].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::ChangeWeapon, 1));
-					m_Param[16].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Reload, 0));
-					m_Param[16].SubStr = KeyParam::GetKeyStr(KeyParam::Instance()->GetBattleKeyAssign(EnumBattle::Reload, 1));
+								KeyParam::Instance()->AssignID(Battle, 0, Input);
+								IsChange = true;
+								break;
+							}
+						}
+					}
+					if (IsChange) { break; }
+				}
+				if (IsChange || KeyParam::Instance()->IsDeviceChange()) {
 					for (int loop = 2; loop < m_NowTabMax; ++loop) {
+						EnumBattle Battle = static_cast<EnumBattle>(loop - 2);
+						m_Param[loop].Str = KeyParam::GetKeyStr(KeyParam::Instance()->GetKeyAssign(Battle, 0));
 						m_DrawUI->Get(m_Param[loop].ID).GetParts("String0")->SetString(m_Param[loop].Str);
-						m_DrawUI->Get(m_Param[loop].ID).GetParts("String2")->SetString(m_Param[loop].SubStr);
 					}
 				}
 			}

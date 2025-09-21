@@ -10,6 +10,7 @@
 #pragma warning( push, 3 )
 #include "../File/json.hpp"
 #pragma warning( pop )
+#include "../File/FileStream.hpp"
 
 enum class InputType :size_t {
 	KeyBoard,
@@ -502,7 +503,7 @@ static const char* KeyInputStr[static_cast<size_t>(EnumInput::Key_Max) - static_
 	"Y",
 	"Z",
 
-	"0 ",
+	"0",
 	"1",
 	"2",
 	"3",
@@ -581,10 +582,10 @@ enum class EnumMenu :size_t {
 };
 
 enum class EnumBattle :size_t {
-	A,
 	W,
-	D,
 	S,
+	A,
+	D,
 	Q,
 	E,
 	Run,
@@ -597,6 +598,23 @@ enum class EnumBattle :size_t {
 	ChangeWeapon,
 	Reload,
 	Max,
+};
+static const char* BattleStr[static_cast<size_t>(EnumBattle::Max)] = {
+	"W",
+	"S",
+	"A",
+	"D",
+	"Q",
+	"E",
+	"Run",
+	"Walk",
+	"Squat",
+	"Prone",
+	"Jump",
+	"Attack",
+	"Aim",
+	"ChangeWeapon",
+	"Reload",
 };
 
 class KeyParam : public SingletonBase<KeyParam> {
@@ -666,6 +684,88 @@ private:
 		m_MenuKey.clear();
 		m_BattleKey.clear();
 	}
+public:
+	void Load(InputType type) noexcept {
+		std::string Path;
+		switch (type) {
+		case InputType::KeyBoard:
+			Path = "Save/Input_Keyboard.dat";
+			break;
+		case InputType::XInput:
+			Path = "Save/Input_XInput.dat";
+			break;
+		case InputType::DInput:
+			Path = "Save/Input_DInput.dat";
+			break;
+		default:
+			break;
+		}
+		if (!IsFileExist(Path.c_str())) {
+			//デフォルトデータ
+			switch (type) {
+			case InputType::KeyBoard:
+				Path = "data/ProjectSetting/Input_Keyboard.dat";
+				break;
+			case InputType::XInput:
+				Path = "data/ProjectSetting/Input_XInput.dat";
+				break;
+			case InputType::DInput:
+				Path = "data/ProjectSetting/Input_DInput.dat";
+				break;
+			default:
+				break;
+			}
+		}
+
+		InputFileStream Istream(Path.c_str());
+		while (!Istream.ComeEof()) {
+			std::string Line = InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
+			std::string Left = InputFileStream::getleft(Line, "=");
+			std::string Left0 = InputFileStream::getleft(Left, ",");
+			std::string Left1 = InputFileStream::getright(Left, ",");
+			std::string Right = InputFileStream::getright(Line, "=");
+			for (int loop = 0; loop < static_cast<int>(EnumBattle::Max); ++loop) {
+				if (Left0 == BattleStr[static_cast<size_t>(loop)]) {
+					int ID = std::stoi(Left1);
+					EnumInput Enum = EnumInput::Max;
+					for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
+						if (Right == GetKeyStr(static_cast<EnumInput>(loop2))) {
+							Enum = static_cast<EnumInput>(loop2);
+							break;
+						}
+					}
+					//
+
+					AssignID(static_cast<EnumBattle>(loop), ID, Enum);
+					break;
+				}
+			}
+		}
+	}
+	void Save(InputType type) const noexcept {
+		std::string Path;
+		switch (type) {
+		case InputType::KeyBoard:
+			Path = "Save/Input_Keyboard.dat";
+			break;
+		case InputType::XInput:
+			Path = "Save/Input_XInput.dat";
+			break;
+		case InputType::DInput:
+			Path = "Save/Input_DInput.dat";
+			break;
+		default:
+			break;
+		}
+
+		OutputFileStream Ostream(Path.c_str());
+		for (int loop = 0; loop < static_cast<int>(EnumBattle::Max); ++loop) {
+			std::string Left;
+			std::string Left0 = BattleStr[static_cast<size_t>(loop)];
+			Ostream.AddLine(Left0 + "," + std::to_string(0) + "=" + GetKeyStr(GetKeyAssign(static_cast<EnumBattle>(loop), 0)));
+			Ostream.AddLine(Left0 + "," + std::to_string(1) + "=" + GetKeyStr(GetKeyAssign(static_cast<EnumBattle>(loop), 1)));
+		}
+	}
 private:
 	void Assign(InputType type) noexcept {
 		if (m_InputType != type) {
@@ -697,23 +797,6 @@ private:
 				AssignID(EnumMenu::UP, 0, EnumInput::Key_W);
 				AssignID(EnumMenu::RIGHT, 0, EnumInput::Key_D);
 				AssignID(EnumMenu::DOWN, 0, EnumInput::Key_S);
-				//
-				AssignID(EnumBattle::A, 0, EnumInput::Key_A);
-				AssignID(EnumBattle::W, 0, EnumInput::Key_W);
-				AssignID(EnumBattle::D, 0, EnumInput::Key_D);
-				AssignID(EnumBattle::S, 0, EnumInput::Key_S);
-				AssignID(EnumBattle::Q, 0, EnumInput::Key_Q);
-				AssignID(EnumBattle::E, 0, EnumInput::Key_E);
-				AssignID(EnumBattle::Run, 0, EnumInput::Key_LSHIFT);
-				AssignID(EnumBattle::Walk, 0, EnumInput::Key_LCONTROL);
-				AssignID(EnumBattle::Squat, 0, EnumInput::Key_C);
-				AssignID(EnumBattle::Prone, 0, EnumInput::Key_X);
-				AssignID(EnumBattle::Jump, 0, EnumInput::Key_SPACE);
-				AssignID(EnumBattle::Attack, 0, EnumInput::Mouse_Left);
-				AssignID(EnumBattle::Aim, 0, EnumInput::Mouse_Right);
-				AssignID(EnumBattle::ChangeWeapon, 0, EnumInput::Mouse_Middle);
-				AssignID(EnumBattle::Reload, 0, EnumInput::Key_R);
-
 				break;
 			case InputType::XInput:
 				AssignID(EnumMenu::Esc, 0, EnumInput::XInput_ESCAPE);
@@ -728,27 +811,6 @@ private:
 				AssignID(EnumMenu::RIGHT, 1, EnumInput::XInput_LSTICKRIGHT);
 				AssignID(EnumMenu::DOWN, 0, EnumInput::XInput_DOWN);
 				AssignID(EnumMenu::DOWN, 1, EnumInput::XInput_LSTICKDOWN);
-				//
-				AssignID(EnumBattle::A, 0, EnumInput::XInput_LEFT);
-				AssignID(EnumBattle::A, 1, EnumInput::XInput_LSTICKLEFT);
-				AssignID(EnumBattle::W, 0, EnumInput::XInput_UP);
-				AssignID(EnumBattle::W, 1, EnumInput::XInput_LSTICKUP);
-				AssignID(EnumBattle::D, 0, EnumInput::XInput_RIGHT);
-				AssignID(EnumBattle::D, 1, EnumInput::XInput_LSTICKRIGHT);
-				AssignID(EnumBattle::S, 0, EnumInput::XInput_DOWN);
-				AssignID(EnumBattle::S, 1, EnumInput::XInput_LSTICKDOWN);
-
-				AssignID(EnumBattle::Q, 0, EnumInput::XInput_L1);
-				AssignID(EnumBattle::E, 0, EnumInput::XInput_R1);
-				AssignID(EnumBattle::Run, 0, EnumInput::XInput_L3);
-				AssignID(EnumBattle::Walk, 0, EnumInput::XInput_UP);
-				AssignID(EnumBattle::Squat, 0, EnumInput::XInput_LEFT);
-				AssignID(EnumBattle::Prone, 0, EnumInput::XInput_DOWN);
-				AssignID(EnumBattle::Jump, 0, EnumInput::XInput_NG);
-				AssignID(EnumBattle::Attack, 0, EnumInput::XInput_R2);
-				AssignID(EnumBattle::Aim, 0, EnumInput::XInput_R1);
-				AssignID(EnumBattle::ChangeWeapon, 0, EnumInput::XInput_OK);
-				AssignID(EnumBattle::Reload, 0, EnumInput::XInput_SQUARE);
 				break;
 			case InputType::DInput:
 				AssignID(EnumMenu::Esc, 0, EnumInput::DInput_ESCAPE);
@@ -764,31 +826,11 @@ private:
 				AssignID(EnumMenu::RIGHT, 1, EnumInput::DInput_LSTICKRIGHT);
 				AssignID(EnumMenu::DOWN, 0, EnumInput::DInput_DOWN);
 				AssignID(EnumMenu::DOWN, 1, EnumInput::DInput_LSTICKDOWN);
-				//
-				AssignID(EnumBattle::A, 0, EnumInput::DInput_LEFT);
-				AssignID(EnumBattle::A, 1, EnumInput::DInput_LSTICKLEFT);
-				AssignID(EnumBattle::W, 0, EnumInput::DInput_UP);
-				AssignID(EnumBattle::W, 1, EnumInput::DInput_LSTICKUP);
-				AssignID(EnumBattle::D, 0, EnumInput::DInput_RIGHT);
-				AssignID(EnumBattle::D, 1, EnumInput::DInput_LSTICKRIGHT);
-				AssignID(EnumBattle::S, 0, EnumInput::DInput_DOWN);
-				AssignID(EnumBattle::S, 1, EnumInput::DInput_LSTICKDOWN);
-
-				AssignID(EnumBattle::Q, 0, EnumInput::DInput_L1);
-				AssignID(EnumBattle::E, 0, EnumInput::DInput_R1);
-				AssignID(EnumBattle::Run, 0, EnumInput::DInput_L3);
-				AssignID(EnumBattle::Walk, 0, EnumInput::DInput_UP);
-				AssignID(EnumBattle::Squat, 0, EnumInput::DInput_LEFT);
-				AssignID(EnumBattle::Prone, 0, EnumInput::DInput_DOWN);
-				AssignID(EnumBattle::Jump, 0, EnumInput::DInput_NG);
-				AssignID(EnumBattle::Attack, 0, EnumInput::DInput_R2);
-				AssignID(EnumBattle::Aim, 0, EnumInput::DInput_R1);
-				AssignID(EnumBattle::ChangeWeapon, 0, EnumInput::DInput_OK);
-				AssignID(EnumBattle::Reload, 0, EnumInput::DInput_SQUARE);
 				break;
 			default:
 				break;
 			}
+			Load(GetLastInputDevice());
 		}
 	}
 public:
@@ -827,7 +869,7 @@ public:
 		else if (static_cast<size_t>(EnumInput::DInput_Max) > static_cast<size_t>(ID)) {
 			return DInputInputStr[static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::DInput_Begin)];
 		}
-		return "";
+		return "NONE";
 	}
 	bool GetKeyPress(EnumInput ID, bool checkDevice) const noexcept {
 		if (!GetWindowActiveFlag()) {
@@ -1071,10 +1113,10 @@ public:
 		}
 		return false;
 	}
-	const EnumInput& GetBattleKeyAssign(EnumMenu Select, int ID) const noexcept {
+	const EnumInput& GetKeyAssign(EnumMenu Select, int ID) const noexcept {
 		return m_MenuKey.at(static_cast<size_t>(Select)).m_ID[ID];
 	}
-	const EnumInput& GetBattleKeyAssign(EnumBattle Select, int ID) const noexcept {
+	const EnumInput& GetKeyAssign(EnumBattle Select, int ID) const noexcept {
 		return m_BattleKey.at(static_cast<size_t>(Select)).m_ID[ID];
 	}
 public:

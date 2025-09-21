@@ -3,6 +3,7 @@
 #pragma warning( push, 3 )
 #include <fstream>
 #include <string>
+#include <filesystem>
 #pragma warning( pop )
 
 #define USE_DXLIB (false)
@@ -112,3 +113,13 @@ public:
 		stream.close();
 	}
 };
+
+// ファイルが存在するかチェック
+static bool IsFileExist(const char* Path) noexcept {
+	return std::filesystem::is_regular_file(Path);
+	//DXLIB_Initを通ってからでないと動作しない
+	/*
+	FILEINFO FileInfo;
+	return (FileRead_findFirst(Path, &FileInfo) != (DWORD_PTR)InvalidID);
+	//*/
+}
