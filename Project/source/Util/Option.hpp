@@ -10,6 +10,7 @@
 #include "../File/FileStream.hpp"
 #pragma warning( push, 3 )
 #include "../File/json.hpp"
+#include <array>
 #pragma warning( pop )
 
 namespace Util {
@@ -23,6 +24,28 @@ namespace Util {
 		"Bool",
 		"Select",
 		"Int",
+	};
+
+	enum class OptionType :int {
+		VSync,
+		FPSLimit,
+		WindowMode,
+		MasterVolume,
+		BGMVolume,
+		SEVolume,
+		XSensing,
+		YSensing,
+		Max,
+	};
+	static const char* OptionStr[static_cast<int>(OptionType::Max)] = {
+		"VSync",
+		"FPSLimit",
+		"WindowMode",
+		"MasterVolume",
+		"BGMVolume",
+		"SEVolume",
+		"XSensing",
+		"YSensing",
 	};
 
 	class OptionParam : public SingletonBase<OptionParam> {
@@ -170,6 +193,7 @@ namespace Util {
 		};
 
 		std::vector<Param>	m_ParamList;
+		std::array<int, static_cast<int>(OptionType::Max)> m_OptionID;
 	private:
 		//コンストラクタ
 		OptionParam(void) noexcept {
@@ -180,6 +204,9 @@ namespace Util {
 				this->m_ParamList.back().SetByJson(data);
 			}
 			Load();
+			for (int loop = 0; loop < static_cast<int>(OptionType::Max); ++loop) {
+				m_OptionID.at(static_cast<size_t>(loop)) = GetParamID(OptionStr[static_cast<size_t>(loop)]);
+			}
 		}
 		OptionParam(const OptionParam&) = delete;
 		OptionParam(OptionParam&&) = delete;
@@ -194,22 +221,23 @@ namespace Util {
 			this->m_ParamList.clear();
 		}
 	public:
-		const Param* GetParam(std::string_view Type) const noexcept {
+		int GetParamID(std::string_view Type) const noexcept {
 			for (auto& param : this->m_ParamList) {
 				if (param.GetType() == Type) {
-					return &param;
+					return static_cast<int>(&param - &this->m_ParamList.front());
 				}
 			}
-			return nullptr;
+			return -1;
 		}
-		void SetParam(std::string_view Type, int Param) noexcept {
-			for (auto& param : this->m_ParamList) {
-				if (param.GetType() == Type) {
-					param.SetSelect(Param);
-					break;
-				}
-			}
+		const Param* GetParam(int ID) const noexcept {
+			if (ID == -1) { return nullptr; }
+			return &this->m_ParamList.at(static_cast<size_t>(ID));
 		}
+		void SetParam(int ID, int Param) noexcept {
+			if (ID == -1) { return; }
+			this->m_ParamList.at(static_cast<size_t>(ID)).SetSelect(Param);
+		}
+		int GetOptionType(OptionType ID) const noexcept { return m_OptionID.at(static_cast<size_t>(ID)); }
 	public:
 		void Load(void) noexcept {
 			File::InputFileStream Istream("Save/Option.dat");

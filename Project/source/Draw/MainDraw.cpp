@@ -88,7 +88,7 @@ namespace Draw {
 	void MainDraw::FlipSetting(void) noexcept {
 		auto* pOption = Util::OptionParam::Instance();
 		{
-			const auto& ModeStr = pOption->GetParam("WindowMode")->GetValueNow();
+			const auto& ModeStr = pOption->GetParam(pOption->GetOptionType(Util::OptionType::WindowMode))->GetValueNow();
 			for (int loop = 0; loop < static_cast<int>(EnumWindowMode::Max); ++loop) {
 				if (ModeStr == WindowModeStr[loop]) {
 					SetWindowMode(static_cast<EnumWindowMode>(loop));
@@ -96,8 +96,8 @@ namespace Draw {
 				}
 			}
 		}
-		SetWaitVSync(pOption->GetParam("VSync")->IsActive());
-		this->m_FPSLimit = std::stoi(pOption->GetParam("FPSLimit")->GetValueNow());
+		SetWaitVSync(pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->IsActive());
+		this->m_FPSLimit = std::stoi(pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetValueNow());
 	}
 
 	void MainDraw::Update(void) noexcept {
@@ -129,7 +129,7 @@ namespace Draw {
 			}
 		}
 		//マウス座標取得
-		GetMousePoint(&this->m_MouseX, &this->m_MouseY);
+		DxLib::GetMousePoint(&this->m_MouseX, &this->m_MouseY);
 		this->m_MouseX = (-(this->m_WindowDrawWidth - this->m_WindowWidth) / 2 + this->m_MouseX) * GetDispWidth() / this->m_WindowWidth;
 		this->m_MouseY = (-(this->m_WindowDrawHeight - this->m_WindowHeight) / 2 + this->m_MouseY) * GetDispHeight() / this->m_WindowHeight;
 	}

@@ -1,4 +1,5 @@
 ﻿#include "OptionWindow.hpp"
+#include "Util/Enum.hpp"
 
 void OptionWindow::UpdateColumnStr() noexcept {
 	auto* pOption = Util::OptionParam::Instance();
@@ -6,22 +7,22 @@ void OptionWindow::UpdateColumnStr() noexcept {
 	switch (this->m_NowSelectTab) {
 	case 0:
 	{
-		this->m_Param[0].m_Str = std::to_string(pOption->GetParam("MasterVolume")->GetSelect());
-		this->m_Param[1].m_Str = std::to_string(pOption->GetParam("BGMVolume")->GetSelect());
-		this->m_Param[2].m_Str = std::to_string(pOption->GetParam("SEVolume")->GetSelect());
+		this->m_Param[0].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::MasterVolume))->GetSelect());
+		this->m_Param[1].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::BGMVolume))->GetSelect());
+		this->m_Param[2].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::SEVolume))->GetSelect());
 	}
 	break;
 	case 1:
 	{
-		this->m_Param[0].m_Str = pOption->GetParam("WindowMode")->GetValueNow();
-		this->m_Param[1].m_Str = pOption->GetParam("VSync")->GetValueNow();
-		this->m_Param[2].m_Str = pOption->GetParam("FPSLimit")->GetValueNow();
+		this->m_Param[0].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::WindowMode))->GetValueNow();
+		this->m_Param[1].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->GetValueNow();
+		this->m_Param[2].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetValueNow();
 	}
 	break;
 	case 2:
 	{
-		this->m_Param[0].m_Str = std::to_string(pOption->GetParam("XSensing")->GetSelect());
-		this->m_Param[1].m_Str = std::to_string(pOption->GetParam("YSensing")->GetSelect());
+		this->m_Param[0].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::XSensing))->GetSelect());
+		this->m_Param[1].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::YSensing))->GetSelect());
 
 		for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
 			this->m_Param[loop].m_Str = Util::KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(static_cast<Util::EnumBattle>(loop - 2), 0));
@@ -130,24 +131,24 @@ void OptionWindow::Update(void) noexcept {
 				 {
 					 //
 					 if (this->m_DrawUI->Get(this->m_Param[0].m_MinID).IsSelectButton()) {
-						 pOption->SetParam("MasterVolume", pOption->GetParam("MasterVolume")->GetSelect() - 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::MasterVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::MasterVolume))->GetSelect() - 1);
 					 }
 					 if (this->m_DrawUI->Get(this->m_Param[0].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam("MasterVolume", pOption->GetParam("MasterVolume")->GetSelect() + 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::MasterVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::MasterVolume))->GetSelect() + 1);
 					 }
 					 //
 					 if (this->m_DrawUI->Get(this->m_Param[1].m_MinID).IsSelectButton()) {
-						 pOption->SetParam("BGMVolume", pOption->GetParam("BGMVolume")->GetSelect() - 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::BGMVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::BGMVolume))->GetSelect() - 1);
 					 }
 					 if (this->m_DrawUI->Get(this->m_Param[1].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam("BGMVolume", pOption->GetParam("BGMVolume")->GetSelect() + 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::BGMVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::BGMVolume))->GetSelect() + 1);
 					 }
 					 //
 					 if (this->m_DrawUI->Get(this->m_Param[2].m_MinID).IsSelectButton()) {
-						 pOption->SetParam("SEVolume", pOption->GetParam("SEVolume")->GetSelect() - 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::SEVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::SEVolume))->GetSelect() - 1);
 					 }
 					 if (this->m_DrawUI->Get(this->m_Param[2].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam("SEVolume", pOption->GetParam("SEVolume")->GetSelect() + 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::SEVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::SEVolume))->GetSelect() + 1);
 					 }
 				 }
 				 break;
@@ -155,44 +156,49 @@ void OptionWindow::Update(void) noexcept {
 				 {
 					 //
 					 if (this->m_DrawUI->Get(this->m_Param[0].m_MinID).IsSelectButton()) {
-						 pOption->SetParam("WindowMode", pOption->GetParam("WindowMode")->GetSelect() - 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::WindowMode), pOption->GetParam(pOption->GetOptionType(Util::OptionType::WindowMode))->GetSelect() - 1);
+						 Draw::MainDraw::Instance()->FlipSetting();
 					 }
 					 if (this->m_DrawUI->Get(this->m_Param[0].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam("WindowMode", pOption->GetParam("WindowMode")->GetSelect() + 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::WindowMode), pOption->GetParam(pOption->GetOptionType(Util::OptionType::WindowMode))->GetSelect() + 1);
+						 Draw::MainDraw::Instance()->FlipSetting();
 					 }
 					 //
 					 if (this->m_DrawUI->Get(this->m_Param[1].m_MinID).IsSelectButton()) {
-						 pOption->SetParam("VSync", pOption->GetParam("VSync")->GetSelect() - 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::VSync), pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->GetSelect() - 1);
+						 Draw::MainDraw::Instance()->FlipSetting();
 					 }
 					 if (this->m_DrawUI->Get(this->m_Param[1].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam("VSync", pOption->GetParam("VSync")->GetSelect() + 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::VSync), pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->GetSelect() + 1);
+						 Draw::MainDraw::Instance()->FlipSetting();
 					 }
 					 //
 					 if (this->m_DrawUI->Get(this->m_Param[2].m_MinID).IsSelectButton()) {
-						 pOption->SetParam("FPSLimit", pOption->GetParam("FPSLimit")->GetSelect() - 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::FPSLimit), pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetSelect() - 1);
+						 Draw::MainDraw::Instance()->FlipSetting();
 					 }
 					 if (this->m_DrawUI->Get(this->m_Param[2].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam("FPSLimit", pOption->GetParam("FPSLimit")->GetSelect() + 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::FPSLimit), pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetSelect() + 1);
+						 Draw::MainDraw::Instance()->FlipSetting();
 					 }
 					 //
-					 Draw::MainDraw::Instance()->FlipSetting();
 				 }
 				 break;
 				 case 2:
 				 {
 					 //
 					 if (this->m_DrawUI->Get(this->m_Param[0].m_MinID).IsSelectButton()) {
-						 pOption->SetParam("XSensing", pOption->GetParam("XSensing")->GetSelect() - 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::XSensing), pOption->GetParam(pOption->GetOptionType(Util::OptionType::XSensing))->GetSelect() - 1);
 					 }
 					 if (this->m_DrawUI->Get(this->m_Param[0].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam("XSensing", pOption->GetParam("XSensing")->GetSelect() + 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::XSensing), pOption->GetParam(pOption->GetOptionType(Util::OptionType::XSensing))->GetSelect() + 1);
 					 }
 					 //
 					 if (this->m_DrawUI->Get(this->m_Param[1].m_MinID).IsSelectButton()) {
-						 pOption->SetParam("YSensing", pOption->GetParam("YSensing")->GetSelect() - 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::YSensing), pOption->GetParam(pOption->GetOptionType(Util::OptionType::YSensing))->GetSelect() - 1);
 					 }
 					 if (this->m_DrawUI->Get(this->m_Param[1].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam("YSensing", pOption->GetParam("YSensing")->GetSelect() + 1);
+						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::YSensing), pOption->GetParam(pOption->GetOptionType(Util::OptionType::YSensing))->GetSelect() + 1);
 					 }
 					 //
 					 for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
