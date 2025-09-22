@@ -19,6 +19,7 @@ namespace Util {
 		KeyBoard,
 		XInput,
 		DInput,
+		Max,
 	};
 
 	enum class EnumInput :size_t {
@@ -655,14 +656,14 @@ namespace Util {
 			bool ReleaseTrigger(void) const noexcept { return !this->m_Press && this->m_PrevPress; }
 		};
 		struct KeyPair {
-			EnumInput	m_ID[2] = { EnumInput::Max, EnumInput::Max };
-			EnumInput	m_DefaultID[2] = { EnumInput::Max, EnumInput::Max };
-			Key*		m_Ptr[2]{};
+			EnumInput	m_ID{ EnumInput::Max };
+			EnumInput	m_DefaultID{ EnumInput::Max };
+			Key*		m_Ptr{nullptr};
 		};
 	private:
 		std::vector<Key>		m_Input{};
-		std::vector<KeyPair>	m_MenuKey{};
-		std::vector<KeyPair>	m_BattleKey{};
+		std::array<std::array<std::vector<KeyPair>, 2>, static_cast<size_t>(InputType::Max)>	m_MenuKey{};
+		std::array<std::array<std::vector<KeyPair>, 2>, static_cast<size_t>(InputType::Max)>	m_BattleKey{};
 		InputType				m_InputType{ InputType::XInput };
 		bool					m_DeviceChangeSwitch = true;
 		char		padding[3]{};
@@ -673,9 +674,79 @@ namespace Util {
 		//コンストラクタ
 		KeyParam(void) noexcept {
 			this->m_Input.resize(static_cast<size_t>(EnumInput::Max));
-			this->m_MenuKey.resize(static_cast<size_t>(EnumMenu::Max));
-			this->m_BattleKey.resize(static_cast<size_t>(EnumBattle::Max));
-			Assign(InputType::KeyBoard, false);
+			for (auto& mk : this->m_MenuKey) {
+				for (auto& k : mk) {
+					k.resize(static_cast<size_t>(EnumBattle::Max));
+					for (auto& kp : k) {
+						kp.m_ID = EnumInput::Max;
+						kp.m_DefaultID = EnumInput::Max;
+						kp.m_Ptr = nullptr;
+					}
+				}
+			}
+			for (auto& bk : this->m_BattleKey) {
+				for (auto& k : bk) {
+					k.resize(static_cast<size_t>(EnumBattle::Max));
+					for (auto& kp : k) {
+						kp.m_ID = EnumInput::Max;
+						kp.m_DefaultID = EnumInput::Max;
+						kp.m_Ptr = nullptr;
+					}
+				}
+			}
+			for (int loop = 0; loop < static_cast<int>(InputType::Max); ++loop) {
+				m_InputType = static_cast<InputType>(loop);
+				Load(static_cast<InputType>(loop));
+
+				switch (static_cast<InputType>(loop)) {
+				case InputType::KeyBoard:
+					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
+					//
+					AssignID(EnumMenu::Diside, 0, EnumInput::Mouse_Left);
+					AssignID(EnumMenu::Diside, 1, EnumInput::Key_F);
+					AssignID(EnumMenu::Cancel, 0, EnumInput::Mouse_Right);
+					AssignID(EnumMenu::Cancel, 1, EnumInput::Key_R);
+					AssignID(EnumMenu::LEFT, 0, EnumInput::Key_A);
+					AssignID(EnumMenu::UP, 0, EnumInput::Key_W);
+					AssignID(EnumMenu::RIGHT, 0, EnumInput::Key_D);
+					AssignID(EnumMenu::DOWN, 0, EnumInput::Key_S);
+					break;
+				case InputType::XInput:
+					AssignID(EnumMenu::Esc, 0, EnumInput::XInput_ESCAPE);
+					//
+					AssignID(EnumMenu::Diside, 0, EnumInput::XInput_OK);
+					AssignID(EnumMenu::Cancel, 0, EnumInput::XInput_NG);
+					AssignID(EnumMenu::LEFT, 0, EnumInput::XInput_LEFT);
+					AssignID(EnumMenu::LEFT, 1, EnumInput::XInput_LSTICKLEFT);
+					AssignID(EnumMenu::UP, 0, EnumInput::XInput_UP);
+					AssignID(EnumMenu::UP, 1, EnumInput::XInput_LSTICKUP);
+					AssignID(EnumMenu::RIGHT, 0, EnumInput::XInput_RIGHT);
+					AssignID(EnumMenu::RIGHT, 1, EnumInput::XInput_LSTICKRIGHT);
+					AssignID(EnumMenu::DOWN, 0, EnumInput::XInput_DOWN);
+					AssignID(EnumMenu::DOWN, 1, EnumInput::XInput_LSTICKDOWN);
+					break;
+				case InputType::DInput:
+					AssignID(EnumMenu::Esc, 0, EnumInput::DInput_ESCAPE);
+					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
+					//
+					AssignID(EnumMenu::Diside, 0, EnumInput::DInput_OK);
+					AssignID(EnumMenu::Cancel, 0, EnumInput::DInput_NG);
+					AssignID(EnumMenu::LEFT, 0, EnumInput::DInput_LEFT);
+					AssignID(EnumMenu::LEFT, 1, EnumInput::DInput_LSTICKLEFT);
+					AssignID(EnumMenu::UP, 0, EnumInput::DInput_UP);
+					AssignID(EnumMenu::UP, 1, EnumInput::DInput_LSTICKUP);
+					AssignID(EnumMenu::RIGHT, 0, EnumInput::DInput_RIGHT);
+					AssignID(EnumMenu::RIGHT, 1, EnumInput::DInput_LSTICKRIGHT);
+					AssignID(EnumMenu::DOWN, 0, EnumInput::DInput_DOWN);
+					AssignID(EnumMenu::DOWN, 1, EnumInput::DInput_LSTICKDOWN);
+					break;
+				case InputType::Max:
+				default:
+					break;
+				}
+			}
+
+			m_InputType = InputType::KeyBoard;
 		}
 		KeyParam(const KeyParam&) = delete;
 		KeyParam(KeyParam&&) = delete;
@@ -683,9 +754,20 @@ namespace Util {
 		KeyParam& operator=(KeyParam&&) = delete;
 		//デストラクタ
 		~KeyParam(void) noexcept {
+			for (int loop = 0; loop < static_cast<int>(InputType::Max); ++loop) {
+				Save(static_cast<InputType>(loop));
+			}
 			this->m_Input.clear();
-			this->m_MenuKey.clear();
-			this->m_BattleKey.clear();
+			for (auto& mk : this->m_MenuKey) {
+				for (auto& k : mk) {
+					k.clear();
+				}
+			}
+			for (auto& bk : this->m_BattleKey) {
+				for (auto& k : bk) {
+					k.clear();
+				}
+			}
 		}
 	public:
 		void Load(InputType type) noexcept {
@@ -702,6 +784,7 @@ namespace Util {
 			case InputType::DInput:
 				Path = "Save/Input_DInput.dat";
 				break;
+			case InputType::Max:
 			default:
 				break;
 			}
@@ -716,6 +799,7 @@ namespace Util {
 			case InputType::DInput:
 				DefaultPath = "data/ProjectSetting/Input_DInput.dat";
 				break;
+			case InputType::Max:
 			default:
 				break;
 			}
@@ -788,6 +872,7 @@ namespace Util {
 			case InputType::DInput:
 				Path = "Save/Input_DInput.dat";
 				break;
+			case InputType::Max:
 			default:
 				break;
 			}
@@ -796,111 +881,44 @@ namespace Util {
 			for (int loop = 0; loop < static_cast<int>(EnumBattle::Max); ++loop) {
 				std::string Left;
 				std::string Left0 = BattleStr[static_cast<size_t>(loop)];
-				Ostream.AddLine(Left0 + "," + std::to_string(0) + "=" + GetKeyStr(GetKeyAssign(static_cast<EnumBattle>(loop), 0)));
-				Ostream.AddLine(Left0 + "," + std::to_string(1) + "=" + GetKeyStr(GetKeyAssign(static_cast<EnumBattle>(loop), 1)));
+				Ostream.AddLine(Left0 + "," + std::to_string(0) + "=" + GetKeyStr(GetKeyAssign(type, static_cast<EnumBattle>(loop), 0)));
+				Ostream.AddLine(Left0 + "," + std::to_string(1) + "=" + GetKeyStr(GetKeyAssign(type, static_cast<EnumBattle>(loop), 1)));
 			}
 		}
 	private:
-		void Assign(InputType type, bool SavePrev) noexcept {
+		void Assign(InputType type) noexcept {
 			if (this->m_InputType != type) {
-				if (SavePrev) {
-					Save(GetLastInputDevice());
-				}
 				this->m_InputType = type;
 				this->m_DeviceChangeSwitch = true;
-				{
-					for (auto& k : this->m_MenuKey){
-						k.m_ID[0] = EnumInput::Max;
-						k.m_DefaultID[0] = EnumInput::Max;
-						k.m_Ptr[0] = nullptr;
-						k.m_ID[1] = EnumInput::Max;
-						k.m_DefaultID[1] = EnumInput::Max;
-						k.m_Ptr[1] = nullptr;
-					}
-					for (auto& k : this->m_BattleKey) {
-						k.m_ID[0] = EnumInput::Max;
-						k.m_DefaultID[0] = EnumInput::Max;
-						k.m_Ptr[0] = nullptr;
-						k.m_ID[1] = EnumInput::Max;
-						k.m_DefaultID[1] = EnumInput::Max;
-						k.m_Ptr[1] = nullptr;
-					}
-				}
-				switch (this->m_InputType) {
-				case InputType::KeyBoard:
-					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
-					//
-					AssignID(EnumMenu::Diside, 0, EnumInput::Mouse_Left);
-					AssignID(EnumMenu::Diside, 1, EnumInput::Key_F);
-					AssignID(EnumMenu::Cancel, 0, EnumInput::Mouse_Right);
-					AssignID(EnumMenu::Cancel, 1, EnumInput::Key_R);
-					AssignID(EnumMenu::LEFT, 0, EnumInput::Key_A);
-					AssignID(EnumMenu::UP, 0, EnumInput::Key_W);
-					AssignID(EnumMenu::RIGHT, 0, EnumInput::Key_D);
-					AssignID(EnumMenu::DOWN, 0, EnumInput::Key_S);
-					break;
-				case InputType::XInput:
-					AssignID(EnumMenu::Esc, 0, EnumInput::XInput_ESCAPE);
-					//
-					AssignID(EnumMenu::Diside, 0, EnumInput::XInput_OK);
-					AssignID(EnumMenu::Cancel, 0, EnumInput::XInput_NG);
-					AssignID(EnumMenu::LEFT, 0, EnumInput::XInput_LEFT);
-					AssignID(EnumMenu::LEFT, 1, EnumInput::XInput_LSTICKLEFT);
-					AssignID(EnumMenu::UP, 0, EnumInput::XInput_UP);
-					AssignID(EnumMenu::UP, 1, EnumInput::XInput_LSTICKUP);
-					AssignID(EnumMenu::RIGHT, 0, EnumInput::XInput_RIGHT);
-					AssignID(EnumMenu::RIGHT, 1, EnumInput::XInput_LSTICKRIGHT);
-					AssignID(EnumMenu::DOWN, 0, EnumInput::XInput_DOWN);
-					AssignID(EnumMenu::DOWN, 1, EnumInput::XInput_LSTICKDOWN);
-					break;
-				case InputType::DInput:
-					AssignID(EnumMenu::Esc, 0, EnumInput::DInput_ESCAPE);
-					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
-					//
-					AssignID(EnumMenu::Diside, 0, EnumInput::DInput_OK);
-					AssignID(EnumMenu::Cancel, 0, EnumInput::DInput_NG);
-					AssignID(EnumMenu::LEFT, 0, EnumInput::DInput_LEFT);
-					AssignID(EnumMenu::LEFT, 1, EnumInput::DInput_LSTICKLEFT);
-					AssignID(EnumMenu::UP, 0, EnumInput::DInput_UP);
-					AssignID(EnumMenu::UP, 1, EnumInput::DInput_LSTICKUP);
-					AssignID(EnumMenu::RIGHT, 0, EnumInput::DInput_RIGHT);
-					AssignID(EnumMenu::RIGHT, 1, EnumInput::DInput_LSTICKRIGHT);
-					AssignID(EnumMenu::DOWN, 0, EnumInput::DInput_DOWN);
-					AssignID(EnumMenu::DOWN, 1, EnumInput::DInput_LSTICKDOWN);
-					break;
-				default:
-					break;
-				}
-				Load(GetLastInputDevice());
 			}
 		}
 	public:
 		void DefaultAssignID(EnumMenu Select, int ID, EnumInput Input) noexcept {
-			auto& menu = this->m_MenuKey.at(static_cast<size_t>(Select));
-			menu.m_DefaultID[ID] = Input;
+			auto& menu = this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice())).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select));
+			menu.m_DefaultID = Input;
 		}
 		void DefaultAssignID(EnumBattle Select, int ID, EnumInput Input) noexcept {
-			auto& battle = this->m_BattleKey.at(static_cast<size_t>(Select));
-			battle.m_DefaultID[ID] = Input;
+			auto& battle = this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice())).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select));
+			battle.m_DefaultID = Input;
 		}
 		void AssignID(EnumMenu Select, int ID, EnumInput Input) noexcept {
-			auto& menu = this->m_MenuKey.at(static_cast<size_t>(Select));
-			menu.m_ID[ID] = Input;
+			auto& menu = this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice())).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select));
+			menu.m_ID = Input;
 			if (Input == EnumInput::Max) {
-				menu.m_Ptr[ID] = nullptr;;
+				menu.m_Ptr = nullptr;
 			}
 			else {
-				menu.m_Ptr[ID] = &this->m_Input.at(static_cast<size_t>(menu.m_ID[ID]));
+				menu.m_Ptr = &this->m_Input.at(static_cast<size_t>(menu.m_ID));
 			}
 		}
 		void AssignID(EnumBattle Select, int ID, EnumInput Input) noexcept {
-			auto& battle = this->m_BattleKey.at(static_cast<size_t>(Select));
-			battle.m_ID[ID] = Input;
+			auto& battle = this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice())).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select));
+			battle.m_ID = Input;
 			if (Input == EnumInput::Max) {
-				battle.m_Ptr[ID] = nullptr;;
+				battle.m_Ptr = nullptr;
 			}
 			else {
-				battle.m_Ptr[ID] = &this->m_Input.at(static_cast<size_t>(battle.m_ID[ID]));
+				battle.m_Ptr = &this->m_Input.at(static_cast<size_t>(battle.m_ID));
 			}
 
 		}
@@ -915,7 +933,6 @@ namespace Util {
 					break;
 				}
 			}
-
 			AssignID(Battle, ID, Input);
 		}
 	public:
@@ -1176,52 +1193,104 @@ namespace Util {
 			}
 			return false;
 		}
-		const EnumInput& GetKeyAssign(EnumMenu Select, int ID) const noexcept { return this->m_MenuKey.at(static_cast<size_t>(Select)).m_ID[ID]; }
-		const EnumInput& GetKeyAssign(EnumBattle Select, int ID) const noexcept { return this->m_BattleKey.at(static_cast<size_t>(Select)).m_ID[ID]; }
+		const EnumInput& GetKeyAssign(InputType type, EnumMenu Select, int ID) const noexcept { return this->m_MenuKey.at(static_cast<size_t>(type)).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select)).m_ID; }
+		const EnumInput& GetKeyAssign(InputType type, EnumBattle Select, int ID) const noexcept { return this->m_BattleKey.at(static_cast<size_t>(type)).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select)).m_ID; }
 
-		const EnumInput& GetDefaultKeyAssign(EnumMenu Select, int ID) const noexcept { return this->m_MenuKey.at(static_cast<size_t>(Select)).m_DefaultID[ID]; }
-		const EnumInput& GetDefaultKeyAssign(EnumBattle Select, int ID) const noexcept { return this->m_BattleKey.at(static_cast<size_t>(Select)).m_DefaultID[ID]; }
+		const EnumInput& GetKeyAssign(EnumMenu Select, int ID) const noexcept { return GetKeyAssign(GetLastInputDevice(), Select, ID); }
+		const EnumInput& GetKeyAssign(EnumBattle Select, int ID) const noexcept { return GetKeyAssign(GetLastInputDevice(), Select, ID); }
+		const EnumInput& GetDefaultKeyAssign(EnumMenu Select, int ID) const noexcept { return this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice())).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select)).m_DefaultID; }
+		const EnumInput& GetDefaultKeyAssign(EnumBattle Select, int ID) const noexcept { return this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice())).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select)).m_DefaultID; }
 	public:
 		//入力取得
 		bool GetMenuKeyTrigger(EnumMenu Select) const noexcept {
-			auto& m = this->m_MenuKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->Trigger()) || (m.m_Ptr[1] && m.m_Ptr[1]->Trigger());
+			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = mk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->Trigger();
+				}
+			}
+			return false;
 		}
 		bool GetMenuKeyPress(EnumMenu Select) const noexcept {
-			auto& m = this->m_MenuKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->Press()) || (m.m_Ptr[1] && m.m_Ptr[1]->Press());
+			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = mk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->Press();
+				}
+			}
+			return false;
 		}
 		bool GetMenuKeyRepeat(EnumMenu Select) const noexcept {
-			auto& m = this->m_MenuKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->Repeat()) || (m.m_Ptr[1] && m.m_Ptr[1]->Repeat());
+			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = mk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->Repeat();
+				}
+			}
+			return false;
 		}
 		bool GetMenuKeyRelease(EnumMenu Select) const noexcept {
-			auto& m = this->m_MenuKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->Release()) || (m.m_Ptr[1] && m.m_Ptr[1]->Release());
+			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = mk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->Release();
+				}
+			}
+			return false;
 		}
 		bool GetMenuKeyReleaseTrigger(EnumMenu Select) const noexcept {
-			auto& m = this->m_MenuKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->ReleaseTrigger()) || (m.m_Ptr[1] && m.m_Ptr[1]->ReleaseTrigger());
+			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = mk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->ReleaseTrigger();
+				}
+			}
+			return false;
 		}
 		bool GetBattleKeyTrigger(EnumBattle Select) const noexcept {
-			auto& m = this->m_BattleKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->Trigger()) || (m.m_Ptr[1] && m.m_Ptr[1]->Trigger());
+			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = bk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->Trigger();
+				}
+			}
+			return false;
 		}
 		bool GetBattleKeyPress(EnumBattle Select) const noexcept {
-			auto& m = this->m_BattleKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->Press()) || (m.m_Ptr[1] && m.m_Ptr[1]->Press());
+			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = bk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->Press();
+				}
+			}
+			return false;
 		}
 		bool GetBattleKeyRepeat(EnumBattle Select) const noexcept {
-			auto& m = this->m_BattleKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->Repeat()) || (m.m_Ptr[1] && m.m_Ptr[1]->Repeat());
+			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = bk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->Repeat();
+				}
+			}
+			return false;
 		}
 		bool GetBattleKeyRelease(EnumBattle Select) const noexcept {
-			auto& m = this->m_BattleKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->Release()) || (m.m_Ptr[1] && m.m_Ptr[1]->Release());
+			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = bk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->Release();
+				}
+			}
+			return false;
 		}
 		bool GetBattleKeyReleaseTrigger(EnumBattle Select) const noexcept {
-			auto& m = this->m_BattleKey.at(static_cast<size_t>(Select));
-			return (m.m_Ptr[0] && m.m_Ptr[0]->ReleaseTrigger()) || (m.m_Ptr[1] && m.m_Ptr[1]->ReleaseTrigger());
+			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
+				const auto& m = bk.at(static_cast<size_t>(Select));
+				if (m.m_Ptr) {
+					return  m.m_Ptr->ReleaseTrigger();
+				}
+			}
+			return false;
 		}
 		//最後に入力したデバイス
 		InputType GetLastInputDevice(void) const noexcept { return this->m_InputType; }
@@ -1232,13 +1301,13 @@ namespace Util {
 			this->m_DeviceChangeSwitch = false;
 			//最後に入力したデバイスに更新
 			if ((CheckHitKeyAll(DX_CHECKINPUT_MOUSE) != 0) || (CheckHitKeyAll(DX_CHECKINPUT_KEY) != 0)) {
-				Assign(InputType::KeyBoard, true);
+				Assign(InputType::KeyBoard);
 			}
 			else if (CheckHitKeyAll(DX_CHECKINPUT_PAD) != 0) {
 				switch (GetJoypadType(DX_INPUT_PAD1)) {
 				case DX_PADTYPE_XBOX_360:			// Xbox360コントローラー
 				case DX_PADTYPE_XBOX_ONE:			// XboxOneコントローラー
-					Assign(InputType::XInput, true);
+					Assign(InputType::XInput);
 					break;
 				case DX_PADTYPE_DUAL_SHOCK_4:		// PS4コントローラー
 				case DX_PADTYPE_DUAL_SENSE:			// PS5コントローラー
@@ -1246,7 +1315,7 @@ namespace Util {
 				case DX_PADTYPE_SWITCH_JOY_CON_R:	// Switch Joycon(右)
 				case DX_PADTYPE_SWITCH_PRO_CTRL:	// Switch Proコントローラー
 				case DX_PADTYPE_OTHER:				// その他のコントローラー
-					Assign(InputType::DInput, true);
+					Assign(InputType::DInput);
 					break;
 				default:
 					break;

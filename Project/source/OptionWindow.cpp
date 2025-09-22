@@ -2,6 +2,7 @@
 
 void OptionWindow::UpdateColumnStr() noexcept {
 	auto* pOption = Util::OptionParam::Instance();
+	auto* KeyMngr = Util::KeyParam::Instance();
 	switch (this->m_NowSelectTab) {
 	case 0:
 	{
@@ -23,7 +24,7 @@ void OptionWindow::UpdateColumnStr() noexcept {
 		this->m_Param[1].m_Str = std::to_string(pOption->GetParam("YSensing")->GetSelect());
 
 		for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
-			this->m_Param[loop].m_Str = Util::KeyParam::GetKeyStr(Util::KeyParam::Instance()->GetKeyAssign(static_cast<Util::EnumBattle>(loop - 2), 0));
+			this->m_Param[loop].m_Str = Util::KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(static_cast<Util::EnumBattle>(loop - 2), 0));
 		}
 	}
 	break;
@@ -103,7 +104,8 @@ void OptionWindow::Init(void) noexcept {
 	this->m_DrawUI->Get(this->m_UIBase).SetActive(false);
 }
 void OptionWindow::Update(void) noexcept {
-	 auto* KeyMngr = Util::KeyParam::Instance();
+	auto* pOption = Util::OptionParam::Instance();
+	auto* KeyMngr = Util::KeyParam::Instance();
 	 if (this->m_DrawUI->Get(this->m_UIBase).IsActive()) {
 		 for (int loop = 0; loop < 4; ++loop) {
 			 if (this->m_DrawUI->Get(this->m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
@@ -115,12 +117,14 @@ void OptionWindow::Update(void) noexcept {
 			 }
 		 }
 		 if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
-			 KeyMngr->Save(KeyMngr->GetLastInputDevice());
+			 for (int loop = 0; loop < static_cast<int>(Util::InputType::Max); ++loop) {
+				 KeyMngr->Save(static_cast<Util::InputType>(loop));
+			 }
+			 pOption->Save();
 			 SetActive(false);
 		 }
 		 if (KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::Diside)) {
 			 {
-				 auto* pOption = Util::OptionParam::Instance();
 				 switch (this->m_NowSelectTab) {
 				 case 0:
 				 {

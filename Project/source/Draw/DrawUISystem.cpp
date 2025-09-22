@@ -493,7 +493,7 @@ namespace Draw {
 			//アニメ選択
 			if (SelectNow != a.m_Type) { continue; }
 			IsSelectAnim = true;
-			int index = static_cast<int>(&a - &this->m_AnimData.front());;
+			int index = static_cast<int>(&a - &this->m_AnimData.front());
 			//フレーム更新
 			if (this->m_AnimDataLastSelect != index) {
 				this->m_AnimDataLastSelect = index;
