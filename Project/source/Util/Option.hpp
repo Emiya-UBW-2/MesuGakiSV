@@ -62,7 +62,7 @@ namespace Util {
 			}
 
 			bool IsActive() const noexcept {
-				if (m_SelectType == EnumOptionSelectType::Bool) {
+				if (this->m_SelectType == EnumOptionSelectType::Bool) {
 					return GetValueNow() == "True";
 				}
 				return false;
@@ -176,8 +176,8 @@ namespace Util {
 			std::ifstream file("data/ProjectSetting/Option.json");
 			nlohmann::json jsonData = nlohmann::json::parse(file);
 			for (auto& data : jsonData["data"]) {
-				m_ParamList.emplace_back();
-				m_ParamList.back().SetByJson(data);
+				this->m_ParamList.emplace_back();
+				this->m_ParamList.back().SetByJson(data);
 			}
 			Load();
 		}
@@ -188,14 +188,14 @@ namespace Util {
 		//デストラクタ
 		~OptionParam(void) noexcept {
 			Save();
-			for (auto& param : m_ParamList) {
+			for (auto& param : this->m_ParamList) {
 				param.Dispose();
 			}
-			m_ParamList.clear();
+			this->m_ParamList.clear();
 		}
 	public:
 		const Param* GetParam(std::string_view Type) const noexcept {
-			for (auto& param : m_ParamList) {
+			for (auto& param : this->m_ParamList) {
 				if (param.GetType() == Type) {
 					return &param;
 				}
@@ -203,7 +203,7 @@ namespace Util {
 			return nullptr;
 		}
 		void SetParam(std::string_view Type, int Param) noexcept {
-			for (auto& param : m_ParamList) {
+			for (auto& param : this->m_ParamList) {
 				if (param.GetType() == Type) {
 					param.SetSelect(Param);
 					break;
@@ -217,7 +217,7 @@ namespace Util {
 				std::string Line = File::InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
 				std::string Left = File::InputFileStream::getleft(Line, "=");
 				std::string Right = File::InputFileStream::getright(Line, "=");
-				for (auto& param : m_ParamList) {
+				for (auto& param : this->m_ParamList) {
 					if (param.GetType() == Left) {
 						param.SetSelect(Right);
 						break;
@@ -227,7 +227,7 @@ namespace Util {
 		}
 		void Save(void) noexcept {
 			File::OutputFileStream Ostream("Save/Option.dat");
-			for (auto& param : m_ParamList) {
+			for (auto& param : this->m_ParamList) {
 				std::string Line = param.GetType() + "=" + param.GetValueNow();
 				Ostream.AddLine(Line);
 			}

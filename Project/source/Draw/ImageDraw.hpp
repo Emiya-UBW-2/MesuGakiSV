@@ -192,7 +192,7 @@ namespace Draw {
 			return (this->m_FilePath == FilePath);
 		}
 	public:
-		const GraphHandle* Get(void) const noexcept { return &m_Handle; }
+		const GraphHandle* Get(void) const noexcept { return &this->m_Handle; }
 	};
 	// フォントプール
 	class GraphPool : public Util::SingletonBase<GraphPool> {

@@ -22,13 +22,13 @@ namespace Draw {
 	MainDraw::MainDraw(void) noexcept {
 		Util::OptionParam::Create();
 		//
-		m_ScreenWidth = GetSystemMetrics(SM_CXSCREEN);
-		m_ScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+		this->m_ScreenWidth = GetSystemMetrics(SM_CXSCREEN);
+		this->m_ScreenHeight = GetSystemMetrics(SM_CYSCREEN);
 		DxLib::SetOutApplicationLogValidFlag(FALSE);
 		DxLib::SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);
 		DxLib::ChangeWindowMode(TRUE);
 		DxLib::SetUseDirect3DVersion(DX_DIRECT3D_11);
-		DxLib::SetGraphMode(m_ScreenWidth, m_ScreenHeight, 32);
+		DxLib::SetGraphMode(this->m_ScreenWidth, this->m_ScreenHeight, 32);
 		DxLib::SetUseDirectInputFlag(TRUE);
 		DxLib::SetDirectInputMouseMode(TRUE);
 		DxLib::SetWindowSizeChangeEnableFlag(TRUE, FALSE);

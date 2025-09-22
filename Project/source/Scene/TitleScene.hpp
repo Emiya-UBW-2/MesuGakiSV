@@ -26,30 +26,30 @@ public:
 	virtual ~TitleScene(void) noexcept {}
 protected:
 	void Init_Sub(void) noexcept override {
-		m_OptionWindow.Init();
+		this->m_OptionWindow.Init();
 	}
 	void Update_Sub(void) noexcept override {
 		auto* SceneMngr = Util::SceneManager::Instance();
 		auto* KeyMngr = Util::KeyParam::Instance();
 
-		if (!m_OptionWindow.IsActive()) {
+		if (!this->m_OptionWindow.IsActive()) {
 			if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
-				m_OptionWindow.SetActive(true);
+				this->m_OptionWindow.SetActive(true);
 			}
 		}
 		if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Cancel)) {
 			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
 			SceneBase::SetEndScene();
 		}
-		m_OptionWindow.Update();
+		this->m_OptionWindow.Update();
 	}
 	void Draw_Sub(void) noexcept override {
 		auto* DrawerMngr = Draw::MainDraw::Instance();
 		DxLib::DrawBox(5, 5, DrawerMngr->GetDispWidth() - 5, DrawerMngr->GetDispHeight() - 5, GetColor(0, 0, 255), TRUE);
 
-		m_OptionWindow.Draw();
+		this->m_OptionWindow.Draw();
 	}
 	void Dispose_Sub(void) noexcept override {
-		m_OptionWindow.Dispose();
+		this->m_OptionWindow.Dispose();
 	}
 };

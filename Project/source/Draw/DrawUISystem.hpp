@@ -99,8 +99,8 @@ namespace Draw {
 			bool				m_IsHitCheck{};
 			char		padding2[7]{};
 		public:
-			void			SetString(std::string value) noexcept { m_String = value; }
-			const auto& GetName(void) const noexcept { return m_Name; }
+			void			SetString(std::string value) noexcept { this->m_String = value; }
+			const auto& GetName(void) const noexcept { return this->m_Name; }
 		public:
 			bool			IsHitPoint(int x, int y, Param2D Parent) const noexcept;
 			void			Update(DrawUISystem* DrawUI, Param2D Parent) const noexcept;
@@ -133,8 +133,8 @@ namespace Draw {
 	public:
 		//コンストラクタ
 		DrawModule(void) noexcept {
-			m_PartsParam.reserve(128);
-			m_AnimData.reserve(128);
+			this->m_PartsParam.reserve(128);
+			this->m_AnimData.reserve(128);
 		}
 		DrawModule(const DrawModule& o) noexcept { *this = o; }
 		DrawModule(DrawModule&& o) noexcept { *this = o; }
@@ -156,15 +156,15 @@ namespace Draw {
 		}
 		//デストラクタ
 		~DrawModule(void) noexcept {
-			m_PartsParam.clear();
-			m_AnimData.clear();
+			this->m_PartsParam.clear();
+			this->m_AnimData.clear();
 		}
 	public:
-		bool			IsSelectButton(void) const noexcept { return m_IsSelect; }
-		bool			IsActive(void) const noexcept { return m_IsActive; }
-		std::string		GetBranchName() const noexcept { return m_BranchName; }
+		bool			IsSelectButton(void) const noexcept { return this->m_IsSelect; }
+		bool			IsActive(void) const noexcept { return this->m_IsActive; }
+		std::string		GetBranchName() const noexcept { return this->m_BranchName; }
 		PartsParam* GetParts(std::string_view ChildName) const noexcept {
-			for (auto& parts : m_PartsParam) {
+			for (auto& parts : this->m_PartsParam) {
 				if (parts.GetName() == ChildName) {
 					return (PartsParam*)&parts;
 				}
@@ -179,7 +179,7 @@ namespace Draw {
 		void			Init(DrawUISystem* DrawUI, std::string_view Path, std::string_view Branch) noexcept;
 		void			Update(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept;
 		void			Draw(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept {
-			for (auto& parts : m_PartsParam) {
+			for (auto& parts : this->m_PartsParam) {
 				parts.Draw(DrawUI, Param);
 			}
 			//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, GetBranchName().c_str(), GetColor(255, 0, 0));
@@ -192,7 +192,7 @@ namespace Draw {
 		std::vector<DrawModule> m_DrawModule;
 	public://コンストラクタ、デストラクタ
 		DrawUISystem(void) noexcept {
-			m_DrawModule.reserve(128);
+			this->m_DrawModule.reserve(128);
 		}
 		DrawUISystem(const DrawUISystem&) = delete;
 		DrawUISystem(DrawUISystem&&) = delete;
@@ -201,16 +201,16 @@ namespace Draw {
 		~DrawUISystem(void) noexcept {}
 	public:
 		int				Add(std::string_view Path, std::string_view Branch) noexcept {
-			int ID = static_cast<int>(m_DrawModule.size());
-			m_DrawModule.emplace_back();
-			m_DrawModule.back().Init(this, Path, Branch);
+			int ID = static_cast<int>(this->m_DrawModule.size());
+			this->m_DrawModule.emplace_back();
+			this->m_DrawModule.back().Init(this, Path, Branch);
 			return ID;
 		}
-		DrawModule& Get(int ID) noexcept { return m_DrawModule.at(static_cast<size_t>(ID)); }
+		DrawModule& Get(int ID) noexcept { return this->m_DrawModule.at(static_cast<size_t>(ID)); }
 		int				GetID(std::string_view Value) noexcept {
-			for (auto& Module : m_DrawModule) {
+			for (auto& Module : this->m_DrawModule) {
 				if (Value == Module.GetBranchName()) {
-					return static_cast<int>(&Module - &m_DrawModule.front());
+					return static_cast<int>(&Module - &this->m_DrawModule.front());
 				}
 			}
 			return -1;
@@ -242,14 +242,14 @@ namespace Draw {
 			}
 			//子供のモジュールを削除
 			for (int loop = 0, max = static_cast<int>(this->m_DrawModule.size()); loop < max; ++loop) {
-				auto& Module = m_DrawModule.at(static_cast<size_t>(loop));
+				auto& Module = this->m_DrawModule.at(static_cast<size_t>(loop));
 				if (Module.GetBranchName().find(Path) != std::string::npos) {
-					m_DrawModule.erase(m_DrawModule.begin() + loop);
+					this->m_DrawModule.erase(this->m_DrawModule.begin() + loop);
 					--loop;
 					--max;
 				}
 			}
-			for (auto& Module : m_DrawModule) {
+			for (auto& Module : this->m_DrawModule) {
 				if (Module.GetBranchName() == Name) {
 					Module.DeleteChild(ChildName.c_str());
 					break;
@@ -261,15 +261,15 @@ namespace Draw {
 			Add(Path, "");
 		}
 		void			Update(void) noexcept {
-			if (m_DrawModule.size() == 0) { return; }
-			m_DrawModule.at(0).Update(this);
+			if (this->m_DrawModule.size() == 0) { return; }
+			this->m_DrawModule.at(0).Update(this);
 		}
 		void			Draw(void) noexcept {
-			if (m_DrawModule.size() == 0) { return; }
-			m_DrawModule.at(0).Draw(this);
+			if (this->m_DrawModule.size() == 0) { return; }
+			this->m_DrawModule.at(0).Draw(this);
 		}
 		void			Dispose(void) noexcept {
-			m_DrawModule.clear();
+			this->m_DrawModule.clear();
 		}
 	};
 }

@@ -77,19 +77,19 @@ namespace Draw {
 			case EnumWindowMode::Window:
 				DxLib::SetWindowStyleMode(0);
 				DxLib::SetWindowPosition(-8, 0);
-				DxLib::SetWindowSize(m_ScreenWidth * GetDPI() / BaseDPI, (m_ScreenHeight - 79) * GetDPI() / BaseDPI);
+				DxLib::SetWindowSize(this->m_ScreenWidth * GetDPI() / BaseDPI, (this->m_ScreenHeight - 79) * GetDPI() / BaseDPI);
 				DxLib::ChangeWindowMode(TRUE);
 				break;
 			case EnumWindowMode::BorderLess:
 				DxLib::SetWindowStyleMode(4);
 				DxLib::SetWindowPosition(-8, -8);
-				DxLib::SetWindowSize(m_ScreenWidth * GetDPI() / BaseDPI, m_ScreenHeight * GetDPI() / BaseDPI);
+				DxLib::SetWindowSize(this->m_ScreenWidth * GetDPI() / BaseDPI, this->m_ScreenHeight * GetDPI() / BaseDPI);
 				DxLib::ChangeWindowMode(TRUE);
 				break;
 			case EnumWindowMode::FullScreen:
 				DxLib::SetWindowStyleMode(4);
 				DxLib::SetWindowPosition(-8, -8);
-				DxLib::SetWindowSize(m_ScreenWidth * GetDPI() / BaseDPI, m_ScreenHeight * GetDPI() / BaseDPI);
+				DxLib::SetWindowSize(this->m_ScreenWidth * GetDPI() / BaseDPI, this->m_ScreenHeight * GetDPI() / BaseDPI);
 				DxLib::SetFullScreenResolutionMode(DX_FSRESOLUTIONMODE_NATIVE);
 				DxLib::SetFullScreenScalingMode(DX_FSSCALINGMODE_NEAREST);
 				DxLib::ChangeWindowMode(FALSE);

@@ -340,8 +340,8 @@ namespace Draw {
 		this->m_PartsParam.emplace_back();
 
 		std::string ChildBranch = "";
-		if (m_BranchName != "") {
-			ChildBranch = m_BranchName + "/";
+		if (this->m_BranchName != "") {
+			ChildBranch = this->m_BranchName + "/";
 		}
 		ChildBranch += ChildName;
 		this->m_PartsParam.back().AddChild(DrawUI, ChildName, ChildBranch.c_str(), FilePath, Param);
@@ -362,11 +362,11 @@ namespace Draw {
 		std::ifstream file(Path.data());
 		nlohmann::json jsonData = nlohmann::json::parse(file);
 
-		m_BranchName = Branch;
+		this->m_BranchName = Branch;
 
 		for (auto& data : jsonData["MainParts"]) {
 			this->m_PartsParam.emplace_back();
-			this->m_PartsParam.back().SetByJson(DrawUI, data, m_BranchName);
+			this->m_PartsParam.back().SetByJson(DrawUI, data, this->m_BranchName);
 		}
 		for (auto& data : jsonData["Anim"]) {
 			this->m_AnimData.emplace_back();
@@ -456,21 +456,21 @@ namespace Draw {
 	}
 	void DrawModule::Update(DrawUISystem* DrawUI, Param2D Param) noexcept {
 		AnimType SelectNow = AnimType::Normal;
-		if (m_UseActive) {
-			if (m_IsActive) {
+		if (this->m_UseActive) {
+			if (this->m_IsActive) {
 				SelectNow = AnimType::Active;
 			}
 			else {
 				SelectNow = AnimType::DisActive;
 			}
 		}
-		m_IsSelect = false;
-		if (m_UseButton) {
+		this->m_IsSelect = false;
+		if (this->m_UseButton) {
 			auto* DrawerMngr = MainDraw::Instance();
 			auto* KeyMngr = Util::KeyParam::Instance();
 
 			bool IsSelect = false;
-			for (auto& parts : m_PartsParam) {
+			for (auto& parts : this->m_PartsParam) {
 				if (parts.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Param)) {
 					IsSelect = true;
 					break;
@@ -478,10 +478,10 @@ namespace Draw {
 			}
 			if (IsSelect) {
 				SelectNow = AnimType::OnSelect;
-				m_IsSelect = true;
+				this->m_IsSelect = true;
 			}
 
-			if (m_IsSelect) {
+			if (this->m_IsSelect) {
 				if (KeyMngr->GetMenuKeyPress(Util::EnumMenu::Diside)) {
 					SelectNow = AnimType::OnPress;
 				}
@@ -489,14 +489,14 @@ namespace Draw {
 		}
 
 		bool IsSelectAnim = false;
-		for (auto& a : m_AnimData) {
+		for (auto& a : this->m_AnimData) {
 			//アニメ選択
 			if (SelectNow != a.m_Type) { continue; }
 			IsSelectAnim = true;
-			int index = static_cast<int>(&a - &m_AnimData.front());;
+			int index = static_cast<int>(&a - &this->m_AnimData.front());;
 			//フレーム更新
-			if (m_AnimDataLastSelect != index) {
-				m_AnimDataLastSelect = index;
+			if (this->m_AnimDataLastSelect != index) {
+				this->m_AnimDataLastSelect = index;
 				this->m_Frame = 0;
 			}
 			else {
@@ -514,18 +514,18 @@ namespace Draw {
 			for (auto& anim : a.m_AnimParam) {
 				if (anim.m_StartFrame <= this->m_Frame && this->m_Frame <= anim.m_EndFrame) {
 					float Per = static_cast<float>(this->m_Frame - anim.m_StartFrame) / static_cast<float>(anim.m_EndFrame - anim.m_StartFrame);
-					m_PartsParam.at(anim.m_TargetID).CalcAnim(anim, (anim.m_StartFrame == this->m_Frame), Per);
+					this->m_PartsParam.at(anim.m_TargetID).CalcAnim(anim, (anim.m_StartFrame == this->m_Frame), Per);
 				}
 			}
 		}
 		if (!IsSelectAnim) {
-			m_AnimDataLastSelect = -1;
-			for (auto& parts : m_PartsParam) {
+			this->m_AnimDataLastSelect = -1;
+			for (auto& parts : this->m_PartsParam) {
 				parts.SetDefault();
 			}
 		}
 
-		for (auto& parts : m_PartsParam) {
+		for (auto& parts : this->m_PartsParam) {
 			parts.Update(DrawUI, Param);
 		}
 	}
