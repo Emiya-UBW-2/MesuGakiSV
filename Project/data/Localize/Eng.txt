@@ -3,6 +3,10 @@
 0002=Input
 0003=Else
 
+0050=<
+0051=>
+0052=Reset
+
 0100=MasterVolume
 0101=BGMVolume
 0102=SEVolume
@@ -44,3 +48,8 @@
 
 0400=HeadBobbing
 0401=Language
+
+1000=ゲーム開始
+1001=チュートリアル
+1002=オプション
+1003=クレジット

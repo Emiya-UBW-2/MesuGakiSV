@@ -124,19 +124,6 @@ void OptionWindow::SetTab() noexcept {
 		}
 		param.m_MinID = this->m_DrawUI->GetID((Child + "/Box1").c_str());
 		param.m_MaxID = this->m_DrawUI->GetID((Child + "/Box0").c_str());
-
-		this->m_DrawUI->Get(param.m_ID).GetParts("String1")->SetString(Util::LocalizePool::Instance()->Get(100 * (this->m_NowSelectTab + 1) + loop));
-		if (param.m_MinID != -1) {
-			this->m_DrawUI->Get(param.m_MinID).GetParts("String1")->SetString("<");
-		}
-		if (param.m_MaxID != -1) {
-			this->m_DrawUI->Get(param.m_MaxID).GetParts("String1")->SetString(">");
-			if (this->m_NowSelectTab == 2) {
-				if (loop >= 2) {
-					this->m_DrawUI->Get(param.m_MaxID).GetParts("String1")->SetString("Reset");
-				}
-			}
-		}
 	}
 	UpdateColumnStr();
 	this->m_DrawUI->Get(this->m_TabButton[this->m_NowSelectTab]).SetActive(true);
@@ -158,7 +145,6 @@ void OptionWindow::Init(void) noexcept {
 		std::string Path = "OptionUI/Tab";
 		Path += std::to_string(loop + 1);
 		this->m_TabButton[loop] = this->m_DrawUI->GetID(Path.c_str());
-		this->m_DrawUI->Get(this->m_TabButton[loop]).GetParts("String1")->SetString(Util::LocalizePool::Instance()->Get(loop));
 		this->m_DrawUI->Get(this->m_TabButton[loop]).SetActive(false);
 	}
 	this->m_NowSelectTab = 0;

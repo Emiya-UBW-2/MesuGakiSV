@@ -18,7 +18,13 @@
 			"Type":"Json",
 			"OfsNoRad":[307,-3],
 			"Scale":[1.0,0.35],
-			"FilePath":"data/UI/Button001.json"
+			"FilePath":"data/UI/Button001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":51
+				}
+			]
 		}
 		,
 		{
@@ -56,7 +62,13 @@
 			"Type":"Json",
 			"OfsNoRad":[7,-3],
 			"Scale":[1.0,0.35],
-			"FilePath":"data/UI/Button001.json"
+			"FilePath":"data/UI/Button001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":50
+				}
+			]
 		}
 		,
 		{

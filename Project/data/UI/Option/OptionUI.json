@@ -50,7 +50,13 @@
 			"Scale":[2.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/UI/Button001.json",
-			"IsHitCheck":false
+			"IsHitCheck":false,
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":0
+				}
+			]
 		},
 		{
 			"Name":"Tab2",
@@ -60,7 +66,13 @@
 			"Scale":[2.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/UI/Button001.json",
-			"IsHitCheck":false
+			"IsHitCheck":false,
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":1
+				}
+			]
 		},
 		{
 			"Name":"Tab3",
@@ -70,7 +82,13 @@
 			"Scale":[2.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/UI/Button001.json",
-			"IsHitCheck":false
+			"IsHitCheck":false,
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":2
+				}
+			]
 		},
 		{
 			"Name":"Tab4",
@@ -80,7 +98,13 @@
 			"Scale":[2.0,0.75],
 			"BaseColor":[255,255,255],
 			"FilePath":"data/UI/Button001.json",
-			"IsHitCheck":false
+			"IsHitCheck":false,
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":3
+				}
+			]
 		},
 		{
 			"Name":"CloseButton",

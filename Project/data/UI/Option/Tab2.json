@@ -5,7 +5,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,0],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild002.json"
+			"FilePath":"data/UI/Option/TabChild002.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":200
+				}
+			]
 		}
 		,
 		{
@@ -13,7 +19,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,45],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":201
+				}
+			]
 		}
 		,
 		{
@@ -21,7 +33,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,90],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":202
+				}
+			]
 		}
 		,
 		{
@@ -29,7 +47,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,135],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":203
+				}
+			]
 		}
 		,
 		{
@@ -37,7 +61,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,180],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":204
+				}
+			]
 		}
 		,
 		{
@@ -45,7 +75,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,225],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":205
+				}
+			]
 		}
 		,
 		{
@@ -53,7 +89,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,270],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":206
+				}
+			]
 		}
 		,
 		{
@@ -61,7 +103,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,315],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":207
+				}
+			]
 		}
 		,
 		{
@@ -69,7 +117,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,360],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":208
+				}
+			]
 		}
 		,
 		{
@@ -77,7 +131,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,405],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":209
+				}
+			]
 		}
 		,
 		{
@@ -85,7 +145,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,450],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":210
+				}
+			]
 		}
 		,
 		{
@@ -93,7 +159,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,495],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":211
+				}
+			]
 		}
 		,
 		{
@@ -101,7 +173,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,540],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":212
+				}
+			]
 		}
 		,
 		{
@@ -109,7 +187,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,585],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":213
+				}
+			]
 		}
 		,
 		{
@@ -117,7 +201,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,630],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":214
+				}
+			]
 		}
 		,
 		{
@@ -125,7 +215,13 @@
 			"Type":"Json",
 			"OfsNoRad":[0,675],
 			"BaseColor":[255,255,255,0],
-			"FilePath":"data/UI/Option/TabChild001.json"
+			"FilePath":"data/UI/Option/TabChild001.json",
+			"Override":[
+				{
+					"Target":"String1",
+					"FontID":215
+				}
+			]
 		}
 	],
 	"Anim":[
