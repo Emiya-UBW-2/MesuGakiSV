@@ -1205,8 +1205,8 @@ namespace Util {
 		bool GetMenuKeyTrigger(EnumMenu Select) const noexcept {
 			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = mk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->Trigger();
+				if (m.m_Ptr && m.m_Ptr->Trigger()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1214,8 +1214,8 @@ namespace Util {
 		bool GetMenuKeyPress(EnumMenu Select) const noexcept {
 			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = mk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->Press();
+				if (m.m_Ptr && m.m_Ptr->Press()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1223,8 +1223,8 @@ namespace Util {
 		bool GetMenuKeyRepeat(EnumMenu Select) const noexcept {
 			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = mk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->Repeat();
+				if (m.m_Ptr && m.m_Ptr->Repeat()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1232,8 +1232,8 @@ namespace Util {
 		bool GetMenuKeyRelease(EnumMenu Select) const noexcept {
 			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = mk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->Release();
+				if (m.m_Ptr && m.m_Ptr->Release()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1241,8 +1241,8 @@ namespace Util {
 		bool GetMenuKeyReleaseTrigger(EnumMenu Select) const noexcept {
 			for (const auto& mk : this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = mk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->ReleaseTrigger();
+				if (m.m_Ptr && m.m_Ptr->ReleaseTrigger()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1250,8 +1250,8 @@ namespace Util {
 		bool GetBattleKeyTrigger(EnumBattle Select) const noexcept {
 			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = bk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->Trigger();
+				if (m.m_Ptr && m.m_Ptr->Trigger()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1259,8 +1259,8 @@ namespace Util {
 		bool GetBattleKeyPress(EnumBattle Select) const noexcept {
 			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = bk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->Press();
+				if (m.m_Ptr && m.m_Ptr->Press()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1268,8 +1268,8 @@ namespace Util {
 		bool GetBattleKeyRepeat(EnumBattle Select) const noexcept {
 			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = bk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->Repeat();
+				if (m.m_Ptr && m.m_Ptr->Repeat()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1277,8 +1277,8 @@ namespace Util {
 		bool GetBattleKeyRelease(EnumBattle Select) const noexcept {
 			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = bk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->Release();
+				if (m.m_Ptr && m.m_Ptr->Release()) {
+					return  true;
 				}
 			}
 			return false;
@@ -1286,8 +1286,8 @@ namespace Util {
 		bool GetBattleKeyReleaseTrigger(EnumBattle Select) const noexcept {
 			for (const auto& bk : this->m_BattleKey.at(static_cast<size_t>(GetLastInputDevice()))) {
 				const auto& m = bk.at(static_cast<size_t>(Select));
-				if (m.m_Ptr) {
-					return  m.m_Ptr->ReleaseTrigger();
+				if (m.m_Ptr && m.m_Ptr->ReleaseTrigger()) {
+					return  true;
 				}
 			}
 			return false;

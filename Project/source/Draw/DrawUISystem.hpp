@@ -285,10 +285,10 @@ namespace Draw {
 			std::vector<ButtonList> UpList{};
 			std::vector<ButtonList> LeftList{};
 
-			bool IsDown = KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::DOWN);
-			bool IsRight = KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::RIGHT);
-			bool IsUp = KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::UP);
-			bool IsLeft = KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::LEFT);
+			bool IsDown = KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::DOWN);
+			bool IsRight = KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::RIGHT);
+			bool IsUp = KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::UP);
+			bool IsLeft = KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::LEFT);
 
 			for (auto& Module : this->m_DrawModule) {
 				if (!Module.IsHitCheck()) { continue; }
