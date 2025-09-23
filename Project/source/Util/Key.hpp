@@ -1297,42 +1297,6 @@ namespace Util {
 		bool IsDeviceChange(void) const noexcept { return this->m_DeviceChangeSwitch; }
 	public:
 		//毎フレーム更新する内容
-		void Update(void) noexcept {
-			this->m_DeviceChangeSwitch = false;
-			//最後に入力したデバイスに更新
-			if ((CheckHitKeyAll(DX_CHECKINPUT_MOUSE) != 0) || (CheckHitKeyAll(DX_CHECKINPUT_KEY) != 0)) {
-				Assign(InputType::KeyBoard);
-			}
-			else if (CheckHitKeyAll(DX_CHECKINPUT_PAD) != 0) {
-				switch (GetJoypadType(DX_INPUT_PAD1)) {
-				case DX_PADTYPE_XBOX_360:			// Xbox360コントローラー
-				case DX_PADTYPE_XBOX_ONE:			// XboxOneコントローラー
-					Assign(InputType::XInput);
-					break;
-				case DX_PADTYPE_DUAL_SHOCK_4:		// PS4コントローラー
-				case DX_PADTYPE_DUAL_SENSE:			// PS5コントローラー
-				case DX_PADTYPE_SWITCH_JOY_CON_L:	// Switch Joycon(左)
-				case DX_PADTYPE_SWITCH_JOY_CON_R:	// Switch Joycon(右)
-				case DX_PADTYPE_SWITCH_PRO_CTRL:	// Switch Proコントローラー
-				case DX_PADTYPE_OTHER:				// その他のコントローラー
-					Assign(InputType::DInput);
-					break;
-				default:
-					break;
-				}
-			}
-			//XInput
-			if (GetLastInputDevice() == InputType::XInput) {
-				GetJoypadXInputState(DX_INPUT_PAD1, &this->m_inputXInput);
-			}
-			//DInput
-			if (GetLastInputDevice() == InputType::DInput) {
-				GetJoypadDirectInputState(DX_INPUT_PAD1, &this->m_inputDInput);
-			}
-			//
-			for (size_t loop = static_cast<size_t>(EnumInput::Begin); loop < static_cast<size_t>(EnumInput::Max); ++loop) {
-				this->m_Input.at(static_cast<size_t>(loop)).Update(GetKeyPress(static_cast<EnumInput>(loop), false));
-			}
-		}
+		void Update(void) noexcept;
 	};
 }
