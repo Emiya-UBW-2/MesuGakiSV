@@ -5,6 +5,7 @@
 
 #include "Enum.hpp"
 #include "../File/FileStream.hpp"
+#include "Option.hpp"
 
 
 const Util::LocalizePool* Util::SingletonBase<Util::LocalizePool>::m_Singleton = nullptr;
@@ -16,7 +17,8 @@ namespace Util {
 	void LocalizePool::Load(void) noexcept {
 		Dispose();
 		std::string Path = "data/Localize/";
-		Path += LanguageStr[0];
+		auto* pOption = Util::OptionParam::Instance();
+		Path += LanguageStr[pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect()];
 		Path += ".txt";
 		this->havehandle.reserve(256);
 		File::InputFileStream FileStream(Path.c_str());

@@ -1,6 +1,30 @@
 ﻿#include "OptionWindow.hpp"
 #include "Util/Enum.hpp"
 
+void OptionWindow::SetActive(bool value) noexcept {
+	this->m_DrawUI->Get(this->m_UIBase).SetActive(value);
+	if (IsActive()) {
+		auto* pOption = Util::OptionParam::Instance();
+		m_LanguagePrev = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect();
+		SetTab();
+	}
+	else {
+		EndTab();
+
+		auto* pOption = Util::OptionParam::Instance();
+		auto* KeyMngr = Util::KeyParam::Instance();
+		for (int loop = 0; loop < static_cast<int>(Util::InputType::Max); ++loop) {
+			KeyMngr->Save(static_cast<Util::InputType>(loop));
+		}
+		pOption->Save();
+		if (m_LanguagePrev != pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect()) {
+			Util::LocalizePool::Instance()->Load();
+			//todo:言語切替により再起動
+		}
+	}
+	this->m_NowSelectTab = 0;
+}
+
 void OptionWindow::UpdateColumnStr() noexcept {
 	auto* pOption = Util::OptionParam::Instance();
 	auto* KeyMngr = Util::KeyParam::Instance();
@@ -158,10 +182,6 @@ void OptionWindow::Update(void) noexcept {
 			}
 		}
 		if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
-			for (int loop = 0; loop < static_cast<int>(Util::InputType::Max); ++loop) {
-				KeyMngr->Save(static_cast<Util::InputType>(loop));
-			}
-			pOption->Save();
 			SetActive(false);
 		}
 		if (KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::Diside)) {

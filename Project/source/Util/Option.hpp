@@ -81,7 +81,6 @@ namespace Util {
 		"XSensing",
 		"YSensing",
 
-
 		"HeadBobbing",
 		"Language",
 	};

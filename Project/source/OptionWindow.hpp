@@ -30,6 +30,7 @@ private:
 	int				m_NowSelectTab = 0;
 	int				m_NowTabMax = 0;
 	ParamButton		m_Param[m_ParamMax]{};
+	int				m_LanguagePrev{};
 public:
 	OptionWindow(void) noexcept {}
 	OptionWindow(const OptionWindow&) = delete;
@@ -39,16 +40,7 @@ public:
 	virtual ~OptionWindow(void) noexcept {}
 public:
 	bool		IsActive(void) const noexcept { return this->m_DrawUI->Get(this->m_UIBase).IsActive(); }
-	void		SetActive(bool value) noexcept {
-		this->m_DrawUI->Get(this->m_UIBase).SetActive(value);
-		if (IsActive()) {
-			SetTab();
-		}
-		else {
-			EndTab();
-		}
-		this->m_NowSelectTab = 0;
-	}
+	void		SetActive(bool value) noexcept;
 private:
 	void		UpdateColumnStr() noexcept;
 	void		SetTab() noexcept;
