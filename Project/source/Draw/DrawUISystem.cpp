@@ -202,12 +202,7 @@ namespace Draw {
 		break;
 		case PartsType::Json:
 		{
-			Param2D Child;
-			Child.OfsNoRad = PosOfs;
-			Child.Rad = Rad;
-			Child.Scale = scale;
-			Child.Color = Color;
-			DrawUI->Get(this->m_DrawModuleHandle).Draw(DrawUI, Child);
+			DrawUI->Get(this->m_DrawModuleHandle).Draw(DrawUI);
 		}
 		break;
 		case PartsType::Max:
@@ -455,6 +450,7 @@ namespace Draw {
 		}
 	}
 	void DrawModule::Update(DrawUISystem* DrawUI, Param2D Param) noexcept {
+		m_BasePositionParam = Param;
 		AnimType SelectNow = AnimType::Normal;
 		if (this->m_UseActive) {
 			if (this->m_IsActive) {
@@ -469,10 +465,15 @@ namespace Draw {
 			auto* DrawerMngr = MainDraw::Instance();
 
 			this->m_IsSelect = false;
+			this->m_IsHitCheck = false;
 			for (auto& parts : this->m_PartsParam) {
-				if (parts.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Param)) {
+				if (parts.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), m_BasePositionParam)) {
 					this->m_IsSelect = true;
 					break;
+				}
+
+				if (parts.IsHitCheck()) {
+					this->m_IsHitCheck = true;
 				}
 			}
 		}
@@ -524,7 +525,7 @@ namespace Draw {
 		}
 
 		for (auto& parts : this->m_PartsParam) {
-			parts.Update(DrawUI, Param);
+			parts.Update(DrawUI, m_BasePositionParam);
 		}
 	}
 }

@@ -111,6 +111,13 @@ namespace Draw {
 		}
 
 		void		FlipSetting(void) noexcept;
+
+		void		SetMousePosition(int MouseX, int MouseY) noexcept {
+			this->m_MouseX = (MouseX * this->m_WindowWidth / GetDispWidth()) + (this->m_WindowDrawWidth - this->m_WindowWidth) / 2;
+			this->m_MouseY = (MouseY * this->m_WindowHeight / GetDispHeight()) + (this->m_WindowDrawHeight - this->m_WindowHeight) / 2;
+
+			DxLib::SetMousePoint(this->m_MouseX, this->m_MouseY);
+		}
 	public:
 		//ループ前に実施
 		void		LoopStart(void) noexcept {

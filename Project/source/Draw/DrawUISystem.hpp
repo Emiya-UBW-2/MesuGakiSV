@@ -101,6 +101,7 @@ namespace Draw {
 		public:
 			void			SetString(std::string value) noexcept { this->m_String = value; }
 			const auto& GetName(void) const noexcept { return this->m_Name; }
+			bool			IsHitCheck(void) const noexcept { return this->m_IsHitCheck; }
 		public:
 			bool			IsHitPoint(int x, int y, Param2D Parent) const noexcept;
 			void			Update(DrawUISystem* DrawUI, Param2D Parent) const noexcept;
@@ -122,13 +123,15 @@ namespace Draw {
 	private:
 		std::vector<PartsParam>	m_PartsParam;
 		std::vector<AnimData>	m_AnimData;
+		Param2D					m_BasePositionParam = Param2D();
 		int						m_AnimDataLastSelect{};
 		int						m_Frame{};
 		bool					m_IsSelect{};
 		bool					m_IsActive{ true };
 		bool					m_UseActive{};
 		bool					m_UseButton{};
-		char		padding[4]{};
+		bool					m_IsHitCheck{};
+		char		padding[3]{};
 		std::string				m_BranchName{};
 	public:
 		//コンストラクタ
@@ -162,7 +165,9 @@ namespace Draw {
 	public:
 		bool			IsSelectButton(void) const noexcept { return this->m_IsSelect; }
 		bool			IsActive(void) const noexcept { return this->m_IsActive; }
+		bool			IsHitCheck(void) const noexcept { return this->m_IsHitCheck; }
 		std::string		GetBranchName() const noexcept { return this->m_BranchName; }
+		Param2D			GetBasePositionParam() const noexcept { return this->m_BasePositionParam; }
 		PartsParam* GetParts(std::string_view ChildName) const noexcept {
 			for (auto& parts : this->m_PartsParam) {
 				if (parts.GetName() == ChildName) {
@@ -178,9 +183,9 @@ namespace Draw {
 	public:
 		void			Init(DrawUISystem* DrawUI, std::string_view Path, std::string_view Branch) noexcept;
 		void			Update(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept;
-		void			Draw(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept {
+		void			Draw(DrawUISystem* DrawUI) noexcept {
 			for (auto& parts : this->m_PartsParam) {
-				parts.Draw(DrawUI, Param);
+				parts.Draw(DrawUI, m_BasePositionParam);
 			}
 			//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, GetBranchName().c_str(), GetColor(255, 0, 0));
 		}
@@ -263,6 +268,134 @@ namespace Draw {
 		void			Update(void) noexcept {
 			if (this->m_DrawModule.size() == 0) { return; }
 			this->m_DrawModule.at(0).Update(this);
+
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			auto* KeyMngr = Util::KeyParam::Instance();
+
+			Util::VECTOR2D MousePos(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()));
+
+			struct ButtonList {
+				size_t ID;
+				int ABSDeg{};
+				float Length{};
+			};
+
+			std::vector<ButtonList> DownList{};
+			std::vector<ButtonList> RightList{};
+			std::vector<ButtonList> UpList{};
+			std::vector<ButtonList> LeftList{};
+
+			bool IsDown = KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::DOWN);
+			bool IsRight = KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::RIGHT);
+			bool IsUp = KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::UP);
+			bool IsLeft = KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::LEFT);
+
+			for (auto& Module : this->m_DrawModule) {
+				if (!Module.IsHitCheck()) { continue; }
+				if (Module.IsSelectButton()) { continue; }
+
+				size_t index = static_cast<size_t>(&Module - &this->m_DrawModule.front());
+
+				Util::VECTOR2D Pos = Module.GetBasePositionParam().OfsNoRad;
+				Util::VECTOR2D Vec = Pos - MousePos;
+				float Length = std::hypotf(Vec.x, Vec.y);
+				float Deg = Util::rad2deg(std::atan2f(Vec.x, Vec.y));
+
+				if (IsDown && (0.f + -45.f <= Deg && Deg < 0.f + 45.f)) {
+					ButtonList List;
+					List.ID = index;
+					List.Length = Length;
+					List.ABSDeg = static_cast<int>(std::fabsf(Deg)) / 3;
+					DownList.emplace_back(List);
+
+				}
+				if (IsRight && (90.f - 45.f <= Deg && Deg <= 90.f + 45.f)) {
+					ButtonList List;
+					List.ID = index;
+					List.Length = Length;
+					List.ABSDeg = static_cast<int>(std::fabsf(Deg - 90.f)) / 3;
+					RightList.emplace_back(List);
+				}
+				if (IsUp && (180.f + -45.f <= Deg || Deg <= -180.f + 45.f)) {
+					ButtonList List;
+					List.ID = index;
+					List.Length = Length;
+					if (Deg > 0) {
+						List.ABSDeg = static_cast<int>(std::fabsf(180.f - Deg)) / 3;
+					}
+					else {
+						List.ABSDeg = static_cast<int>(std::fabsf(-180.f - Deg)) / 3;
+					}
+					UpList.emplace_back(List);
+				}
+				if (IsLeft && (-90.f + -45.f <= Deg && Deg <= -90.f + 45.f)) {
+					ButtonList List;
+					List.ID = index;
+					List.Length = Length;
+					List.ABSDeg = static_cast<int>(std::fabsf(-90.f - Deg)) / 3;
+					LeftList.emplace_back(List);
+				}
+			}
+			if (IsDown && DownList.size() > 0) {
+				std::sort(DownList.begin(), DownList.end(), [](const ButtonList& A, const ButtonList& B) { return A.Length < B.Length; });
+				size_t ID = DownList.front().ID;
+				int Deg = DownList.front().ABSDeg;
+				for (size_t loop = 0; loop < std::min<size_t>(DownList.size(), 3); ++loop) {
+					if (Deg > DownList.at(loop).ABSDeg) {
+						Deg = DownList.at(loop).ABSDeg;
+						ID = DownList.at(loop).ID;
+					}
+				}
+
+				auto& Module = this->m_DrawModule.at(ID);
+				Util::VECTOR2D Pos = Module.GetBasePositionParam().OfsNoRad;
+				DrawerMngr->SetMousePosition(static_cast<int>(Pos.x), static_cast<int>(Pos.y));
+			}
+			if (IsRight && RightList.size() > 0) {
+				std::sort(RightList.begin(), RightList.end(), [](const ButtonList& A, const ButtonList& B) { return A.Length < B.Length; });
+				size_t ID = RightList.front().ID;
+				int Deg = RightList.front().ABSDeg;
+				for (size_t loop = 0; loop < std::min<size_t>(RightList.size(), 3); ++loop) {
+					if (Deg > RightList.at(loop).ABSDeg) {
+						Deg = RightList.at(loop).ABSDeg;
+						ID = RightList.at(loop).ID;
+					}
+				}
+
+				auto& Module = this->m_DrawModule.at(ID);
+				Util::VECTOR2D Pos = Module.GetBasePositionParam().OfsNoRad;
+				DrawerMngr->SetMousePosition(static_cast<int>(Pos.x), static_cast<int>(Pos.y));
+			}
+			if (IsUp && UpList.size() > 0) {
+				std::sort(UpList.begin(), UpList.end(), [](const ButtonList& A, const ButtonList& B) { return A.Length < B.Length; });
+				size_t ID = UpList.front().ID;
+				int Deg = UpList.front().ABSDeg;
+				for (size_t loop = 0; loop < std::min<size_t>(UpList.size(), 3); ++loop) {
+					if (Deg > UpList.at(loop).ABSDeg) {
+						Deg = UpList.at(loop).ABSDeg;
+						ID = UpList.at(loop).ID;
+					}
+				}
+
+				auto& Module = this->m_DrawModule.at(ID);
+				Util::VECTOR2D Pos = Module.GetBasePositionParam().OfsNoRad;
+				DrawerMngr->SetMousePosition(static_cast<int>(Pos.x), static_cast<int>(Pos.y));
+			}
+			if (IsLeft && LeftList.size() > 0) {
+				std::sort(LeftList.begin(), LeftList.end(), [](const ButtonList& A, const ButtonList& B) { return A.Length < B.Length; });
+				size_t ID = LeftList.front().ID;
+				int Deg = LeftList.front().ABSDeg;
+				for (size_t loop = 0; loop < std::min<size_t>(LeftList.size(), 3); ++loop) {
+					if (Deg > LeftList.at(loop).ABSDeg) {
+						Deg = LeftList.at(loop).ABSDeg;
+						ID = LeftList.at(loop).ID;
+					}
+				}
+
+				auto& Module = this->m_DrawModule.at(ID);
+				Util::VECTOR2D Pos = Module.GetBasePositionParam().OfsNoRad;
+				DrawerMngr->SetMousePosition(static_cast<int>(Pos.x), static_cast<int>(Pos.y));
+			}
 		}
 		void			Draw(void) noexcept {
 			if (this->m_DrawModule.size() == 0) { return; }
