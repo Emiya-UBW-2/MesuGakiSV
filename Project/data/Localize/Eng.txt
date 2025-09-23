@@ -1,4 +1,46 @@
-0000=
-0001=
-0002=
-0003=
+0000=Audio
+0001=Graphic
+0002=Input
+0003=Else
+
+0100=MasterVolume
+0101=BGMVolume
+0102=SEVolume
+
+0200=WindowMode
+0201=VSync
+0202=FPSLimit
+0203=GraphicsPreset
+0204=DrawScale
+0205=ObjectLevel
+0206=DoF
+0207=Bloom
+0208=Shadow
+0209=SSAO
+0210=Fov
+0211=ScreenEffect
+0212=Reflection
+0213=MotionBlur
+0214=AntiAliasing
+0215=GodRay
+
+0300=XSensing
+0301=YSensing
+0302=Go Front
+0303=Go Back
+0304=Go Left
+0305=Go Right
+0306=Left Lean
+0307=Right Lean
+0308=Run
+0309=Walk
+0310=Squat
+0311=Prone
+0312=Jump
+0313=Attack
+0314=Use Sight
+0315=Change Weapon
+0316=Reload Weapon
+
+0400=HeadBobbing
+0401=Language
