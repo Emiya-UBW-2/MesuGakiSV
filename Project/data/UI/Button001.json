@@ -36,7 +36,7 @@
 			"Ofs":[0,0],
 			"Size":[58,58],
 			"Rad":0,
-			"Scale":[1.0,1.0],
+			"Scale":[1.5,1.5],
 			"Center":[0.5,0.5],
 			"BaseColor":[255,255,255],
 			"IsHitCheck":false,

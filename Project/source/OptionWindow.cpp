@@ -2,17 +2,15 @@
 #include "Util/Enum.hpp"
 
 void OptionWindow::SetActive(bool value) noexcept {
+	auto* pOption = Util::OptionParam::Instance();
+	auto* KeyMngr = Util::KeyParam::Instance();
 	this->m_DrawUI->Get(this->m_UIBase).SetActive(value);
 	if (IsActive()) {
-		auto* pOption = Util::OptionParam::Instance();
 		m_LanguagePrev = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect();
 		SetTab();
 	}
 	else {
 		EndTab();
-
-		auto* pOption = Util::OptionParam::Instance();
-		auto* KeyMngr = Util::KeyParam::Instance();
 		for (int loop = 0; loop < static_cast<int>(Util::InputType::Max); ++loop) {
 			KeyMngr->Save(static_cast<Util::InputType>(loop));
 		}

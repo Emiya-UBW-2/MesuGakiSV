@@ -189,7 +189,7 @@ namespace Draw {
 					static_cast<int>(x2), static_cast<int>(y2),
 					Color.GetColor(), GetColor(0, 0, 0), this->String);
 				//*/
-				FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, static_cast<int>(18.f * scale.y), 3)->DrawString(
 					FontXCenter::MIDDLE, FontYCenter::MIDDLE,
 					static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
 					Color.GetColor(), GetColor(0, 0, 0),
