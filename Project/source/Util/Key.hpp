@@ -1001,7 +1001,7 @@ namespace Util {
 							LS_Degree = rad2deg(std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)));
 						}
 					}
-					{
+					if (false) {
 						int RS_X = this->m_inputXInput.ThumbRX;
 						int RS_Y = -this->m_inputXInput.ThumbRY;
 						//XInputが-1000~1000になるように変換
@@ -1101,7 +1101,7 @@ namespace Util {
 							LS_Degree = rad2deg(std::atan2f(static_cast<float>(LS_X), static_cast<float>(-LS_Y)));
 						}
 					}
-					{
+					if (false) {
 						int RS_X = this->m_inputDInput.Z;
 						int RS_Y = this->m_inputDInput.Rz;
 						//XInputが-1000~1000になるように変換
