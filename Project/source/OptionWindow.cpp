@@ -56,6 +56,19 @@ void OptionWindow::UpdateColumnStr() noexcept {
 	}
 	break;
 	case 3:
+	{
+		for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+			auto& param = this->m_Param[loop];
+			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::HeadBobbing)));
+			param.m_Str = pOption->GetParam(Type)->GetValueNow();
+			if (param.m_MinID != -1) {
+				this->m_DrawUI->Get(param.m_MinID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMin());
+			}
+			if (param.m_MaxID != -1) {
+				this->m_DrawUI->Get(param.m_MaxID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMax());
+			}
+		}
+	}
 		break;
 	default:
 		break;
@@ -206,6 +219,18 @@ void OptionWindow::Update(void) noexcept {
 			}
 			break;
 			case 3:
+			{
+				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+					auto& param = this->m_Param[loop];
+					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::HeadBobbing)));
+					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
+					}
+					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
+					}
+				}
+			}
 				break;
 			default:
 				break;

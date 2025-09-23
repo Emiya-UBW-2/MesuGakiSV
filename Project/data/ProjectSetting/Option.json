@@ -124,6 +124,18 @@
 			"SelectType" : "Int",
 			"Value" : [0,200],
 			"DefaultValue" : 100
+		},
+		{
+			"Type":"HeadBobbing",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
+			"Type":"Language",
+			"SelectType": "Select",
+			"Value" : ["JPN","ENG"],
+			"DefaultValue" : "JPN"
 		}
 	]
 }

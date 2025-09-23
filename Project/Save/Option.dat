@@ -19,3 +19,5 @@ BGMVolume=50
 SEVolume=50
 XSensing=100
 YSensing=100
+HeadBobbing=True
+Language=JPN
