@@ -239,5 +239,5 @@ void OptionWindow::Update(void) noexcept {
 			this->m_DrawUI->Get(param.m_ID).SetActive(this->m_DrawUI->Get(param.m_ID).IsSelectButton());
 		}
 	}
-	this->m_DrawUI->Update();
+	this->m_DrawUI->Update(IsActive());
 }
