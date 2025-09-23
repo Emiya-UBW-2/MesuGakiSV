@@ -7,39 +7,51 @@ void OptionWindow::UpdateColumnStr() noexcept {
 	switch (this->m_NowSelectTab) {
 	case 0:
 	{
-		this->m_Param[0].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::MasterVolume))->GetSelect());
-		this->m_Param[1].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::BGMVolume))->GetSelect());
-		this->m_Param[2].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::SEVolume))->GetSelect());
+		for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+			auto& param = this->m_Param[loop];
+			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::MasterVolume)));
+			param.m_Str = pOption->GetParam(Type)->GetValueNow();
+			if (param.m_MinID != -1) {
+				this->m_DrawUI->Get(param.m_MinID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMin());
+			}
+			if (param.m_MaxID != -1) {
+				this->m_DrawUI->Get(param.m_MaxID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMax());
+			}
+		}
 	}
 	break;
 	case 1:
 	{
-		this->m_Param[0].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::WindowMode))->GetValueNow();
-		this->m_Param[1].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->GetValueNow();
-		this->m_Param[2].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetValueNow();
-
-		this->m_Param[3].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::GraphicsPreset))->GetValueNow();
-		this->m_Param[4].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::DrawScale))->GetSelect());
-		this->m_Param[5].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel))->GetValueNow();
-		this->m_Param[6].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::DoF))->GetValueNow();
-		this->m_Param[7].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Bloom))->GetValueNow();
-		this->m_Param[8].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetValueNow();
-		this->m_Param[9].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::SSAO))->GetValueNow();
-		this->m_Param[10].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Fov))->GetSelect());
-		this->m_Param[11].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->GetValueNow();
-		this->m_Param[12].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetValueNow();
-		this->m_Param[13].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::MotionBlur))->GetValueNow();
-		this->m_Param[14].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::AntiAliasing))->GetValueNow();
-		this->m_Param[15].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::GodRay))->GetValueNow();
+		for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+			auto& param = this->m_Param[loop];
+			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::WindowMode)));
+			param.m_Str = pOption->GetParam(Type)->GetValueNow();
+			if (param.m_MinID != -1) {
+				this->m_DrawUI->Get(param.m_MinID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMin());
+			}
+			if (param.m_MaxID != -1) {
+				this->m_DrawUI->Get(param.m_MaxID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMax());
+			}
+		}
 	}
 	break;
 	case 2:
 	{
-		this->m_Param[0].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::XSensing))->GetSelect());
-		this->m_Param[1].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::YSensing))->GetSelect());
-
+		for (int loop = 0; loop < 2; ++loop) {
+			auto& param = this->m_Param[loop];
+			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::XSensing)));
+			param.m_Str = pOption->GetParam(Type)->GetValueNow();
+			if (param.m_MinID != -1) {
+				this->m_DrawUI->Get(param.m_MinID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMin());
+			}
+			if (param.m_MaxID != -1) {
+				this->m_DrawUI->Get(param.m_MaxID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMax());
+			}
+		}
 		for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
-			this->m_Param[loop].m_Str = Util::KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(static_cast<Util::EnumBattle>(loop - 2), 0));
+			auto& param = this->m_Param[loop];
+			param.m_Str = Util::KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(static_cast<Util::EnumBattle>(loop - 2), 0));
+			this->m_DrawUI->Get(param.m_MaxID).SetActive(true);
 		}
 	}
 	break;
@@ -122,129 +134,110 @@ void OptionWindow::Init(void) noexcept {
 void OptionWindow::Update(void) noexcept {
 	auto* pOption = Util::OptionParam::Instance();
 	auto* KeyMngr = Util::KeyParam::Instance();
-	 if (this->m_DrawUI->Get(this->m_UIBase).IsActive()) {
-		 for (int loop = 0; loop < 4; ++loop) {
-			 if (this->m_DrawUI->Get(this->m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
-				 if (this->m_NowSelectTab != loop) {
-					 EndTab();
-					 this->m_NowSelectTab = loop;
-					 SetTab();
-				 }
-			 }
-		 }
-		 if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
-			 for (int loop = 0; loop < static_cast<int>(Util::InputType::Max); ++loop) {
-				 KeyMngr->Save(static_cast<Util::InputType>(loop));
-			 }
-			 pOption->Save();
-			 SetActive(false);
-		 }
-		 if (KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::Diside)) {
-			 {
-				 switch (this->m_NowSelectTab) {
-				 case 0:
-				 {
-					 //
-					 if (this->m_DrawUI->Get(this->m_Param[0].m_MinID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::MasterVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::MasterVolume))->GetSelect() - 1);
-					 }
-					 if (this->m_DrawUI->Get(this->m_Param[0].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::MasterVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::MasterVolume))->GetSelect() + 1);
-					 }
-					 //
-					 if (this->m_DrawUI->Get(this->m_Param[1].m_MinID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::BGMVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::BGMVolume))->GetSelect() - 1);
-					 }
-					 if (this->m_DrawUI->Get(this->m_Param[1].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::BGMVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::BGMVolume))->GetSelect() + 1);
-					 }
-					 //
-					 if (this->m_DrawUI->Get(this->m_Param[2].m_MinID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::SEVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::SEVolume))->GetSelect() - 1);
-					 }
-					 if (this->m_DrawUI->Get(this->m_Param[2].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::SEVolume), pOption->GetParam(pOption->GetOptionType(Util::OptionType::SEVolume))->GetSelect() + 1);
-					 }
-				 }
-				 break;
-				 case 1:
-				 {
-					 for (int loop = 0; loop < 16; ++loop) {
-						 auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop));
-						 if (this->m_DrawUI->Get(this->m_Param[static_cast<size_t>(loop)].m_MinID).IsSelectButton()) {
-							 pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
-							 Draw::MainDraw::Instance()->FlipSetting();
-						 }
-						 if (this->m_DrawUI->Get(this->m_Param[static_cast<size_t>(loop)].m_MaxID).IsSelectButton()) {
-							 pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
-							 Draw::MainDraw::Instance()->FlipSetting();
-						 }
-					 }
-				 }
-				 break;
-				 case 2:
-				 {
-					 //
-					 if (this->m_DrawUI->Get(this->m_Param[0].m_MinID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::XSensing), pOption->GetParam(pOption->GetOptionType(Util::OptionType::XSensing))->GetSelect() - 1);
-					 }
-					 if (this->m_DrawUI->Get(this->m_Param[0].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::XSensing), pOption->GetParam(pOption->GetOptionType(Util::OptionType::XSensing))->GetSelect() + 1);
-					 }
-					 //
-					 if (this->m_DrawUI->Get(this->m_Param[1].m_MinID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::YSensing), pOption->GetParam(pOption->GetOptionType(Util::OptionType::YSensing))->GetSelect() - 1);
-					 }
-					 if (this->m_DrawUI->Get(this->m_Param[1].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::YSensing), pOption->GetParam(pOption->GetOptionType(Util::OptionType::YSensing))->GetSelect() + 1);
-					 }
-					 //
-					 for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
-						 if (this->m_DrawUI->Get(this->m_Param[loop].m_MaxID).IsSelectButton()) {
-							 Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
-							 KeyMngr->AssignBattleID(Battle, 0, KeyMngr->GetDefaultKeyAssign(Battle, 0));
-						 }
-					 }
-				 }
-				 break;
-				 case 3:
-					 break;
-				 default:
-					 break;
-				 }
-			 }
-			 UpdateColumnStr();
-		 }
-		 if (this->m_NowSelectTab == 2) {
-			 bool IsChange = false;
-			 for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
-				 Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
-				 if (this->m_DrawUI->Get(this->m_Param[loop].m_ID).IsSelectButton()) {
-					 for (int loop2 = static_cast<int>(Util::EnumInput::Begin); loop2 < static_cast<int>(Util::EnumInput::Max); ++loop2) {
-						 Util::EnumInput Input = static_cast<Util::EnumInput>(loop2);
-						 if (KeyMngr->GetKeyPress(Input, true)) {
-							 KeyMngr->AssignBattleID(Battle, 0, Input);
-							 IsChange = true;
-							 break;
-						 }
-					 }
-				 }
-				 if (IsChange) { break; }
-			 }
-			 if (IsChange || KeyMngr->IsDeviceChange()) {
-				 UpdateColumnStr();
-			 }
-		 }
+	if (this->m_DrawUI->Get(this->m_UIBase).IsActive()) {
+		for (int loop = 0; loop < 4; ++loop) {
+			if (this->m_DrawUI->Get(this->m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
+				if (this->m_NowSelectTab != loop) {
+					EndTab();
+					this->m_NowSelectTab = loop;
+					SetTab();
+				}
+			}
+		}
+		if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
+			for (int loop = 0; loop < static_cast<int>(Util::InputType::Max); ++loop) {
+				KeyMngr->Save(static_cast<Util::InputType>(loop));
+			}
+			pOption->Save();
+			SetActive(false);
+		}
+		if (KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::Diside)) {
+			switch (this->m_NowSelectTab) {
+			case 0:
+			{
+				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+					auto& param = this->m_Param[loop];
+					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::MasterVolume)));
+					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
+					}
+					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
+					}
+				}
+			}
+			break;
+			case 1:
+			{
+				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+					auto& param = this->m_Param[loop];
+					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::WindowMode)));
+					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
+						Draw::MainDraw::Instance()->FlipSetting();
+					}
+					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
+						Draw::MainDraw::Instance()->FlipSetting();
+					}
+				}
+			}
+			break;
+			case 2:
+			{
+				for (int loop = 0; loop < 2; ++loop) {
+					auto& param = this->m_Param[loop];
+					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::XSensing)));
+					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
+					}
+					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
+					}
+				}
+				//
+				for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
+					auto& param = this->m_Param[loop];
+					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+						Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
+						KeyMngr->AssignBattleID(Battle, 0, KeyMngr->GetDefaultKeyAssign(Battle, 0));
+					}
+				}
+			}
+			break;
+			case 3:
+				break;
+			default:
+				break;
+			}
+			UpdateColumnStr();
+		}
+		if (this->m_NowSelectTab == 2) {
+			bool IsChange = false;
+			for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
+				auto& param = this->m_Param[loop];
+				Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
+				if (this->m_DrawUI->Get(param.m_ID).IsSelectButton()) {
+					for (int loop2 = static_cast<int>(Util::EnumInput::Begin); loop2 < static_cast<int>(Util::EnumInput::Max); ++loop2) {
+						Util::EnumInput Input = static_cast<Util::EnumInput>(loop2);
+						if (KeyMngr->GetKeyPress(Input, true)) {
+							KeyMngr->AssignBattleID(Battle, 0, Input);
+							IsChange = true;
+							break;
+						}
+					}
+				}
+				if (IsChange) { break; }
+			}
+			if (IsChange || KeyMngr->IsDeviceChange()) {
+				UpdateColumnStr();
+			}
+		}
 
-		 for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
-			 auto& param = this->m_Param[loop];
-			 this->m_DrawUI->Get(param.m_ID).SetActive(
-				 this->m_DrawUI->Get(param.m_ID).IsSelectButton()
-			 );
-			 if (this->m_DrawUI->Get(param.m_ID).IsSelectButton()) {
-				 int a = 0;
-			 }
-		 }
-	 }
-	 this->m_DrawUI->Update();
+		for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+			auto& param = this->m_Param[loop];
+			this->m_DrawUI->Get(param.m_ID).SetActive(this->m_DrawUI->Get(param.m_ID).IsSelectButton());
+		}
 	}
+	this->m_DrawUI->Update();
+}
