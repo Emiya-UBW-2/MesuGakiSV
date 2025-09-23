@@ -65,6 +65,9 @@
     <ClCompile Include="source\OptionWindow.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="source\TitleUI.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\File\json.hpp">
@@ -113,6 +116,9 @@
       <Filter>ソース ファイル\Util</Filter>
     </ClInclude>
     <ClInclude Include="source\OptionWindow.hpp">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="source\TitleUI.hpp">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
   </ItemGroup>

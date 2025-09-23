@@ -88,13 +88,12 @@ namespace Draw {
 			Param2D				m_Now{};
 			Param2D				m_Before{};
 
-			std::string			m_String{};
-
 			Util::VECTOR2D		m_Min{};
 			Util::VECTOR2D		m_Max{};
 			std::string			m_ImagePath{};
 			int					m_DrawModuleHandle{};
-			char		padding[4]{};
+			int					m_StringID{};
+			std::string			m_String{};
 			const GraphHandle* m_ImageHandle{};
 			bool				m_IsHitCheck{};
 			char		padding2[7]{};

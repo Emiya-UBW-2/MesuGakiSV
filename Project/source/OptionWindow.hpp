@@ -31,6 +31,7 @@ private:
 	int				m_NowTabMax = 0;
 	ParamButton		m_Param[m_ParamMax]{};
 	int				m_LanguagePrev{};
+	char		padding[4]{};
 public:
 	OptionWindow(void) noexcept {}
 	OptionWindow(const OptionWindow&) = delete;

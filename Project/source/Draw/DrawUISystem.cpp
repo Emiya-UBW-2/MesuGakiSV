@@ -3,6 +3,8 @@
 #pragma warning(disable:5259)
 #include "DrawUISystem.hpp"
 
+#include "../Util/Localize.hpp"
+
 namespace Draw {
 	bool DrawModule::PartsParam::IsHitPoint(int x, int y, Param2D Parent) const noexcept {
 		if (!this->m_IsHitCheck) { return false; }
@@ -299,7 +301,8 @@ namespace Draw {
 		}
 
 		if (data.contains("FontID")) {
-			this->m_String = data["FontID"];
+			this->m_StringID= data["FontID"];
+			this->m_String = Util::LocalizePool::Instance()->Get(this->m_StringID);
 		}
 		if (data.contains("Min")) {
 			this->m_Min.SetByJson(data["Min"]);
@@ -315,17 +318,32 @@ namespace Draw {
 		if (data.contains("FilePath")) {
 			std::string FilePath = data["FilePath"];
 			std::string ChildBranch;
-			if (BranchName == "") {
-				ChildBranch = this->m_Name;
+			if (BranchName != "") {
+				ChildBranch = BranchName + "/";
 			}
-			else {
-				ChildBranch = BranchName + "/" + this->m_Name;
-			}
+			ChildBranch += this->m_Name;
 			this->m_DrawModuleHandle = DrawUI->Add(FilePath.c_str(), ChildBranch.c_str());
 		}
-		;
 		if (data.contains("IsHitCheck")) {
 			this->m_IsHitCheck = data["IsHitCheck"];
+		}
+		if (data.contains("Override")) {
+			std::string ChildBranch;
+			if (BranchName != "") {
+				ChildBranch = BranchName + "/";
+			}
+			ChildBranch += this->m_Name;
+			int ID = DrawUI->GetID(ChildBranch);
+			if (ID != -1) {
+				for (auto& o : data["Override"]) {
+					std::string Target = o["Target"];
+					auto* Parts = DrawUI->Get(ID).GetParts(Target);
+					if (o.contains("FontID")) {
+						Parts->m_StringID = o["FontID"];
+						Parts->m_String = Util::LocalizePool::Instance()->Get(Parts->m_StringID);
+					}
+				}
+			}
 		}
 
 		SetDefault();

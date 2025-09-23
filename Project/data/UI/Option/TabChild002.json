@@ -48,7 +48,7 @@
 			"Center":[0.5,0.5],
 			"BaseColor":[0,255,0],
 			"IsHitCheck":false,
-			"FontID":"test"
+			"FontID":0
 		}
 		,
 		{
@@ -70,7 +70,7 @@
 			"Center":[0.5,0.5],
 			"BaseColor":[255,255,255],
 			"IsHitCheck":false,
-			"FontID":"test"
+			"FontID":0
 		}
 	],
 	"Anim":[
