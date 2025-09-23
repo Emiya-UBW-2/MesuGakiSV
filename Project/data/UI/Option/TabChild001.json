@@ -1,10 +1,23 @@
 {
 	"MainParts":[
 		{
+			"Name":"BoxBack",
+			"Type":"Box",
+			"OfsNoRad":[0,0],
+			"Ofs":[0,0],
+			"Size":[800,42],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255,0],
+			"IsHitCheck":true
+		}
+		,
+		{
 			"Name":"Box0",
 			"Type":"Json",
-			"OfsNoRad":[310,0],
-			"Scale":[1.0,0.75],
+			"OfsNoRad":[307,-3],
+			"Scale":[1.0,0.35],
 			"FilePath":"data/UI/Button001.json"
 		}
 		,
@@ -13,7 +26,7 @@
 			"Type":"NineSlice",
 			"OfsNoRad":[210,0],
 			"Ofs":[0,0],
-			"Size":[90,50],
+			"Size":[90,40],
 			"Rad":0,
 			"Scale":[1.0,1.0],
 			"Center":[0.5,0.5],
@@ -41,8 +54,8 @@
 		{
 			"Name":"Box1",
 			"Type":"Json",
-			"OfsNoRad":[110,0],
-			"Scale":[1.0,0.75],
+			"OfsNoRad":[107,-3],
+			"Scale":[1.0,0.35],
 			"FilePath":"data/UI/Button001.json"
 		}
 		,
@@ -61,5 +74,29 @@
 		}
 	],
 	"Anim":[
+		{
+			"Type":"Active",
+			"Loop":true,
+			"Anim":[
+				{
+					"Target":"BoxBack",
+					"Color":[255,255,255,64],
+					"StartFrame":0,
+					"EndFrame":6
+				}
+			]
+		},
+		{
+			"Type":"DisActive",
+			"Loop":true,
+			"Anim":[
+				{
+					"Target":"BoxBack",
+					"Color":[255,255,255,0],
+					"StartFrame":0,
+					"EndFrame":6
+				}
+			]
+		}
 	]
 }

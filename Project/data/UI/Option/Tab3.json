@@ -11,7 +11,7 @@
 		{
 			"Name":"Column2",
 			"Type":"Json",
-			"OfsNoRad":[0,70],
+			"OfsNoRad":[0,45],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
@@ -19,7 +19,7 @@
 		{
 			"Name":"Column3",
 			"Type":"Json",
-			"OfsNoRad":[0,130],
+			"OfsNoRad":[0,90],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -27,7 +27,7 @@
 		{
 			"Name":"Column4",
 			"Type":"Json",
-			"OfsNoRad":[0,175],
+			"OfsNoRad":[0,135],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -35,7 +35,7 @@
 		{
 			"Name":"Column5",
 			"Type":"Json",
-			"OfsNoRad":[0,220],
+			"OfsNoRad":[0,180],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -43,7 +43,7 @@
 		{
 			"Name":"Column6",
 			"Type":"Json",
-			"OfsNoRad":[0,265],
+			"OfsNoRad":[0,225],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -51,7 +51,7 @@
 		{
 			"Name":"Column7",
 			"Type":"Json",
-			"OfsNoRad":[0,310],
+			"OfsNoRad":[0,270],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -59,7 +59,7 @@
 		{
 			"Name":"Column8",
 			"Type":"Json",
-			"OfsNoRad":[0,355],
+			"OfsNoRad":[0,315],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -67,7 +67,7 @@
 		{
 			"Name":"Column9",
 			"Type":"Json",
-			"OfsNoRad":[0,400],
+			"OfsNoRad":[0,360],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -75,7 +75,7 @@
 		{
 			"Name":"Column10",
 			"Type":"Json",
-			"OfsNoRad":[0,445],
+			"OfsNoRad":[0,405],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -83,7 +83,7 @@
 		{
 			"Name":"Column11",
 			"Type":"Json",
-			"OfsNoRad":[0,490],
+			"OfsNoRad":[0,450],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -91,7 +91,7 @@
 		{
 			"Name":"Column12",
 			"Type":"Json",
-			"OfsNoRad":[0,535],
+			"OfsNoRad":[0,495],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -99,7 +99,7 @@
 		{
 			"Name":"Column13",
 			"Type":"Json",
-			"OfsNoRad":[0,580],
+			"OfsNoRad":[0,540],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -107,7 +107,7 @@
 		{
 			"Name":"Column14",
 			"Type":"Json",
-			"OfsNoRad":[0,625],
+			"OfsNoRad":[0,585],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -115,7 +115,7 @@
 		{
 			"Name":"Column15",
 			"Type":"Json",
-			"OfsNoRad":[0,670],
+			"OfsNoRad":[0,630],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -123,7 +123,7 @@
 		{
 			"Name":"Column16",
 			"Type":"Json",
-			"OfsNoRad":[0,715],
+			"OfsNoRad":[0,675],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}
@@ -131,7 +131,7 @@
 		{
 			"Name":"Column17",
 			"Type":"Json",
-			"OfsNoRad":[0,760],
+			"OfsNoRad":[0,720],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild003.json"
 		}

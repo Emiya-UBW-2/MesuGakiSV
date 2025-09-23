@@ -18,6 +18,84 @@
 			"DefaultValue" : "Window"
 		},
 		{
+			"Type":"GraphicsPreset",
+			"SelectType": "Select",
+			"Value" : ["Low","Middle","High"],
+			"DefaultValue" : "Low"
+		},
+		{
+			"Type":"DrawScale",
+			"SelectType" : "Int",
+			"Value" : [50,100],
+			"DefaultValue" : 100
+		},
+		{
+			"Type":"ObjectLevel",
+			"SelectType": "Select",
+			"Value" : ["Low","Middle","High"],
+			"DefaultValue" : "Low"
+		},
+		{
+			"Type":"DoF",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
+			"Type":"Bloom",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
+			"Type":"Shadow",
+			"SelectType": "Select",
+			"Value" : ["OFF","Low","Middle","High"],
+			"DefaultValue" : "Low"
+		},
+		{
+			"Type":"SSAO",
+			"SelectType": "Select",
+			"Value" : ["OFF","Low","Middle","High"],
+			"DefaultValue" : "Low"
+		},
+		{
+			"Type":"Fov",
+			"SelectType" : "Int",
+			"Value" : [45,120],
+			"DefaultValue" : 90
+		},
+		{
+			"Type":"ScreenEffect",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
+			"Type":"Reflection",
+			"SelectType": "Select",
+			"Value" : ["OFF","Low","Middle","High"],
+			"DefaultValue" : "OFF"
+		},
+		{
+			"Type":"MotionBlur",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
+			"Type":"AntiAliasing",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
+			"Type":"GodRay",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
 			"Type":"MasterVolume",
 			"SelectType" : "Int",
 			"Value" : [0,100],

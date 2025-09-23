@@ -27,25 +27,63 @@ namespace Util {
 	};
 
 	enum class OptionType :int {
+		WindowMode,
 		VSync,
 		FPSLimit,
-		WindowMode,
+		GraphicsPreset,
+		DrawScale,
+		ObjectLevel,
+		DoF,
+		Bloom,
+		Shadow,
+		SSAO,
+		Fov,
+		ScreenEffect,
+		Reflection,
+		MotionBlur,
+		AntiAliasing,
+		GodRay,
+
 		MasterVolume,
 		BGMVolume,
 		SEVolume,
+
 		XSensing,
 		YSensing,
+
+		HeadBobbing,
+		Language,
+
 		Max,
 	};
 	static const char* OptionStr[static_cast<int>(OptionType::Max)] = {
+		"WindowMode",
 		"VSync",
 		"FPSLimit",
-		"WindowMode",
+		"GraphicsPreset",
+		"DrawScale",
+		"ObjectLevel",
+		"DoF",
+		"Bloom",
+		"Shadow",
+		"SSAO",
+		"Fov",
+		"ScreenEffect",
+		"Reflection",
+		"MotionBlur",
+		"AntiAliasing",
+		"GodRay",
+
 		"MasterVolume",
 		"BGMVolume",
 		"SEVolume",
+
 		"XSensing",
 		"YSensing",
+
+
+		"HeadBobbing",
+		"Language",
 	};
 
 	class OptionParam : public SingletonBase<OptionParam> {

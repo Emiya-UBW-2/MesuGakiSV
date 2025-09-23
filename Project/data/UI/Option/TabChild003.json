@@ -1,9 +1,22 @@
 {
 	"MainParts":[
 		{
+			"Name":"BoxBack",
+			"Type":"Box",
+			"OfsNoRad":[-210,0],
+			"Ofs":[0,0],
+			"Size":[400,42],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[255,255,255,0],
+			"IsHitCheck":true
+		}
+		,
+		{
 			"Name":"Box0",
 			"Type":"Json",
-			"OfsNoRad":[310,0],
+			"OfsNoRad":[307,-3],
 			"Scale":[1.0,0.35],
 			"FilePath":"data/UI/Button001.json"
 		}
@@ -11,9 +24,9 @@
 		{
 			"Name":"Box1",
 			"Type":"Box",
-			"OfsNoRad":[210,0],
+			"OfsNoRad":[160,0],
 			"Ofs":[0,0],
-			"Size":[94,44],
+			"Size":[194,44],
 			"Rad":0,
 			"Scale":[1.0,1.0],
 			"Center":[0.5,0.5],
@@ -24,9 +37,9 @@
 		{
 			"Name":"Box2",
 			"Type":"NineSlice",
-			"OfsNoRad":[210,0],
+			"OfsNoRad":[160,0],
 			"Ofs":[0,0],
-			"Size":[90,40],
+			"Size":[190,40],
 			"Rad":0,
 			"Scale":[1.0,1.0],
 			"Center":[0.5,0.5],
@@ -40,7 +53,7 @@
 		{
 			"Name":"String0",
 			"Type":"String",
-			"OfsNoRad":[210,0],
+			"OfsNoRad":[160,0],
 			"Ofs":[0,0],
 			"Size":[100,100],
 			"Rad":0,
@@ -67,9 +80,33 @@
 	],
 	"Anim":[
 		{
-			"Type":"Normal",
-			"Loop":false,
+			"Type":"Active",
+			"Loop":true,
 			"Anim":[
+				{
+					"Target":"BoxBack",
+					"Color":[255,255,255,64],
+					"StartFrame":0,
+					"EndFrame":6
+				},
+				{
+					"Target":"Box1",
+					"Color":[0,255,0,0],
+					"StartFrame":0,
+					"EndFrame":6
+				}
+			]
+		},
+		{
+			"Type":"DisActive",
+			"Loop":true,
+			"Anim":[
+				{
+					"Target":"BoxBack",
+					"Color":[255,255,255,0],
+					"StartFrame":0,
+					"EndFrame":6
+				},
 				{
 					"Target":"Box1",
 					"Color":[0,255,0,0],
@@ -82,6 +119,12 @@
 			"Type":"OnSelect",
 			"Loop":false,
 			"Anim":[
+				{
+					"Target":"BoxBack",
+					"Color":[255,255,255,64],
+					"StartFrame":0,
+					"EndFrame":6
+				},
 				{
 					"Target":"Box1",
 					"Color":[0,255,0,255],

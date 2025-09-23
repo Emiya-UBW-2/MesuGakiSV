@@ -11,7 +11,7 @@
 		{
 			"Name":"Column2",
 			"Type":"Json",
-			"OfsNoRad":[0,70],
+			"OfsNoRad":[0,45],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
@@ -19,7 +19,7 @@
 		{
 			"Name":"Column3",
 			"Type":"Json",
-			"OfsNoRad":[0,140],
+			"OfsNoRad":[0,90],
 			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}

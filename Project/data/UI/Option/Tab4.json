@@ -4,86 +4,246 @@
 			"Name":"Column1",
 			"Type":"Json",
 			"OfsNoRad":[0,0],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column2",
 			"Type":"Json",
-			"OfsNoRad":[0,70],
+			"OfsNoRad":[0,45],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column3",
 			"Type":"Json",
-			"OfsNoRad":[0,140],
+			"OfsNoRad":[0,90],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column4",
 			"Type":"Json",
-			"OfsNoRad":[0,210],
+			"OfsNoRad":[0,135],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column5",
 			"Type":"Json",
-			"OfsNoRad":[0,280],
+			"OfsNoRad":[0,180],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column6",
 			"Type":"Json",
-			"OfsNoRad":[0,350],
+			"OfsNoRad":[0,225],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column7",
 			"Type":"Json",
-			"OfsNoRad":[0,420],
+			"OfsNoRad":[0,270],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column8",
 			"Type":"Json",
-			"OfsNoRad":[0,490],
+			"OfsNoRad":[0,315],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column9",
 			"Type":"Json",
-			"OfsNoRad":[0,560],
+			"OfsNoRad":[0,360],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column10",
 			"Type":"Json",
-			"OfsNoRad":[0,630],
+			"OfsNoRad":[0,405],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column11",
 			"Type":"Json",
-			"OfsNoRad":[0,700],
+			"OfsNoRad":[0,450],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 		,
 		{
 			"Name":"Column12",
 			"Type":"Json",
-			"OfsNoRad":[0,770],
+			"OfsNoRad":[0,495],
+			"BaseColor":[255,255,255,0],
+			"FilePath":"data/UI/Option/TabChild001.json"
+		}
+		,
+		{
+			"Name":"Column13",
+			"Type":"Json",
+			"OfsNoRad":[0,540],
+			"BaseColor":[255,255,255,0],
+			"FilePath":"data/UI/Option/TabChild001.json"
+		}
+		,
+		{
+			"Name":"Column14",
+			"Type":"Json",
+			"OfsNoRad":[0,585],
+			"BaseColor":[255,255,255,0],
+			"FilePath":"data/UI/Option/TabChild001.json"
+		}
+		,
+		{
+			"Name":"Column15",
+			"Type":"Json",
+			"OfsNoRad":[0,630],
+			"BaseColor":[255,255,255,0],
+			"FilePath":"data/UI/Option/TabChild001.json"
+		}
+		,
+		{
+			"Name":"Column16",
+			"Type":"Json",
+			"OfsNoRad":[0,675],
+			"BaseColor":[255,255,255,0],
+			"FilePath":"data/UI/Option/TabChild001.json"
+		}
+		,
+		{
+			"Name":"Column17",
+			"Type":"Json",
+			"OfsNoRad":[0,720],
+			"BaseColor":[255,255,255,0],
 			"FilePath":"data/UI/Option/TabChild001.json"
 		}
 	],
 	"Anim":[
+		{
+			"Type":"Normal",
+			"Loop":true,
+			"Anim":[
+				{
+					"Target":"Column1",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column2",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column3",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column4",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column5",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column6",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column7",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column8",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column9",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column10",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column11",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column12",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column13",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column14",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column15",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column16",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				},
+				{
+					"Target":"Column17",
+					"Color":[255,255,255,255],
+					"StartFrame":0,
+					"EndFrame":12
+				}
+			]
+		}
 	]
 }

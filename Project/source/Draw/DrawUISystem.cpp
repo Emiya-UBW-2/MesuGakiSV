@@ -464,24 +464,22 @@ namespace Draw {
 				SelectNow = AnimType::DisActive;
 			}
 		}
-		this->m_IsSelect = false;
-		if (this->m_UseButton) {
-			auto* DrawerMngr = MainDraw::Instance();
-			auto* KeyMngr = Util::KeyParam::Instance();
 
-			bool IsSelect = false;
+		{
+			auto* DrawerMngr = MainDraw::Instance();
+
+			this->m_IsSelect = false;
 			for (auto& parts : this->m_PartsParam) {
 				if (parts.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), Param)) {
-					IsSelect = true;
+					this->m_IsSelect = true;
 					break;
 				}
 			}
-			if (IsSelect) {
-				SelectNow = AnimType::OnSelect;
-				this->m_IsSelect = true;
-			}
-
+		}
+		if (this->m_UseButton) {
 			if (this->m_IsSelect) {
+				SelectNow = AnimType::OnSelect;
+				auto* KeyMngr = Util::KeyParam::Instance();
 				if (KeyMngr->GetMenuKeyPress(Util::EnumMenu::Diside)) {
 					SelectNow = AnimType::OnPress;
 				}

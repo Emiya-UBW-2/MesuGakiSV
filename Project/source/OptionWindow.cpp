@@ -17,6 +17,20 @@ void OptionWindow::UpdateColumnStr() noexcept {
 		this->m_Param[0].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::WindowMode))->GetValueNow();
 		this->m_Param[1].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->GetValueNow();
 		this->m_Param[2].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetValueNow();
+
+		this->m_Param[3].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::GraphicsPreset))->GetValueNow();
+		this->m_Param[4].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::DrawScale))->GetSelect());
+		this->m_Param[5].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel))->GetValueNow();
+		this->m_Param[6].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::DoF))->GetValueNow();
+		this->m_Param[7].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Bloom))->GetValueNow();
+		this->m_Param[8].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetValueNow();
+		this->m_Param[9].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::SSAO))->GetValueNow();
+		this->m_Param[10].m_Str = std::to_string(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Fov))->GetSelect());
+		this->m_Param[11].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->GetValueNow();
+		this->m_Param[12].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetValueNow();
+		this->m_Param[13].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::MotionBlur))->GetValueNow();
+		this->m_Param[14].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::AntiAliasing))->GetValueNow();
+		this->m_Param[15].m_Str = pOption->GetParam(pOption->GetOptionType(Util::OptionType::GodRay))->GetValueNow();
 	}
 	break;
 	case 2:
@@ -43,7 +57,7 @@ void OptionWindow::SetTab() noexcept {
 	std::string ChildBase = "OptionUI/Child";
 	ChildBase += std::to_string(this->m_NowSelectTab + 1);
 	Draw::Param2D Param;
-	Param.OfsNoRad = Util::VECTOR2D(980, 205);
+	Param.OfsNoRad = Util::VECTOR2D(960, 205);
 	{
 		std::string Path = "data/UI/Option/Tab";
 		Path += std::to_string(this->m_NowSelectTab + 1);
@@ -85,6 +99,7 @@ void OptionWindow::EndTab() noexcept {
 	Path += std::to_string(this->m_NowSelectTab + 1);
 	this->m_DrawUI->DeleteChild(Path.c_str());
 	this->m_DrawUI->Get(this->m_TabButton[this->m_NowSelectTab]).SetActive(false);
+	this->m_NowTabMax = 0;
 }
 void OptionWindow::Init(void) noexcept {
 	this->m_DrawUI = new Draw::DrawUISystem();
@@ -154,34 +169,17 @@ void OptionWindow::Update(void) noexcept {
 				 break;
 				 case 1:
 				 {
-					 //
-					 if (this->m_DrawUI->Get(this->m_Param[0].m_MinID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::WindowMode), pOption->GetParam(pOption->GetOptionType(Util::OptionType::WindowMode))->GetSelect() - 1);
-						 Draw::MainDraw::Instance()->FlipSetting();
+					 for (int loop = 0; loop < 16; ++loop) {
+						 auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop));
+						 if (this->m_DrawUI->Get(this->m_Param[static_cast<size_t>(loop)].m_MinID).IsSelectButton()) {
+							 pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
+							 Draw::MainDraw::Instance()->FlipSetting();
+						 }
+						 if (this->m_DrawUI->Get(this->m_Param[static_cast<size_t>(loop)].m_MaxID).IsSelectButton()) {
+							 pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
+							 Draw::MainDraw::Instance()->FlipSetting();
+						 }
 					 }
-					 if (this->m_DrawUI->Get(this->m_Param[0].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::WindowMode), pOption->GetParam(pOption->GetOptionType(Util::OptionType::WindowMode))->GetSelect() + 1);
-						 Draw::MainDraw::Instance()->FlipSetting();
-					 }
-					 //
-					 if (this->m_DrawUI->Get(this->m_Param[1].m_MinID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::VSync), pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->GetSelect() - 1);
-						 Draw::MainDraw::Instance()->FlipSetting();
-					 }
-					 if (this->m_DrawUI->Get(this->m_Param[1].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::VSync), pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->GetSelect() + 1);
-						 Draw::MainDraw::Instance()->FlipSetting();
-					 }
-					 //
-					 if (this->m_DrawUI->Get(this->m_Param[2].m_MinID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::FPSLimit), pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetSelect() - 1);
-						 Draw::MainDraw::Instance()->FlipSetting();
-					 }
-					 if (this->m_DrawUI->Get(this->m_Param[2].m_MaxID).IsSelectButton()) {
-						 pOption->SetParam(pOption->GetOptionType(Util::OptionType::FPSLimit), pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetSelect() + 1);
-						 Draw::MainDraw::Instance()->FlipSetting();
-					 }
-					 //
 				 }
 				 break;
 				 case 2:
@@ -235,6 +233,16 @@ void OptionWindow::Update(void) noexcept {
 			 }
 			 if (IsChange || KeyMngr->IsDeviceChange()) {
 				 UpdateColumnStr();
+			 }
+		 }
+
+		 for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+			 auto& param = this->m_Param[loop];
+			 this->m_DrawUI->Get(param.m_ID).SetActive(
+				 this->m_DrawUI->Get(param.m_ID).IsSelectButton()
+			 );
+			 if (this->m_DrawUI->Get(param.m_ID).IsSelectButton()) {
+				 int a = 0;
 			 }
 		 }
 	 }
