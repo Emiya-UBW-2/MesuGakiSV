@@ -127,10 +127,11 @@ namespace Draw {
 		int						m_Frame{};
 		bool					m_IsSelect{};
 		bool					m_IsActive{ true };
+		bool					m_IsAnimeEnd{ false };
 		bool					m_UseActive{};
 		bool					m_UseButton{};
 		bool					m_IsHitCheck{};
-		char		padding[3]{};
+		char		padding[2]{};
 		std::string				m_BranchName{};
 	public:
 		//コンストラクタ
@@ -164,6 +165,7 @@ namespace Draw {
 	public:
 		bool			IsSelectButton(void) const noexcept { return this->m_IsSelect; }
 		bool			IsActive(void) const noexcept { return this->m_IsActive; }
+		bool			IsAnimeEnd(void) const noexcept { return this->m_IsAnimeEnd; }
 		bool			IsHitCheck(void) const noexcept { return this->m_IsHitCheck; }
 		std::string		GetBranchName() const noexcept { return this->m_BranchName; }
 		Param2D			GetBasePositionParam() const noexcept { return this->m_BasePositionParam; }
@@ -176,7 +178,10 @@ namespace Draw {
 			return nullptr;
 		}
 	public:
-		void			SetActive(bool value) noexcept { this->m_IsActive = value; }
+		void			SetActive(bool value) noexcept {
+			this->m_IsActive = value;
+			this->m_IsAnimeEnd = false;
+		}
 		void			AddChild(DrawUISystem* DrawUI, std::string_view ChildName, std::string_view FilePath, Param2D Param = Param2D()) noexcept;
 		void			DeleteChild(std::string_view ChildName) noexcept;
 	public:

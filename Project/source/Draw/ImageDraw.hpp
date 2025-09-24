@@ -13,8 +13,64 @@
 #pragma warning(disable:4668)
 #pragma warning(disable:5039)
 #include "../Util/Util.hpp"
+#include "../Util/Algorithm.hpp"
 
 namespace Draw {
+	class Camera3DInfo {
+		Util::Vector3DX	m_pos;
+		Util::Vector3DX	m_vec;
+		Util::Vector3DX	m_up{ Util::Vector3DX::up() };	// カメラ
+		float		m_fov{ DX_PI_F / 2 };		// カメラ
+		float		m_near{ 0.1f };
+		float		m_far{ 10.f };	// ニアファー
+	public:
+		const auto& GetCamPos(void)const noexcept { return this->m_pos; }
+		const auto& GetCamVec(void)const noexcept { return this->m_vec; }
+		const auto& GetCamUp(void)const noexcept { return this->m_up; }
+		const auto& GetCamFov(void)const noexcept { return this->m_fov; }
+		const auto& GetCamNear(void)const noexcept { return this->m_near; }
+		const auto& GetCamFar(void)const noexcept { return this->m_far; }
+	public:
+		void			SetCamPos(const Util::Vector3DX& cam_pos, const Util::Vector3DX& cam_vec, const Util::Vector3DX& cam_up) noexcept {
+			this->m_pos = cam_pos;
+			this->m_vec = cam_vec;
+			this->m_up = cam_up;
+		}
+		void			SetNowCamPos(void) noexcept {
+			this->m_pos = DxLib::GetCameraPosition();
+			this->m_vec = DxLib::GetCameraTarget();
+			this->m_up = DxLib::GetCameraUpVector();
+		}
+		void			SetCamInfo(float cam_fov_, float cam_near_, float cam_far_) noexcept {
+			this->m_fov = cam_fov_;
+			this->m_near = cam_near_;
+			this->m_far = cam_far_;
+		}
+		void FlipCamInfo(void) const noexcept {
+			SetUpCamInfo(this->m_pos, this->m_vec, this->m_up, this->m_fov, this->m_near, this->m_far);
+		}
+
+		const Util::Matrix4x4DX GetViewMatrix(void) const noexcept {
+			MATRIX mat_view;					// ビュー行列
+			VECTOR vec_from = this->m_pos.get();		// カメラの位置
+			VECTOR vec_lookat = this->m_vec.get();  // カメラの注視点
+			VECTOR vec_up = this->m_up.get();    // カメラの上方向
+			CreateLookAtMatrix(&mat_view, &vec_from, &vec_lookat, &vec_up);
+			return mat_view;
+		}
+
+		const Util::Matrix4x4DX GetProjectionMatrix(void) const noexcept {
+			MATRIX mat_view;					// プロジェクション行列
+			CreatePerspectiveFovMatrix(&mat_view, this->m_fov, this->m_near, this->m_far);
+			return mat_view;
+		}
+
+		static void SetUpCamInfo(const Util::Vector3DX& campos, const Util::Vector3DX& camvec, const Util::Vector3DX& camup, float fov, float near_, float far_) noexcept {
+			SetCameraNearFar(near_, far_);
+			SetupCamera_Perspective(fov);
+			SetCameraPositionAndTargetAndUpVec(campos.get(), camvec.get(), camup.get());
+		}
+	};
 	// フォントハンドル
 	class GraphHandle : public Util::DXHandle {
 	public:
@@ -171,6 +227,38 @@ namespace Draw {
 
 			return;
 		}
+	};
+	//
+	class SoftImageHandle : public Util::DXHandle {
+	public:
+		SoftImageHandle(void) noexcept {}
+		SoftImageHandle(const SoftImageHandle& o) = delete;
+		SoftImageHandle(SoftImageHandle&& o) noexcept {
+			Util::DXHandle::SetHandleDirect(o.get());
+			o.SetHandleDirect(-1);
+		}
+		SoftImageHandle& operator=(const SoftImageHandle& o) = delete;
+		SoftImageHandle& operator=(SoftImageHandle&& o) noexcept {
+			Util::DXHandle::SetHandleDirect(o.get());
+			o.SetHandleDirect(-1);
+			return *this;
+		}
+		virtual ~SoftImageHandle(void) noexcept {}
+	protected:
+		void	Dispose_Sub(void) noexcept override {
+			DeleteSoftImage(Util::DXHandle::get());
+		}
+	public:
+		void	Make(int xsize, int ysize) noexcept {
+			Util::DXHandle::SetHandleDirect(MakeRGB8ColorSoftImage(xsize, ysize));
+		}
+		void	GetDrawScreen(int x1, int y1, int x2, int y2) noexcept {
+			GetDrawScreenSoftImage(x1, y1, x2, y2, Util::DXHandle::get());
+		}
+		void	GetPixel(int x, int y, int* r, int* g, int* b, int* a) noexcept {
+			GetPixelSoftImage(Util::DXHandle::get(), x, y, r, g, b, a);
+		}
+
 	};
 	//
 	class Graphhave {

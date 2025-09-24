@@ -525,6 +525,7 @@ namespace Draw {
 				if ((this->m_Frame == Max) && a.m_IsLoop) {
 					this->m_Frame = 0;
 				}
+				this->m_IsAnimeEnd = ((this->m_Frame == Max) && !a.m_IsLoop);
 			}
 
 			//

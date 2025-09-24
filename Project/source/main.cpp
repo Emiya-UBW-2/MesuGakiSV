@@ -14,6 +14,11 @@
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Draw::MainDraw::Create();
 	auto* DrawerMngr = Draw::MainDraw::Instance();
+
+	DXLibRef::PostPassEffect::Create();
+	auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+	PostPassParts->Init();
+
 	auto* SceneMngr = Util::SceneManager::Instance();
 	auto* KeyMngr = Util::KeyParam::Instance();
 	TitleScene Title{};
@@ -40,6 +45,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 	}
+	DXLibRef::PostPassEffect::Release();
 	Draw::MainDraw::Release();
 	return 0;// ソフトの終了 
 }

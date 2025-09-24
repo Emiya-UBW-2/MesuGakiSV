@@ -4,6 +4,8 @@
 #pragma warning(disable:5259)
 #include "SceneManager.hpp"
 
+#include "../Draw/Camera.hpp"
+
 const Util::SceneManager* Util::SingletonBase<Util::SceneManager>::m_Singleton = nullptr;
 
 namespace Util {
@@ -48,6 +50,68 @@ namespace Util {
 			break;
 		default:
 			break;
+		}
+
+		DXLibRef::Camera3D::Instance()->Update();
+	}
+
+	void SceneManager::Draw(void) noexcept {
+		int Prev = GetDrawMode();
+		/*
+		auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+		auto* CameraParts = DXLibRef::Camera3D::Instance();
+		{
+			// キューブマップをセット
+			{
+				Vector3DX Pos = CameraParts->GetMainCamera().GetCamPos(); Pos.y *= -1.f;
+				PostPassParts->Update_CubeMap([]() {}, Pos);
+			}
+			// 影をセット
+			if (PostPassParts->UpdateShadowActive() && false) {
+				Vector3DX Pos = CameraParts->GetMainCamera().GetCamPos();
+				Pos.x = 0.f;
+				Pos.z = 0.f;
+				PostPassParts->Update_Shadow([]() {}, Pos, true);
+			}
+			PostPassParts->Update_Shadow([]() {}, CameraParts->GetMainCamera().GetCamPos(), false);
+		}
+		Draw::Camera3DInfo camInfo = CameraParts->GetMainCamera();
+		// 全ての画面を初期化
+		PostPassParts->ResetBuffer();
+		{
+			// カメラ
+			PostPassParts->SetCamMat(camInfo);
+			// 空
+			PostPassParts->DrawGBuffer(1000.0f, 50000.0f, []() {});
+			// 遠距離
+			PostPassParts->DrawGBuffer(camInfo.GetCamFar(), 1000000.f, []() {
+				auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+				PostPassParts->DrawByPBR([]() {});
+				});
+			// 中間
+			PostPassParts->DrawGBuffer(camInfo.GetCamNear(), camInfo.GetCamFar(), []() {
+				auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+				PostPassParts->DrawByPBR([]() {});
+				});
+			// 至近
+			PostPassParts->DrawGBuffer(0.01f, camInfo.GetCamNear(), []() {
+				auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+				PostPassParts->DrawByPBR([]() {});
+				});
+			// 影
+			PostPassParts->SetDrawShadow(camInfo, []() {}, []() {});
+		}
+		// ポストプロセス
+		PostPassParts->DrawPostProcess();
+		//*/
+		SetDrawScreen(Prev);
+		SetDrawMode(DX_DRAWMODE_BILINEAR);
+		{
+			//auto* DrawerMngr = Draw::MainDraw::Instance();
+			//PostPassParts->GetBufferScreen().DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
+			if (this->m_NowScene) {
+				this->m_NowScene->Draw();
+			}
 		}
 	}
 }

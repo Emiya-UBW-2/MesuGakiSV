@@ -19,10 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Draw\Camera.cpp" />
     <ClCompile Include="source\Draw\DrawUISystem.cpp" />
     <ClCompile Include="source\Draw\FontDraw.cpp" />
     <ClCompile Include="source\Draw\ImageDraw.cpp" />
     <ClCompile Include="source\Draw\MainDraw.cpp" />
+    <ClCompile Include="source\Draw\PostPass.cpp" />
     <ClCompile Include="source\File\FileStream.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\OptionWindow.cpp" />
@@ -36,10 +38,12 @@
     <ClCompile Include="source\Util\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\Draw\Camera.hpp" />
     <ClInclude Include="source\Draw\DrawUISystem.hpp" />
     <ClInclude Include="source\Draw\FontDraw.hpp" />
     <ClInclude Include="source\Draw\ImageDraw.hpp" />
     <ClInclude Include="source\Draw\MainDraw.hpp" />
+    <ClInclude Include="source\Draw\PostPass.hpp" />
     <ClInclude Include="source\File\FileStream.hpp" />
     <ClInclude Include="source\File\json.hpp" />
     <ClInclude Include="source\OptionWindow.hpp" />

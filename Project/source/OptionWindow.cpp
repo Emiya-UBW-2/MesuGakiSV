@@ -1,5 +1,6 @@
 ﻿#include "OptionWindow.hpp"
 #include "Util/Enum.hpp"
+#include "Draw/PostPass.hpp"
 
 void OptionWindow::SetActive(bool value) noexcept {
 	auto* pOption = Util::OptionParam::Instance();
@@ -141,6 +142,7 @@ void OptionWindow::Init(void) noexcept {
 	this->m_DrawUI->Init("data/UI/Option/OptionBase.json");
 
 	this->m_UIBase = this->m_DrawUI->GetID("");
+	this->m_DrawUI->Get(this->m_UIBase).SetActive(false);
 	for (int loop = 0; loop < 4; ++loop) {
 		std::string Path = "OptionUI/Tab";
 		Path += std::to_string(loop + 1);
@@ -150,7 +152,6 @@ void OptionWindow::Init(void) noexcept {
 	this->m_NowSelectTab = 0;
 	this->m_CloseButton = this->m_DrawUI->GetID("OptionUI/CloseButton");
 
-	this->m_DrawUI->Get(this->m_UIBase).SetActive(false);
 }
 void OptionWindow::Update(void) noexcept {
 	auto* pOption = Util::OptionParam::Instance();
@@ -192,10 +193,12 @@ void OptionWindow::Update(void) noexcept {
 					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
 						Draw::MainDraw::Instance()->FlipSetting();
+						DXLibRef::PostPassEffect::Instance()->UpdateActive();
 					}
 					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
 						Draw::MainDraw::Instance()->FlipSetting();
+						DXLibRef::PostPassEffect::Instance()->UpdateActive();
 					}
 				}
 			}

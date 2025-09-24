@@ -124,7 +124,7 @@ namespace File {
 		//DXLIB_Initを通ってからでないと動作しない
 		/*
 		FILEINFO FileInfo;
-		return (FileRead_findFirst(Path, &FileInfo) != (DWORD_PTR)InvalidID);
+		return (FileRead_findFirst(Path, &FileInfo) != (DWORD_PTR)-1);
 		//*/
 	}
 

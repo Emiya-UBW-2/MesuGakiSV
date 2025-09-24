@@ -75,8 +75,44 @@
 					"FontID":1003
 				}
 			]
+		},
+		{
+			"Name":"Front1",
+			"Type":"Box",
+			"OfsNoRad":[960,540],
+			"Ofs":[0,0],
+			"Size":[1920,1080],
+			"Rad":0,
+			"Scale":[1.0,1.0],
+			"Center":[0.5,0.5],
+			"BaseColor":[0,0,0,255],
+			"IsHitCheck":false
 		}
 	],
 	"Anim":[
+		{
+			"Type":"Active",
+			"Loop":false,
+			"Anim":[
+				{
+					"Target":"Front1",
+					"Color":[0,0,0,0],
+					"StartFrame":0,
+					"EndFrame":12
+				}
+			]
+		},
+		{
+			"Type":"DisActive",
+			"Loop":false,
+			"Anim":[
+				{
+					"Target":"Front1",
+					"Color":[0,0,0,255],
+					"StartFrame":0,
+					"EndFrame":12
+				}
+			]
+		}
 	]
 }

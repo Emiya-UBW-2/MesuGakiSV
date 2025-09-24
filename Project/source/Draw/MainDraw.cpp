@@ -16,6 +16,9 @@
 
 #include "ImageDraw.hpp"
 
+#include "Camera.hpp"
+#include "PostPass.hpp"
+
 const Draw::MainDraw* Util::SingletonBase<Draw::MainDraw>::m_Singleton = nullptr;
 
 namespace Draw {
@@ -71,8 +74,13 @@ namespace Draw {
 		FontPool::Create();
 		GraphPool::Create();
 		Util::LocalizePool::Create();
+
+		DXLibRef::Camera3D::Create();
+
 	}
 	MainDraw::~MainDraw(void) noexcept {
+		DXLibRef::Camera3D::Release();
+
 		Util::LocalizePool::Release();
 		GraphPool::Release();
 		FontPool::Release();

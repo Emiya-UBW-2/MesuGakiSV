@@ -32,10 +32,7 @@ protected:
 		this->m_TitleUI.Init();
 
 		this->m_TitleUI.SetEvent(0, [this]() {
-			auto* SceneMngr = Util::SceneManager::Instance();
-			this->m_OptionWindow.SetActive(false);
-			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
-			SceneBase::SetEndScene();
+			this->m_TitleUI.SetEnd();
 			});
 		this->m_TitleUI.SetEvent(1, []() {
 			});
@@ -48,6 +45,12 @@ protected:
 	void Update_Sub(void) noexcept override {
 		this->m_TitleUI.SetActive(!this->m_OptionWindow.IsActive());
 		this->m_TitleUI.Update();
+		if (this->m_TitleUI.IsEnd()) {
+			auto* SceneMngr = Util::SceneManager::Instance();
+			this->m_OptionWindow.SetActive(false);
+			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Main)));
+			SceneBase::SetEndScene();
+		}
 		this->m_OptionWindow.Update();
 	}
 	void Draw_Sub(void) noexcept override {

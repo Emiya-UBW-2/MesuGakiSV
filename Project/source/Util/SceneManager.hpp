@@ -1,6 +1,8 @@
 ﻿#pragma once
 
+#pragma warning(disable:4464)
 #include "Util.hpp"
+#include "../Draw/PostPass.hpp"
 
 #pragma warning(disable:4710)
 #pragma warning( push, 3 )
@@ -32,10 +34,18 @@ namespace Util {
 		void Init(void) noexcept {
 			this->m_IsEndGame = false;
 			this->m_IsEndScene = false;
+
+			auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+			PostPassParts->ResetAllParams();
+			PostPassParts->ResetAllBuffer();
+			PostPassParts->UpdateActive();
+
 			Init_Sub();
 		}
 		void Update(void) noexcept { Update_Sub(); }
-		void Draw(void) noexcept { Draw_Sub(); }
+		void Draw(void) noexcept {
+			Draw_Sub();
+		}
 		void Dispose(void) noexcept { Dispose_Sub(); }
 		virtual void Init_Sub(void) noexcept = 0;
 		virtual void Update_Sub(void) noexcept = 0;
@@ -83,10 +93,6 @@ namespace Util {
 		void SetFirstScene(const SceneBase* Ptr) noexcept { this->m_FirstScene = const_cast<SceneBase*>(Ptr); }
 	public:
 		void Update(void) noexcept;
-		void Draw(void) noexcept {
-			if (this->m_NowScene) {
-				this->m_NowScene->Draw();
-			}
-		}
+		void Draw(void) noexcept;
 	};
 }
