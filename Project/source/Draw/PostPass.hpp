@@ -343,23 +343,22 @@ namespace DXLibRef {
 	/*------------------------------------------------------------------------------------------------------------------------------------------*/
 	class PostPassScreenBuffer {
 		static const int			m_Size = 3;
-	public:
-		int xSize{};
-		int ySize{};
-		bool isTrans{};
-		bool m_isDepth{};
-		char		padding[2]{};
-		int m_ZBufferBitDepth{};
+	private:
 		std::array<Draw::GraphHandle, m_Size>	m_Screen{};
-		int m_UsedLocal = 0;
-		int m_Used = 0;
-		int m_UnUse = 0;
-		char		padding2[4]{};
+		int				m_xSize{};
+		int				m_ySize{};
+		int				m_ZBufferBitDepth{};
+		int				m_UsedLocal = 0;
+		int				m_Used = 0;
+		int				m_UnUse = 0;
+		bool			m_isTrans{};
+		bool			m_isDepth{};
+		char		padding[6]{};
 	public:
 		PostPassScreenBuffer(int xsize, int ysize, bool trans, bool isDepth = false, int ZBufferBitDepth = InvalidID) noexcept {
-			this->xSize = xsize;
-			this->ySize = ysize;
-			this->isTrans = trans;
+			this->m_xSize = xsize;
+			this->m_ySize = ysize;
+			this->m_isTrans = trans;
 			this->m_isDepth = isDepth;
 			this->m_ZBufferBitDepth = ZBufferBitDepth;
 			int PrevZBufferBitDepth{};
@@ -369,20 +368,19 @@ namespace DXLibRef {
 			}
 			for (auto& s : this->m_Screen) {
 				if (this->m_isDepth) {
-					s.MakeDepth(this->xSize, this->ySize);
+					s.MakeDepth(this->m_xSize, this->m_ySize);
 				}
 				else {
-					s.Make(this->xSize, this->ySize, this->isTrans);
+					s.Make(this->m_xSize, this->m_ySize, this->m_isTrans);
 				}
 			}
 			if (this->m_ZBufferBitDepth != InvalidID) {
 				SetCreateDrawValidGraphZBufferBitDepth(PrevZBufferBitDepth);
 			}
 			this->m_Used = 0;
-			this->m_UsedLocal = 0;
 			this->m_UnUse = 0;
+			ResetUseCount();
 		}
-	public:
 		PostPassScreenBuffer(const PostPassScreenBuffer& o) = delete;
 		PostPassScreenBuffer(PostPassScreenBuffer&& o) = delete;
 		PostPassScreenBuffer& operator=(const PostPassScreenBuffer& o) = delete;
@@ -403,6 +401,32 @@ namespace DXLibRef {
 			++this->m_UsedLocal;
 			return Ret;
 		}
+		bool IsActive() const noexcept {
+			return this->m_UnUse <= 5;//5フレーム以上使われていない
+		}
+		bool Equal(int xsize, int ysize, bool trans, bool isDepth, int ZBufferBitDepth) const noexcept {
+			return (
+				(this->m_xSize == xsize) &&
+				(this->m_ySize == ysize) &&
+				(this->m_isTrans == trans) &&
+				(this->m_isDepth == isDepth) &&
+				this->m_ZBufferBitDepth == ZBufferBitDepth
+				);
+		}
+		void ResetUseCount(void) noexcept {
+			this->m_UsedLocal = 0;
+		}
+	public:
+		void Update() noexcept {
+			if (this->m_Used != 0) {
+				this->m_UnUse = 0;
+			}
+			else {
+				++this->m_UnUse;
+			}
+			ResetUseCount();
+			this->m_Used = 0;
+		}
 	};
 	class PostPassScreenBufferPool : public Util::SingletonBase<PostPassScreenBufferPool> {
 	private:
@@ -419,7 +443,7 @@ namespace DXLibRef {
 	public:
 		const Draw::GraphHandle* PopBlankScreen(int xsize, int ysize, bool trans, bool isDepth = false, int ZBufferBitDepth = InvalidID) noexcept {
 			auto Find = std::find_if(this->m_ScreenBuffer.begin(), this->m_ScreenBuffer.end(), [&](const std::unique_ptr<PostPassScreenBuffer>& tgt) {
-				return  ((tgt->xSize == xsize) && (tgt->ySize == ysize) && (tgt->isTrans == trans) && (tgt->m_isDepth == isDepth) && tgt->m_ZBufferBitDepth == ZBufferBitDepth);
+				return  tgt->Equal(xsize, ysize, trans, isDepth, ZBufferBitDepth);
 				});
 			if (Find != this->m_ScreenBuffer.end()) {
 				return (*Find)->PopBlankScreen();
@@ -429,27 +453,20 @@ namespace DXLibRef {
 		}
 		void ResetUseCount(int xsize, int ysize, bool trans, bool isDepth = false, int ZBufferBitDepth = InvalidID) noexcept {
 			for (auto& s : this->m_ScreenBuffer) {
-				if ((s->xSize == xsize) && (s->ySize == ysize) && (s->isTrans == trans) && (s->m_isDepth == isDepth) && s->m_ZBufferBitDepth == ZBufferBitDepth) {
-					s->m_UsedLocal = 0;
+				if (s->Equal(xsize, ysize, trans, isDepth, ZBufferBitDepth)) {
+					s->ResetUseCount();
 				}
 			}
 		}
 	public:
 		void FirstUpdate(void) noexcept {
 			for (auto& s : this->m_ScreenBuffer) {
-				if (s->m_Used != 0) {
-					s->m_UnUse = 0;
-				}
-				else {
-					++s->m_UnUse;
-				}
-				s->m_UsedLocal = 0;
-				s->m_Used = 0;
+				s->Update();
 			}
-			//5フレーム間使われていないスクリーンバッファは消す
+			//使われていないスクリーンバッファは消す
 			for (size_t loop = 0, max = this->m_ScreenBuffer.size(); loop < max; ++loop) {
 				auto& s = this->m_ScreenBuffer[loop];
-				if (s->m_UnUse > 5) {
+				if (!s->IsActive()) {
 					s.reset();
 					std::swap(s, this->m_ScreenBuffer.back());
 					this->m_ScreenBuffer.pop_back();
