@@ -4,7 +4,7 @@
 #include "../Util/Algorithm.hpp"
 #include "ImageDraw.hpp"
 
-namespace DXLibRef {
+namespace Camera {
 	/*------------------------------------------------------------------------------------------------------------------------------------------*/
 	// カメラシェイク
 	/*------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -49,6 +49,19 @@ namespace DXLibRef {
 
 		virtual ~Camera3D(void) noexcept {}
 	public:
-		void Update(void) noexcept;
+		static float GetRandf(float arg) noexcept { return -arg + static_cast<float>(GetRand(static_cast<int>(arg * 2.f * 10000.f))) / 10000.f; }
+
+		void Update(void) noexcept {
+			if (this->m_SendCamShakeTime > 0.f) {
+				if (this->m_SendCamShake) {
+					this->m_SendCamShake = false;
+					this->m_CamShake = this->m_SendCamShakeTime;
+				}
+				auto RandRange = this->m_CamShake / this->m_SendCamShakeTime * this->m_SendCamShakePower;
+				this->m_CamShake1 = Util::Lerp(this->m_CamShake1, Util::Vector3DX::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 0.8f);
+				this->m_CamShake2 = Util::Lerp(this->m_CamShake2, this->m_CamShake1, 0.8f);
+				this->m_CamShake = std::max(this->m_CamShake - 1.f / 60.f, 0.f);
+			}
+		}
 	};
 }

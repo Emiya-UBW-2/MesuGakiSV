@@ -29,7 +29,7 @@ namespace DXLibRef {
 		}
 		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, Draw::GraphHandle* ColorGraph, Draw::GraphHandle* NormalPtr, Draw::GraphHandle* DepthPtr) noexcept override {
 			auto* DrawerMngr = Draw::MainDraw::Instance();
-			auto* CameraParts = Camera3D::Instance();
+			auto* CameraParts = Camera::Camera3D::Instance();
 			int xsize = DrawerMngr->GetDispWidth() / EXTEND;
 			int ysize = DrawerMngr->GetDispHeight() / EXTEND;
 
@@ -136,7 +136,7 @@ namespace DXLibRef {
 			auto* pOption = Util::OptionParam::Instance();
 			auto* DrawerMngr = Draw::MainDraw::Instance();
 			auto* PostPassParts = PostPassEffect::Instance();
-			auto* CameraParts = Camera3D::Instance();
+			auto* CameraParts = Camera::Camera3D::Instance();
 			int xsize = DrawerMngr->GetDispWidth() / EXTEND;
 			int ysize = DrawerMngr->GetDispHeight() / EXTEND;
 
@@ -781,7 +781,7 @@ namespace DXLibRef {
 			auto* pOption = Util::OptionParam::Instance();
 			auto* DrawerMngr = Draw::MainDraw::Instance();
 			auto* PostPassParts = PostPassEffect::Instance();
-			auto* CameraParts = Camera3D::Instance();
+			auto* CameraParts = Camera::Camera3D::Instance();
 			int xsize = DrawerMngr->GetDispWidth() / EXTEND;
 			int ysize = DrawerMngr->GetDispHeight() / EXTEND;
 
@@ -917,128 +917,10 @@ namespace DXLibRef {
 	// --------------------------------------------------------------------------------------------------
 	// 
 	// --------------------------------------------------------------------------------------------------
-	void		ShadowDraw::SetupCam(Util::Vector3DX Center, float scale) const noexcept {
-		ClearDrawScreen();
-		SetupCamera_Ortho(30.f * scale * Scale3DRate);		// カメラのタイプを正射影タイプにセット、描画範囲も指定
-		SetCameraNearFar(0.05f * scale * Scale3DRate, 60.f * scale * Scale3DRate);		// 描画する奥行き範囲をセット
-		// カメラの位置と注視点はステージ全体が見渡せる位置
-		auto Vec = this->m_ShadowVec;
-		if (this->m_ShadowVec.x == 0.f && this->m_ShadowVec.z == 0.f) {
-			Vec.z = (0.1f);
-		}
-		SetCameraPositionAndTarget_UpVecY((Center - Vec.normalized() * (30.f * scale * Scale3DRate)).get(), Center.get());
-	}
-	void		ShadowDraw::Update(std::function<void()> Shadowdoing, Util::Vector3DX Center, float Scale) noexcept {
-		this->m_Scale = Scale;
-		// 影用の深度記録画像の準備を行う
-		DepthBaseScreenHandle.SetRenderTargetToShader(0);
-		SetRenderTargetToShader(1, InvalidID);
-		DepthScreenHandle.SetRenderTargetToShader(2);
-		{
-			SetupCam(Center, this->m_Scale);
-			this->m_CamViewMatrix[0] = GetCameraViewMatrix();
-			this->m_CamProjectionMatrix[0] = GetCameraProjectionMatrix();
-			Shadowdoing();
-		}
-		SetRenderTargetToShader(0, InvalidID);
-		SetRenderTargetToShader(1, InvalidID);
-		SetRenderTargetToShader(2, InvalidID);
-	}
-	void		ShadowDraw::UpdateFar(std::function<void()> Shadowdoing, Util::Vector3DX Center, float Scale) noexcept {
-		this->m_ScaleFar = Scale;
-		// 影用の深度記録画像の準備を行う
-		DepthBaseScreenHandle.SetRenderTargetToShader(0);
-		SetRenderTargetToShader(1, InvalidID);
-		DepthFarScreenHandle.SetRenderTargetToShader(2);
-		{
-			SetupCam(Center, this->m_ScaleFar);
-			this->m_CamViewMatrix[1] = GetCameraViewMatrix();
-			this->m_CamProjectionMatrix[1] = GetCameraProjectionMatrix();
-			Shadowdoing();
-		}
-		SetRenderTargetToShader(0, InvalidID);
-		SetRenderTargetToShader(1, InvalidID);
-		SetRenderTargetToShader(2, InvalidID);
-	}
-	void		ShadowDraw::SetDraw(std::function<void()> doing_rigid, std::function<void()> doing, Draw::Camera3DInfo tmp_cam) noexcept {
-		auto* pOption = Util::OptionParam::Instance();
-		BaseShadowHandle.SetUseTextureToShader(0);				// 影用深度記録画像をテクスチャにセット
-		DepthScreenHandle.SetUseTextureToShader(1);
-		DepthFarScreenHandle.SetUseTextureToShader(2);
-		// 影の結果を出力
-		tmp_cam.SetCamInfo(tmp_cam.GetCamFov(), 0.01f * Scale3DRate, 30.f * Scale3DRate);
-		BaseShadowHandle.SetDraw_Screen();
-		tmp_cam.FlipCamInfo();
-		{
-			this->m_Shader.SetPixelParam(3, static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect()), this->m_Scale * 180.f, 0.f, 0.f);
-			this->m_Shader.SetVertexCameraMatrix(4, this->m_CamViewMatrix[0], this->m_CamProjectionMatrix[0]);
-			this->m_Shader.SetVertexCameraMatrix(5, this->m_CamViewMatrix[1], this->m_CamProjectionMatrix[1]);
-			this->m_Shader.Draw_lamda(doing);
-			this->m_ShaderRigid.SetPixelParam(3, static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect()), this->m_Scale * 180.f, 0.f, 0.f);
-			this->m_ShaderRigid.SetVertexCameraMatrix(4, this->m_CamViewMatrix[0], this->m_CamProjectionMatrix[0]);
-			this->m_ShaderRigid.SetVertexCameraMatrix(5, this->m_CamViewMatrix[1], this->m_CamProjectionMatrix[1]);
-			this->m_ShaderRigid.Draw_lamda(doing_rigid);
-		}
-		SetUseTextureToShader(1, InvalidID);				// 使用テクスチャの設定を解除
-		SetUseTextureToShader(2, InvalidID);				// 使用テクスチャの設定を解除
-		// 後処理
-		BaseShadowHandle.GraphBlend(DepthBaseScreenHandle, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
-			DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_R);
-	}
-	void		ShadowDraw::Draw(void) noexcept {
-		auto* DrawerMngr = Draw::MainDraw::Instance();
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-		BaseShadowHandle.DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-		// DepthScreenHandle.DrawExtendGraph(0, 0,1080,1080, true);
-	}
-	void		ShadowDraw::Dispose(void) noexcept {
-		BaseShadowHandle.Dispose();
-		DepthBaseScreenHandle.Dispose();
-		DepthScreenHandle.Dispose();
-		DepthFarScreenHandle.Dispose();
-		this->m_Shader.Dispose();
-		this->m_ShaderRigid.Dispose();
-	}
-	void		ShadowDraw::SetActive(void) noexcept {
-		auto* DrawerMngr = Draw::MainDraw::Instance();
-		auto* pOption = Util::OptionParam::Instance();
-		this->m_PrevShadow = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0;
-		BaseShadowHandle.Make(DrawerMngr->GetDispWidth() / EXTEND, DrawerMngr->GetDispHeight() / EXTEND, TRUE);
-		int size = 2 << 10;
-		DepthBaseScreenHandle.Make(size, size, FALSE);			// 深度バッファ用の作成
-		DepthScreenHandle.MakeDepth(size, size);					// 深度バッファの作成
-		DepthFarScreenHandle.MakeDepth(size, size);				// 深度バッファの作成
-		this->m_Shader.Init("CommonData/shader/VS_SoftShadow.vso", "CommonData/shader/PS_SoftShadow.pso");
-		this->m_ShaderRigid.Init("CommonData/shader/VS_SoftShadow_Rigid.vso", "CommonData/shader/PS_SoftShadow.pso");
-	}
-	bool		ShadowDraw::UpdateActive(void) noexcept {
-		auto* pOption = Util::OptionParam::Instance();
-		bool shadow = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0;
-		if (this->m_PrevShadow != shadow) {
-			this->m_PrevShadow = shadow;
-			if (shadow) {
-				SetActive();
-				return true;
-			}
-			else {
-				Dispose();
-			}
-		}
-		return false;
-	}
-	// --------------------------------------------------------------------------------------------------
-	// 
-	// --------------------------------------------------------------------------------------------------
 	PostPassEffect::PostPassEffect(void) noexcept {
-		PostPassScreenBufferPool::Create();
-		auto* DrawerMngr = Draw::MainDraw::Instance();
-		auto Prev = GetCreateDrawValidGraphZBufferBitDepth();
-		SetCreateDrawValidGraphZBufferBitDepth(24);
-		this->m_BufferScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
-		this->m_ColorScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
-		SetCreateDrawValidGraphZBufferBitDepth(Prev);
-		// ポストエフェクト
+		//
+		Init();
+		// ポストプロセスの追加
 		size_t now = 0;
 		this->m_PostPass[now] = std::make_unique<PostPassBloom>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassDoF>(); ++now;
@@ -1053,160 +935,5 @@ namespace DXLibRef {
 		this->m_PostPass[now] = std::make_unique<PostPassFXAA>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassScope>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassBlackout>(); ++now;
-
-		this->m_ShadowDraw = std::make_unique<ShadowDraw>();
-		// シェーダー
-		if (false) {
-			this->m_PBR_Shader.Init("CommonData/shader/VS_PBR3D.vso", "CommonData/shader/PS_PBR3D.pso");
-			this->m_PBR_Shader.AddGeometryShader("CommonData/shader/GS_PBR3D.pso");
-		}
-	}
-	void		PostPassEffect::Init(void) noexcept {
-		UpdateActive();
-		// 影生成
-		this->m_ShadowDraw->UpdateActive();
-	}
-	void		PostPassEffect::Dispose(void) noexcept {
-		ResetAllBuffer();
-		// ポストエフェクト
-		for (auto& P : this->m_PostPass) {
-			if (!P) { continue; }
-			P.reset();
-		}
-		this->m_ShadowDraw.reset();
-		if (false) {
-			this->m_PBR_Shader.Dispose();
-		}
-	}
-	void		PostPassEffect::UpdateActive(void) noexcept {
-		auto* pOption = Util::OptionParam::Instance();
-		bool ActiveGBuffer = false;
-		for (auto& P : this->m_PostPass) {
-			if (!P) { continue; }
-			if (P->IsActive()) {
-				ActiveGBuffer = true;
-				break;
-			}
-		}
-		UpdateActiveGBuffer(ActiveGBuffer);
-		for (auto& P : this->m_PostPass) {
-			if (!P) { continue; }
-			P->UpdateActive(P->IsActive());
-		}
-		UpdateActiveCubeMap((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false);
-	}
-	// 
-	void		PostPassEffect::SetCamMat(const Draw::Camera3DInfo& camInfo) noexcept {
-		this->m_CamInfo = camInfo;
-		this->m_CamViewMat = this->m_CamInfo.GetViewMatrix();
-		this->m_CamProjectionMat = this->m_CamInfo.GetProjectionMatrix();
-	}
-	void		PostPassEffect::ResetBuffer(void) noexcept {
-		if (this->m_IsActiveGBuffer) {
-			// リセット替わり
-			this->m_ColorScreen.SetDraw_Screen();
-			this->m_NormalScreen.SetDraw_Screen();
-			this->m_NormalScreen.FillGraph(128, 128, 255);
-			this->m_DepthScreen.SetDraw_Screen();
-			this->m_DepthScreen.FillGraph(255, 0, 0);
-		}
-	}
-	void		PostPassEffect::DrawGBuffer(float near_len, float far_len, std::function<void()> done) noexcept {
-		// カラーバッファを描画対象0に、法線バッファを描画対象1に設定
-		this->m_BufferScreen.SetRenderTargetToShader(0);
-		if (this->m_IsActiveGBuffer) {
-			this->m_NormalScreen.SetRenderTargetToShader(1);
-			this->m_DepthScreen.SetRenderTargetToShader(2);
-		}
-		ClearDrawScreenZBuffer();
-		this->m_CamInfo.FlipCamInfo();
-		SetCameraNearFar(near_len, far_len);
-		{
-			done();
-		}
-		SetRenderTargetToShader(0, InvalidID);
-		if (this->m_IsActiveGBuffer) {
-			SetRenderTargetToShader(1, InvalidID);
-			SetRenderTargetToShader(2, InvalidID);
-		}
-	}
-
-	void		PostPassEffect::SetDrawShadow(const Draw::Camera3DInfo& camInfo, std::function<void()> setshadowdoing_rigid, std::function<void()> setshadowdoing) noexcept {
-		auto* pOption = Util::OptionParam::Instance();
-		// 影
-		if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
-			// 影画像の用意
-			this->m_ShadowDraw->SetDraw(setshadowdoing_rigid, setshadowdoing, camInfo);
-			// ソフトシャドウ重ね
-			this->m_BufferScreen.SetDraw_Screen(false);
-			{
-				this->m_ShadowDraw->Draw();
-			}
-		}
-	}
-	void		PostPassEffect::DrawPostProcess(void) noexcept {
-		this->m_BufferScreen.SetDraw_Screen(false);
-		// 色味補正
-		this->m_BufferScreen.GraphFilter(DX_GRAPH_FILTER_LEVEL, this->m_InColorPerMin, this->m_InColorPerMax, static_cast<int>(this->m_InColorGamma * 100), 0, 255);
-		PostPassScreenBufferPool::Instance()->FirstUpdate();
-		// ポストパスエフェクトのbufに描画
-		if (this->m_IsActiveGBuffer) {
-			for (auto& P : this->m_PostPass) {
-				if (!P) { continue; }
-				this->m_ColorScreen.GraphFilterBlt(this->m_BufferScreen, DX_GRAPH_FILTER_DOWN_SCALE, 1);
-				P->SetEffect(&this->m_BufferScreen, &this->m_ColorScreen, &this->m_NormalScreen, &this->m_DepthScreen);
-			}
-		}
-	}
-	void		PostPassEffect::ResetAllBuffer(void) noexcept {
-		UpdateActiveGBuffer(false);
-		for (auto& P : this->m_PostPass) {
-			if (!P) { continue; }
-			P->UpdateActive(false);
-		}
-		UpdateActiveCubeMap(false);
-	}
-	void		PostPassEffect::Update_Shadow(std::function<void()> doing, const Util::Vector3DX& CenterPos, bool IsFar) noexcept {
-		auto* pOption = Util::OptionParam::Instance();
-		if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
-			// 影用の深度記録画像の準備を行う
-			if (!IsFar) {
-				this->m_ShadowDraw->Update(doing, CenterPos, this->GetShadowScale());
-			}
-			else {
-				this->m_ShadowDraw->UpdateFar(doing, CenterPos, this->GetShadowScale() * 4.f);
-			}
-		}
-	}
-	void		PostPassEffect::Update_CubeMap(std::function<void()> doing, const Util::Vector3DX& CenterPos) noexcept {
-		auto* pOption = Util::OptionParam::Instance();
-		if ((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false) {
-			this->m_RealTimeCubeMap.ReadyDraw(CenterPos, doing);
-		}
-	}
-	void		PostPassEffect::DrawByPBR(std::function<void()> doing) noexcept {
-		if (false) {
-			MATRIX view, projection;
-			GetTransformToViewMatrix(&view);
-			GetTransformToProjectionMatrix(&projection);
-			this->m_PBR_Shader.SetGeometryCONSTBUFFER(1, &view, &projection);
-			this->m_PBR_Shader.Draw_lamda(doing);
-		}
-		else {
-			doing();
-		}
-	}
-	// 
-	void		PostPassEffect::LoadGBuffer(void) noexcept {
-		auto* DrawerMngr = Draw::MainDraw::Instance();
-		auto Prev = GetCreateDrawValidGraphZBufferBitDepth();
-		SetCreateDrawValidGraphZBufferBitDepth(24);
-		this->m_NormalScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
-		this->m_DepthScreen.MakeDepth(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
-		SetCreateDrawValidGraphZBufferBitDepth(Prev);
-	}
-	void		PostPassEffect::DisposeGBuffer(void) noexcept {
-		this->m_NormalScreen.Dispose();
-		this->m_DepthScreen.Dispose();
 	}
 };

@@ -8,23 +8,19 @@
 #pragma warning(disable:5259)
 #include "MainDraw.hpp"
 
+#include "FontDraw.hpp"
+#include "ImageDraw.hpp"
+#include "Camera.hpp"
+#include "PostPass.hpp"
+
 #include "../Util/SceneManager.hpp"
 #include "../Util/Key.hpp"
 #include "../Util/Localize.hpp"
-
-#include "FontDraw.hpp"
-
-#include "ImageDraw.hpp"
-
-#include "Camera.hpp"
-#include "PostPass.hpp"
 
 const Draw::MainDraw* Util::SingletonBase<Draw::MainDraw>::m_Singleton = nullptr;
 
 namespace Draw {
 	MainDraw::MainDraw(void) noexcept {
-		Util::OptionParam::Create();
-		//
 		this->m_ScreenWidth = GetSystemMetrics(SM_CXSCREEN);
 		this->m_ScreenHeight = GetSystemMetrics(SM_CYSCREEN);
 		DxLib::SetOutApplicationLogValidFlag(FALSE);
@@ -68,29 +64,10 @@ namespace Draw {
 		this->m_BufferScreen = DxLib::MakeScreen(this->m_DispWidth, this->m_DispHeight, FALSE);
 		//
 		FlipSetting();
-
-		Util::SceneManager::Create();
-		Util::KeyParam::Create();
-		FontPool::Create();
-		GraphPool::Create();
-		Util::LocalizePool::Create();
-
-		DXLibRef::Camera3D::Create();
-
 	}
 	MainDraw::~MainDraw(void) noexcept {
-		DXLibRef::Camera3D::Release();
-
-		Util::LocalizePool::Release();
-		GraphPool::Release();
-		FontPool::Release();
-		Util::KeyParam::Release();
-		Util::SceneManager::Release();
-
 		DxLib::DeleteGraph(this->m_BufferScreen);
 		DxLib::DxLib_End();
-
-		Util::OptionParam::Release();
 	}
 
 	void MainDraw::FlipSetting(void) noexcept {

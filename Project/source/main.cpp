@@ -12,15 +12,21 @@
 #include "Scene/MainScene.hpp"
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
+	Util::OptionParam::Create();
+
 	Draw::MainDraw::Create();
-	auto* DrawerMngr = Draw::MainDraw::Instance();
 
+	Util::SceneManager::Create();
+	Util::KeyParam::Create();
+	Draw::FontPool::Create();
+	Draw::GraphPool::Create();
+	Util::LocalizePool::Create();
+	Camera::Camera3D::Create();
 	DXLibRef::PostPassEffect::Create();
-	auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
-	PostPassParts->Init();
 
+	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* SceneMngr = Util::SceneManager::Instance();
-	auto* KeyMngr = Util::KeyParam::Instance();
+
 	TitleScene Title{};
 	MainScene Main{};
 	//シーン設定
@@ -33,10 +39,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		//更新
 		DrawerMngr->Update();
 		for (int loop = 0; loop < DrawerMngr->GetUpdateTickCount(); ++loop) {
-			KeyMngr->Update();
+			Util::KeyParam::Instance()->Update();
 			SceneMngr->Update();
+			Camera::Camera3D::Instance()->Update();
 		}
 		//描画
+
+		// キューブマップをセット
+		SceneMngr->ReadyDraw();
 		DrawerMngr->StartDraw();
 		SceneMngr->Draw();
 		DrawerMngr->EndDraw();
@@ -46,6 +56,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 	}
 	DXLibRef::PostPassEffect::Release();
+	Camera::Camera3D::Release();
+	Util::LocalizePool::Release();
+	Draw::GraphPool::Release();
+	Draw::FontPool::Release();
+	Util::KeyParam::Release();
+	Util::SceneManager::Release();
+
 	Draw::MainDraw::Release();
+
+	Util::OptionParam::Release();
 	return 0;// ソフトの終了 
 }

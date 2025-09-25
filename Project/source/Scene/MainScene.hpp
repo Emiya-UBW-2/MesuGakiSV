@@ -9,6 +9,8 @@
 #include "../Util/Key.hpp"
 #include "../Draw/MainDraw.hpp"
 
+#include "../Draw/Camera.hpp"
+
 class MainScene : public Util::SceneBase {
 	int ModelID = -1;
 	char		padding[4]{};
@@ -24,24 +26,29 @@ protected:
 		ModelID = MV1LoadModel("data/Soldier/model_DISABLE.mv1");
 	}
 	void Update_Sub(void) noexcept override {
-		auto* SceneMngr = Util::SceneManager::Instance();
 		auto* KeyMngr = Util::KeyParam::Instance();
 		if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
-			SceneBase::SetNextScene(SceneMngr->GetScene(static_cast<int>(EnumScene::Title)));
+			SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Title)));
 			SceneBase::SetEndScene();
 		}
+		auto* CameraParts = Camera::Camera3D::Instance();
+		CameraParts->SetMainCamera().SetCamPos(VGet(0, 15.f, -40.f), VGet(0, 15.f, 0.f), VGet(0, 1.f, 0));
+		CameraParts->SetMainCamera().SetCamInfo(Util::deg2rad(45), 0.5f, 80.f);
+
+	}
+	void BGDraw_Sub(void) noexcept override {
+		auto* DrawerMngr = Draw::MainDraw::Instance();
+		DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), GetColor(100, 150, 255), TRUE);
+
 	}
 	void Draw_Sub(void) noexcept override {
-		auto* DrawerMngr = Draw::MainDraw::Instance();
-		DxLib::DrawBox(5, 5, DrawerMngr->GetDispWidth() - 5, DrawerMngr->GetDispHeight() - 5, GetColor(0, 255, 0), TRUE);
-		DxLib::DrawCircle(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), 5, GetColor(255, 0, 0));
-
-		SetCameraPositionAndTargetAndUpVec(VGet(0, 15.f, -20.f), VGet(0, 15.f, 0.f), VGet(0, 1.f, 0));
-		SetCameraNearFar(0.5f, 40.f);
-		SetupCamera_Perspective(Util::deg2rad(45));
-
 		MV1DrawModel(ModelID);
 	}
+	void UIDraw_Sub(void) noexcept override {
+		auto* DrawerMngr = Draw::MainDraw::Instance();
+		DxLib::DrawCircle(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), 5, GetColor(255, 0, 0));
+	}
+
 	void Dispose_Sub(void) noexcept override {
 		MV1DeleteModel(ModelID);
 		ModelID = -1;
