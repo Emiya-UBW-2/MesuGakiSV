@@ -1,9 +1,11 @@
 // ピクセルシェーダーの入力
 struct PS_INPUT
 {
-    float4 dif : COLOR0; // ディフューズカラー
-    float2 texCoords0 : TEXCOORD0; // テクスチャ座標
-    float4 pos : SV_POSITION; // 座標( プロジェクション空間 )
+    float4 Position : SV_POSITION; // 座標
+    float4 DiffuseColor : COLOR0; // ディフューズカラー
+    float4 SpecularColor : COLOR1; // スペキュラカラー
+    float2 TextureCoord0 : TEXCOORD0; // テクスチャ座標０
+    float2 TextureCoord1 : TEXCOORD1; // テクスチャ座標１
 };
 
 // ピクセルシェーダーの出力
@@ -128,16 +130,16 @@ float SSAO(float2 tcoord, float3 pos, float3 normal, float rad)
 PS_OUTPUT main(PS_INPUT PSInput)
 {
     PS_OUTPUT PSOutput;
-    float3 normal = g_NormalMapTexture.Sample(g_NormalMapSampler, PSInput.texCoords0).xyz;
+    float3 normal = g_NormalMapTexture.Sample(g_NormalMapSampler, PSInput.TextureCoord0).xyz;
     normal.x = normal.x * 2.0f - 1.0f;
     normal.y = normal.y * 2.0f - 1.0f;
     normal.z = normal.z * 2.0f - 1.0f;
 
-    float3 pos = DisptoProj(PSInput.texCoords0);
+    float3 pos = DisptoProj(PSInput.TextureCoord0);
 
     float ao = 1.0;
     float rad = SAMPLE_RAD / pos.z;
-    ao = SSAO(PSInput.texCoords0, pos, normal, rad);
+    ao = SSAO(PSInput.TextureCoord0, pos, normal, rad);
     
 
     //ao = lerp(ao, 1.0f, abs(normal.x)/1.5f);

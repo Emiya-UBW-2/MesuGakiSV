@@ -1,9 +1,11 @@
 // ピクセルシェーダーの入力
 struct PS_INPUT
 {
-	float4 Diffuse : COLOR0; // ディフューズカラー
-	float2 TexCoords0 : TEXCOORD0; // テクスチャ座標
-	float4 pos         : SV_POSITION;   // 座標( プロジェクション空間 )
+    float4 Position : SV_POSITION; // 座標
+    float4 DiffuseColor : COLOR0; // ディフューズカラー
+    float4 SpecularColor : COLOR1; // スペキュラカラー
+    float2 TextureCoord0 : TEXCOORD0; // テクスチャ座標０
+    float2 TextureCoord1 : TEXCOORD1; // テクスチャ座標１
 };
 
 // ピクセルシェーダーの出力
@@ -90,12 +92,12 @@ PS_OUTPUT main(PS_INPUT PSInput)
 	//画面サイズを取得しておく
 	g_DepthMapTexture.GetDimensions(dispsize.x, dispsize.y);
 
-	float Depth = g_DepthMapTexture.Sample(g_DepthMapSampler, PSInput.TexCoords0).r;
+    float Depth = g_DepthMapTexture.Sample(g_DepthMapSampler, PSInput.TextureCoord0).r;
 	if (Depth <= 0.f) {
 		Depth = 100000.f;
 	}
 
-	float3 ViewPositionOne = DisptoProjNorm(PSInput.TexCoords0);
+    float3 ViewPositionOne = DisptoProjNorm(PSInput.TextureCoord0);
 
 	float4 lWorldPosition;
 	float4 LPPosition; // ライトからみた座標( xとyはライトの射影座標、zはビュー座標 )

@@ -1,9 +1,11 @@
 // ピクセルシェーダーの入力
 struct PS_INPUT
 {
-	float4 dif : COLOR0; // ディフューズカラー
-	float2 texCoords0 : TEXCOORD0; // テクスチャ座標
-	float4 pos : SV_POSITION; // 座標( プロジェクション空間 )
+    float4 Position : SV_POSITION; // 座標
+    float4 DiffuseColor : COLOR0; // ディフューズカラー
+    float4 SpecularColor : COLOR1; // スペキュラカラー
+    float2 TextureCoord0 : TEXCOORD0; // テクスチャ座標０
+    float2 TextureCoord1 : TEXCOORD1; // テクスチャ座標１
 };
 
 // ピクセルシェーダーの出力
@@ -64,7 +66,7 @@ PS_OUTPUT main(PS_INPUT PSInput)
 	PS_OUTPUT PSOutput;
 
 	float per = 0.f;
-	float Depth = g_DepthMapTexture.Sample(g_DepthMapSampler, PSInput.texCoords0).r;
+    float Depth = g_DepthMapTexture.Sample(g_DepthMapSampler, PSInput.TextureCoord0).r;
 
 	float near_min = caminfo.z;
 	float near_max = caminfo.x;
@@ -74,7 +76,7 @@ PS_OUTPUT main(PS_INPUT PSInput)
 	//無し
 	if (Depth == 0.f) {
 		per = 0.f;
-        PSOutput.color0 = g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, PSInput.texCoords0);
+        PSOutput.color0 = g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, PSInput.TextureCoord0);
     }
 	//近
 	else if (Depth < near_max) {
@@ -88,14 +90,14 @@ PS_OUTPUT main(PS_INPUT PSInput)
             per = 1.f;
         }
         PSOutput.color0 = lerp(
-		g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, PSInput.texCoords0),
-		g_Diffuse2MapTexture.Sample(g_Diffuse2MapSampler, PSInput.texCoords0),
+		g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, PSInput.TextureCoord0),
+		g_Diffuse2MapTexture.Sample(g_Diffuse2MapSampler, PSInput.TextureCoord0),
 		per);
     }
 	//中
 	else if (near_max < Depth && Depth < far_min) {
 		per = 0.f;
-        PSOutput.color0 = g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, PSInput.texCoords0);
+        PSOutput.color0 = g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, PSInput.TextureCoord0);
     }
 	//遠
 	else if (far_min < Depth) {
@@ -109,13 +111,13 @@ PS_OUTPUT main(PS_INPUT PSInput)
             per = 1.f;
         }
         PSOutput.color0 = lerp(
-		g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, PSInput.texCoords0),
-		g_Diffuse3MapTexture.Sample(g_Diffuse3MapSampler, PSInput.texCoords0),
+		g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, PSInput.TextureCoord0),
+		g_Diffuse3MapTexture.Sample(g_Diffuse3MapSampler, PSInput.TextureCoord0),
 		per);
     }
 	else {
 		per = 1.f;
-        PSOutput.color0 = g_Diffuse2MapTexture.Sample(g_Diffuse2MapSampler, PSInput.texCoords0);
+        PSOutput.color0 = g_Diffuse2MapTexture.Sample(g_Diffuse2MapSampler, PSInput.TextureCoord0);
     }
 
 	return PSOutput;

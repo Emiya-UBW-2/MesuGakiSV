@@ -12,7 +12,7 @@
 
 namespace Util {
 	class SceneBase {
-		const SceneBase* m_pNextScene{ nullptr };
+		const SceneBase*	m_pNextScene{ nullptr };
 		int					m_SceneID{ 0 };
 		bool				m_IsEndGame{ false };
 		bool				m_IsEndScene{ false };
@@ -35,12 +35,6 @@ namespace Util {
 		void Init(void) noexcept {
 			this->m_IsEndGame = false;
 			this->m_IsEndScene = false;
-
-			auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
-			PostPassParts->ResetAllParams();
-			PostPassParts->ResetAllBuffer();
-			PostPassParts->UpdateActive();
-
 			Init_Sub();
 		}
 		void Update(void) noexcept { Update_Sub(); }
@@ -154,6 +148,10 @@ namespace Util {
 				if (this->m_NowScene) {
 					this->m_NowScene->Init();
 					this->m_Phase = EnumScenePhase::Update;
+					auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+					PostPassParts->ResetAllParams();
+					PostPassParts->ResetAllBuffer();
+					PostPassParts->UpdateActive();
 				}
 				break;
 			case EnumScenePhase::GoEnd:

@@ -1,9 +1,11 @@
 // ピクセルシェーダーの入力
 struct PS_INPUT
 {
-    float4 dif : COLOR0; // ディフューズカラー
-    float2 texCoords0 : TEXCOORD0; // テクスチャ座標
-    float4 pos : SV_POSITION; // 座標( プロジェクション空間 )
+    float4 Position : SV_POSITION; // 座標
+    float4 DiffuseColor : COLOR0; // ディフューズカラー
+    float4 SpecularColor : COLOR1; // スペキュラカラー
+    float2 TextureCoord0 : TEXCOORD0; // テクスチャ座標０
+    float2 TextureCoord1 : TEXCOORD1; // テクスチャ座標１
 };
 
 // ピクセルシェーダーの出力
@@ -149,7 +151,7 @@ PS_OUTPUT main(PS_INPUT PSInput)
     PS_OUTPUT PSOutput;
 
     PSOutput.color0 = FxaaPixelShader(
-        PSInput.texCoords0,
+        PSInput.TextureCoord0,
         0.125,
         0.05
     );
@@ -160,7 +162,7 @@ PS_OUTPUT main(PS_INPUT PSInput)
 #if 1
 	return PSOutput;
 #else
-    float3 Color = GetTexColor(PSInput.texCoords0).xyz;
+    float3 Color = GetTexColor(PSInput.TextureCoord0).xyz;
     if (
         PSOutput.color0.r == Color.r &&
         PSOutput.color0.g == Color.g &&

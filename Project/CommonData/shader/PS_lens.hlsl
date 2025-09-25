@@ -1,8 +1,11 @@
 // ピクセルシェーダーの入力
 struct PS_INPUT
 {
-	float4 dif         : COLOR0;		// ディフューズカラー
-	float2 texCoords0  : TEXCOORD0;	// テクスチャ座標
+    float4 Position : SV_POSITION; // 座標
+    float4 DiffuseColor : COLOR0; // ディフューズカラー
+    float4 SpecularColor : COLOR1; // スペキュラカラー
+    float2 TextureCoord0 : TEXCOORD0; // テクスチャ座標０
+    float2 TextureCoord1 : TEXCOORD1; // テクスチャ座標１
 };
 
 // ピクセルシェーダーの出力
@@ -84,8 +87,8 @@ PS_OUTPUT main(PS_INPUT PSInput)
 	PS_OUTPUT PSOutput;
 	float4 TextureDiffuseColor;
 	float2 pixel_pos;
-	pixel_pos.x = PSInput.texCoords0.x * dispsize.x;
-	pixel_pos.y = PSInput.texCoords0.y * dispsize.y;
+    pixel_pos.x = PSInput.TextureCoord0.x * dispsize.x;
+    pixel_pos.y = PSInput.TextureCoord0.y * dispsize.y;
 	float2 CalcPos = pixel_pos;
 	float2 calc_pos = { 0,0 };
 
@@ -101,7 +104,7 @@ PS_OUTPUT main(PS_INPUT PSInput)
 	TextureDiffuseColor = g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, CalcPos);
 
 	// 出力カラー = テクスチャカラー * ディフューズカラー
-	PSOutput.color0 = TextureDiffuseColor * PSInput.dif;
+	PSOutput.color0 = TextureDiffuseColor * PSInput.DiffuseColor;
 
 	// 出力パラメータを返す
 	return PSOutput;

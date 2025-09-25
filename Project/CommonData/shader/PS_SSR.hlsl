@@ -1,8 +1,11 @@
 // ピクセルシェーダーの入力
-struct PS_INPUT {
-	float4 dif         : COLOR0;		// ディフューズカラー
-	float2 texCoords0  : TEXCOORD0;	// テクスチャ座標
-	float4 pos         : SV_POSITION;   // 座標( プロジェクション空間 )
+struct PS_INPUT
+{
+    float4 Position : SV_POSITION; // 座標
+    float4 DiffuseColor : COLOR0; // ディフューズカラー
+    float4 SpecularColor : COLOR1; // スペキュラカラー
+    float2 TextureCoord0 : TEXCOORD0; // テクスチャ座標０
+    float2 TextureCoord1 : TEXCOORD1; // テクスチャ座標１
 };
 
 // ピクセルシェーダーの出力
@@ -172,15 +175,15 @@ PS_OUTPUT main(PS_INPUT PSInput) {
 	//画面サイズを取得しておく
 	g_Register0MapTexture.GetDimensions(dispsize.x, dispsize.y);
 	//反射をどれだけ見せるか
-	float Per = GetTexColor2(PSInput.texCoords0).g * FilterTexture.Sample(FilterSampler, PSInput.texCoords0).r;
+    float Per = GetTexColor2(PSInput.TextureCoord0).g * FilterTexture.Sample(FilterSampler, PSInput.TextureCoord0).r;
 	//処理
 	float4 lWorldPosition;
 
 	//ノーマル座標取得
-	float3 normal = GetTexColor1(PSInput.texCoords0).xyz * 2.f - 1.f;
+    float3 normal = GetTexColor1(PSInput.TextureCoord0).xyz * 2.f - 1.f;
 
 	//キューブマップからの反射
-	lWorldPosition.xyz = DisptoProjNorm(PSInput.texCoords0);
+    lWorldPosition.xyz = DisptoProjNorm(PSInput.TextureCoord0);
 	lWorldPosition.x *= -1.f;
 	lWorldPosition.w = 0.f;
 	
@@ -204,7 +207,7 @@ PS_OUTPUT main(PS_INPUT PSInput) {
         PSOutput.color0 = float4(0.f, 0.f, 0.f, 0.f);
     }
 	if (g_param.x >= 2) {
-		float4 color = applySSR(normal, PSInput.texCoords0, (Per <= 0.f));
+        float4 color = applySSR(normal, PSInput.TextureCoord0, (Per <= 0.f));
 		if (color.a > 0.f) {
 			PSOutput.color0 = color;
 		}
@@ -214,7 +217,7 @@ PS_OUTPUT main(PS_INPUT PSInput) {
 	//戻り値
 	//return PSOutput;
 	//差分だけを出力する場合はこちら
-	float3 Color = GetTexColor0(PSInput.texCoords0).xyz;
+    float3 Color = GetTexColor0(PSInput.TextureCoord0).xyz;
 	if (
 		PSOutput.color0.r == Color.r &&
 		PSOutput.color0.g == Color.g &&
