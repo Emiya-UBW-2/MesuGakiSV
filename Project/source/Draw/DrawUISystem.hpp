@@ -190,7 +190,7 @@ namespace Draw {
 		void			Update(DrawUISystem* DrawUI, Param2D Param = Param2D()) noexcept;
 		void			Draw(DrawUISystem* DrawUI) noexcept {
 			for (auto& parts : this->m_PartsParam) {
-				parts.Draw(DrawUI, m_BasePositionParam);
+				parts.Draw(DrawUI, this->m_BasePositionParam);
 			}
 			//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, GetBranchName().c_str(), DxLib::GetColor(255, 0, 0));
 		}

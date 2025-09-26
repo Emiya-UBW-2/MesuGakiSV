@@ -359,18 +359,18 @@ namespace Draw {
 				SetUseTextureToShader(1, InvalidID);
 				SetUseTextureToShader(2, InvalidID);
 			}
-			m_GodRayTime += 1.f / 60.f;
-			if (m_GodRayTime > 1.f) {
-				m_GodRayTime -= 1.f;
+			this->m_GodRayTime += 1.f / 60.f;
+			if (this->m_GodRayTime > 1.f) {
+				this->m_GodRayTime -= 1.f;
 				this->m_Min.SetDraw_Screen();
 				auto Prev = DxLib::GetDrawMode();
 				DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
 				pScreenBuffer->DrawExtendGraph(0, 0, 1, 1, true);
 				DxLib::SetDrawMode(Prev);
 				this->m_SoftImage.GetDrawScreen(0, 0, 1, 1);
-				this->m_SoftImage.GetPixel(0, 0, &m_GodRayRed, nullptr, nullptr, nullptr);
+				this->m_SoftImage.GetPixel(0, 0, &this->m_GodRayRed, nullptr, nullptr, nullptr);
 			}
-			PostPassParts->SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(m_GodRayRed) / 128.f, 0.f, 1.f));
+			PostPassParts->SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(this->m_GodRayRed) / 128.f, 0.f, 1.f));
 
 			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 300);
 			TargetGraph->SetDraw_Screen();
@@ -606,10 +606,10 @@ namespace Draw {
 			auto* PostRenderBlurScreen(std::function<void()> doing) noexcept {
 				auto* DrawerMngr = Draw::MainDraw::Instance();
 				size_t next = ((this->m_current != 0) ? this->m_current : MAX) - 1;
-				this->m_screen[m_current].SetDraw_Screen();
+				this->m_screen[this->m_current].SetDraw_Screen();
 				{
 					doing();
-					if (++m_notBlendDraw > MAX) {
+					if (++this->m_notBlendDraw > MAX) {
 						int Prev = DxLib::GetDrawMode();
 						DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
 						DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->m_alpha);

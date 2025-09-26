@@ -468,7 +468,7 @@ namespace Draw {
 		}
 	}
 	void DrawModule::Update(DrawUISystem* DrawUI, Param2D Param) noexcept {
-		m_BasePositionParam = Param;
+		this->m_BasePositionParam = Param;
 		AnimType SelectNow = AnimType::Normal;
 		if (this->m_UseActive) {
 			if (this->m_IsActive) {
@@ -485,7 +485,7 @@ namespace Draw {
 			this->m_IsSelect = false;
 			this->m_IsHitCheck = false;
 			for (auto& parts : this->m_PartsParam) {
-				if (parts.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), m_BasePositionParam)) {
+				if (parts.IsHitPoint(DrawerMngr->GetMousePositionX(), DrawerMngr->GetMousePositionY(), this->m_BasePositionParam)) {
 					this->m_IsSelect = true;
 					break;
 				}
@@ -544,7 +544,7 @@ namespace Draw {
 		}
 
 		for (auto& parts : this->m_PartsParam) {
-			parts.Update(DrawUI, m_BasePositionParam);
+			parts.Update(DrawUI, this->m_BasePositionParam);
 		}
 	}
 }

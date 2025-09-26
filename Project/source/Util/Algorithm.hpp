@@ -658,10 +658,10 @@ namespace Util {
 					*angle_x = std::asinf(this->m_value.m[1][2]);
 				}
 				if (angle_y) {
-					*angle_y = std::atan2f(-m_value.m[0][2], this->m_value.m[2][2]);
+					*angle_y = std::atan2f(-this->m_value.m[0][2], this->m_value.m[2][2]);
 				}
 				if (angle_z) {
-					*angle_z = std::atan2f(-m_value.m[1][0], this->m_value.m[1][1]);
+					*angle_z = std::atan2f(-this->m_value.m[1][0], this->m_value.m[1][1]);
 				}
 			}
 		}

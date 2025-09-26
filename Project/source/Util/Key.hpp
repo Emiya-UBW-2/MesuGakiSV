@@ -695,7 +695,7 @@ namespace Util {
 				}
 			}
 			for (int loop = 0; loop < static_cast<int>(InputType::Max); ++loop) {
-				m_InputType = static_cast<InputType>(loop);
+				this->m_InputType = static_cast<InputType>(loop);
 				Load(static_cast<InputType>(loop));
 
 				switch (static_cast<InputType>(loop)) {
@@ -746,7 +746,7 @@ namespace Util {
 				}
 			}
 
-			m_InputType = InputType::KeyBoard;
+			this->m_InputType = InputType::KeyBoard;
 		}
 		KeyParam(const KeyParam&) = delete;
 		KeyParam(KeyParam&&) = delete;

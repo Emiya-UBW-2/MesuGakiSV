@@ -7,7 +7,7 @@ void OptionWindow::SetActive(bool value) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
 	this->m_DrawUI->Get(this->m_UIBase).SetActive(value);
 	if (IsActive()) {
-		m_LanguagePrev = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect();
+		this->m_LanguagePrev = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect();
 		SetTab();
 	}
 	else {
@@ -16,7 +16,7 @@ void OptionWindow::SetActive(bool value) noexcept {
 			KeyMngr->Save(static_cast<Util::InputType>(loop));
 		}
 		pOption->Save();
-		if (m_LanguagePrev != pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect()) {
+		if (this->m_LanguagePrev != pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect()) {
 			Util::LocalizePool::Instance()->Load();
 			//todo:言語切替により再起動
 		}

@@ -246,7 +246,7 @@ namespace Util {
 			}
 			Load();
 			for (int loop = 0; loop < static_cast<int>(OptionType::Max); ++loop) {
-				m_OptionID.at(static_cast<size_t>(loop)) = GetParamID(OptionStr[static_cast<size_t>(loop)]);
+				this->m_OptionID.at(static_cast<size_t>(loop)) = GetParamID(OptionStr[static_cast<size_t>(loop)]);
 			}
 		}
 		OptionParam(const OptionParam&) = delete;
@@ -278,7 +278,7 @@ namespace Util {
 			if (ID == InvalidID) { return; }
 			this->m_ParamList.at(static_cast<size_t>(ID)).SetSelect(Param);
 		}
-		int GetOptionType(OptionType ID) const noexcept { return m_OptionID.at(static_cast<size_t>(ID)); }
+		int GetOptionType(OptionType ID) const noexcept { return this->m_OptionID.at(static_cast<size_t>(ID)); }
 	public:
 		void Load(void) noexcept {
 			File::InputFileStream Istream("Save/Option.dat");

@@ -26,8 +26,8 @@ public:
 public:
 	bool		IsEnd(void) const noexcept { return !this->m_DrawUI->Get(this->m_UIBase).IsActive() && this->m_DrawUI->Get(this->m_UIBase).IsAnimeEnd(); }
 	void		SetEnd() noexcept { this->m_DrawUI->Get(this->m_UIBase).SetActive(false); }
-	bool		IsActive(void) const noexcept { return m_IsActive; }
-	void		SetActive(bool value) noexcept { m_IsActive = value; }
+	bool		IsActive(void) const noexcept { return this->m_IsActive; }
+	void		SetActive(bool value) noexcept { this->m_IsActive = value; }
 	void		SetEvent(int ID, const std::function<void()>& value) noexcept { this->m_ButtonDo[static_cast<size_t>(ID)] = value; }
 public:
 	void		Init(void) noexcept {
@@ -44,19 +44,19 @@ public:
 	}
 	void		Update(void) noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
-		if (m_IsActive) {
+		if (this->m_IsActive) {
 			if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
 				for (int loop = 0; loop < 4; ++loop) {
 					if (this->m_DrawUI->Get(this->m_ButtonID[loop]).IsSelectButton()) {
-						if (m_ButtonDo[static_cast<size_t>(loop)]) {
-							m_ButtonDo[static_cast<size_t>(loop)]();
+						if (this->m_ButtonDo[static_cast<size_t>(loop)]) {
+							this->m_ButtonDo[static_cast<size_t>(loop)]();
 						}
 						break;
 					}
 				}
 			}
 		}
-		this->m_DrawUI->Update(m_IsActive);
+		this->m_DrawUI->Update(this->m_IsActive);
 	}
 	void		Draw(void) noexcept {
 		this->m_DrawUI->Draw();
