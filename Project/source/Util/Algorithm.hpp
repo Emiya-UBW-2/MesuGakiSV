@@ -14,7 +14,7 @@
 
 namespace Util {
 	// --------------------------------------------------------------------------------------------------
-	// ベクトルデータ型
+	// Vector2
 	// --------------------------------------------------------------------------------------------------
 	class VECTOR2D {
 	public:
@@ -227,30 +227,30 @@ namespace Util {
 	// ---------------------------------------------------------------------------------------------
 	// Matrix 4x4バージョン
 	// ---------------------------------------------------------------------------------------------
-	class Matrix4x4DX {
+	class Matrix4x4 {
 		MATRIX value;
 	public:
-		Matrix4x4DX(void) noexcept : value(DxLib::MGetIdent()) {}
-		Matrix4x4DX(MATRIX value) noexcept { this->value = value; }
+		Matrix4x4(void) noexcept : value(DxLib::MGetIdent()) {}
+		Matrix4x4(MATRIX value) noexcept { this->value = value; }
 		MATRIX get(void) const noexcept { return this->value; }		// 変換
 		// 
-		static Matrix4x4DX identity(void) noexcept { return DxLib::MGetIdent(); }
+		static Matrix4x4 identity(void) noexcept { return DxLib::MGetIdent(); }
 
-		static Matrix4x4DX Axis1(const VECTOR3D& yvec, const VECTOR3D& zvec, const VECTOR3D& pos = VECTOR3D::zero()) noexcept { return { DxLib::MGetAxis1(VECTOR3D::Cross(yvec, zvec).get(),yvec.get(),zvec.get(),pos.get()) }; }
-		static Matrix4x4DX Axis2(const VECTOR3D& yvec, const VECTOR3D& zvec, const VECTOR3D& pos = VECTOR3D::zero()) noexcept { return { DxLib::MGetAxis2(VECTOR3D::Cross(yvec, zvec).get(),yvec.get(),zvec.get(),pos.get()) }; }
-		static Matrix4x4DX RotAxis(const VECTOR3D& p1, float p2) noexcept { return DxLib::MGetRotAxis(p1.get(), p2); }
-		static Matrix4x4DX RotVec2(const VECTOR3D& p1, const VECTOR3D& p2) noexcept { return { DxLib::MGetRotVec2(p1.get(), p2.get()) }; }
-		static Matrix4x4DX GetScale(float scale) noexcept { return { DxLib::MGetScale(DxLib::VGet(scale,scale,scale)) }; }
-		static Matrix4x4DX GetScale(const VECTOR3D& scale) noexcept { return { DxLib::MGetScale(scale.get()) }; }
-		static Matrix4x4DX Mtrans(const VECTOR3D& p1) noexcept { return DxLib::MGetTranslate(p1.get()); }
-		static VECTOR3D Vtrans(const VECTOR3D& p1, const Matrix4x4DX& p2) noexcept { return DxLib::VTransform(p1.get(), p2.get()); }
+		static Matrix4x4 Axis1(const VECTOR3D& yvec, const VECTOR3D& zvec, const VECTOR3D& pos = VECTOR3D::zero()) noexcept { return { DxLib::MGetAxis1(VECTOR3D::Cross(yvec, zvec).get(),yvec.get(),zvec.get(),pos.get()) }; }
+		static Matrix4x4 Axis2(const VECTOR3D& yvec, const VECTOR3D& zvec, const VECTOR3D& pos = VECTOR3D::zero()) noexcept { return { DxLib::MGetAxis2(VECTOR3D::Cross(yvec, zvec).get(),yvec.get(),zvec.get(),pos.get()) }; }
+		static Matrix4x4 RotAxis(const VECTOR3D& p1, float p2) noexcept { return DxLib::MGetRotAxis(p1.get(), p2); }
+		static Matrix4x4 RotVec2(const VECTOR3D& p1, const VECTOR3D& p2) noexcept { return { DxLib::MGetRotVec2(p1.get(), p2.get()) }; }
+		static Matrix4x4 GetScale(float scale) noexcept { return { DxLib::MGetScale(DxLib::VGet(scale,scale,scale)) }; }
+		static Matrix4x4 GetScale(const VECTOR3D& scale) noexcept { return { DxLib::MGetScale(scale.get()) }; }
+		static Matrix4x4 Mtrans(const VECTOR3D& p1) noexcept { return DxLib::MGetTranslate(p1.get()); }
+		static VECTOR3D Vtrans(const VECTOR3D& p1, const Matrix4x4& p2) noexcept { return DxLib::VTransform(p1.get(), p2.get()); }
 		// 
-		Matrix4x4DX inverse(void) const noexcept { return DxLib::MInverse(this->get()); }		// 逆
+		Matrix4x4 inverse(void) const noexcept { return DxLib::MInverse(this->get()); }		// 逆
 		bool isIdentity(void) const noexcept { return *this == DxLib::MGetIdent(); }		// 逆
 		// lossyScale
 		VECTOR3D lossyScale(void) const noexcept { return DxLib::MGetSize(this->get()); }
-		Matrix4x4DX rotation(void) const noexcept { return DxLib::MGetRotElem(this->get()); }		// 逆
-		Matrix4x4DX transpose(void) const noexcept { return DxLib::MTranspose(this->get()); }		// 逆
+		Matrix4x4 rotation(void) const noexcept { return DxLib::MGetRotElem(this->get()); }		// 逆
+		Matrix4x4 transpose(void) const noexcept { return DxLib::MTranspose(this->get()); }		// 逆
 
 		VECTOR3D pos(void) const noexcept { return Vtrans(VECTOR3D::zero(), this->get()); }
 		VECTOR3D xvec(void) const noexcept { return Vtrans(VECTOR3D::right(), rotation()); }
@@ -306,7 +306,7 @@ namespace Util {
 			value.m[2][2] = std::cos(x) * std::cos(y);
 		}
 		// 比較
-		bool operator==(const Matrix4x4DX& obj) const noexcept {
+		bool operator==(const Matrix4x4& obj) const noexcept {
 			for (int x = 0; x < 4; ++x) {
 				for (int y = 0; y < 4; ++y) {
 					if (this->get().m[x][y] != obj.get().m[x][y]) {
@@ -318,12 +318,380 @@ namespace Util {
 
 
 		}
-		bool operator!=(const Matrix4x4DX& obj) const noexcept { return !(*this == obj); }
+		bool operator!=(const Matrix4x4& obj) const noexcept { return !(*this == obj); }
 		// 乗算
-		Matrix4x4DX operator*(const Matrix4x4DX& obj)  const noexcept { return DxLib::MMult(this->get(), obj.get()); }
-		void operator*=(const Matrix4x4DX& obj) noexcept { *this = *this * obj; }
+		Matrix4x4 operator*(const Matrix4x4& obj)  const noexcept { return DxLib::MMult(this->get(), obj.get()); }
+		void operator*=(const Matrix4x4& obj) noexcept { *this = *this * obj; }
 	};
 
+	// ---------------------------------------------------------------------------------------------
+	// Matrix 3x3バージョン
+	// ---------------------------------------------------------------------------------------------
+	namespace MAT33 {
+		// 行列構造体
+		struct MATRIX33 {
+			float					m[3][3];
+		};
+		// 相互変換
+		static void M33toMATRIX(MATRIX* pTarget, const MATRIX33& pAtr) noexcept {
+			*pTarget = DxLib::MGetIdent();
+			for (int x = 0; x < 3; ++x) {
+				for (int y = 0; y < 3; ++y) {
+					pTarget->m[x][y] = pAtr.m[x][y];
+				}
+			}
+		}
+		static void MATRIXtoM33(MATRIX33* pTarget, const MATRIX& pAtr) noexcept {
+			for (int x = 0; x < 3; ++x) {
+				for (int y = 0; y < 3; ++y) {
+					pTarget->m[x][y] = pAtr.m[x][y];
+				}
+			}
+		}
+
+		// 単位行列を得る
+		static MATRIX33 M33GetIdent(void) noexcept {
+			static MATRIX33 Result =
+			{
+				{
+					{ 1.0f, 0.0f, 0.0f },
+					{ 0.0f, 1.0f, 0.0f },
+					{ 0.0f, 0.0f, 1.0f }
+				}
+			};
+			return Result;
+		}
+		// 指定の３軸ローカルのベクトルを基本軸上のベクトルに変換する行列を得る
+		// x' = XAxis.x * x + YAixs.x * y + ZAxis.z * z + Pos.x
+		// y' = XAxis.y * x + YAixs.y * y + ZAxis.y * z + Pos.y
+		// z' = XAxis.z * x + YAixs.z * y + ZAxis.z * z + Pos.z
+		static MATRIX33 M33GetAxis1(const VECTOR3D& XAxis, const VECTOR3D& YAxis, const VECTOR3D& ZAxis) noexcept {
+			MATRIX33 Result =
+			{
+				{
+					{ XAxis.x, XAxis.y, XAxis.z },
+					{ YAxis.x, YAxis.y, YAxis.z },
+					{ ZAxis.x, ZAxis.y, ZAxis.z }
+				}
+			};
+			return Result;
+		}
+		// 基本軸上のベクトルを指定の３軸上に投影したベクトルに変換する行列を得る
+		// x' = XAxis.x * ( x - Pos.x ) + XAxis.y * ( x - Pos.x ) + XAxis.z * ( x - Pos.x )
+		// y' = YAxis.x * ( x - Pos.x ) + YAxis.y * ( x - Pos.x ) + YAxis.z * ( x - Pos.x )
+		// z' = ZAxis.x * ( x - Pos.x ) + ZAxis.y * ( x - Pos.x ) + ZAxis.z * ( x - Pos.x )
+		static MATRIX33 M33GetAxis2(const VECTOR3D& XAxis, const VECTOR3D& YAxis, const VECTOR3D& ZAxis) noexcept {
+			MATRIX33 Result =
+			{
+				{
+					{ XAxis.x, YAxis.x, ZAxis.x },
+					{ XAxis.y, YAxis.y, ZAxis.y },
+					{ XAxis.z, YAxis.z, ZAxis.z }
+				}
+			};
+			return Result;
+		}
+		// 指定軸で指定角度回転する行列を得る
+		static MATRIX33 M33GetRotAxis(const VECTOR3D& RotateAxis, float Rotate) noexcept {
+			MATRIX33 Result{};
+			VECTOR3D xv = VECTOR3D::right(), yv = VECTOR3D::up(), zv = VECTOR3D::forward();
+			VECTOR3D xv2{}, yv2{}, zv2{}, xv3{}, yv3{}, zv3{};
+			float f{}, Sin{}, Cos{};
+
+			zv2 = RotateAxis.normalized();
+			yv2 = VGet(0.0f, 1.0f, 0.0f);
+			if (VECTOR3D::Cross(yv2, zv2).sqrMagnitude() < 0.00001f) {
+				yv2 = VGet(0.0f, 0.0f, 1.0f);
+			}
+			xv2 = VECTOR3D::Cross(zv2, yv2);
+			yv2 = VECTOR3D::Cross(xv2, zv2).normalized();
+			xv2 = xv2.normalized();
+
+			xv3.x = xv2.x * xv.x + xv2.y * xv.y + xv2.z * xv.z;
+			xv3.y = yv2.x * xv.x + yv2.y * xv.y + yv2.z * xv.z;
+			xv3.z = zv2.x * xv.x + zv2.y * xv.y + zv2.z * xv.z;
+
+			yv3.x = xv2.x * yv.x + xv2.y * yv.y + xv2.z * yv.z;
+			yv3.y = yv2.x * yv.x + yv2.y * yv.y + yv2.z * yv.z;
+			yv3.z = zv2.x * yv.x + zv2.y * yv.y + zv2.z * yv.z;
+
+			zv3.x = xv2.x * zv.x + xv2.y * zv.y + xv2.z * zv.z;
+			zv3.y = yv2.x * zv.x + yv2.y * zv.y + yv2.z * zv.z;
+			zv3.z = zv2.x * zv.x + zv2.y * zv.y + zv2.z * zv.z;
+
+			Sin = std::sinf(Rotate);
+			Cos = std::cosf(Rotate);
+
+			f = xv3.x * Cos - xv3.y * Sin;
+			xv3.y = xv3.x * Sin + xv3.y * Cos;
+			xv3.x = f;
+
+			f = yv3.x * Cos - yv3.y * Sin;
+			yv3.y = yv3.x * Sin + yv3.y * Cos;
+			yv3.x = f;
+
+			f = zv3.x * Cos - zv3.y * Sin;
+			zv3.y = zv3.x * Sin + zv3.y * Cos;
+			zv3.x = f;
+
+			Result.m[0][0] = xv2.x * xv3.x + yv2.x * xv3.y + zv2.x * xv3.z;
+			Result.m[1][0] = xv2.y * xv3.x + yv2.y * xv3.y + zv2.y * xv3.z;
+			Result.m[2][0] = xv2.z * xv3.x + yv2.z * xv3.y + zv2.z * xv3.z;
+
+			Result.m[0][1] = xv2.x * yv3.x + yv2.x * yv3.y + zv2.x * yv3.z;
+			Result.m[1][1] = xv2.y * yv3.x + yv2.y * yv3.y + zv2.y * yv3.z;
+			Result.m[2][1] = xv2.z * yv3.x + yv2.z * yv3.y + zv2.z * yv3.z;
+
+			Result.m[0][2] = xv2.x * zv3.x + yv2.x * zv3.y + zv2.x * zv3.z;
+			Result.m[1][2] = xv2.y * zv3.x + yv2.y * zv3.y + zv2.y * zv3.z;
+			Result.m[2][2] = xv2.z * zv3.x + yv2.z * zv3.y + zv2.z * zv3.z;
+
+			return Result;
+		}
+		// In1 の向きから In2 の向きへ変換する回転行列を得る
+		static MATRIX33 M33GetRotVec2(const VECTOR3D& In1, const VECTOR3D& In2) noexcept {
+			VECTOR3D av = VECTOR3D::Cross(In1, In2);
+			if (av.sqrMagnitude() < 0.0000001f) {
+				av = VECTOR3D::right();
+			}
+			float rad = VRad(In1.get(), In2.get());
+			return M33GetRotAxis(av, rad);
+		}
+
+		// 逆行列を作成する
+		static int CreateInverseMatrix33(MATRIX33* Out, const MATRIX33& In) {
+			float detA =
+				In.m[0][0] * In.m[1][1] * In.m[2][2] +
+				In.m[0][1] * In.m[1][2] * In.m[2][0] +
+				In.m[0][2] * In.m[1][0] * In.m[2][1] -
+				In.m[0][0] * In.m[1][2] * In.m[2][1] -
+				In.m[0][1] * In.m[1][0] * In.m[2][2] -
+				In.m[0][2] * In.m[1][1] * In.m[2][0];
+
+			if (detA < 0.0000001f && detA > -0.0000001f) {
+				return FALSE;
+			}
+
+			Out->m[0][0] =
+				(
+					In.m[1][1] * In.m[2][2] -
+					In.m[1][2] * In.m[2][1]
+					) / detA;
+
+			Out->m[0][1] =
+				(
+
+					In.m[0][2] * In.m[2][1] -
+					In.m[0][1] * In.m[2][2]
+					) / detA;
+
+			Out->m[0][2] =
+				(
+					In.m[0][1] * In.m[1][2] -
+					In.m[0][2] * In.m[1][1]
+					) / detA;
+
+			Out->m[1][0] =
+				(
+
+					In.m[1][2] * In.m[2][0] -
+					In.m[1][0] * In.m[2][2]
+					) / detA;
+
+			Out->m[1][1] =
+				(
+					In.m[0][0] * In.m[2][2] -
+					In.m[0][2] * In.m[2][0]
+					) / detA;
+
+			Out->m[1][2] =
+				(
+
+					In.m[0][2] * In.m[1][0] -
+					In.m[0][0] * In.m[1][2]
+					) / detA;
+
+			Out->m[2][0] =
+				(
+					In.m[1][0] * In.m[2][1] -
+					In.m[1][1] * In.m[2][0]
+					) / detA;
+
+			Out->m[2][1] =
+				(
+
+					In.m[0][1] * In.m[2][0] -
+					In.m[0][0] * In.m[2][1]
+					) / detA;
+
+			Out->m[2][2] =
+				(
+					In.m[0][0] * In.m[1][1] -
+					In.m[0][1] * In.m[1][0]
+					) / detA;
+
+			return TRUE;
+		}
+		// 逆行列を得る
+		static MATRIX33 M33Inverse(const MATRIX33& InM) {
+			MATRIX33 Result;
+
+			if (!CreateInverseMatrix33(&Result, InM)) {
+				return M33GetIdent();
+			}
+
+			return Result;
+		}
+
+		// 転置行列を得る
+		static MATRIX33 M33Transpose(const MATRIX33& InM) noexcept {
+			MATRIX33 Result =
+			{
+				{
+					{ InM.m[0][0], InM.m[1][0], InM.m[2][0] },
+					{ InM.m[0][1], InM.m[1][1], InM.m[2][1] },
+					{ InM.m[0][2], InM.m[1][2], InM.m[2][2] }
+				}
+			};
+			return Result;
+		}
+		// 行列の乗算を行う
+		static MATRIX33 M33Mult(const MATRIX33& In1, const MATRIX33& In2) noexcept {
+			MATRIX33 Result =
+			{
+				{
+					{
+						In1.m[0][0] * In2.m[0][0] + In1.m[0][1] * In2.m[1][0] + In1.m[0][2] * In2.m[2][0],
+						In1.m[0][0] * In2.m[0][1] + In1.m[0][1] * In2.m[1][1] + In1.m[0][2] * In2.m[2][1],
+						In1.m[0][0] * In2.m[0][2] + In1.m[0][1] * In2.m[1][2] + In1.m[0][2] * In2.m[2][2]
+					},
+					{
+						In1.m[1][0] * In2.m[0][0] + In1.m[1][1] * In2.m[1][0] + In1.m[1][2] * In2.m[2][0],
+						In1.m[1][0] * In2.m[0][1] + In1.m[1][1] * In2.m[1][1] + In1.m[1][2] * In2.m[2][1],
+						In1.m[1][0] * In2.m[0][2] + In1.m[1][1] * In2.m[1][2] + In1.m[1][2] * In2.m[2][2],
+					},
+					{
+						In1.m[2][0] * In2.m[0][0] + In1.m[2][1] * In2.m[1][0] + In1.m[2][2] * In2.m[2][0],
+						In1.m[2][0] * In2.m[0][1] + In1.m[2][1] * In2.m[1][1] + In1.m[2][2] * In2.m[2][1],
+						In1.m[2][0] * In2.m[0][2] + In1.m[2][1] * In2.m[1][2] + In1.m[2][2] * In2.m[2][2],
+					}
+				}
+			};
+			return Result;
+		}
+		// 行列を使った座標変換
+		static const VECTOR3D V33Transform(const VECTOR3D& InV, const MATRIX33& InM) noexcept {
+			VECTOR3D Result{};
+			Result.x = InV.x * InM.m[0][0] + InV.y * InM.m[1][0] + InV.z * InM.m[2][0];
+			Result.y = InV.x * InM.m[0][1] + InV.y * InM.m[1][1] + InV.z * InM.m[2][1];
+			Result.z = InV.x * InM.m[0][2] + InV.y * InM.m[1][2] + InV.z * InM.m[2][2];
+			return Result;
+		}
+	}
+
+	class Matrix3x3 {
+		MAT33::MATRIX33	m_value;
+	public:
+		Matrix3x3(void) noexcept : m_value(MAT33::M33GetIdent()) {}
+		Matrix3x3(MAT33::MATRIX33 value) noexcept { this->m_value = value; }
+		MAT33::MATRIX33 get(void) const noexcept { return this->m_value; }		// 変換
+		MATRIX Get44(void) const noexcept {
+			MATRIX Result;
+			MAT33::M33toMATRIX(&Result, this->m_value);
+			return Result;
+		}// 変換
+		Matrix4x4 Get44DX(void) const noexcept {
+			MATRIX Result;
+			MAT33::M33toMATRIX(&Result, this->m_value);
+			return Result;
+		}// 変換
+		static Matrix3x3 Get33DX(const Matrix4x4& value) noexcept {
+			MAT33::MATRIX33 Result;
+			MAT33::MATRIXtoM33(&Result, value.get());
+			return Result;
+		}// 変換
+		// 
+		static Matrix3x3 identity(void) noexcept { return MAT33::M33GetIdent(); }
+
+		static Matrix3x3 Axis1(const VECTOR3D& yvec, const VECTOR3D& zvec) noexcept { return { MAT33::M33GetAxis1(VECTOR3D::Cross(yvec, zvec),yvec,zvec) }; }
+		static Matrix3x3 Axis2(const VECTOR3D& yvec, const VECTOR3D& zvec) noexcept { return { MAT33::M33GetAxis2(VECTOR3D::Cross(yvec, zvec),yvec,zvec) }; }
+		static Matrix3x3 RotAxis(const VECTOR3D& p1, float p2) noexcept { return MAT33::M33GetRotAxis(p1, p2); }
+		static Matrix3x3 RotVec2(const VECTOR3D& p1, const VECTOR3D& p2) noexcept { return { MAT33::M33GetRotVec2(p1, p2) }; }
+		static VECTOR3D Vtrans(const VECTOR3D& p1, const Matrix3x3& p2) noexcept { return MAT33::V33Transform(p1, p2.get()); }
+		// 
+		Matrix3x3 inverse(void) const noexcept { return M33Inverse(this->get()); }		// 逆
+		bool isIdentity(void) const noexcept { return *this == MAT33::M33GetIdent(); }		// 逆
+		// lossyScale
+		Matrix3x3 transpose(void) const noexcept { return MAT33::M33Transpose(this->get()); }		// 逆
+
+		VECTOR3D xvec(void) const noexcept { return Vtrans(VECTOR3D::right(), *this); }
+		VECTOR3D yvec(void) const noexcept { return Vtrans(VECTOR3D::up(), *this); }
+		VECTOR3D zvec(void) const noexcept { return Vtrans(VECTOR3D::forward(), *this); }
+		VECTOR3D zvec2(void) const noexcept { return Vtrans(VECTOR3D::back(), *this); }//左手座標系で右手座標系のキャラを描画した際の正面
+		// 
+		void GetRadian(float* angle_x, float* angle_y, float* angle_z) const noexcept {
+			constexpr float threshold = 0.001f;
+			if (std::abs(this->m_value.m[1][2] - 1.0f) < threshold) { // R(2,1) = sin(x) = 1の時
+				if (angle_x) {
+					*angle_x = DX_PI_F / 2.f;
+				}
+				if (angle_y) {
+					*angle_y = 0.f;
+				}
+				if (angle_z) {
+					*angle_z = std::atan2f(this->m_value.m[0][1], this->m_value.m[0][0]);
+				}
+			}
+			else if (std::abs(this->m_value.m[1][2] + 1.0f) < threshold) { // R(2,1) = sin(x) = -1の時
+				if (angle_x) {
+					*angle_x = -DX_PI_F / 2.f;
+				}
+				if (angle_y) {
+					*angle_y = 0.f;
+				}
+				if (angle_z) {
+					*angle_z = std::atan2f(this->m_value.m[0][1], this->m_value.m[0][0]);
+				}
+			}
+			else {
+				if (angle_x) {
+					*angle_x = std::asinf(this->m_value.m[1][2]);
+				}
+				if (angle_y) {
+					*angle_y = std::atan2f(-m_value.m[0][2], this->m_value.m[2][2]);
+				}
+				if (angle_z) {
+					*angle_z = std::atan2f(-m_value.m[1][0], this->m_value.m[1][1]);
+				}
+			}
+		}
+		void SetRadian(float x, float y, float z) noexcept {
+			this->m_value.m[0][0] = std::cos(y) * std::cos(z) - std::sin(x) * std::sin(y) * std::sin(z);
+			this->m_value.m[1][0] = -std::cos(x) * std::sin(z);
+			this->m_value.m[2][0] = std::sin(y) * std::cos(z) + std::sin(x) * std::cos(y) * std::sin(z);
+			this->m_value.m[0][1] = std::cos(y) * std::sin(z) + std::sin(x) * std::sin(y) * std::cos(z);
+			this->m_value.m[1][1] = std::cos(x) * std::cos(z);
+			this->m_value.m[2][1] = std::sin(y) * std::sin(z) - std::sin(x) * std::cos(y) * std::cos(z);
+			this->m_value.m[0][2] = -std::cos(x) * std::sin(y);
+			this->m_value.m[1][2] = std::sin(x);
+			this->m_value.m[2][2] = std::cos(x) * std::cos(y);
+		}
+		// 比較
+		bool operator==(const Matrix3x3& obj) const noexcept {
+			for (int x = 0; x < 3; ++x) {
+				for (int y = 0; y < 3; ++y) {
+					if (this->get().m[x][y] != obj.get().m[x][y]) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+		bool operator!=(const Matrix3x3& obj) const noexcept { return !(*this == obj); }
+		// 乗算
+		Matrix3x3 operator*(const Matrix3x3& obj)  const noexcept { return MAT33::M33Mult(this->get(), obj.get()); }
+		void operator*=(const Matrix3x3& obj) noexcept { *this = *this * obj; }
+	};
 	// ---------------------------------------------------------------------------------------------
 	// Vector3
 	// ---------------------------------------------------------------------------------------------
@@ -339,114 +707,6 @@ namespace Util {
 		if (0 > VECTOR2D::Cross(c4 - c3, point - c3)) { return false; }
 		if (0 > VECTOR2D::Cross(c1 - c4, point - c4)) { return false; }
 		return true;
-	}
-
-	//	o1 Angleが0の場合の左上座標
-	//	o2 Angleが0の場合の右下座標
-	//	minp 左上角からの固定長さ
-	//	maxp 右下角からの固定長さ
-	//	Center　　: 画像を回転描画する画像上の中心座標(左上を(0.0f,0.0f)、右下を(1.0f,1.0f)とした割合)
-	//	Angle　　　: 描画角度（ラジアン指定）
-	//	GrHandle　 : 描画するグラフィックの識別番号（グラフィックハンドル）
-	//	TransFlag　: 画像の透明度を有効にするかどうか( TRUE：有効にする　FALSE：無効にする )
-	//	TilingFlag : 角以外の部分をタイリングするか拡縮させるか( TRUE：タイリング　FALSE：拡縮 )
-	static void Draw9SliceGraph(
-		VECTOR2D o1, VECTOR2D o2,
-		VECTOR2D minp, VECTOR2D maxp,
-		VECTOR2D Center, float Angle,
-		int GrHandle, bool TransFlag, bool TilingFlag) noexcept {
-		//最低限のサイズを指定
-		if (o2.x < o1.x + minp.x + maxp.x) { o2.x = o1.x + minp.x + maxp.x; }
-		if (o2.y < o1.y + minp.y + maxp.y) { o2.y = o1.y + minp.y + maxp.y; }
-		//用意する頂点情報
-		std::vector<VERTEX2D> Vertex;
-		std::vector<unsigned short> Index;
-
-		float xs = (o2.x - o1.x);
-		float ys = (o2.y - o1.y);
-
-		VECTOR2D center;
-		center.x = o1.x + xs * Center.x;
-		center.y = o1.y + ys * Center.y;
-
-		auto SetPoint = [&](float xper, float yper, int xc, int yc) {
-			Vertex.resize(Vertex.size() + 1);
-			VECTOR2D ofs;
-			ofs.x = o1.x + xs * xper;
-			ofs.y = o1.y + ys * yper;
-			VECTOR2D pos = center + (ofs - center).Rotate(Angle);
-			Vertex.back().pos = VGet(pos.x, pos.y, 0.f);
-
-			Vertex.back().rhw = 1.0f;
-			Vertex.back().dif = GetColorU8(255, 255, 255, 255);
-			Vertex.back().u = static_cast<float>(xc) / 3.f;
-			Vertex.back().v = static_cast<float>(yc) / 3.f;
-			return (unsigned short)(Vertex.size() - 1);
-			};
-		auto SetBox = [&](float xmin, float ymin, float xmax, float ymax, int xc, int yc) {
-			Index.emplace_back(SetPoint(xmin, ymin, xc, yc));// 左上の頂点の情報をセット
-			auto RU = SetPoint(xmax, ymin, xc + 1, yc);
-			auto LD = SetPoint(xmin, ymax, xc, yc + 1);
-			Index.emplace_back(RU);// 右上の頂点の情報をセット
-			Index.emplace_back(LD);// 左下の頂点の情報をセット
-			Index.emplace_back(SetPoint(xmax, ymax, xc + 1, yc + 1));// 右下の頂点の情報をセット
-			Index.emplace_back(LD);// 左下の頂点の情報をセット
-			Index.emplace_back(RU);// 右上の頂点の情報をセット
-			};
-
-		float xminpt = minp.x / xs;
-		float xmaxpt = maxp.x / xs;
-		float xmaxt = 1.f - xmaxpt;
-		float xmidt = xmaxt - xminpt;
-
-		float yminpt = minp.y / ys;
-		float ymaxpt = maxp.y / ys;
-		float ymaxt = 1.f - ymaxpt;
-		float ymidt = ymaxt - yminpt;
-
-		int xtile = 1;
-		int ytile = 1;
-		//タイリング
-		if (TilingFlag) {
-			xtile = (int)(xmidt / ((xminpt + xmaxpt) / 2.f)) + 1;
-			if (xtile <= 0) { xtile = 1; }
-			ytile = (int)(ymidt / ((yminpt + ymaxpt) / 2.f)) + 1;
-			if (ytile <= 0) { ytile = 1; }
-		}
-
-		Vertex.reserve((size_t)(3 * 2 * ((xtile + 2) * (ytile + 2))));
-		float xmin = 0.f;
-		float xmax = xminpt;
-		int xc = 0;
-		for (int x = 0; x < xtile + 2; ++x) {
-			float ymin = 0.f;
-			float ymax = yminpt;
-			int yc = 0;
-			for (int y = 0; y < ytile + 2; ++y) {
-				SetBox(xmin, ymin, xmax, ymax, xc, yc);
-				//次
-				ymin = ymax;
-				ymax = TilingFlag ? (ymin + ymidt / static_cast<float>(ytile)) : ymaxt;
-				if (y == 0) {
-					yc = 1;
-				}
-				if (y == ytile) {
-					ymax = 1.f;
-					yc = 2;
-				}
-			}
-			//次
-			xmin = xmax;
-			xmax = TilingFlag ? (xmin + xmidt / static_cast<float>(xtile)) : xmaxt;
-			if (x == 0) {
-				xc = 1;
-			}
-			if (x == xtile) {
-				xmax = 1.f;
-				xc = 2;
-			}
-		}
-		DrawPolygonIndexed2D(Vertex.data(), (int)Vertex.size(), Index.data(), (int)Index.size() / 3, GrHandle, TransFlag ? TRUE : FALSE);
 	}
 
 	// 線形補完

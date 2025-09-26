@@ -50,7 +50,7 @@ namespace Draw {
 			SetUpCamInfo(this->m_pos, this->m_vec, this->m_up, this->m_fov, this->m_near, this->m_far);
 		}
 
-		const Util::Matrix4x4DX GetViewMatrix(void) const noexcept {
+		const Util::Matrix4x4 GetViewMatrix(void) const noexcept {
 			MATRIX mat_view;					// ビュー行列
 			VECTOR vec_from = this->m_pos.get();		// カメラの位置
 			VECTOR vec_lookat = this->m_vec.get();  // カメラの注視点
@@ -59,7 +59,7 @@ namespace Draw {
 			return mat_view;
 		}
 
-		const Util::Matrix4x4DX GetProjectionMatrix(void) const noexcept {
+		const Util::Matrix4x4 GetProjectionMatrix(void) const noexcept {
 			MATRIX mat_view;					// プロジェクション行列
 			CreatePerspectiveFovMatrix(&mat_view, this->m_fov, this->m_near, this->m_far);
 			return mat_view;

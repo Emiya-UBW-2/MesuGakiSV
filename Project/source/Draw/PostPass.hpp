@@ -133,7 +133,7 @@ namespace Draw {
 		}
 	public:
 		// ピクセルシェーダ―のSlot番目のレジスタに情報をセット(Slot>=4)
-		void			SetCameraMatrix(int Slot, const Util::Matrix4x4DX& View, const Util::Matrix4x4DX& Projection) noexcept {
+		void			SetCameraMatrix(int Slot, const Util::Matrix4x4& View, const Util::Matrix4x4& Projection) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
 			auto& BufferHandle = this->m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
 			// 設定したカメラのビュー行列と射影行列を取得しておく
@@ -269,7 +269,7 @@ namespace Draw {
 		}
 	public:
 		// 頂点シェーダ―のSlot番目のレジスタに情報をセット(Slot>=4)
-		void			SetVertexCameraMatrix(int Slot, const Util::Matrix4x4DX& View, const Util::Matrix4x4DX& Projection) noexcept {
+		void			SetVertexCameraMatrix(int Slot, const Util::Matrix4x4& View, const Util::Matrix4x4& Projection) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
 			auto& BufferHandle = this->m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
 			// 設定したカメラのビュー行列と射影行列を取得しておく
@@ -334,7 +334,7 @@ namespace Draw {
 			SetShaderConstantBuffer(BufferHandle, DX_SHADERTYPE_GEOMETRY, Slot);		// 影用深度記録画像を描画したときのカメラのビュー行列と射影行列を定数に設定する
 		}
 		// ピクセルシェーダ―のSlot番目のレジスタに情報をセット(Slot>=4)
-		void			SetPixelCameraMatrix(int Slot, const Util::Matrix4x4DX& View, const Util::Matrix4x4DX& Projection) noexcept {
+		void			SetPixelCameraMatrix(int Slot, const Util::Matrix4x4& View, const Util::Matrix4x4& Projection) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
 			auto& BufferHandle = this->m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
 			// 設定したカメラのビュー行列と射影行列を取得しておく
@@ -619,8 +619,8 @@ namespace Draw {
 			bool						m_PrevShadow{ false };
 			char		padding[7]{};
 
-			std::array<Util::Matrix4x4DX, 2>	m_CamViewMatrix{};
-			std::array<Util::Matrix4x4DX, 2>	m_CamProjectionMatrix{};
+			std::array<Util::Matrix4x4, 2>	m_CamViewMatrix{};
+			std::array<Util::Matrix4x4, 2>	m_CamProjectionMatrix{};
 		public:
 			ShadowDraw(void) noexcept {
 				this->m_PrevShadow = false;
@@ -833,8 +833,8 @@ namespace Draw {
 		int							m_InColorPerMin = 20;
 		int							m_InColorPerMax = 255;
 		float						m_InColorGamma = 1.1f;
-		Util::Matrix4x4DX			m_CamViewMat{};
-		Util::Matrix4x4DX			m_CamProjectionMat{};
+		Util::Matrix4x4			m_CamViewMat{};
+		Util::Matrix4x4			m_CamProjectionMat{};
 		bool						m_useScope{ false };
 		char		padding2[3]{};
 		float						m_ScopeXpos{ 0.f };
