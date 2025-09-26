@@ -23,7 +23,7 @@
 #include "../Draw/Camera.hpp"
 
 
-namespace DXLibRef {
+namespace Draw {
 	constexpr float		Scale3DRate{ 12.5f };							/*1mに相当する3D空間上の長さ*/
 	constexpr int		InvalidID{ -1 };								/*共通の無効値*/
 	/*------------------------------------------------------------------------------------------------------------------------------------------*/

@@ -146,7 +146,7 @@ namespace Util {
 					this->m_NowScene = const_cast<SceneBase*>(this->m_NowScene->GetNextScene());
 				}
 				if (this->m_NowScene) {
-					auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+					auto* PostPassParts = Draw::PostPassEffect::Instance();
 					PostPassParts->Reset();
 					this->m_NowScene->Init();
 					this->m_Phase = EnumScenePhase::Update;
@@ -155,7 +155,7 @@ namespace Util {
 			case EnumScenePhase::GoEnd:
 				if (this->m_NowScene) {
 					this->m_NowScene->Dispose();
-					auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+					auto* PostPassParts = Draw::PostPassEffect::Instance();
 					PostPassParts->Reset();
 				}
 				break;

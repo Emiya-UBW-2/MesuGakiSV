@@ -2,84 +2,107 @@
 #include "PostPass.hpp"
 #include "Camera.hpp"
 
-const DXLibRef::PostPassScreenBufferPool* Util::SingletonBase<DXLibRef::PostPassScreenBufferPool>::m_Singleton = nullptr;
-const DXLibRef::PostPassEffect* Util::SingletonBase<DXLibRef::PostPassEffect>::m_Singleton = nullptr;
+const Draw::PostPassScreenBufferPool* Util::SingletonBase<Draw::PostPassScreenBufferPool>::m_Singleton = nullptr;
+const Draw::PostPassEffect* Util::SingletonBase<Draw::PostPassEffect>::m_Singleton = nullptr;
 
-namespace DXLibRef {
+namespace Draw {
 	// 
 	// --------------------------------------------------------------------------------------------------
 	// ポストプロセスエフェクト
 	// --------------------------------------------------------------------------------------------------
 	// 継承クラス
-	class PostPassSSAO : public PostPassEffect::PostPassBase {
+	class PostPassBloom : public PostPassEffect::PostPassBase {
 		static const int EXTEND = 4;
+	public:
+		PostPassBloom(void) noexcept {}
+		PostPassBloom(const PostPassBloom&) = delete;
+		PostPassBloom(PostPassBloom&&) = delete;
+		PostPassBloom& operator=(const PostPassBloom&) = delete;
+		PostPassBloom& operator=(PostPassBloom&&) = delete;
+
+		virtual ~PostPassBloom(void) noexcept {}
+	protected:
+		bool		IsActive_Sub(void) noexcept override {
+			auto* pOption = Util::OptionParam::Instance();
+			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::Bloom))->IsActive();
+		}
+		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			int xsize = DrawerMngr->GetDispWidth();
+			int ysize = DrawerMngr->GetDispHeight();
+
+			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
+			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+
+			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
+			const Draw::GraphHandle* pGaussScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+
+			pScreenBuffer->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_TWO_COLOR, 250, DxLib::GetColor(0, 0, 0), 255, DxLib::GetColor(128, 128, 128), 255);
+			pGaussScreen->GraphFilterBlt(*pScreenBuffer, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+			pGaussScreen->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 1000);
+			TargetGraph->SetDraw_Screen(false);
+			{
+				auto Prev = DxLib::GetDrawMode();
+				DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+				pGaussScreen->DrawExtendGraph(0, 0, xsize, ysize, true);
+				pGaussScreen->DrawExtendGraph(0, 0, xsize, ysize, true);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+				DxLib::SetDrawMode(Prev);
+			}
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+		}
+	};
+	class PostPassDoF : public PostPassEffect::PostPassBase {
 	private:
-		Shader2DController				m_Shader;		// シェーダー
+		Shader2DController				m_Shader;			// シェーダー
+	public:
+		PostPassDoF(void) noexcept {}
+		PostPassDoF(const PostPassDoF&) = delete;
+		PostPassDoF(PostPassDoF&&) = delete;
+		PostPassDoF& operator=(const PostPassDoF&) = delete;
+		PostPassDoF& operator=(PostPassDoF&&) = delete;
+
+		virtual ~PostPassDoF(void) noexcept {}
 	protected:
 		void		Load_Sub(void) noexcept override {
-			this->m_Shader.Init("CommonData/shader/PS_SSAO.pso");
+			this->m_Shader.Init("CommonData/shader/PS_DoF.pso");
 		}
 		void		Dispose_Sub(void) noexcept override {
 			this->m_Shader.Dispose();
 		}
 		bool		IsActive_Sub(void) noexcept override {
 			auto* pOption = Util::OptionParam::Instance();
-			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::SSAO))->IsActive();
+			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::DoF))->IsActive();
 		}
 		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer* pGbuffer) noexcept override {
 			auto* DrawerMngr = Draw::MainDraw::Instance();
-			auto* CameraParts = Camera::Camera3D::Instance();
+			auto* PostPassParts = PostPassEffect::Instance();
+			int xsize = DrawerMngr->GetDispWidth();
+			int ysize = DrawerMngr->GetDispHeight();
+			const Draw::GraphHandle* pNearScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
+			const Draw::GraphHandle* pFarScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
 
-			int xsize2 = DrawerMngr->GetDispWidth() / 2;
-			int ysize2 = DrawerMngr->GetDispHeight() / 2;
-
-			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
-			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
-
-			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize2, ysize2, true, false, 24)->PopBlankScreen();
-			const Draw::GraphHandle* pScreenBuffer2 = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, false, 24)->PopBlankScreen();
-			const Draw::GraphHandle* pColorScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
-			const Draw::GraphHandle* pNormalScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
-			const Draw::GraphHandle* pDepthScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, true)->PopBlankScreen();
-
-			pColorScreen->GraphFilterBlt(pGbuffer->GetColorBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-			pNormalScreen->GraphFilterBlt(pGbuffer->GetNormalBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-			pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-			// シェーダーを適用
-			pScreenBuffer2->SetDraw_Screen(false);
+			pNearScreen->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_GAUSS, 8, 2000);
+			pFarScreen->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_GAUSS, 8, 20);
+			TargetGraph->SetDraw_Screen();
 			{
-				pColorScreen->SetUseTextureToShader(0);
-				pNormalScreen->SetUseTextureToShader(1);
-				pDepthScreen->SetUseTextureToShader(2);
-				this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
-				this->m_Shader.SetParam(3, 0.0f, Scale3DRate, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
+				pGbuffer->GetColorBuffer().SetUseTextureToShader(0);
+				pNearScreen->SetUseTextureToShader(1);
+				pFarScreen->SetUseTextureToShader(2);
+				pGbuffer->GetDepthBuffer().SetUseTextureToShader(3);
+				this->m_Shader.SetDispSize(xsize, ysize);
+				this->m_Shader.SetParam(3, PostPassParts->Get_near_DoF(), PostPassParts->Get_far_DoF(), PostPassParts->Get_near_DoFMax(), PostPassParts->Get_far_DoFMin());
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 				SetUseTextureToShader(1, InvalidID);
 				SetUseTextureToShader(2, InvalidID);
+				SetUseTextureToShader(3, InvalidID);
 			}
-			// ぼかしを入れる
-			pScreenBuffer->SetDraw_Screen();
-			{
-				auto Prev = DxLib::GetDrawMode();
-				DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
-				pScreenBuffer2->DrawExtendGraph(0, 0, xsize2, ysize2, true);
-				DxLib::SetDrawMode(Prev);
-			}
-			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_BILATERAL_BLUR);
-			// 
-			TargetGraph->SetDraw_Screen(false);
-			{
-				TargetGraph->DrawGraph(0, 0, true);
-				SetDrawBlendMode(DX_BLENDMODE_MULA, 255);
-				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
-				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-			}
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize2, ysize2, true, false, 24);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, false, 24);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, true);
+
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
 		}
 	};
 	class PostPassSSR : public PostPassEffect::PostPassBase {
@@ -184,360 +207,181 @@ namespace DXLibRef {
 
 		}
 	};
-	class PostPassDoF : public PostPassEffect::PostPassBase {
+	class PostPassSSAO : public PostPassEffect::PostPassBase {
+		static const int EXTEND = 4;
 	private:
-		Shader2DController				m_Shader;			// シェーダー
-	public:
-		PostPassDoF(void) noexcept {}
-		PostPassDoF(const PostPassDoF&) = delete;
-		PostPassDoF(PostPassDoF&&) = delete;
-		PostPassDoF& operator=(const PostPassDoF&) = delete;
-		PostPassDoF& operator=(PostPassDoF&&) = delete;
-
-		virtual ~PostPassDoF(void) noexcept {}
+		Shader2DController				m_Shader;		// シェーダー
 	protected:
 		void		Load_Sub(void) noexcept override {
-			this->m_Shader.Init("CommonData/shader/PS_DoF.pso");
+			this->m_Shader.Init("CommonData/shader/PS_SSAO.pso");
 		}
 		void		Dispose_Sub(void) noexcept override {
 			this->m_Shader.Dispose();
 		}
 		bool		IsActive_Sub(void) noexcept override {
 			auto* pOption = Util::OptionParam::Instance();
-			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::DoF))->IsActive();
+			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::SSAO))->IsActive();
 		}
 		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer* pGbuffer) noexcept override {
 			auto* DrawerMngr = Draw::MainDraw::Instance();
-			auto* PostPassParts = PostPassEffect::Instance();
-			int xsize = DrawerMngr->GetDispWidth();
-			int ysize = DrawerMngr->GetDispHeight();
-			const Draw::GraphHandle* pNearScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
-			const Draw::GraphHandle* pFarScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
+			auto* CameraParts = Camera::Camera3D::Instance();
 
-			pNearScreen->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_GAUSS, 8, 2000);
-			pFarScreen->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_GAUSS, 8, 20);
-			TargetGraph->SetDraw_Screen();
+			int xsize2 = DrawerMngr->GetDispWidth() / 2;
+			int ysize2 = DrawerMngr->GetDispHeight() / 2;
+
+			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
+			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+
+			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize2, ysize2, true, false, 24)->PopBlankScreen();
+			const Draw::GraphHandle* pScreenBuffer2 = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, false, 24)->PopBlankScreen();
+			const Draw::GraphHandle* pColorScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+			const Draw::GraphHandle* pNormalScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+			const Draw::GraphHandle* pDepthScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, true)->PopBlankScreen();
+
+			pColorScreen->GraphFilterBlt(pGbuffer->GetColorBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+			pNormalScreen->GraphFilterBlt(pGbuffer->GetNormalBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+			pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+			// シェーダーを適用
+			pScreenBuffer2->SetDraw_Screen(false);
 			{
-				pGbuffer->GetColorBuffer().SetUseTextureToShader(0);
-				pNearScreen->SetUseTextureToShader(1);
-				pFarScreen->SetUseTextureToShader(2);
-				pGbuffer->GetDepthBuffer().SetUseTextureToShader(3);
-				this->m_Shader.SetDispSize(xsize, ysize);
-				this->m_Shader.SetParam(3, PostPassParts->Get_near_DoF(), PostPassParts->Get_far_DoF(), PostPassParts->Get_near_DoFMax(), PostPassParts->Get_far_DoFMin());
+				pColorScreen->SetUseTextureToShader(0);
+				pNormalScreen->SetUseTextureToShader(1);
+				pDepthScreen->SetUseTextureToShader(2);
+				this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
+				this->m_Shader.SetParam(3, 0.0f, Scale3DRate, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 				SetUseTextureToShader(1, InvalidID);
 				SetUseTextureToShader(2, InvalidID);
-				SetUseTextureToShader(3, InvalidID);
 			}
-
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
-		}
-	};
-	class PostPassBloom : public PostPassEffect::PostPassBase {
-		static const int EXTEND = 4;
-	public:
-		PostPassBloom(void) noexcept {}
-		PostPassBloom(const PostPassBloom&) = delete;
-		PostPassBloom(PostPassBloom&&) = delete;
-		PostPassBloom& operator=(const PostPassBloom&) = delete;
-		PostPassBloom& operator=(PostPassBloom&&) = delete;
-
-		virtual ~PostPassBloom(void) noexcept {}
-	protected:
-		bool		IsActive_Sub(void) noexcept override {
-			auto* pOption = Util::OptionParam::Instance();
-			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::Bloom))->IsActive();
-		}
-		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			int xsize = DrawerMngr->GetDispWidth();
-			int ysize = DrawerMngr->GetDispHeight();
-
-			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
-			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
-
-			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
-			const Draw::GraphHandle* pGaussScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
-
-			pScreenBuffer->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_TWO_COLOR, 250, DxLib::GetColor(0, 0, 0), 255, DxLib::GetColor(128, 128, 128), 255);
-			pGaussScreen->GraphFilterBlt(*pScreenBuffer, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-			pGaussScreen->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 1000);
-			TargetGraph->SetDraw_Screen(false);
+			// ぼかしを入れる
+			pScreenBuffer->SetDraw_Screen();
 			{
 				auto Prev = DxLib::GetDrawMode();
 				DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-				pGaussScreen->DrawExtendGraph(0, 0, xsize, ysize, true);
-				pGaussScreen->DrawExtendGraph(0, 0, xsize, ysize, true);
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+				pScreenBuffer2->DrawExtendGraph(0, 0, xsize2, ysize2, true);
 				DxLib::SetDrawMode(Prev);
 			}
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
+			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_BILATERAL_BLUR);
+			// 
+			TargetGraph->SetDraw_Screen(false);
+			{
+				TargetGraph->DrawGraph(0, 0, true);
+				SetDrawBlendMode(DX_BLENDMODE_MULA, 255);
+				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			}
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize2, ysize2, true, false, 24);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, false, 24);
 			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, true);
 		}
 	};
-	class PostPassAberration : public PostPassEffect::PostPassBase {
+	class PostPassGodRay : public PostPassEffect::PostPassBase {
+		static const int EXTEND = 8;
+	private:
+		Draw::GraphHandle				m_Min;			// 描画スクリーン
+		Draw::SoftImageHandle			m_SoftImage;
+		int								m_GodRayRed = InvalidID;
+		float							m_GodRayTime = 0.f;
+		Shader2DController				m_Shader;			// シェーダー
+		float							m_range = 1.f;
+		char		padding[4]{};
 	public:
-		PostPassAberration(void) noexcept {}
-		PostPassAberration(const PostPassAberration&) = delete;
-		PostPassAberration(PostPassAberration&&) = delete;
-		PostPassAberration& operator=(const PostPassAberration&) = delete;
-		PostPassAberration& operator=(PostPassAberration&&) = delete;
+		PostPassGodRay(void) noexcept {}
+		PostPassGodRay(const PostPassGodRay&) = delete;
+		PostPassGodRay(PostPassGodRay&&) = delete;
+		PostPassGodRay& operator=(const PostPassGodRay&) = delete;
+		PostPassGodRay& operator=(PostPassGodRay&&) = delete;
 
-		virtual ~PostPassAberration(void) noexcept {}
+		virtual ~PostPassGodRay(void) noexcept {}
 	protected:
-		bool		IsActive_Sub(void) noexcept override {
-			auto* pOption = Util::OptionParam::Instance();
-			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->IsActive();
+		void		Load_Sub(void) noexcept override {
+			this->m_Shader.Init("CommonData/shader/PS_GodRay.pso");
+			this->m_Min.Make(1, 1, true);
+			this->m_SoftImage.Make(1, 1);
 		}
-		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
+		void		Dispose_Sub(void) noexcept override {
+			this->m_Shader.Dispose();
+			this->m_Min.Dispose();
+			this->m_SoftImage.Dispose();
+		}
+		bool		IsActive_Sub(void) noexcept override {
 			auto* PostPassParts = PostPassEffect::Instance();
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			int xsize = DrawerMngr->GetDispWidth();
-			int ysize = DrawerMngr->GetDispHeight();
-			const Draw::GraphHandle* pScreenRed = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
-			const Draw::GraphHandle* pScreenGreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
-			const Draw::GraphHandle* pScreenBlue = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
-
-			pScreenRed->SetDraw_Screen(false);
-			pScreenRed->FillGraph(0, 0, 0);
-			pScreenGreen->SetDraw_Screen(false);
-			pScreenGreen->FillGraph(0, 0, 0);
-			pScreenBlue->SetDraw_Screen(false);
-			pScreenBlue->FillGraph(0, 0, 0);
-			pScreenRed->GraphBlend(*TargetGraph, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
-				DX_RGBA_SELECT_BLEND_R, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_B, DX_RGBA_SELECT_SRC_A);
-			pScreenGreen->GraphBlend(*TargetGraph, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
-				DX_RGBA_SELECT_SRC_R, DX_RGBA_SELECT_BLEND_G, DX_RGBA_SELECT_SRC_B, DX_RGBA_SELECT_SRC_A);
-			pScreenBlue->GraphBlend(*TargetGraph, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
-				DX_RGBA_SELECT_SRC_R, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_BLEND_B, DX_RGBA_SELECT_SRC_A);
-			TargetGraph->SetDraw_Screen(false);
-			{
-				TargetGraph->FillGraph(0, 0, 0);
-				SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-				pScreenRed->DrawRotaGraph(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, 1.f + 0.005f * PostPassParts->GetAberrationPower(), 0.f, true);
-				pScreenGreen->DrawRotaGraph(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, 1.f, 0.f, true);
-				pScreenBlue->DrawRotaGraph(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, 1.f - 0.005f * PostPassParts->GetAberrationPower(), 0.f, true);
-				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-			}
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
-		}
-	};
-	class PostPassMotionBlur : public PostPassEffect::PostPassBase {
-	private:
-		class BlurScreen {
-			static const size_t MAX = 5;
-		private:
-			std::array<Draw::GraphHandle, MAX>	m_screen;
-			size_t							m_current{ 0 };
-			int								m_alpha{ 0 };
-			int								m_screenWidth{ 0 }, m_screenHeight{ 0 };
-			int								m_offsetX1{ 0 }, m_offsetX2{ 0 }, m_offsetY1{ 0 }, m_offsetY2{ 0 };
-			char		padding[4]{};
-			size_t							m_notBlendDraw{ 0 };
-		public:
-			BlurScreen(void) noexcept {}
-			BlurScreen(const BlurScreen&) = delete;
-			BlurScreen(BlurScreen&&) = delete;
-			BlurScreen& operator=(const BlurScreen&) = delete;
-			BlurScreen& operator=(BlurScreen&&) = delete;
-
-			~BlurScreen(void) noexcept {}
-		public:
-			void		Init(int t_alpha, int t_offsetX1, int t_offsetY1, int t_offsetX2, int t_offsetY2) noexcept {
-				auto* DrawerMngr = Draw::MainDraw::Instance();
-				for (size_t loop = 0; loop < MAX; ++loop) {
-					this->m_screen[loop].Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
-				}
-				this->m_current = 0;
-				this->m_alpha = t_alpha;
-				this->m_offsetX1 = t_offsetX1;
-				this->m_offsetX2 = t_offsetX2;
-				this->m_offsetY1 = t_offsetY1;
-				this->m_offsetY2 = t_offsetY2;
-
-				this->m_notBlendDraw = 0;
-			}
-			void		Release(void) noexcept {
-				for (size_t loop = 0; loop < MAX; ++loop) {
-					this->m_screen[loop].Dispose();
-				}
-			}
-		public:
-			auto* PostRenderBlurScreen(std::function<void()> doing) noexcept {
-				auto* DrawerMngr = Draw::MainDraw::Instance();
-				size_t next = ((this->m_current != 0) ? this->m_current : MAX) - 1;
-				this->m_screen[m_current].SetDraw_Screen();
-				{
-					doing();
-					if (++m_notBlendDraw > MAX) {
-						int Prev = DxLib::GetDrawMode();
-						DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
-						DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->m_alpha);
-						this->m_screen[next].DrawExtendGraph(this->m_offsetX1, this->m_offsetY1, DrawerMngr->GetDispWidth() + this->m_offsetX2, DrawerMngr->GetDispHeight() + this->m_offsetY2, false);
-						DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-						DxLib::SetDrawMode(Prev);
-					}
-				}
-				auto Cur = this->m_current;
-				this->m_current = next;
-				return &this->m_screen[Cur];
-			}
-		};
-	private:
-		BlurScreen				m_BlurScreen;
-	public:
-		PostPassMotionBlur(void) noexcept {}
-		PostPassMotionBlur(const PostPassMotionBlur&) = delete;
-		PostPassMotionBlur(PostPassMotionBlur&&) = delete;
-		PostPassMotionBlur& operator=(const PostPassMotionBlur&) = delete;
-		PostPassMotionBlur& operator=(PostPassMotionBlur&&) = delete;
-
-		virtual ~PostPassMotionBlur(void) noexcept {}
-	protected:
-		void		Load_Sub(void) noexcept override {
-			this->m_BlurScreen.Init(96, -6, -6, 6, 6);
-		}
-		void		Dispose_Sub(void) noexcept override {
-			this->m_BlurScreen.Release();
-		}
-		bool		IsActive_Sub(void) noexcept override {
 			auto* pOption = Util::OptionParam::Instance();
-			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::MotionBlur))->IsActive();
+			return
+				(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) &&
+				pOption->GetParam(pOption->GetOptionType(Util::OptionType::GodRay))->IsActive() &&
+				(PostPassParts->GetGodRayPer() > 0.f);
 		}
-		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
-			Draw::GraphHandle* buf = this->m_BlurScreen.PostRenderBlurScreen([&]() {
-				TargetGraph->DrawGraph(0, 0, false);
-				});
-			TargetGraph->SetDraw_Screen(false);
-			{
-				buf->DrawGraph(0, 0, false);
-			}
-		}
-	};
-	class PostPassCornerBlur : public PostPassEffect::PostPassBase {
-	private:
-		static const int EXTEND = 4;
-	private:
-		Draw::GraphHandle		m_bkScreen2;
-	public:
-		PostPassCornerBlur(void) noexcept {}
-		PostPassCornerBlur(const PostPassCornerBlur&) = delete;
-		PostPassCornerBlur(PostPassCornerBlur&&) = delete;
-		PostPassCornerBlur& operator=(const PostPassCornerBlur&) = delete;
-		PostPassCornerBlur& operator=(PostPassCornerBlur&&) = delete;
-
-		virtual ~PostPassCornerBlur(void) noexcept {}
-	protected:
-		void		Load_Sub(void) noexcept override {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			{
-				this->m_bkScreen2.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
-				this->m_bkScreen2.SetDraw_Screen(false);
-				{
-					this->m_bkScreen2.FillGraph(0, 0, 0);
-					int xr = DrawerMngr->GetDispWidth() * 60 / 100;
-					int yr = DrawerMngr->GetDispHeight() * 70 / 100;
-
-					DrawOval(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, xr, yr, DxLib::GetColor(255, 255, 255), TRUE);
-
-					int p = 1;
-					for (int r = 0; r < 255; r += p) {
-						uint8_t c = static_cast<uint8_t>(255 - static_cast<int>(std::powf(static_cast<float>(255 - r) / 255.f, 1.5f) * 255.f));
-
-						DrawOval(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, xr - r / p, yr - r / p, DxLib::GetColor(c, c, c), FALSE, 2);
-					}
-				}
-			}
-			Draw::GraphHandle::SetDraw_Screen(static_cast<int>(DX_SCREEN_BACK), false);
-		}
-		void		Dispose_Sub(void) noexcept override {
-			this->m_bkScreen2.Dispose();
-		}
-		bool		IsActive_Sub(void) noexcept override {
+		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer* pGbuffer) noexcept override {
 			auto* pOption = Util::OptionParam::Instance();
-			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->IsActive();
-		}
-		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
 			auto* DrawerMngr = Draw::MainDraw::Instance();
-
-			int xsize = DrawerMngr->GetDispWidth();
-			int ysize = DrawerMngr->GetDispHeight();
-
+			auto* PostPassParts = PostPassEffect::Instance();
+			auto* CameraParts = Camera::Camera3D::Instance();
 			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
 			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
 
-			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
-			const Draw::GraphHandle* pAberrationScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+			const Draw::GraphHandle* pDepthScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, false)->PopBlankScreen();
+			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
 
-			pAberrationScreen->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-			pAberrationScreen->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 1000);
-			pScreenBuffer->GraphBlendBlt(*TargetGraph, this->m_bkScreen2, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
-				DX_RGBA_SELECT_SRC_R, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_B, DX_RGBA_SELECT_BLEND_R);
-			TargetGraph->SetDraw_Screen(false);
-			{
-				pAberrationScreen->DrawExtendGraph(0, 0, xsize, ysize, false);
-				pScreenBuffer->DrawGraph(0, 0, true);
-			}
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
-		}
-	};
-	class PostPassVignette : public PostPassEffect::PostPassBase {
-	private:
-		Draw::GraphHandle m_bkScreen;
-	public:
-		PostPassVignette(void) noexcept {}
-		PostPassVignette(const PostPassVignette&) = delete;
-		PostPassVignette(PostPassVignette&&) = delete;
-		PostPassVignette& operator=(const PostPassVignette&) = delete;
-		PostPassVignette& operator=(PostPassVignette&&) = delete;
+			pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
 
-		virtual ~PostPassVignette(void) noexcept {}
-	protected:
-		void		Load_Sub(void) noexcept override {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
+			pScreenBuffer->SetDraw_Screen();
 			{
-				this->m_bkScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
-				this->m_bkScreen.SetDraw_Screen(true);
-				this->m_bkScreen.FillGraph(255, 255, 255);
+				pDepthScreen->SetUseTextureToShader(0);
+				PostPassParts->GetShadowDraw()->GetDepthScreen().SetUseTextureToShader(1);
+				PostPassParts->GetShadowDraw()->GetDepthFarScreen().SetUseTextureToShader(2);
 				{
-					int p = 1;
-					for (int y = 0; y < 255; y += p) {
-						uint8_t c = static_cast<uint8_t>(255 - static_cast<int>(std::powf(static_cast<float>(255 - y) / 255.f, 1.5f) * 64.f));
-						DxLib::DrawLine(0, y / p, DrawerMngr->GetDispWidth(), y / p, DxLib::GetColor(c, c, c));
+					float Power = 1.f;
+					switch (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect()) {
+					case 1:
+						Power = 15.f;
+						break;
+					case 2:
+						Power = 20.f;
+						break;
+					case 3:
+						Power = 35.f;
+						break;
+					default:
+						break;
 					}
-					p = 1;
-					for (int y = 0; y < 255; y += p) {
-						uint8_t c = static_cast<uint8_t>(255 - static_cast<int>(std::powf(static_cast<float>(255 - y) / 255.f, 1.5f) * 128.f));
-						DxLib::DrawLine(0, DrawerMngr->GetDispHeight() - y / p, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight() - y / p, DxLib::GetColor(c, c, c));
-					}
+					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
+					this->m_Shader.SetParam(3, Power, 0.f, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.SetCameraMatrix(4, PostPassParts->GetCamViewMat().inverse(), PostPassParts->GetCamProjectionMat().inverse());
+					this->m_Shader.SetCameraMatrix(5, PostPassParts->GetShadowDraw()->GetCamViewMatrix(false), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(false));
+					this->m_Shader.SetCameraMatrix(6, PostPassParts->GetShadowDraw()->GetCamViewMatrix(true), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(true));
+					this->m_Shader.Draw();
 				}
+				SetUseTextureToShader(0, InvalidID);
+				SetUseTextureToShader(1, InvalidID);
+				SetUseTextureToShader(2, InvalidID);
 			}
-			Draw::GraphHandle::SetDraw_Screen(static_cast<int>(DX_SCREEN_BACK), false);
-		}
-		void		Dispose_Sub(void) noexcept override {
-			this->m_bkScreen.Dispose();
-		}
-		bool		IsActive_Sub(void) noexcept override {
-			auto* pOption = Util::OptionParam::Instance();
-			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->IsActive();
-		}
-		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true)->PopBlankScreen();
-			pScreenBuffer->GraphBlendBlt(*TargetGraph, this->m_bkScreen, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
-				DX_RGBA_SELECT_SRC_R, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_B, DX_RGBA_SELECT_BLEND_R);
-			TargetGraph->SetDraw_Screen(false);
+			m_GodRayTime += 1.f / 60.f;
+			if (m_GodRayTime > 1.f) {
+				m_GodRayTime -= 1.f;
+				this->m_Min.SetDraw_Screen();
+				auto Prev = DxLib::GetDrawMode();
+				DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
+				pScreenBuffer->DrawExtendGraph(0, 0, 1, 1, true);
+				DxLib::SetDrawMode(Prev);
+				this->m_SoftImage.GetDrawScreen(0, 0, 1, 1);
+				this->m_SoftImage.GetPixel(0, 0, &m_GodRayRed, nullptr, nullptr, nullptr);
+			}
+			PostPassParts->SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(m_GodRayRed) / 128.f, 0.f, 1.f));
+
+			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 300);
+			TargetGraph->SetDraw_Screen();
 			{
-				TargetGraph->FillGraph(0, 0, 0);
-				pScreenBuffer->DrawGraph(0, 0, true);
+				pGbuffer->GetColorBuffer().DrawGraph(0, 0, true);
+				SetDrawBlendMode(DX_BLENDMODE_ADD, (int)(255.f * PostPassParts->GetGodRayPerRet()));
+				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
-			PostPassScreenBufferPool::Instance()->ResetUseCount(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, false);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
 		}
 	};
 	class PostPassDistortion : public PostPassEffect::PostPassBase {
@@ -697,7 +541,7 @@ namespace DXLibRef {
 	protected:
 		bool		IsActive_Sub(void) noexcept override {
 			auto* pOption = Util::OptionParam::Instance();
-			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->IsActive();
+			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::Distortion))->IsActive();
 		}
 		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
 			auto* DrawerMngr = Draw::MainDraw::Instance();
@@ -716,6 +560,219 @@ namespace DXLibRef {
 					static_cast<float>(DrawerMngr->GetDispWidth() * 2 / 3), PostPassParts->GetDistortionPer(), *pScreenBuffer);
 			}
 			PostPassScreenBufferPool::Instance()->ResetUseCount(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+		}
+	};
+	class PostPassMotionBlur : public PostPassEffect::PostPassBase {
+	private:
+		class BlurScreen {
+			static const size_t MAX = 5;
+		private:
+			std::array<Draw::GraphHandle, MAX>	m_screen;
+			size_t							m_current{ 0 };
+			int								m_alpha{ 0 };
+			int								m_screenWidth{ 0 }, m_screenHeight{ 0 };
+			int								m_offsetX1{ 0 }, m_offsetX2{ 0 }, m_offsetY1{ 0 }, m_offsetY2{ 0 };
+			char		padding[4]{};
+			size_t							m_notBlendDraw{ 0 };
+		public:
+			BlurScreen(void) noexcept {}
+			BlurScreen(const BlurScreen&) = delete;
+			BlurScreen(BlurScreen&&) = delete;
+			BlurScreen& operator=(const BlurScreen&) = delete;
+			BlurScreen& operator=(BlurScreen&&) = delete;
+
+			~BlurScreen(void) noexcept {}
+		public:
+			void		Init(int t_alpha, int t_offsetX1, int t_offsetY1, int t_offsetX2, int t_offsetY2) noexcept {
+				auto* DrawerMngr = Draw::MainDraw::Instance();
+				for (size_t loop = 0; loop < MAX; ++loop) {
+					this->m_screen[loop].Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
+				}
+				this->m_current = 0;
+				this->m_alpha = t_alpha;
+				this->m_offsetX1 = t_offsetX1;
+				this->m_offsetX2 = t_offsetX2;
+				this->m_offsetY1 = t_offsetY1;
+				this->m_offsetY2 = t_offsetY2;
+
+				this->m_notBlendDraw = 0;
+			}
+			void		Release(void) noexcept {
+				for (size_t loop = 0; loop < MAX; ++loop) {
+					this->m_screen[loop].Dispose();
+				}
+			}
+		public:
+			auto* PostRenderBlurScreen(std::function<void()> doing) noexcept {
+				auto* DrawerMngr = Draw::MainDraw::Instance();
+				size_t next = ((this->m_current != 0) ? this->m_current : MAX) - 1;
+				this->m_screen[m_current].SetDraw_Screen();
+				{
+					doing();
+					if (++m_notBlendDraw > MAX) {
+						int Prev = DxLib::GetDrawMode();
+						DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
+						DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, this->m_alpha);
+						this->m_screen[next].DrawExtendGraph(this->m_offsetX1, this->m_offsetY1, DrawerMngr->GetDispWidth() + this->m_offsetX2, DrawerMngr->GetDispHeight() + this->m_offsetY2, false);
+						DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+						DxLib::SetDrawMode(Prev);
+					}
+				}
+				auto Cur = this->m_current;
+				this->m_current = next;
+				return &this->m_screen[Cur];
+			}
+		};
+	private:
+		BlurScreen				m_BlurScreen;
+	public:
+		PostPassMotionBlur(void) noexcept {}
+		PostPassMotionBlur(const PostPassMotionBlur&) = delete;
+		PostPassMotionBlur(PostPassMotionBlur&&) = delete;
+		PostPassMotionBlur& operator=(const PostPassMotionBlur&) = delete;
+		PostPassMotionBlur& operator=(PostPassMotionBlur&&) = delete;
+
+		virtual ~PostPassMotionBlur(void) noexcept {}
+	protected:
+		void		Load_Sub(void) noexcept override {
+			this->m_BlurScreen.Init(96, -6, -6, 6, 6);
+		}
+		void		Dispose_Sub(void) noexcept override {
+			this->m_BlurScreen.Release();
+		}
+		bool		IsActive_Sub(void) noexcept override {
+			auto* pOption = Util::OptionParam::Instance();
+			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::MotionBlur))->IsActive();
+		}
+		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
+			Draw::GraphHandle* buf = this->m_BlurScreen.PostRenderBlurScreen([&]() {
+				TargetGraph->DrawGraph(0, 0, false);
+				});
+			TargetGraph->SetDraw_Screen(false);
+			{
+				buf->DrawGraph(0, 0, false);
+			}
+		}
+	};
+	class PostPassVignette : public PostPassEffect::PostPassBase {
+	private:
+		Draw::GraphHandle m_bkScreen;
+	public:
+		PostPassVignette(void) noexcept {}
+		PostPassVignette(const PostPassVignette&) = delete;
+		PostPassVignette(PostPassVignette&&) = delete;
+		PostPassVignette& operator=(const PostPassVignette&) = delete;
+		PostPassVignette& operator=(PostPassVignette&&) = delete;
+
+		virtual ~PostPassVignette(void) noexcept {}
+	protected:
+		void		Load_Sub(void) noexcept override {
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			{
+				this->m_bkScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
+				this->m_bkScreen.SetDraw_Screen(true);
+				this->m_bkScreen.FillGraph(255, 255, 255);
+				{
+					int p = 1;
+					for (int y = 0; y < 255; y += p) {
+						uint8_t c = static_cast<uint8_t>(255 - static_cast<int>(std::powf(static_cast<float>(255 - y) / 255.f, 1.5f) * 64.f));
+						DxLib::DrawLine(0, y / p, DrawerMngr->GetDispWidth(), y / p, DxLib::GetColor(c, c, c));
+					}
+					p = 1;
+					for (int y = 0; y < 255; y += p) {
+						uint8_t c = static_cast<uint8_t>(255 - static_cast<int>(std::powf(static_cast<float>(255 - y) / 255.f, 1.5f) * 128.f));
+						DxLib::DrawLine(0, DrawerMngr->GetDispHeight() - y / p, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight() - y / p, DxLib::GetColor(c, c, c));
+					}
+				}
+			}
+			Draw::GraphHandle::SetDraw_Screen(static_cast<int>(DX_SCREEN_BACK), false);
+		}
+		void		Dispose_Sub(void) noexcept override {
+			this->m_bkScreen.Dispose();
+		}
+		bool		IsActive_Sub(void) noexcept override {
+			auto* pOption = Util::OptionParam::Instance();
+			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->IsActive();
+		}
+		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true)->PopBlankScreen();
+			pScreenBuffer->GraphBlendBlt(*TargetGraph, this->m_bkScreen, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
+				DX_RGBA_SELECT_SRC_R, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_B, DX_RGBA_SELECT_BLEND_R);
+			TargetGraph->SetDraw_Screen(false);
+			{
+				TargetGraph->FillGraph(0, 0, 0);
+				pScreenBuffer->DrawGraph(0, 0, true);
+			}
+			PostPassScreenBufferPool::Instance()->ResetUseCount(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+		}
+	};
+	class PostPassCornerBlur : public PostPassEffect::PostPassBase {
+	private:
+		static const int EXTEND = 4;
+	private:
+		Draw::GraphHandle		m_bkScreen2;
+	public:
+		PostPassCornerBlur(void) noexcept {}
+		PostPassCornerBlur(const PostPassCornerBlur&) = delete;
+		PostPassCornerBlur(PostPassCornerBlur&&) = delete;
+		PostPassCornerBlur& operator=(const PostPassCornerBlur&) = delete;
+		PostPassCornerBlur& operator=(PostPassCornerBlur&&) = delete;
+
+		virtual ~PostPassCornerBlur(void) noexcept {}
+	protected:
+		void		Load_Sub(void) noexcept override {
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			{
+				this->m_bkScreen2.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
+				this->m_bkScreen2.SetDraw_Screen(false);
+				{
+					this->m_bkScreen2.FillGraph(0, 0, 0);
+					int xr = DrawerMngr->GetDispWidth() * 60 / 100;
+					int yr = DrawerMngr->GetDispHeight() * 70 / 100;
+
+					DrawOval(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, xr, yr, DxLib::GetColor(255, 255, 255), TRUE);
+
+					int p = 1;
+					for (int r = 0; r < 255; r += p) {
+						uint8_t c = static_cast<uint8_t>(255 - static_cast<int>(std::powf(static_cast<float>(255 - r) / 255.f, 1.5f) * 255.f));
+
+						DrawOval(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, xr - r / p, yr - r / p, DxLib::GetColor(c, c, c), FALSE, 2);
+					}
+				}
+			}
+			Draw::GraphHandle::SetDraw_Screen(static_cast<int>(DX_SCREEN_BACK), false);
+		}
+		void		Dispose_Sub(void) noexcept override {
+			this->m_bkScreen2.Dispose();
+		}
+		bool		IsActive_Sub(void) noexcept override {
+			auto* pOption = Util::OptionParam::Instance();
+			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->IsActive();
+		}
+		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+
+			int xsize = DrawerMngr->GetDispWidth();
+			int ysize = DrawerMngr->GetDispHeight();
+
+			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
+			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+
+			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
+			const Draw::GraphHandle* pAberrationScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+
+			pAberrationScreen->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+			pAberrationScreen->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 1000);
+			pScreenBuffer->GraphBlendBlt(*TargetGraph, this->m_bkScreen2, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
+				DX_RGBA_SELECT_SRC_R, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_B, DX_RGBA_SELECT_BLEND_R);
+			TargetGraph->SetDraw_Screen(false);
+			{
+				pAberrationScreen->DrawExtendGraph(0, 0, xsize, ysize, false);
+				pScreenBuffer->DrawGraph(0, 0, true);
+			}
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
 		}
 	};
 	class PostPassFXAA : public PostPassEffect::PostPassBase {
@@ -743,110 +800,54 @@ namespace DXLibRef {
 			}
 		}
 	};
-	class PostPassGodRay : public PostPassEffect::PostPassBase {
-		static const int EXTEND = 8;
-	private:
-		Draw::GraphHandle				m_Min;			// 描画スクリーン
-		Draw::SoftImageHandle			m_SoftImage;
-		int								m_GodRayRed = InvalidID;
-		float							m_GodRayTime = 0.f;
-		Shader2DController				m_Shader;			// シェーダー
-		float							m_range = 1.f;
-		char		padding[4]{};
+	class PostPassAberration : public PostPassEffect::PostPassBase {
 	public:
-		PostPassGodRay(void) noexcept {}
-		PostPassGodRay(const PostPassGodRay&) = delete;
-		PostPassGodRay(PostPassGodRay&&) = delete;
-		PostPassGodRay& operator=(const PostPassGodRay&) = delete;
-		PostPassGodRay& operator=(PostPassGodRay&&) = delete;
+		PostPassAberration(void) noexcept {}
+		PostPassAberration(const PostPassAberration&) = delete;
+		PostPassAberration(PostPassAberration&&) = delete;
+		PostPassAberration& operator=(const PostPassAberration&) = delete;
+		PostPassAberration& operator=(PostPassAberration&&) = delete;
 
-		virtual ~PostPassGodRay(void) noexcept {}
+		virtual ~PostPassAberration(void) noexcept {}
 	protected:
-		void		Load_Sub(void) noexcept override {
-			this->m_Shader.Init("CommonData/shader/PS_GodRay.pso");
-			this->m_Min.Make(1, 1, true);
-			this->m_SoftImage.Make(1, 1);
-		}
-		void		Dispose_Sub(void) noexcept override {
-			this->m_Shader.Dispose();
-			this->m_Min.Dispose();
-			this->m_SoftImage.Dispose();
-		}
 		bool		IsActive_Sub(void) noexcept override {
-			auto* PostPassParts = PostPassEffect::Instance();
 			auto* pOption = Util::OptionParam::Instance();
-			return
-				(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) &&
-				pOption->GetParam(pOption->GetOptionType(Util::OptionType::GodRay))->IsActive() &&
-				(PostPassParts->GetGodRayPer() > 0.f);
+			return pOption->GetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect))->IsActive();
 		}
-		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer* pGbuffer) noexcept override {
-			auto* pOption = Util::OptionParam::Instance();
-			auto* DrawerMngr = Draw::MainDraw::Instance();
+		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer*) noexcept override {
 			auto* PostPassParts = PostPassEffect::Instance();
-			auto* CameraParts = Camera::Camera3D::Instance();
-			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
-			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			int xsize = DrawerMngr->GetDispWidth();
+			int ysize = DrawerMngr->GetDispHeight();
 
-			const Draw::GraphHandle* pDepthScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, false)->PopBlankScreen();
-			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+			const Draw::GraphHandle* pScreenRed = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
+			const Draw::GraphHandle* pScreenGreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
+			const Draw::GraphHandle* pScreenBlue = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
 
-			pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-
-			pScreenBuffer->SetDraw_Screen();
+			pScreenRed->SetDraw_Screen(false);
+			pScreenRed->FillGraph(0, 0, 0);
+			pScreenGreen->SetDraw_Screen(false);
+			pScreenGreen->FillGraph(0, 0, 0);
+			pScreenBlue->SetDraw_Screen(false);
+			pScreenBlue->FillGraph(0, 0, 0);
+			pScreenRed->GraphBlend(*TargetGraph, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
+				DX_RGBA_SELECT_BLEND_R, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_B, DX_RGBA_SELECT_SRC_A);
+			pScreenGreen->GraphBlend(*TargetGraph, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
+				DX_RGBA_SELECT_SRC_R, DX_RGBA_SELECT_BLEND_G, DX_RGBA_SELECT_SRC_B, DX_RGBA_SELECT_SRC_A);
+			pScreenBlue->GraphBlend(*TargetGraph, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
+				DX_RGBA_SELECT_SRC_R, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_BLEND_B, DX_RGBA_SELECT_SRC_A);
+			TargetGraph->SetDraw_Screen(false);
 			{
-				pDepthScreen->SetUseTextureToShader(0);
-				PostPassParts->GetShadowDraw()->GetDepthScreen().SetUseTextureToShader(1);
-				PostPassParts->GetShadowDraw()->GetDepthFarScreen().SetUseTextureToShader(2);
-				{
-					float Power = 1.f;
-					switch (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect()) {
-					case 1:
-						Power = 15.f;
-						break;
-					case 2:
-						Power = 20.f;
-						break;
-					case 3:
-						Power = 35.f;
-						break;
-					default:
-						break;
-					}
-					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
-					this->m_Shader.SetParam(3, Power, 0.f, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
-					this->m_Shader.SetCameraMatrix(4, PostPassParts->GetCamViewMat().inverse(), PostPassParts->GetCamProjectionMat().inverse());
-					this->m_Shader.SetCameraMatrix(5, PostPassParts->GetShadowDraw()->GetCamViewMatrix(false), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(false));
-					this->m_Shader.SetCameraMatrix(6, PostPassParts->GetShadowDraw()->GetCamViewMatrix(true), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(true));
-					this->m_Shader.Draw();
-				}
-				SetUseTextureToShader(0, InvalidID);
-				SetUseTextureToShader(1, InvalidID);
-				SetUseTextureToShader(2, InvalidID);
-			}
-			m_GodRayTime += 1.f / 60.f;
-			if (m_GodRayTime > 1.f) {
-				m_GodRayTime -= 1.f;
-				this->m_Min.SetDraw_Screen();
-				auto Prev = DxLib::GetDrawMode();
-				DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
-				pScreenBuffer->DrawExtendGraph(0, 0, 1, 1, true);
-				DxLib::SetDrawMode(Prev);
-				this->m_SoftImage.GetDrawScreen(0, 0, 1, 1);
-				this->m_SoftImage.GetPixel(0, 0, &m_GodRayRed, nullptr, nullptr, nullptr);
-			}
-			PostPassParts->SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(m_GodRayRed) / 128.f, 0.f, 1.f));
-
-			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 300);
-			TargetGraph->SetDraw_Screen();
-			{
-				pGbuffer->GetColorBuffer().DrawGraph(0, 0, true);
-				SetDrawBlendMode(DX_BLENDMODE_ADD, (int)(255.f * PostPassParts->GetGodRayPerRet()));
-				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+				TargetGraph->FillGraph(0, 0, 0);
+				SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+				pScreenRed->DrawRotaGraph(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, 1.f + 0.010f * PostPassParts->GetAberrationPower(), 0.f, true);
+				pScreenGreen->DrawRotaGraph(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, 1.f + 0.005f * PostPassParts->GetAberrationPower(), 0.f, true);
+				pScreenBlue->DrawRotaGraph(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2, 1.f, 0.f, true);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, false);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
+			PostPassScreenBufferPool::Instance()->ResetUseCount(xsize, ysize, true);
 		}
 	};
 	class PostPassScope : public PostPassEffect::PostPassBase {
@@ -929,11 +930,11 @@ namespace DXLibRef {
 		this->m_PostPass[now] = std::make_unique<PostPassSSAO>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassGodRay>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassDistortion>(); ++now;
-		this->m_PostPass[now] = std::make_unique<PostPassAberration>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassMotionBlur>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassVignette>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassCornerBlur>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassFXAA>(); ++now;
+		this->m_PostPass[now] = std::make_unique<PostPassAberration>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassScope>(); ++now;
 		this->m_PostPass[now] = std::make_unique<PostPassBlackout>(); ++now;
 	}

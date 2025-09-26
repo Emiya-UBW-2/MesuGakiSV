@@ -72,6 +72,12 @@
 			"DefaultValue" : "True"
 		},
 		{
+			"Type":"Distortion",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
 			"Type":"Reflection",
 			"SelectType": "Select",
 			"Value" : ["OFF","Low","Middle","High"],

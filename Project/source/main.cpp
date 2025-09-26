@@ -22,12 +22,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Draw::GraphPool::Create();
 	Util::LocalizePool::Create();
 	Camera::Camera3D::Create();
-	DXLibRef::PostPassEffect::Create();
+	Draw::PostPassEffect::Create();
 
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* SceneMngr = Util::SceneManager::Instance();
 	auto* CameraParts = Camera::Camera3D::Instance();
-	auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+	auto* PostPassParts = Draw::PostPassEffect::Instance();
 
 	TitleScene Title{};
 	MainScene Main{};
@@ -98,7 +98,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 	}
-	DXLibRef::PostPassEffect::Release();
+	Draw::PostPassEffect::Release();
 	Camera::Camera3D::Release();
 	Util::LocalizePool::Release();
 	Draw::GraphPool::Release();
