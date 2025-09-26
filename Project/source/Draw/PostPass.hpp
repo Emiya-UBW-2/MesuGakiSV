@@ -613,7 +613,7 @@ namespace Draw {
 
 			ShaderController			m_Shader;
 			ShaderController			m_ShaderRigid;
-			Util::Vector3DX				m_ShadowVec{ Util::Vector3DX::up() };
+			Util::VECTOR3D				m_ShadowVec{ Util::VECTOR3D::up() };
 			float						m_Scale{ 1.f };
 
 			bool						m_PrevShadow{ false };
@@ -636,7 +636,7 @@ namespace Draw {
 				}
 			}
 		private:
-			void SetupCam(Util::Vector3DX Center, float scale) const noexcept {
+			void SetupCam(Util::VECTOR3D Center, float scale) const noexcept {
 				ClearDrawScreen();
 				SetupCamera_Ortho(30.f * scale);		// カメラのタイプを正射影タイプにセット、描画範囲も指定
 				SetCameraNearFar(0.05f * scale, 60.f * scale);		// 描画する奥行き範囲をセット
@@ -676,7 +676,7 @@ namespace Draw {
 			const auto& GetDepthFarScreen(void) const noexcept { return this->m_DepthFarScreenHandle; }//未使用
 			const auto& GetShadowDir(void) const noexcept { return this->m_ShadowVec; }
 		public:
-			void			SetVec(const Util::Vector3DX& Vec) noexcept { this->m_ShadowVec = Vec; }
+			void			SetVec(const Util::VECTOR3D& Vec) noexcept { this->m_ShadowVec = Vec; }
 			void			SetDraw(std::function<void()> doing_rigid, std::function<void()> doing, Draw::Camera3DInfo tmp_cam) noexcept {
 				this->m_BaseShadowHandle.SetUseTextureToShader(0);				// 影用深度記録画像をテクスチャにセット
 				this->m_DepthScreenHandle.SetUseTextureToShader(1);
@@ -719,7 +719,7 @@ namespace Draw {
 				return false;
 			}
 		public:
-			void			Update(std::function<void()> Shadowdoing, Util::Vector3DX Center, float Scale) noexcept {
+			void			Update(std::function<void()> Shadowdoing, Util::VECTOR3D Center, float Scale) noexcept {
 				this->m_Scale = Scale;
 				// 影用の深度記録画像の準備を行う
 				this->m_DepthBaseScreenHandle.SetRenderTargetToShader(0);
@@ -735,7 +735,7 @@ namespace Draw {
 				SetRenderTargetToShader(1, InvalidID);
 				SetRenderTargetToShader(2, InvalidID);
 			}
-			void			UpdateFar(std::function<void()> Shadowdoing, Util::Vector3DX Center, float Scale) noexcept {
+			void			UpdateFar(std::function<void()> Shadowdoing, Util::VECTOR3D Center, float Scale) noexcept {
 				// 影用の深度記録画像の準備を行う
 				this->m_DepthBaseScreenHandle.SetRenderTargetToShader(0);
 				SetRenderTargetToShader(1, InvalidID);
@@ -762,8 +762,8 @@ namespace Draw {
 		class RealTimeCubeMap {
 		private:
 			Draw::GraphHandle dynamicCubeTex;		// 周囲を回る小さいモデルたちを映りこませるための描画対象にできるキューブマップテクスチャ
-			Util::Vector3DX lookAt[6]{};	// 映りこむ周囲の環境を描画する際のカメラの注視点
-			Util::Vector3DX up[6]{};		// 移りこむ周囲の環境を描画する際のカメラの上方向
+			Util::VECTOR3D lookAt[6]{};	// 映りこむ周囲の環境を描画する際のカメラの注視点
+			Util::VECTOR3D up[6]{};		// 移りこむ周囲の環境を描画する際のカメラの上方向
 			int MIPLEVEL = 2;
 			char		padding[4]{};
 		public:
@@ -783,21 +783,21 @@ namespace Draw {
 				SetCubeMapTextureCreateFlag(FALSE);
 				SetCreateDrawValidGraphMipLevels(0);
 				// 映りこむ環境を描画する際に使用するカメラの注視点とカメラの上方向を設定
-				lookAt[0] = Util::Vector3DX::right();
-				lookAt[1] = Util::Vector3DX::left();
-				lookAt[2] = Util::Vector3DX::up();
-				lookAt[3] = Util::Vector3DX::down();
-				lookAt[4] = Util::Vector3DX::forward();
-				lookAt[5] = Util::Vector3DX::back();
-				up[0] = Util::Vector3DX::up();
-				up[1] = Util::Vector3DX::up();
-				up[2] = Util::Vector3DX::back();
-				up[3] = Util::Vector3DX::forward();
-				up[4] = Util::Vector3DX::up();
-				up[5] = Util::Vector3DX::up();
+				lookAt[0] = Util::VECTOR3D::right();
+				lookAt[1] = Util::VECTOR3D::left();
+				lookAt[2] = Util::VECTOR3D::up();
+				lookAt[3] = Util::VECTOR3D::down();
+				lookAt[4] = Util::VECTOR3D::forward();
+				lookAt[5] = Util::VECTOR3D::back();
+				up[0] = Util::VECTOR3D::up();
+				up[1] = Util::VECTOR3D::up();
+				up[2] = Util::VECTOR3D::back();
+				up[3] = Util::VECTOR3D::forward();
+				up[4] = Util::VECTOR3D::up();
+				up[5] = Util::VECTOR3D::up();
 			}
 
-			void ReadyDraw(const Util::Vector3DX& Pos, const std::function<void()>& Doing) noexcept {
+			void ReadyDraw(const Util::VECTOR3D& Pos, const std::function<void()>& Doing) noexcept {
 				for (int loop = 0; loop < 6; ++loop) {		// 映りこむ環境を描画する面の数だけ繰り返し
 					for (int loop2 = 0; loop2 < MIPLEVEL; ++loop2) {			// ミップマップの数だけ繰り返し
 						dynamicCubeTex.SetRenderTargetToShader(0, loop, loop2);		// 描画先番号０番の描画対象を描画対象にできるキューブマップのloop番目の面に設定
@@ -911,7 +911,7 @@ namespace Draw {
 			Set_is_lens(false);
 			Set_zoom_lens(1.f);
 			// 環境光と影の初期化
-			SetAmbientLight(Util::Vector3DX::vget(0.25f, -1.f, 0.25f));
+			SetAmbientLight(Util::VECTOR3D::vget(0.25f, -1.f, 0.25f));
 		}
 	private:
 		PostPassEffect(void) noexcept;
@@ -971,7 +971,7 @@ namespace Draw {
 		}
 	public:
 		bool		UpdateShadowActive(void) noexcept { return this->m_ShadowDraw->UpdateActive(); }
-		void		SetAmbientLight(const Util::Vector3DX& AmbientLightVec) noexcept { this->m_ShadowDraw->SetVec(AmbientLightVec); }
+		void		SetAmbientLight(const Util::VECTOR3D& AmbientLightVec) noexcept { this->m_ShadowDraw->SetVec(AmbientLightVec); }
 		void		UpdateBuffer(void) noexcept {
 			auto* pOption = Util::OptionParam::Instance();
 			bool ActiveGBuffer = false;
@@ -988,13 +988,13 @@ namespace Draw {
 			}
 			UpdateActiveCubeMap((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false);
 		}
-		void		Update_CubeMap(std::function<void()> doing, const Util::Vector3DX& CenterPos) noexcept {
+		void		Update_CubeMap(std::function<void()> doing, const Util::VECTOR3D& CenterPos) noexcept {
 			auto* pOption = Util::OptionParam::Instance();
 			if ((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false) {
 				this->m_RealTimeCubeMap.ReadyDraw(CenterPos, doing);
 			}
 		}
-		void		Update_Shadow(std::function<void()> doing, const Util::Vector3DX& CenterPos, bool IsFar) noexcept {
+		void		Update_Shadow(std::function<void()> doing, const Util::VECTOR3D& CenterPos, bool IsFar) noexcept {
 			auto* pOption = Util::OptionParam::Instance();
 			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
 				// 影用の深度記録画像の準備を行う

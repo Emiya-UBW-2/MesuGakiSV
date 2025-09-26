@@ -105,7 +105,7 @@ void OptionWindow::SetTab() noexcept {
 	std::string ChildBase = "OptionUI/Child";
 	ChildBase += std::to_string(this->m_NowSelectTab + 1);
 	Draw::Param2D Param;
-	Param.OfsNoRad = Util::VECTOR2D(960, 205);
+	Param.OfsNoRad = Util::VECTOR2D::vget(960, 205);
 	{
 		std::string Path = "data/UI/Option/Tab";
 		Path += std::to_string(this->m_NowSelectTab + 1);

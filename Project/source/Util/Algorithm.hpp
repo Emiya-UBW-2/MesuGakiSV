@@ -16,53 +16,81 @@ namespace Util {
 	// --------------------------------------------------------------------------------------------------
 	// ベクトルデータ型
 	// --------------------------------------------------------------------------------------------------
-	struct VECTOR2D {
-		float					x{}, y{};
-
+	class VECTOR2D {
 	public:
-		VECTOR2D(float X, float Y) noexcept {
-			this->x = X;
-			this->y = Y;
+		float x{ 0 };
+		float y{ 0 };
+	public:
+		VECTOR2D(void) noexcept : x(0), y(0) {}
+		VECTOR2D(VECTOR value) noexcept { this->Set(value.x, value.y); }
+		inline VECTOR get(void) const noexcept { return DxLib::VGet(this->x, this->y, 0.f); }				// 変換
+		inline static const VECTOR2D vget(float x, float y) noexcept { return DxLib::VGet(x, y, 0.f); }	// 入力
+		// 
+		static const VECTOR2D down(void) noexcept { return vget(0.f, -1.f); }
+		static const VECTOR2D left(void) noexcept { return vget(-1.f, 0.f); }
+		static const VECTOR2D one(void) noexcept { return vget(1.f, 1.f); }
+		static const VECTOR2D right(void) noexcept { return vget(1.f, 0.f); }
+		static const VECTOR2D up(void) noexcept { return vget(0.f, 1.f); }
+		static const VECTOR2D zero(void) noexcept { return vget(0.f, 0.f); }
+		// 
+		inline float magnitude(void) const noexcept {
+			float Square = sqrMagnitude();
+			return Square < 0.0000001f ? 0.0f : std::sqrtf(Square);
+		}// サイズ
+		inline VECTOR2D normalized(void) const noexcept {
+			float Size = magnitude();
+			if (Size <= 0.0f) {
+				return vget(-1.0f, -1.0f);
+			}
+			return *this / Size;
+		}		// 正規化
+		inline float sqrMagnitude(void) const noexcept { return this->x * this->x + this->y * this->y; }		// サイズ
+		// 
+		bool Equals(const VECTOR2D& obj) const noexcept { return *this == obj; }
+		void Set(float x1, float y1) noexcept {
+			this->x = x1;
+			this->y = y1;
 		}
 
-		VECTOR2D(void) noexcept {}
-		VECTOR2D(const VECTOR2D& o) noexcept {
-			this->x = o.x;
-			this->y = o.y;
-		}
-		VECTOR2D(VECTOR2D&& o) noexcept {
-			this->x = o.x;
-			this->y = o.y;
-		}
-		VECTOR2D& operator=(const VECTOR2D& o) noexcept {
-			this->x = o.x;
-			this->y = o.y;
-			return *this;
-		}
-		VECTOR2D& operator=(VECTOR2D&& o) noexcept {
-			this->x = o.x;
-			this->y = o.y;
-			return *this;
-		}
-		virtual ~VECTOR2D(void) noexcept {}
-	public:
+		inline static float			Angle(const VECTOR2D& A, const VECTOR2D& B) noexcept { return std::acos(Dot(A, B) / (A.magnitude() * B.magnitude())); }
+		inline static VECTOR2D		ClampMagnitude(const VECTOR2D& A, float Limit) noexcept { return A.normalized() * std::clamp(A.magnitude(), 0.f, Limit); }
+		inline static float			Cross(const VECTOR2D& A, const VECTOR2D& B) noexcept { return A.x * B.y - A.y * B.x; }
+		inline static float			Distance(const VECTOR2D& A, const VECTOR2D& B) noexcept { return (A - B).magnitude(); }
+		inline static float			Dot(const VECTOR2D& A, const VECTOR2D& B) noexcept { return A.x * B.x + A.y * B.y; }
+		//static VECTOR2D			LerpVector2DX(const VECTOR2D& A, const VECTOR2D& B, float Per) noexcept { return Lerp<VECTOR2D>(A, B, Per); }
+		//static VECTOR2D			LerpUnclampedVector2DX(const VECTOR2D& A, const VECTOR2D& B, float Per) noexcept { return Lerp<VECTOR2D>(A, B, Per); }
+		inline static VECTOR2D		Max(const VECTOR2D& A, const VECTOR2D& B) noexcept { return vget(std::max(A.x, B.x), std::max(A.y, B.y)); }
+		inline static VECTOR2D		Min(const VECTOR2D& A, const VECTOR2D& B) noexcept { return vget(std::min(A.x, B.x), std::min(A.y, B.y)); }
+		// MoveTowards
+		inline static VECTOR2D		Normalize(const VECTOR2D& A) noexcept { return A.normalized(); }
+		// OrthoNormalize
+		// Project
+		// ProjectOnPlane
+		inline static VECTOR2D		Reflect(const VECTOR2D& inDirection, const VECTOR2D& inNormal) noexcept { return inDirection + inNormal * (Dot(inNormal, inDirection * -1.f)) * 2.f; }
+		// RotateTowards
+		inline static VECTOR2D		Scale(const VECTOR2D& A, const VECTOR2D& B) noexcept { return vget((A.x * B.x), (A.y * B.y)); }
+		inline static float			SignedAngle(const VECTOR2D& A, const VECTOR2D& B) { return std::atan2f(Cross(A, B), Dot(A, B)); }
+		// Slerp
+		// SlerpUnclamped
+		// SmoothDamp
+
 		// 比較
-		inline bool operator==(const VECTOR2D& obj) const noexcept { return (this->x == obj.x) && (this->y == obj.y); }
+		inline bool operator==(const VECTOR2D& obj) const noexcept { return (*this - obj).magnitude() <= 0.001f; }
 		inline bool operator!=(const VECTOR2D& obj) const noexcept { return !(*this == obj); }
 		// 加算
-		inline VECTOR2D operator+(const VECTOR2D& obj) const noexcept { return VECTOR2D(this->x + obj.x, this->y + obj.y); }
+		inline VECTOR2D operator+(const VECTOR2D& obj) const noexcept { return vget(this->x + obj.x, this->y + obj.y); }
 		inline void operator+=(const VECTOR2D& obj) noexcept {
 			this->x += obj.x;
 			this->y += obj.y;
 		}
 		// 減算
-		inline VECTOR2D operator-(const VECTOR2D& obj) const noexcept { return VECTOR2D(this->x - obj.x, this->y - obj.y); }
+		inline VECTOR2D operator-(const VECTOR2D& obj) const noexcept { return vget(this->x - obj.x, this->y - obj.y); }
 		inline void operator-=(const VECTOR2D& obj) noexcept {
 			this->x -= obj.x;
 			this->y -= obj.y;
 		}
 		// 乗算
-		inline VECTOR2D operator*(float p1) const noexcept { return VECTOR2D(this->x * p1, this->y * p1); }
+		inline VECTOR2D operator*(float p1) const noexcept { return vget(this->x * p1, this->y * p1); }
 		inline void operator*=(float p1) noexcept {
 			this->x *= p1;
 			this->y *= p1;
@@ -77,10 +105,6 @@ namespace Util {
 			Answer.y = this->x * std::sin(Rad) + this->y * std::cos(Rad);
 			return Answer;
 		}
-	public:
-		inline static float			Cross(const VECTOR2D& A, const VECTOR2D& B) noexcept { return A.x * B.y - A.y * B.x; }
-
-	public:
 		void SetByJson(const std::vector<float>& value) noexcept {
 			size_t loop = 0;
 			for (const float& dp : value) {
@@ -98,33 +122,33 @@ namespace Util {
 	// ---------------------------------------------------------------------------------------------
 	// Vector3
 	// ---------------------------------------------------------------------------------------------
-	class Vector3DX {
+	class VECTOR3D {
 	public:
 		float x{ 0 };
 		float y{ 0 };
 		float z{ 0 };
 	public:
-		Vector3DX(void) noexcept : x(0), y(0), z(0) {}
-		Vector3DX(VECTOR value) noexcept { this->Set(value.x, value.y, value.z); }
+		VECTOR3D(void) noexcept : x(0), y(0), z(0) {}
+		VECTOR3D(VECTOR value) noexcept { this->Set(value.x, value.y, value.z); }
 		inline VECTOR get(void) const noexcept { return DxLib::VGet(this->x, this->y, this->z); }					// 変換
-		inline static const Vector3DX vget(float x, float y, float z) noexcept { return DxLib::VGet(x, y, z); }	// 入力
+		inline static const VECTOR3D vget(float x, float y, float z) noexcept { return DxLib::VGet(x, y, z); }	// 入力
 		// 
-		inline static const Vector3DX back(void) noexcept { return vget(0.f, 0.f, -1.f); }
-		inline static const Vector3DX down(void) noexcept { return vget(0.f, -1.f, 0.f); }
-		inline static const Vector3DX forward(void) noexcept { return vget(0.f, 0.f, 1.f); }
-		inline static const Vector3DX left(void) noexcept { return vget(-1.f, 0.f, 0.f); }
+		inline static const VECTOR3D back(void) noexcept { return vget(0.f, 0.f, -1.f); }
+		inline static const VECTOR3D down(void) noexcept { return vget(0.f, -1.f, 0.f); }
+		inline static const VECTOR3D forward(void) noexcept { return vget(0.f, 0.f, 1.f); }
+		inline static const VECTOR3D left(void) noexcept { return vget(-1.f, 0.f, 0.f); }
 
-		inline static const Vector3DX one(void) noexcept { return vget(1.f, 1.f, 1.f); }
+		inline static const VECTOR3D one(void) noexcept { return vget(1.f, 1.f, 1.f); }
 
-		inline static const Vector3DX right(void) noexcept { return vget(1.f, 0.f, 0.f); }
-		inline static const Vector3DX up(void) noexcept { return vget(0.f, 1.f, 0.f); }
-		inline static const Vector3DX zero(void) noexcept { return vget(0.f, 0.f, 0.f); }
+		inline static const VECTOR3D right(void) noexcept { return vget(1.f, 0.f, 0.f); }
+		inline static const VECTOR3D up(void) noexcept { return vget(0.f, 1.f, 0.f); }
+		inline static const VECTOR3D zero(void) noexcept { return vget(0.f, 0.f, 0.f); }
 		// 
 		inline float magnitude(void) const noexcept {
 			float Square = sqrMagnitude();
 			return Square < 0.0000001f ? 0.0f : std::sqrtf(Square);
 		}// サイズ
-		inline Vector3DX normalized(void) const noexcept {
+		inline VECTOR3D normalized(void) const noexcept {
 			float Size = magnitude();
 			if (Size <= 0.0f) {
 				return vget(-1.0f, -1.0f, -1.0f);
@@ -133,61 +157,61 @@ namespace Util {
 		}		// 正規化
 		inline float sqrMagnitude(void) const noexcept { return this->x * this->x + this->y * this->y + this->z * this->z; }		// サイズ
 		// 
-		inline bool Equals(const Vector3DX& obj) const noexcept { return *this == obj; }
+		inline bool Equals(const VECTOR3D& obj) const noexcept { return *this == obj; }
 		inline void Set(float x1, float y1, float z1) noexcept {
 			this->x = x1;
 			this->y = y1;
 			this->z = z1;
 		}
 		// 
-		inline static float			Angle(const Vector3DX& A, const Vector3DX& B) noexcept { return std::acos(Dot(A, B) / (A.magnitude() * B.magnitude())); }
-		inline static Vector3DX		ClampMagnitude(const Vector3DX& A, float Limit) noexcept { return A.normalized() * std::clamp(A.magnitude(), 0.f, Limit); }
-		inline static Vector3DX		Cross(const Vector3DX& A, const Vector3DX& B) noexcept { return vget(A.y * B.z - A.z * B.y, A.z * B.x - A.x * B.z, A.x * B.y - A.y * B.x); }
-		inline static float			Distance(const Vector3DX& A, const Vector3DX& B) noexcept { return (A - B).magnitude(); }
-		inline static float			Dot(const Vector3DX& A, const Vector3DX& B) noexcept { return A.x * B.x + A.y * B.y + A.z * B.z; }
-		//static Vector3DX			LerpVector3DX(const Vector3DX& A, const Vector3DX& B, float Per) noexcept { return Lerp<Vector3DX>(A, B, Per); }
-		//static Vector3DX			LerpUnclampedVector3DX(const Vector3DX& A, const Vector3DX& B, float Per) noexcept { return Lerp<Vector3DX>(A, B, Per); }
-		inline static Vector3DX		Max(const Vector3DX& A, const Vector3DX& B) noexcept { return vget(std::max(A.x, B.x), std::max(A.y, B.y), std::max(A.z, B.z)); }
-		inline static Vector3DX		Min(const Vector3DX& A, const Vector3DX& B) noexcept { return vget(std::min(A.x, B.x), std::min(A.y, B.y), std::min(A.z, B.z)); }
+		inline static float			Angle(const VECTOR3D& A, const VECTOR3D& B) noexcept { return std::acos(Dot(A, B) / (A.magnitude() * B.magnitude())); }
+		inline static VECTOR3D		ClampMagnitude(const VECTOR3D& A, float Limit) noexcept { return A.normalized() * std::clamp(A.magnitude(), 0.f, Limit); }
+		inline static VECTOR3D		Cross(const VECTOR3D& A, const VECTOR3D& B) noexcept { return vget(A.y * B.z - A.z * B.y, A.z * B.x - A.x * B.z, A.x * B.y - A.y * B.x); }
+		inline static float			Distance(const VECTOR3D& A, const VECTOR3D& B) noexcept { return (A - B).magnitude(); }
+		inline static float			Dot(const VECTOR3D& A, const VECTOR3D& B) noexcept { return A.x * B.x + A.y * B.y + A.z * B.z; }
+		//static VECTOR3D			LerpVector3DX(const VECTOR3D& A, const VECTOR3D& B, float Per) noexcept { return Lerp<VECTOR3D>(A, B, Per); }
+		//static VECTOR3D			LerpUnclampedVector3DX(const VECTOR3D& A, const VECTOR3D& B, float Per) noexcept { return Lerp<VECTOR3D>(A, B, Per); }
+		inline static VECTOR3D		Max(const VECTOR3D& A, const VECTOR3D& B) noexcept { return vget(std::max(A.x, B.x), std::max(A.y, B.y), std::max(A.z, B.z)); }
+		inline static VECTOR3D		Min(const VECTOR3D& A, const VECTOR3D& B) noexcept { return vget(std::min(A.x, B.x), std::min(A.y, B.y), std::min(A.z, B.z)); }
 		// MoveTowards
-		inline static Vector3DX		Normalize(const Vector3DX& A) noexcept { return A.normalized(); }
+		inline static VECTOR3D		Normalize(const VECTOR3D& A) noexcept { return A.normalized(); }
 		// OrthoNormalize
 		// Project
 		// ProjectOnPlane
-		inline static Vector3DX		Reflect(const Vector3DX& inDirection, const Vector3DX& inNormal) noexcept { return inDirection + inNormal * (Dot(inNormal, inDirection * -1.f)) * 2.f; }
+		inline static VECTOR3D		Reflect(const VECTOR3D& inDirection, const VECTOR3D& inNormal) noexcept { return inDirection + inNormal * (Dot(inNormal, inDirection * -1.f)) * 2.f; }
 		// RotateTowards
-		inline static Vector3DX		Scale(const Vector3DX& A, const Vector3DX& B) noexcept { return vget((A.x * B.x), (A.y * B.y), (A.z * B.z)); }
-		inline static float			SignedAngle(const Vector3DX& A, const Vector3DX& B, const Vector3DX& Axis) noexcept { return Angle(A, B) * (Dot(Cross(Axis, A), B) > 0.f ? 1.f : -1.f); }
+		inline static VECTOR3D		Scale(const VECTOR3D& A, const VECTOR3D& B) noexcept { return vget((A.x * B.x), (A.y * B.y), (A.z * B.z)); }
+		inline static float			SignedAngle(const VECTOR3D& A, const VECTOR3D& B, const VECTOR3D& Axis) noexcept { return Angle(A, B) * (Dot(Cross(Axis, A), B) > 0.f ? 1.f : -1.f); }
 		// Slerp
 		// SlerpUnclamped
 		// SmoothDamp
 
 		// 比較
-		inline bool operator==(const Vector3DX& obj) const noexcept { return (*this - obj).magnitude() <= 0.001f; }
-		inline bool operator!=(const Vector3DX& obj) const noexcept { return !(*this == obj); }
+		inline bool operator==(const VECTOR3D& obj) const noexcept { return (*this - obj).magnitude() <= 0.001f; }
+		inline bool operator!=(const VECTOR3D& obj) const noexcept { return !(*this == obj); }
 		// 加算
-		inline Vector3DX operator+(const Vector3DX& obj) const noexcept { return vget(this->x + obj.x, this->y + obj.y, this->z + obj.z); }
-		inline void operator+=(const Vector3DX& obj) noexcept {
+		inline VECTOR3D operator+(const VECTOR3D& obj) const noexcept { return vget(this->x + obj.x, this->y + obj.y, this->z + obj.z); }
+		inline void operator+=(const VECTOR3D& obj) noexcept {
 			this->x += obj.x;
 			this->y += obj.y;
 			this->z += obj.z;
 		}
 		// 減算
-		inline Vector3DX operator-(const Vector3DX& obj) const noexcept { return vget(this->x - obj.x, this->y - obj.y, this->z - obj.z); }
-		inline void operator-=(const Vector3DX& obj) noexcept {
+		inline VECTOR3D operator-(const VECTOR3D& obj) const noexcept { return vget(this->x - obj.x, this->y - obj.y, this->z - obj.z); }
+		inline void operator-=(const VECTOR3D& obj) noexcept {
 			this->x -= obj.x;
 			this->y -= obj.y;
 			this->z -= obj.z;
 		}
 		// 乗算
-		inline Vector3DX operator*(float p1) const noexcept { return vget(this->x * p1, this->y * p1, this->z * p1); }
+		inline VECTOR3D operator*(float p1) const noexcept { return vget(this->x * p1, this->y * p1, this->z * p1); }
 		inline void operator*=(float p1) noexcept {
 			this->x *= p1;
 			this->y *= p1;
 			this->z *= p1;
 		}
 		// 除算
-		inline Vector3DX operator/(float p1) const noexcept { return *this * (1.f / p1); }
+		inline VECTOR3D operator/(float p1) const noexcept { return *this * (1.f / p1); }
 		inline void operator/=(float p1) noexcept { *this *= (1.f / p1); }
 
 		//
@@ -212,27 +236,27 @@ namespace Util {
 		// 
 		static Matrix4x4DX identity(void) noexcept { return DxLib::MGetIdent(); }
 
-		static Matrix4x4DX Axis1(const Vector3DX& yvec, const Vector3DX& zvec, const Vector3DX& pos = Vector3DX::zero()) noexcept { return { DxLib::MGetAxis1(Vector3DX::Cross(yvec, zvec).get(),yvec.get(),zvec.get(),pos.get()) }; }
-		static Matrix4x4DX Axis2(const Vector3DX& yvec, const Vector3DX& zvec, const Vector3DX& pos = Vector3DX::zero()) noexcept { return { DxLib::MGetAxis2(Vector3DX::Cross(yvec, zvec).get(),yvec.get(),zvec.get(),pos.get()) }; }
-		static Matrix4x4DX RotAxis(const Vector3DX& p1, float p2) noexcept { return DxLib::MGetRotAxis(p1.get(), p2); }
-		static Matrix4x4DX RotVec2(const Vector3DX& p1, const Vector3DX& p2) noexcept { return { DxLib::MGetRotVec2(p1.get(), p2.get()) }; }
+		static Matrix4x4DX Axis1(const VECTOR3D& yvec, const VECTOR3D& zvec, const VECTOR3D& pos = VECTOR3D::zero()) noexcept { return { DxLib::MGetAxis1(VECTOR3D::Cross(yvec, zvec).get(),yvec.get(),zvec.get(),pos.get()) }; }
+		static Matrix4x4DX Axis2(const VECTOR3D& yvec, const VECTOR3D& zvec, const VECTOR3D& pos = VECTOR3D::zero()) noexcept { return { DxLib::MGetAxis2(VECTOR3D::Cross(yvec, zvec).get(),yvec.get(),zvec.get(),pos.get()) }; }
+		static Matrix4x4DX RotAxis(const VECTOR3D& p1, float p2) noexcept { return DxLib::MGetRotAxis(p1.get(), p2); }
+		static Matrix4x4DX RotVec2(const VECTOR3D& p1, const VECTOR3D& p2) noexcept { return { DxLib::MGetRotVec2(p1.get(), p2.get()) }; }
 		static Matrix4x4DX GetScale(float scale) noexcept { return { DxLib::MGetScale(DxLib::VGet(scale,scale,scale)) }; }
-		static Matrix4x4DX GetScale(const Vector3DX& scale) noexcept { return { DxLib::MGetScale(scale.get()) }; }
-		static Matrix4x4DX Mtrans(const Vector3DX& p1) noexcept { return DxLib::MGetTranslate(p1.get()); }
-		static Vector3DX Vtrans(const Vector3DX& p1, const Matrix4x4DX& p2) noexcept { return DxLib::VTransform(p1.get(), p2.get()); }
+		static Matrix4x4DX GetScale(const VECTOR3D& scale) noexcept { return { DxLib::MGetScale(scale.get()) }; }
+		static Matrix4x4DX Mtrans(const VECTOR3D& p1) noexcept { return DxLib::MGetTranslate(p1.get()); }
+		static VECTOR3D Vtrans(const VECTOR3D& p1, const Matrix4x4DX& p2) noexcept { return DxLib::VTransform(p1.get(), p2.get()); }
 		// 
 		Matrix4x4DX inverse(void) const noexcept { return DxLib::MInverse(this->get()); }		// 逆
 		bool isIdentity(void) const noexcept { return *this == DxLib::MGetIdent(); }		// 逆
 		// lossyScale
-		Vector3DX lossyScale(void) const noexcept { return DxLib::MGetSize(this->get()); }
+		VECTOR3D lossyScale(void) const noexcept { return DxLib::MGetSize(this->get()); }
 		Matrix4x4DX rotation(void) const noexcept { return DxLib::MGetRotElem(this->get()); }		// 逆
 		Matrix4x4DX transpose(void) const noexcept { return DxLib::MTranspose(this->get()); }		// 逆
 
-		Vector3DX pos(void) const noexcept { return Vtrans(Vector3DX::zero(), this->get()); }
-		Vector3DX xvec(void) const noexcept { return Vtrans(Vector3DX::right(), rotation()); }
-		Vector3DX yvec(void) const noexcept { return Vtrans(Vector3DX::up(), rotation()); }
-		Vector3DX zvec(void) const noexcept { return Vtrans(Vector3DX::forward(), rotation()); }
-		Vector3DX zvec2(void) const noexcept { return Vtrans(Vector3DX::back(), rotation()); }//左手座標系で右手座標系のキャラを描画した際の正面
+		VECTOR3D pos(void) const noexcept { return Vtrans(VECTOR3D::zero(), this->get()); }
+		VECTOR3D xvec(void) const noexcept { return Vtrans(VECTOR3D::right(), rotation()); }
+		VECTOR3D yvec(void) const noexcept { return Vtrans(VECTOR3D::up(), rotation()); }
+		VECTOR3D zvec(void) const noexcept { return Vtrans(VECTOR3D::forward(), rotation()); }
+		VECTOR3D zvec2(void) const noexcept { return Vtrans(VECTOR3D::back(), rotation()); }//左手座標系で右手座標系のキャラを描画した際の正面
 		// 
 		void GetRadian(float* angle_x, float* angle_y, float* angle_z) const noexcept {
 			constexpr float threshold = 0.001f;
@@ -394,11 +418,11 @@ namespace Util {
 		float xmin = 0.f;
 		float xmax = xminpt;
 		int xc = 0;
-		for (int x = 0; x < xtile + 2; x++) {
+		for (int x = 0; x < xtile + 2; ++x) {
 			float ymin = 0.f;
 			float ymax = yminpt;
 			int yc = 0;
-			for (int y = 0; y < ytile + 2; y++) {
+			for (int y = 0; y < ytile + 2; ++y) {
 				SetBox(xmin, ymin, xmax, ymax, xc, yc);
 				//次
 				ymin = ymax;

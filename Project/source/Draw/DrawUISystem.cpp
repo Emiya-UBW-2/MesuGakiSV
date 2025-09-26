@@ -28,11 +28,11 @@ namespace Draw {
 			center.x = PosOfs.x + Size.x * (0.5f - this->m_Now.Center.x) * 2.f;
 			center.y = PosOfs.y + Size.y * (0.5f - this->m_Now.Center.y) * 2.f;
 
-			if (HitPointToSquare(Util::VECTOR2D(static_cast<float>(x), static_cast<float>(y)),
-				center + (Util::VECTOR2D(x1, y1) - center).Rotate(Rad),
-				center + (Util::VECTOR2D(x2, y1) - center).Rotate(Rad),
-				center + (Util::VECTOR2D(x2, y2) - center).Rotate(Rad),
-				center + (Util::VECTOR2D(x1, y2) - center).Rotate(Rad)
+			if (HitPointToSquare(Util::VECTOR2D::vget(static_cast<float>(x), static_cast<float>(y)),
+				center + (Util::VECTOR2D::vget(x1, y1) - center).Rotate(Rad),
+				center + (Util::VECTOR2D::vget(x2, y1) - center).Rotate(Rad),
+				center + (Util::VECTOR2D::vget(x2, y2) - center).Rotate(Rad),
+				center + (Util::VECTOR2D::vget(x1, y2) - center).Rotate(Rad)
 			)) {
 				return true;
 			}
@@ -114,10 +114,10 @@ namespace Draw {
 				center.x = PosOfs.x + Size.x * (0.5f - this->m_Now.Center.x) * 2.f;
 				center.y = PosOfs.y + Size.y * (0.5f - this->m_Now.Center.y) * 2.f;
 
-				Util::VECTOR2D  P1 = center + (Util::VECTOR2D(x1, y1) - center).Rotate(Rad);
-				Util::VECTOR2D  P2 = center + (Util::VECTOR2D(x2, y1) - center).Rotate(Rad);
-				Util::VECTOR2D  P3 = center + (Util::VECTOR2D(x2, y2) - center).Rotate(Rad);
-				Util::VECTOR2D  P4 = center + (Util::VECTOR2D(x1, y2) - center).Rotate(Rad);
+				Util::VECTOR2D  P1 = center + (Util::VECTOR2D::vget(x1, y1) - center).Rotate(Rad);
+				Util::VECTOR2D  P2 = center + (Util::VECTOR2D::vget(x2, y1) - center).Rotate(Rad);
+				Util::VECTOR2D  P3 = center + (Util::VECTOR2D::vget(x2, y2) - center).Rotate(Rad);
+				Util::VECTOR2D  P4 = center + (Util::VECTOR2D::vget(x1, y2) - center).Rotate(Rad);
 				DxLib::DrawQuadrangle(
 					static_cast<int>(P1.x), static_cast<int>(P1.y),
 					static_cast<int>(P2.x), static_cast<int>(P2.y),
@@ -135,9 +135,9 @@ namespace Draw {
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 			DxLib::SetDrawBright(Color.GetR(), Color.GetG(), Color.GetB());
 			Draw9SliceGraph(
-				Util::VECTOR2D(x1, y1), Util::VECTOR2D(x2, y2),
+				Util::VECTOR2D::vget(x1, y1), Util::VECTOR2D::vget(x2, y2),
 				this->m_Min, this->m_Max,
-				Util::VECTOR2D(1.f, 1.f) - this->m_Now.Center,
+				Util::VECTOR2D::vget(1.f, 1.f) - this->m_Now.Center,
 				Rad,
 				this->m_ImageHandle->get(),
 				true,

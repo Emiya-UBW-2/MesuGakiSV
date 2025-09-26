@@ -50,11 +50,11 @@ namespace Draw {
 	};
 
 	struct Param2D {
-		Util::VECTOR2D	OfsNoRad = Util::VECTOR2D(0.f, 0.f);
+		Util::VECTOR2D	OfsNoRad = Util::VECTOR2D::vget(0.f, 0.f);
 		Util::VECTOR2D	Ofs{};
 		Util::VECTOR2D	Size{};
-		Util::VECTOR2D	Scale = Util::VECTOR2D(1.f, 1.f);
-		Util::VECTOR2D	Center = Util::VECTOR2D(0.f, 0.f);
+		Util::VECTOR2D	Scale = Util::VECTOR2D::vget(1.f, 1.f);
+		Util::VECTOR2D	Center = Util::VECTOR2D::vget(0.f, 0.f);
 		float			Rad = Util::deg2rad(0.f);
 		char			padding[4]{};
 		Util::ColorRGBA	Color = Util::ColorRGBA(255, 255, 255, 255);
@@ -276,7 +276,7 @@ namespace Draw {
 				auto* DrawerMngr = Draw::MainDraw::Instance();
 				auto* KeyMngr = Util::KeyParam::Instance();
 
-				Util::VECTOR2D MousePos(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()));
+				Util::VECTOR2D MousePos = Util::VECTOR2D::vget(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()));
 
 				struct ButtonList {
 					size_t ID{};

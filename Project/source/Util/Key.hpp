@@ -636,7 +636,7 @@ namespace Util {
 				this->m_PrevPress = this->m_Press;
 				this->m_Press = PressButton;
 				if (Press()) {
-					this->m_PressTimer++;
+					++this->m_PressTimer;
 					this->m_IsRepeat = Trigger();
 					if (this->m_PressTimer > 3) {
 						this->m_PressTimer -= 3;

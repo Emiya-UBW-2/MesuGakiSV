@@ -49,13 +49,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		{
 			// キューブマップをセット
 			{
-				Util::Vector3DX Pos = CameraParts->GetMainCamera().GetCamPos(); Pos.y *= -1.f;
+				Util::VECTOR3D Pos = CameraParts->GetMainCamera().GetCamPos(); Pos.y *= -1.f;
 				PostPassParts->Update_CubeMap([]() { Util::SceneManager::Instance()->CubeMapDraw(); }, Pos);
 			}
 			// 影をセット
 			{
 				if (PostPassParts->UpdateShadowActive() && false) {
-					Util::Vector3DX Pos = CameraParts->GetMainCamera().GetCamPos();
+					Util::VECTOR3D Pos = CameraParts->GetMainCamera().GetCamPos();
 					Pos.x = 0.f;
 					Pos.z = 0.f;
 					PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowFarDraw3D(); }, Pos, true);

@@ -17,9 +17,9 @@
 
 namespace Draw {
 	class Camera3DInfo {
-		Util::Vector3DX	m_pos;
-		Util::Vector3DX	m_vec;
-		Util::Vector3DX	m_up{ Util::Vector3DX::up() };	// カメラ
+		Util::VECTOR3D	m_pos;
+		Util::VECTOR3D	m_vec;
+		Util::VECTOR3D	m_up{ Util::VECTOR3D::up() };	// カメラ
 		float		m_fov{ DX_PI_F / 2 };		// カメラ
 		float		m_near{ 0.1f };
 		float		m_far{ 10.f };	// ニアファー
@@ -31,7 +31,7 @@ namespace Draw {
 		const auto& GetCamNear(void)const noexcept { return this->m_near; }
 		const auto& GetCamFar(void)const noexcept { return this->m_far; }
 	public:
-		void			SetCamPos(const Util::Vector3DX& cam_pos, const Util::Vector3DX& cam_vec, const Util::Vector3DX& cam_up) noexcept {
+		void			SetCamPos(const Util::VECTOR3D& cam_pos, const Util::VECTOR3D& cam_vec, const Util::VECTOR3D& cam_up) noexcept {
 			this->m_pos = cam_pos;
 			this->m_vec = cam_vec;
 			this->m_up = cam_up;
@@ -65,7 +65,7 @@ namespace Draw {
 			return mat_view;
 		}
 
-		static void SetUpCamInfo(const Util::Vector3DX& campos, const Util::Vector3DX& camvec, const Util::Vector3DX& camup, float fov, float near_, float far_) noexcept {
+		static void SetUpCamInfo(const Util::VECTOR3D& campos, const Util::VECTOR3D& camvec, const Util::VECTOR3D& camup, float fov, float near_, float far_) noexcept {
 			SetCameraNearFar(near_, far_);
 			SetupCamera_Perspective(fov);
 			SetCameraPositionAndTargetAndUpVec(campos.get(), camvec.get(), camup.get());

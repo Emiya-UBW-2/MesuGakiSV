@@ -17,8 +17,8 @@ namespace Camera {
 		float						m_SendCamShakeTime{ 1.f };
 		float						m_SendCamShakePower{ 1.f };
 		float						m_CamShake{ 0.f };
-		Util::Vector3DX					m_CamShake1;
-		Util::Vector3DX					m_CamShake2;
+		Util::VECTOR3D					m_CamShake1;
+		Util::VECTOR3D					m_CamShake2;
 
 		Draw::Camera3DInfo				m_MainCamera;				// カメラ
 	public:
@@ -37,8 +37,8 @@ namespace Camera {
 			this->m_SendCamShakeTime = 1.f;
 			this->m_SendCamShakePower = 1.f;
 			this->m_CamShake = 0.f;
-			this->m_CamShake1 = Util::Vector3DX::zero();
-			this->m_CamShake2 = Util::Vector3DX::zero();
+			this->m_CamShake1 = Util::VECTOR3D::zero();
+			this->m_CamShake2 = Util::VECTOR3D::zero();
 		}
 	private:
 		Camera3D(void) noexcept {}
@@ -58,7 +58,7 @@ namespace Camera {
 					this->m_CamShake = this->m_SendCamShakeTime;
 				}
 				auto RandRange = this->m_CamShake / this->m_SendCamShakeTime * this->m_SendCamShakePower;
-				this->m_CamShake1 = Util::Lerp(this->m_CamShake1, Util::Vector3DX::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 0.8f);
+				this->m_CamShake1 = Util::Lerp(this->m_CamShake1, Util::VECTOR3D::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 0.8f);
 				this->m_CamShake2 = Util::Lerp(this->m_CamShake2, this->m_CamShake1, 0.8f);
 				this->m_CamShake = std::max(this->m_CamShake - 1.f / 60.f, 0.f);
 			}
