@@ -73,7 +73,7 @@ namespace Util {
 		SceneManager(SceneManager&&) = delete;
 		SceneManager& operator=(const SceneManager&) = delete;
 		SceneManager& operator=(SceneManager&&) = delete;
-		~SceneManager(void) noexcept {}
+		virtual ~SceneManager(void) noexcept {}
 	public:
 		void CubeMapDraw(void) noexcept {
 		}
