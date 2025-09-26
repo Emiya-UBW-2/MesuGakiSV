@@ -12,6 +12,7 @@
 #include<string>
 #pragma warning( pop )
 
+#include "Enum.hpp"
 #include "Algorithm.hpp"
 
 namespace Util {
@@ -192,18 +193,18 @@ namespace Util {
 	// --------------------------------------------------------------------------------------------------
 	class DXHandle {
 	private:
-		int		m_handle{ -1 };
+		int		m_handle{ InvalidID };
 		char	Padding[4]{};
 	protected:
 		constexpr DXHandle(int h) noexcept : m_handle(h) {}
 	public:
-		constexpr DXHandle(void) noexcept : m_handle(-1) {}
+		constexpr DXHandle(void) noexcept : m_handle(InvalidID) {}
 		DXHandle(const DXHandle&) = delete;
-		DXHandle(DXHandle&& o) noexcept : m_handle(o.get()) { o.SetHandleDirect(-1); }
+		DXHandle(DXHandle&& o) noexcept : m_handle(o.get()) { o.SetHandleDirect(InvalidID); }
 		DXHandle& operator=(const DXHandle&) = delete;
 		DXHandle& operator=(DXHandle&& o) noexcept {
 			SetHandleDirect(o.get());
-			o.SetHandleDirect(-1);
+			o.SetHandleDirect(InvalidID);
 			return *this;
 		}
 
@@ -212,13 +213,13 @@ namespace Util {
 		}
 	public:
 		int get(void) const noexcept { return this->m_handle; }
-		bool IsActive(void) const noexcept { return this->m_handle != -1; }
+		bool IsActive(void) const noexcept { return this->m_handle != InvalidID; }
 		operator bool(void) const noexcept { return IsActive(); }
 	public:
 		void Dispose(void) noexcept {
 			if (IsActive()) {
 				Dispose_Sub();
-				SetHandleDirect(-1);
+				SetHandleDirect(InvalidID);
 			}
 		}
 	protected:
@@ -229,13 +230,13 @@ namespace Util {
 	//
 	static auto		UTF8toSjis(std::string srcUTF8) {
 		//Unicodeへ変換後の文字列長を得る
-		int lenghtUnicode = (int)MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), (int)(srcUTF8.size()) + 1, nullptr, 0);
+		int lenghtUnicode = static_cast<int>(MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), static_cast<int>(srcUTF8.size()) + 1, nullptr, 0));
 
 		//必要な分だけUnicode文字列のバッファを確保
 		wchar_t* bufUnicode = new wchar_t[static_cast<size_t>(lenghtUnicode)];
 
 		//UTF8からUnicodeへ変換
-		MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), (int)(srcUTF8.size()) + 1, bufUnicode, lenghtUnicode);
+		MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), static_cast<int>(srcUTF8.size()) + 1, bufUnicode, lenghtUnicode);
 
 		//ShiftJISへ変換後の文字列長を得る
 		int lengthSJis = WideCharToMultiByte(CP_THREAD_ACP, 0, bufUnicode, -1, nullptr, 0, nullptr, nullptr);
@@ -259,16 +260,16 @@ namespace Util {
 		{
 			int lengthSJis = MultiByteToWideChar(CP_ACP, 0U, srcSjis.c_str(), -1, nullptr, 0U);
 			std::vector<wchar_t> dest(static_cast<size_t>(lengthSJis), L'\0');
-			MultiByteToWideChar(CP_ACP, 0, srcSjis.c_str(), -1, dest.data(), (int)dest.size());
+			MultiByteToWideChar(CP_ACP, 0, srcSjis.c_str(), -1, dest.data(), static_cast<int>(dest.size()));
 			dest.resize(std::char_traits<wchar_t>::length(dest.data()));
 			dest.shrink_to_fit();
 			wide = std::wstring(dest.begin(), dest.end());
 		}
 		std::string ret;
 		{
-			int lenghtUnicode = (int)WideCharToMultiByte(CP_UTF8, 0U, wide.c_str(), -1, nullptr, 0, nullptr, nullptr);
+			int lenghtUnicode = static_cast<int>(WideCharToMultiByte(CP_UTF8, 0U, wide.c_str(), -1, nullptr, 0, nullptr, nullptr));
 			std::vector<char> dest(static_cast<size_t>(lenghtUnicode), '\0');
-			WideCharToMultiByte(CP_UTF8, 0U, wide.c_str(), -1, dest.data(), (int)dest.size(), nullptr, nullptr);
+			WideCharToMultiByte(CP_UTF8, 0U, wide.c_str(), -1, dest.data(), static_cast<int>(dest.size()), nullptr, nullptr);
 			dest.resize(std::char_traits<char>::length(dest.data()));
 			dest.shrink_to_fit();
 			ret = std::string(dest.begin(), dest.end());
@@ -312,10 +313,10 @@ namespace Util {
 			ofs.x = o1.x + xs * xper;
 			ofs.y = o1.y + ys * yper;
 			VECTOR2D pos = center + (ofs - center).Rotate(Angle);
-			Vertex.back().pos = VGet(pos.x, pos.y, 0.f);
+			Vertex.back().pos = DxLib::VGet(pos.x, pos.y, 0.f);
 
 			Vertex.back().rhw = 1.0f;
-			Vertex.back().dif = GetColorU8(255, 255, 255, 255);
+			Vertex.back().dif = DxLib::GetColorU8(255, 255, 255, 255);
 			Vertex.back().u = static_cast<float>(xc) / 3.f;
 			Vertex.back().v = static_cast<float>(yc) / 3.f;
 			return (unsigned short)(Vertex.size() - 1);
@@ -345,9 +346,9 @@ namespace Util {
 		int ytile = 1;
 		//タイリング
 		if (TilingFlag) {
-			xtile = (int)(xmidt / ((xminpt + xmaxpt) / 2.f)) + 1;
+			xtile = static_cast<int>(xmidt / ((xminpt + xmaxpt) / 2.f)) + 1;
 			if (xtile <= 0) { xtile = 1; }
-			ytile = (int)(ymidt / ((yminpt + ymaxpt) / 2.f)) + 1;
+			ytile = static_cast<int>(ymidt / ((yminpt + ymaxpt) / 2.f)) + 1;
 			if (ytile <= 0) { ytile = 1; }
 		}
 
@@ -383,6 +384,6 @@ namespace Util {
 				xc = 2;
 			}
 		}
-		DrawPolygonIndexed2D(Vertex.data(), (int)Vertex.size(), Index.data(), (int)Index.size() / 3, GrHandle, TransFlag ? TRUE : FALSE);
+		DxLib::DrawPolygonIndexed2D(Vertex.data(), static_cast<int>(Vertex.size()), Index.data(), static_cast<int>(Index.size()) / 3, GrHandle, TransFlag ? TRUE : FALSE);
 	}
 }

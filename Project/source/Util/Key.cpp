@@ -11,11 +11,11 @@ namespace Util {
 	void KeyParam::Update(void) noexcept {
 		this->m_DeviceChangeSwitch = false;
 		//最後に入力したデバイスに更新
-		if ((CheckHitKeyAll(DX_CHECKINPUT_MOUSE) != 0) || (CheckHitKeyAll(DX_CHECKINPUT_KEY) != 0)) {
+		if ((DxLib::CheckHitKeyAll(DX_CHECKINPUT_MOUSE) != 0) || (DxLib::CheckHitKeyAll(DX_CHECKINPUT_KEY) != 0)) {
 			Assign(InputType::KeyBoard);
 		}
-		else if (CheckHitKeyAll(DX_CHECKINPUT_PAD) != 0) {
-			switch (GetJoypadType(DX_INPUT_PAD1)) {
+		else if (DxLib::CheckHitKeyAll(DX_CHECKINPUT_PAD) != 0) {
+			switch (DxLib::GetJoypadType(DX_INPUT_PAD1)) {
 			case DX_PADTYPE_XBOX_360:			// Xbox360コントローラー
 			case DX_PADTYPE_XBOX_ONE:			// XboxOneコントローラー
 				Assign(InputType::XInput);

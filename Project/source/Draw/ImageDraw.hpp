@@ -12,6 +12,7 @@
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
 #pragma warning(disable:5039)
+#include "../Util/Enum.hpp"
 #include "../Util/Util.hpp"
 #include "../Util/Algorithm.hpp"
 
@@ -51,24 +52,24 @@ namespace Draw {
 		}
 
 		const Util::Matrix4x4 GetViewMatrix(void) const noexcept {
-			MATRIX mat_view;					// ビュー行列
-			VECTOR vec_from = this->m_pos.get();		// カメラの位置
-			VECTOR vec_lookat = this->m_vec.get();  // カメラの注視点
-			VECTOR vec_up = this->m_up.get();    // カメラの上方向
+			DxLib::MATRIX mat_view;					// ビュー行列
+			DxLib::VECTOR vec_from = this->m_pos.get();		// カメラの位置
+			DxLib::VECTOR vec_lookat = this->m_vec.get();  // カメラの注視点
+			DxLib::VECTOR vec_up = this->m_up.get();    // カメラの上方向
 			CreateLookAtMatrix(&mat_view, &vec_from, &vec_lookat, &vec_up);
 			return mat_view;
 		}
 
 		const Util::Matrix4x4 GetProjectionMatrix(void) const noexcept {
-			MATRIX mat_view;					// プロジェクション行列
+			DxLib::MATRIX mat_view;					// プロジェクション行列
 			CreatePerspectiveFovMatrix(&mat_view, this->m_fov, this->m_near, this->m_far);
 			return mat_view;
 		}
 
 		static void SetUpCamInfo(const Util::VECTOR3D& campos, const Util::VECTOR3D& camvec, const Util::VECTOR3D& camup, float fov, float near_, float far_) noexcept {
-			SetCameraNearFar(near_, far_);
-			SetupCamera_Perspective(fov);
-			SetCameraPositionAndTargetAndUpVec(campos.get(), camvec.get(), camup.get());
+			DxLib::SetCameraNearFar(near_, far_);
+			DxLib::SetupCamera_Perspective(fov);
+			DxLib::SetCameraPositionAndTargetAndUpVec(campos.get(), camvec.get(), camup.get());
 		}
 	};
 	// フォントハンドル
@@ -78,18 +79,18 @@ namespace Draw {
 		GraphHandle(const GraphHandle& o) = delete;
 		GraphHandle(GraphHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
-			o.SetHandleDirect(-1);
+			o.SetHandleDirect(InvalidID);
 		}
 		GraphHandle& operator=(const GraphHandle& o) = delete;
 		GraphHandle& operator=(GraphHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
-			o.SetHandleDirect(-1);
+			o.SetHandleDirect(InvalidID);
 			return *this;
 		}
 		virtual ~GraphHandle(void) noexcept {}
 	protected:
 		void	Dispose_Sub(void) noexcept override {
-			DeleteGraph(Util::DXHandle::get());
+			DxLib::DeleteGraph(Util::DXHandle::get());
 		}
 	public:
 		void Load_Tex(std::basic_string_view<TCHAR> FileName) noexcept {
@@ -109,16 +110,16 @@ namespace Draw {
 		}
 		void MakeDepth(int SizeX, int SizeY) noexcept {
 			// 深度を描画するテクスチャの作成( 2チャンネル浮動小数点32ビットテクスチャ )
-			auto prevMip = GetCreateDrawValidGraphChannelNum();
-			auto prevFloatType = GetDrawValidFloatTypeGraphCreateFlag();
-			auto prevBit = GetCreateGraphChannelBitDepth();
-			SetCreateDrawValidGraphChannelNum(2);
-			SetDrawValidFloatTypeGraphCreateFlag(TRUE);
-			SetCreateGraphChannelBitDepth(32);
+			auto prevMip = DxLib::GetCreateDrawValidGraphChannelNum();
+			auto prevFloatType = DxLib::GetDrawValidFloatTypeGraphCreateFlag();
+			auto prevBit = DxLib::GetCreateGraphChannelBitDepth();
+			DxLib::SetCreateDrawValidGraphChannelNum(2);
+			DxLib::SetDrawValidFloatTypeGraphCreateFlag(TRUE);
+			DxLib::SetCreateGraphChannelBitDepth(32);
 			Util::DXHandle::SetHandleDirect(DxLib::MakeScreen(SizeX, SizeY, FALSE));
-			SetCreateDrawValidGraphChannelNum(prevMip);
-			SetDrawValidFloatTypeGraphCreateFlag(prevFloatType);
-			SetCreateGraphChannelBitDepth(prevBit);
+			DxLib::SetCreateDrawValidGraphChannelNum(prevMip);
+			DxLib::SetDrawValidFloatTypeGraphCreateFlag(prevFloatType);
+			DxLib::SetCreateGraphChannelBitDepth(prevBit);
 		}
 		void CreateGraphFromBmp(const BITMAPINFO* RGBBmpInfo, const void* RGBBmpImage, const BITMAPINFO* AlphaBmpInfo = nullptr, const void* AlphaBmpImage = nullptr, bool TextureFlag = true, bool ReverseFlag = false) noexcept {
 			Util::DXHandle::SetHandleDirect(DxLib::CreateGraphFromBmp(RGBBmpInfo, RGBBmpImage, AlphaBmpInfo, AlphaBmpImage, TextureFlag ? TRUE : FALSE, ReverseFlag ? TRUE : FALSE));
@@ -179,13 +180,13 @@ namespace Draw {
 		// GetGraphSize
 		void GetSize(int* xsize, int* ysize) const noexcept {
 			if (!Util::DXHandle::IsActive()) { return; }
-			GetGraphSize(Util::DXHandle::get(), xsize, ysize);
+			DxLib::GetGraphSize(Util::DXHandle::get(), xsize, ysize);
 		}
 		// 
 		void SetDraw_Screen(bool Clear = true) const noexcept {
-			SetDrawScreen(Util::DXHandle::get());
+			DxLib::SetDrawScreen(Util::DXHandle::get());
 			if (Clear) {
-				ClearDrawScreen();
+				DxLib::ClearDrawScreen();
 			}
 		}
 		// 
@@ -198,9 +199,9 @@ namespace Draw {
 	public:
 		// 
 		static void SetDraw_Screen(int handle, bool Clear = true) noexcept {
-			SetDrawScreen(handle);
+			DxLib::SetDrawScreen(handle);
 			if (Clear) {
-				ClearDrawScreen();
+				DxLib::ClearDrawScreen();
 			}
 		}
 		// 
@@ -235,28 +236,28 @@ namespace Draw {
 		SoftImageHandle(const SoftImageHandle& o) = delete;
 		SoftImageHandle(SoftImageHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
-			o.SetHandleDirect(-1);
+			o.SetHandleDirect(InvalidID);
 		}
 		SoftImageHandle& operator=(const SoftImageHandle& o) = delete;
 		SoftImageHandle& operator=(SoftImageHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
-			o.SetHandleDirect(-1);
+			o.SetHandleDirect(InvalidID);
 			return *this;
 		}
 		virtual ~SoftImageHandle(void) noexcept {}
 	protected:
 		void	Dispose_Sub(void) noexcept override {
-			DeleteSoftImage(Util::DXHandle::get());
+			DxLib::DeleteSoftImage(Util::DXHandle::get());
 		}
 	public:
 		void	Make(int xsize, int ysize) noexcept {
-			Util::DXHandle::SetHandleDirect(MakeRGB8ColorSoftImage(xsize, ysize));
+			Util::DXHandle::SetHandleDirect(DxLib::MakeRGB8ColorSoftImage(xsize, ysize));
 		}
 		void	GetDrawScreen(int x1, int y1, int x2, int y2) noexcept {
-			GetDrawScreenSoftImage(x1, y1, x2, y2, Util::DXHandle::get());
+			DxLib::GetDrawScreenSoftImage(x1, y1, x2, y2, Util::DXHandle::get());
 		}
 		void	GetPixel(int x, int y, int* r, int* g, int* b, int* a) noexcept {
-			GetPixelSoftImage(Util::DXHandle::get(), x, y, r, g, b, a);
+			DxLib::GetPixelSoftImage(Util::DXHandle::get(), x, y, r, g, b, a);
 		}
 
 	};

@@ -34,10 +34,10 @@ void OptionWindow::UpdateColumnStr() noexcept {
 			auto& param = this->m_Param[loop];
 			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::MasterVolume)));
 			param.m_Str = pOption->GetParam(Type)->GetValueNow();
-			if (param.m_MinID != -1) {
+			if (param.m_MinID != InvalidID) {
 				this->m_DrawUI->Get(param.m_MinID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMin());
 			}
-			if (param.m_MaxID != -1) {
+			if (param.m_MaxID != InvalidID) {
 				this->m_DrawUI->Get(param.m_MaxID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMax());
 			}
 		}
@@ -49,10 +49,10 @@ void OptionWindow::UpdateColumnStr() noexcept {
 			auto& param = this->m_Param[loop];
 			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::WindowMode)));
 			param.m_Str = pOption->GetParam(Type)->GetValueNow();
-			if (param.m_MinID != -1) {
+			if (param.m_MinID != InvalidID) {
 				this->m_DrawUI->Get(param.m_MinID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMin());
 			}
-			if (param.m_MaxID != -1) {
+			if (param.m_MaxID != InvalidID) {
 				this->m_DrawUI->Get(param.m_MaxID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMax());
 			}
 		}
@@ -64,10 +64,10 @@ void OptionWindow::UpdateColumnStr() noexcept {
 			auto& param = this->m_Param[loop];
 			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::XSensing)));
 			param.m_Str = pOption->GetParam(Type)->GetValueNow();
-			if (param.m_MinID != -1) {
+			if (param.m_MinID != InvalidID) {
 				this->m_DrawUI->Get(param.m_MinID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMin());
 			}
-			if (param.m_MaxID != -1) {
+			if (param.m_MaxID != InvalidID) {
 				this->m_DrawUI->Get(param.m_MaxID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMax());
 			}
 		}
@@ -84,10 +84,10 @@ void OptionWindow::UpdateColumnStr() noexcept {
 			auto& param = this->m_Param[loop];
 			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::HeadBobbing)));
 			param.m_Str = pOption->GetParam(Type)->GetValueNow();
-			if (param.m_MinID != -1) {
+			if (param.m_MinID != InvalidID) {
 				this->m_DrawUI->Get(param.m_MinID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMin());
 			}
-			if (param.m_MaxID != -1) {
+			if (param.m_MaxID != InvalidID) {
 				this->m_DrawUI->Get(param.m_MaxID).SetActive(pOption->GetParam(Type)->GetSelect() != pOption->GetParam(Type)->GetSelectMax());
 			}
 		}
@@ -119,7 +119,7 @@ void OptionWindow::SetTab() noexcept {
 		Child += "/Column";
 		Child += std::to_string(loop + 1);
 		param.m_ID = this->m_DrawUI->GetID(Child.c_str());
-		if (param.m_ID == -1) {
+		if (param.m_ID == InvalidID) {
 			this->m_NowTabMax = loop;
 			break;
 		}

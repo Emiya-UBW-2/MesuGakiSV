@@ -22,8 +22,8 @@ namespace Util {
 		float y{ 0 };
 	public:
 		VECTOR2D(void) noexcept : x(0), y(0) {}
-		VECTOR2D(VECTOR value) noexcept { this->Set(value.x, value.y); }
-		inline VECTOR get(void) const noexcept { return DxLib::VGet(this->x, this->y, 0.f); }				// 変換
+		VECTOR2D(DxLib::VECTOR value) noexcept { this->Set(value.x, value.y); }
+		inline DxLib::VECTOR get(void) const noexcept { return DxLib::VGet(this->x, this->y, 0.f); }				// 変換
 		inline static const VECTOR2D vget(float x, float y) noexcept { return DxLib::VGet(x, y, 0.f); }	// 入力
 		// 
 		static const VECTOR2D down(void) noexcept { return vget(0.f, -1.f); }
@@ -129,8 +129,8 @@ namespace Util {
 		float z{ 0 };
 	public:
 		VECTOR3D(void) noexcept : x(0), y(0), z(0) {}
-		VECTOR3D(VECTOR value) noexcept { this->Set(value.x, value.y, value.z); }
-		inline VECTOR get(void) const noexcept { return DxLib::VGet(this->x, this->y, this->z); }					// 変換
+		VECTOR3D(DxLib::VECTOR value) noexcept { this->Set(value.x, value.y, value.z); }
+		inline DxLib::VECTOR get(void) const noexcept { return DxLib::VGet(this->x, this->y, this->z); }					// 変換
 		inline static const VECTOR3D vget(float x, float y, float z) noexcept { return DxLib::VGet(x, y, z); }	// 入力
 		// 
 		inline static const VECTOR3D back(void) noexcept { return vget(0.f, 0.f, -1.f); }
@@ -228,11 +228,11 @@ namespace Util {
 	// Matrix 4x4バージョン
 	// ---------------------------------------------------------------------------------------------
 	class Matrix4x4 {
-		MATRIX value;
+		DxLib::MATRIX value;
 	public:
 		Matrix4x4(void) noexcept : value(DxLib::MGetIdent()) {}
-		Matrix4x4(MATRIX value) noexcept { this->value = value; }
-		MATRIX get(void) const noexcept { return this->value; }		// 変換
+		Matrix4x4(DxLib::MATRIX value) noexcept { this->value = value; }
+		DxLib::MATRIX get(void) const noexcept { return this->value; }		// 変換
 		// 
 		static Matrix4x4 identity(void) noexcept { return DxLib::MGetIdent(); }
 
@@ -333,7 +333,7 @@ namespace Util {
 			float					m[3][3];
 		};
 		// 相互変換
-		static void M33toMATRIX(MATRIX* pTarget, const MATRIX33& pAtr) noexcept {
+		static void M33toMATRIX(DxLib::MATRIX* pTarget, const MATRIX33& pAtr) noexcept {
 			*pTarget = DxLib::MGetIdent();
 			for (int x = 0; x < 3; ++x) {
 				for (int y = 0; y < 3; ++y) {
@@ -341,7 +341,7 @@ namespace Util {
 				}
 			}
 		}
-		static void MATRIXtoM33(MATRIX33* pTarget, const MATRIX& pAtr) noexcept {
+		static void MATRIXtoM33(MATRIX33* pTarget, const DxLib::MATRIX& pAtr) noexcept {
 			for (int x = 0; x < 3; ++x) {
 				for (int y = 0; y < 3; ++y) {
 					pTarget->m[x][y] = pAtr.m[x][y];
@@ -399,9 +399,9 @@ namespace Util {
 			float f{}, Sin{}, Cos{};
 
 			zv2 = RotateAxis.normalized();
-			yv2 = VGet(0.0f, 1.0f, 0.0f);
+			yv2 = DxLib::VGet(0.0f, 1.0f, 0.0f);
 			if (VECTOR3D::Cross(yv2, zv2).sqrMagnitude() < 0.00001f) {
-				yv2 = VGet(0.0f, 0.0f, 1.0f);
+				yv2 = DxLib::VGet(0.0f, 0.0f, 1.0f);
 			}
 			xv2 = VECTOR3D::Cross(zv2, yv2);
 			yv2 = VECTOR3D::Cross(xv2, zv2).normalized();
@@ -454,7 +454,7 @@ namespace Util {
 			if (av.sqrMagnitude() < 0.0000001f) {
 				av = VECTOR3D::right();
 			}
-			float rad = VRad(In1.get(), In2.get());
+			float rad = DxLib::VRad(In1.get(), In2.get());
 			return M33GetRotAxis(av, rad);
 		}
 
@@ -595,13 +595,13 @@ namespace Util {
 		Matrix3x3(void) noexcept : m_value(MAT33::M33GetIdent()) {}
 		Matrix3x3(MAT33::MATRIX33 value) noexcept { this->m_value = value; }
 		MAT33::MATRIX33 get(void) const noexcept { return this->m_value; }		// 変換
-		MATRIX Get44(void) const noexcept {
-			MATRIX Result;
+		DxLib::MATRIX Get44(void) const noexcept {
+			DxLib::MATRIX Result;
 			MAT33::M33toMATRIX(&Result, this->m_value);
 			return Result;
 		}// 変換
 		Matrix4x4 Get44DX(void) const noexcept {
-			MATRIX Result;
+			DxLib::MATRIX Result;
 			MAT33::M33toMATRIX(&Result, this->m_value);
 			return Result;
 		}// 変換

@@ -189,12 +189,12 @@ namespace Draw {
 				this->m_FontHandle->DrawStringAutoFit(
 					static_cast<int>(x1), static_cast<int>(y1),
 					static_cast<int>(x2), static_cast<int>(y2),
-					Color.GetColor(), GetColor(0, 0, 0), this->String);
+					Color.GetColor(), DxLib::GetColor(0, 0, 0), this->String);
 				//*/
 				FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, static_cast<int>(18.f * scale.y), 3)->DrawString(
 					FontXCenter::MIDDLE, FontYCenter::MIDDLE,
 					static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
-					Color.GetColor(), GetColor(0, 0, 0),
+					Color.GetColor(), DxLib::GetColor(0, 0, 0),
 					Util::SjistoUTF8(this->m_String));
 			}
 			else {
@@ -334,7 +334,7 @@ namespace Draw {
 			}
 			ChildBranch += this->m_Name;
 			int ID = DrawUI->GetID(ChildBranch);
-			if (ID != -1) {
+			if (ID != InvalidID) {
 				for (auto& o : data["Override"]) {
 					std::string Target = o["Target"];
 					auto* Parts = DrawUI->Get(ID).GetParts(Target);
@@ -449,7 +449,7 @@ namespace Draw {
 			}
 		}
 
-		this->m_AnimDataLastSelect = -1;
+		this->m_AnimDataLastSelect = InvalidID;
 		this->m_Frame = 0;
 
 		this->m_IsActive = true;
@@ -537,7 +537,7 @@ namespace Draw {
 			}
 		}
 		if (!IsSelectAnim) {
-			this->m_AnimDataLastSelect = -1;
+			this->m_AnimDataLastSelect = InvalidID;
 			for (auto& parts : this->m_PartsParam) {
 				parts.SetDefault();
 			}

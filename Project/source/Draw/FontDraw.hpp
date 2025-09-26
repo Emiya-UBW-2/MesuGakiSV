@@ -8,6 +8,8 @@
 #include <memory>
 #pragma warning( pop )
 
+#include "../Util/Enum.hpp"
+
 #pragma warning(disable:4464)
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
@@ -40,7 +42,7 @@ namespace Draw {
 		virtual ~FontHandle(void) noexcept {}
 	protected:
 		void Dispose_Sub(void) noexcept override {
-			DeleteFontToHandle(Util::DXHandle::get());
+			DxLib::DeleteFontToHandle(Util::DXHandle::get());
 		}
 	public:
 		// 長さ取得
@@ -171,15 +173,15 @@ namespace Draw {
 			Util::DXHandle::SetHandleDirect(DxLib::LoadFontDataToHandleWithStrLen(FontDataPath.data(), FontDataPath.length(), EdgeSize));
 		}
 	private:
-		static std::vector<DRAWCHARINFO> get_draw_string_char_info(const std::basic_string<TCHAR>& string, int font_handle) {
-			std::vector<DRAWCHARINFO> info;
+		static std::vector<DxLib::DRAWCHARINFO> get_draw_string_char_info(const std::basic_string<TCHAR>& string, int font_handle) {
+			std::vector<DxLib::DRAWCHARINFO> info;
 			info.resize(string.size());
-			auto char_info_num = GetDrawStringCharInfoToHandle(info.data(), info.size(), string.c_str(), static_cast<int>(string.length() * sizeof(TCHAR)), font_handle, false);
+			auto char_info_num = DxLib::GetDrawStringCharInfoToHandle(info.data(), info.size(), string.c_str(), static_cast<int>(string.length() * sizeof(TCHAR)), font_handle, false);
 			if (char_info_num < 0) throw std::runtime_error("fail in function DxLib::GetDrawStringCharInfoToHandle");
 			if (info.size() < static_cast<size_t>(char_info_num)) {
 				info.resize(static_cast<size_t>(char_info_num) + 1);
 				// 再取得
-				char_info_num = GetDrawStringCharInfoToHandle(info.data(), info.size(), string.c_str(), static_cast<int>(string.length() * sizeof(TCHAR)), font_handle, false);
+				char_info_num = DxLib::GetDrawStringCharInfoToHandle(info.data(), info.size(), string.c_str(), static_cast<int>(string.length() * sizeof(TCHAR)), font_handle, false);
 				if (char_info_num < 0 || static_cast<int>(info.size()) < char_info_num) throw std::runtime_error("fail to detect draw info.");
 			}
 			info.resize(static_cast<size_t>(char_info_num));
@@ -190,7 +192,7 @@ namespace Draw {
 	class Fonthave {
 		// カスタム項目
 		FontType		m_Type{ 0 };
-		int				m_EdgeSize{ -1 };// エッジサイズ
+		int				m_EdgeSize{ InvalidID };// エッジサイズ
 		int				m_CustomSize{ 0 };// フォントハンドル固有のサイズ
 		// 
 		int				m_scaleType{ DX_DRAWMODE_BILINEAR };

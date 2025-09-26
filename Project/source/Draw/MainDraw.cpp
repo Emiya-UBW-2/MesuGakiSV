@@ -61,12 +61,12 @@ namespace Draw {
 		DxLib::DxLib_Init();
 		DxLib::SetSysCommandOffFlag(TRUE);
 		DxLib::SetAlwaysRunFlag(TRUE);
-		this->m_BufferScreen = DxLib::MakeScreen(this->m_DispWidth, this->m_DispHeight, FALSE);
+		this->m_BufferScreen.Make(this->m_DispWidth, this->m_DispHeight, false);
 		//
 		FlipSetting();
 	}
 	MainDraw::~MainDraw(void) noexcept {
-		DxLib::DeleteGraph(this->m_BufferScreen);
+		this->m_BufferScreen.Dispose();
 		DxLib::DxLib_End();
 	}
 
@@ -119,23 +119,22 @@ namespace Draw {
 		this->m_MouseY = (-(this->m_WindowDrawHeight - this->m_WindowHeight) / 2 + this->m_MouseY) * GetDispHeight() / this->m_WindowHeight;
 	}
 	void MainDraw::StartDraw(void) const noexcept {
-		DxLib::SetDrawScreen(this->m_BufferScreen);
-		DxLib::ClearDrawScreen();
+		this->m_BufferScreen.SetDraw_Screen();
 	}
 	void MainDraw::EndDraw(void) noexcept {
 #if _DEBUG
 		//デバッグ表示
-		DxLib::printfDx("FPS:[%4.1f]\n", GetFPS());
+		DxLib::printfDx("FPS:[%4.1f]\n", DxLib::GetFPS());
 #endif
 		DxLib::SetDrawScreen(DX_SCREEN_BACK);
 		DxLib::ClearDrawScreen();
 		{
 			auto prev = DxLib::GetDrawMode();
 			DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
-			DxLib::DrawExtendGraph(
+			this->m_BufferScreen.DrawExtendGraph(
 				this->m_WindowDrawWidth / 2 - this->m_WindowWidth / 2, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2,
 				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2, this->m_WindowDrawHeight / 2 + this->m_WindowHeight / 2,
-				this->m_BufferScreen, FALSE);
+				false);
 			DxLib::SetDrawMode(prev);
 		}
 		DxLib::ScreenFlip();

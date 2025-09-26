@@ -131,13 +131,13 @@ namespace Draw {
 					int xr = xsizeEx * 30 / 100;
 					int yr = ysizeEx * 60 / 100;
 
-					DrawOval(xsizeEx / 2, ysizeEx / 2, xr, yr, GetColor(255, 255, 255), TRUE);
+					DxLib::DrawOval(xsizeEx / 2, ysizeEx / 2, xr, yr, DxLib::GetColor(255, 255, 255), TRUE);
 
 					int p = 1;
 					for (int r = 0; r < 255; r += p) {
 						uint8_t c = static_cast<uint8_t>(255 - static_cast<int>(std::powf(static_cast<float>(255 - r) / 255.f, 1.5f) * 255.f));
 
-						DrawOval(xsizeEx / 2, ysizeEx / 2, xr - r / p, yr - r / p, DxLib::GetColor(c, c, c), FALSE, 2);
+						DxLib::DrawOval(xsizeEx / 2, ysizeEx / 2, xr - r / p, yr - r / p, DxLib::GetColor(c, c, c), FALSE, 2);
 					}
 				}
 			}
@@ -376,7 +376,7 @@ namespace Draw {
 			TargetGraph->SetDraw_Screen();
 			{
 				pGbuffer->GetColorBuffer().DrawGraph(0, 0, true);
-				SetDrawBlendMode(DX_BLENDMODE_ADD, (int)(255.f * PostPassParts->GetGodRayPerRet()));
+				SetDrawBlendMode(DX_BLENDMODE_ADD, static_cast<int>(255.f * PostPassParts->GetGodRayPerRet()));
 				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}

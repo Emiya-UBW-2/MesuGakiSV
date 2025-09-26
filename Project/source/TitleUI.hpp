@@ -11,8 +11,8 @@
 class TitleUI {
 private:
 	Draw::DrawUISystem* m_DrawUI{ nullptr };
-	int				m_UIBase = -1;
-	int				m_ButtonID[4] = { -1,-1,-1,-1 };
+	int				m_UIBase = InvalidID;
+	int				m_ButtonID[4] = { InvalidID,InvalidID,InvalidID,InvalidID };
 	bool			m_IsActive{};
 	char		padding[3]{};
 	std::array<std::function<void()>, 4>	m_ButtonDo{};

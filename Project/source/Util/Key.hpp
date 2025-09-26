@@ -667,9 +667,9 @@ namespace Util {
 		InputType				m_InputType{ InputType::XInput };
 		bool					m_DeviceChangeSwitch = true;
 		char		padding[3]{};
-		XINPUT_STATE			m_inputXInput;
+		DxLib::XINPUT_STATE			m_inputXInput;
 		char		padding2[2]{};
-		DINPUT_JOYSTATE			m_inputDInput;
+		DxLib::DINPUT_JOYSTATE			m_inputDInput;
 	private:
 		//コンストラクタ
 		KeyParam(void) noexcept {
@@ -952,7 +952,7 @@ namespace Util {
 			return "NONE";
 		}
 		bool GetKeyPress(EnumInput ID, bool checkDevice) const noexcept {
-			if (!GetWindowActiveFlag()) {
+			if (!DxLib::GetWindowActiveFlag()) {
 				return false;
 			}
 			if (static_cast<size_t>(EnumInput::Mouse_Max) > static_cast<size_t>(ID)) {
@@ -962,7 +962,7 @@ namespace Util {
 					}
 				}
 				size_t index = static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::Mouse_Begin);
-				return (GetMouseInput() & MouseInput[index]) != 0;
+				return (DxLib::GetMouseInput() & MouseInput[index]) != 0;
 			}
 			else if (static_cast<size_t>(EnumInput::Key_Max) > static_cast<size_t>(ID)) {
 				if (checkDevice) {
@@ -971,7 +971,7 @@ namespace Util {
 					}
 				}
 				size_t index = static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::Key_Begin);
-				return (CheckHitKey(KeyInput[index]) != 0);
+				return (DxLib::CheckHitKey(KeyInput[index]) != 0);
 			}
 			else if (static_cast<size_t>(EnumInput::XInput_Max) > static_cast<size_t>(ID)) {
 				if (checkDevice) {

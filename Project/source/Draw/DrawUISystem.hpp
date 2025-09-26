@@ -2,6 +2,7 @@
 
 #pragma warning(disable:4464)
 #pragma warning(disable:4710)
+#include "../Util/Enum.hpp"
 #include "../Util/Util.hpp"
 #include "../Util/Key.hpp"
 
@@ -191,7 +192,7 @@ namespace Draw {
 			for (auto& parts : this->m_PartsParam) {
 				parts.Draw(DrawUI, m_BasePositionParam);
 			}
-			//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, GetBranchName().c_str(), GetColor(255, 0, 0));
+			//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, GetBranchName().c_str(), DxLib::GetColor(255, 0, 0));
 		}
 	};
 
@@ -222,7 +223,7 @@ namespace Draw {
 					return static_cast<int>(&Module - &this->m_DrawModule.front());
 				}
 			}
-			return -1;
+			return InvalidID;
 		}
 	public:
 		void			AddChild(std::string_view Path, std::string_view FilePath, Param2D Param = Param2D()) noexcept {

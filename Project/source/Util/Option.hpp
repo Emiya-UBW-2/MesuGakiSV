@@ -6,6 +6,7 @@
 #pragma warning(disable:4668)
 #pragma warning(disable:5039)
 #pragma warning(disable:5045)
+#include "Enum.hpp"
 #include "Util.hpp"
 #include "../File/FileStream.hpp"
 #pragma warning( push, 3 )
@@ -267,14 +268,14 @@ namespace Util {
 					return static_cast<int>(&param - &this->m_ParamList.front());
 				}
 			}
-			return -1;
+			return InvalidID;
 		}
 		const Param* GetParam(int ID) const noexcept {
-			if (ID == -1) { return nullptr; }
+			if (ID == InvalidID) { return nullptr; }
 			return &this->m_ParamList.at(static_cast<size_t>(ID));
 		}
 		void SetParam(int ID, int Param) noexcept {
-			if (ID == -1) { return; }
+			if (ID == InvalidID) { return; }
 			this->m_ParamList.at(static_cast<size_t>(ID)).SetSelect(Param);
 		}
 		int GetOptionType(OptionType ID) const noexcept { return m_OptionID.at(static_cast<size_t>(ID)); }

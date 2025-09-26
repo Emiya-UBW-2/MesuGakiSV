@@ -22,7 +22,7 @@ namespace File {
 	//ファイル読み込み
 	class InputFileStream {
 #if USE_DXLIB
-		int mdata = -1;
+		int mdata = InvalidID;
 #else
 		std::ifstream stream{};
 #endif
@@ -72,9 +72,9 @@ namespace File {
 		//　閉じる
 		void Close(void) noexcept {
 #if USE_DXLIB
-			if (mdata != -1) {
+			if (mdata != InvalidID) {
 				DxLib::FileRead_close(mdata);
-				mdata = -1;
+				mdata = InvalidID;
 			}
 #else
 			stream.close();

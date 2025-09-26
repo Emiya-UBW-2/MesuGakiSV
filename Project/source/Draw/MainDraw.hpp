@@ -8,7 +8,9 @@
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
 #pragma warning(disable:5039)
+#include "ImageDraw.hpp"
 #include "../File/FileStream.hpp"
+#include "../Util/Enum.hpp"
 #include "../Util/Util.hpp"
 #include "../Util/Option.hpp"
 
@@ -38,16 +40,16 @@ namespace Draw {
 		int			m_WindowDrawHeight{ 720 };		//ウィンドウサイズY
 		int			m_WindowWidth{ 960 };			//ディスプレイ表示X
 		int			m_WindowHeight{ 720 };			//ディスプレイ表示Y
-		int			m_BufferScreen{ -1 };
-		int			m_MouseX{ -1 };
-		int			m_MouseY{ -1 };
+		GraphHandle	m_BufferScreen{};
+		int			m_MouseX{ InvalidID };
+		int			m_MouseY{ InvalidID };
 		int			m_DispWidth{ 1920 };			//UI描画などの基準X
 		int			m_DispHeight{ 1080 };			//UI描画などの基準Y
 		int			m_CalculateTick = 60;			//更新レート
 		int			m_UpdateTickCount = 1;
 		int			m_FPSLimit = 60;			//更新レート
 		bool		m_WaitVSync = true;
-		char		padding[7]{};
+		char		padding[3]{};
 	private:
 		static const int		BaseDPI = 96;
 		static int GetDPI(void) noexcept {
