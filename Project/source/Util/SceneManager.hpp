@@ -74,7 +74,7 @@ namespace Util {
 		SceneManager& operator=(const SceneManager&) = delete;
 		SceneManager& operator=(SceneManager&&) = delete;
 		~SceneManager(void) noexcept {}
-	private:
+	public:
 		void CubeMapDraw(void) noexcept {
 		}
 		void BGDraw(void) noexcept {
@@ -146,73 +146,22 @@ namespace Util {
 					this->m_NowScene = const_cast<SceneBase*>(this->m_NowScene->GetNextScene());
 				}
 				if (this->m_NowScene) {
+					auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+					PostPassParts->Reset();
 					this->m_NowScene->Init();
 					this->m_Phase = EnumScenePhase::Update;
-					auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
-					PostPassParts->ResetAllParams();
-					PostPassParts->ResetAllBuffer();
-					PostPassParts->UpdateActive();
 				}
 				break;
 			case EnumScenePhase::GoEnd:
 				if (this->m_NowScene) {
 					this->m_NowScene->Dispose();
+					auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
+					PostPassParts->Reset();
 				}
 				break;
 			default:
 				break;
 			}
-		}
-		void ReadyDraw(void) noexcept {
-			auto* CameraParts = Camera::Camera3D::Instance();
-			auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
-			{
-				Vector3DX Pos = CameraParts->GetMainCamera().GetCamPos(); Pos.y *= -1.f;
-				PostPassParts->Update_CubeMap([this]() { CubeMapDraw(); }, Pos);
-			}
-			{
-				// 影をセット
-				if (PostPassParts->UpdateShadowActive() && false) {
-					Vector3DX Pos = CameraParts->GetMainCamera().GetCamPos();
-					Pos.x = 0.f;
-					Pos.z = 0.f;
-					PostPassParts->Update_Shadow([this]() { ShadowFarDraw3D(); }, Pos, true);
-				}
-				PostPassParts->Update_Shadow([this]() { ShadowDraw3D(); }, CameraParts->GetMainCamera().GetCamPos(), false);
-			}
-			// 全ての画面を初期化
-			PostPassParts->ResetBuffer();
-			// カメラ
-			PostPassParts->SetCamMat();
-			// 空
-			PostPassParts->DrawGBuffer(1000.0f, 50000.0f, [this]() { BGDraw(); });
-			// 3距離
-			{
-				Draw::Camera3DInfo camInfo = CameraParts->GetMainCamera();
-				float Far = 1000000.f;
-				float Near = camInfo.GetCamFar();
-				for (int loop = 0; loop < 3; ++loop) {
-					PostPassParts->DrawGBuffer(Near, Far, [this]() { Draw3D(); });
-					Far = Near;
-					if (loop == 0) {
-						Near = camInfo.GetCamNear();
-					}
-					else if (loop == 1) {
-						Near = 0.01f;
-					}
-				}
-			}
-			// 影
-			PostPassParts->SetDrawShadow([this]() { Draw3D(); }, [this]() { Draw3D(); });
-			// ポストプロセス
-			PostPassParts->DrawPostProcess();
-		}
-		void Draw(void) noexcept {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			auto* SceneMngr = Util::SceneManager::Instance();
-			auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
-			PostPassParts->GetBufferScreen().DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
-			SceneMngr->UIDraw();
 		}
 	};
 }

@@ -219,10 +219,10 @@ namespace Draw {
 			}
 			else {
 				float Scale = static_cast<float>(this->m_CustomSize) / static_cast<float>(this->m_CommonSize);
-				auto prev = GetDrawMode();
-				SetDrawMode(this->m_scaleType);
+				auto prev = DxLib::GetDrawMode();
+				DxLib::SetDrawMode(this->m_scaleType);
 				this->m_Handle.DrawExtendString(FontX, FontY, x, y, Scale, Scale, Color, EdgeColor, String, args...);
-				SetDrawMode(prev);
+				DxLib::SetDrawMode(prev);
 			}
 		}
 

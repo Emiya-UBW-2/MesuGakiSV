@@ -130,7 +130,7 @@ namespace Draw {
 		DxLib::SetDrawScreen(DX_SCREEN_BACK);
 		DxLib::ClearDrawScreen();
 		{
-			auto prev = GetDrawMode();
+			auto prev = DxLib::GetDrawMode();
 			DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
 			DxLib::DrawExtendGraph(
 				this->m_WindowDrawWidth / 2 - this->m_WindowWidth / 2, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2,

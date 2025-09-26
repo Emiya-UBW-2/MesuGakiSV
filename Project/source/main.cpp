@@ -26,6 +26,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* SceneMngr = Util::SceneManager::Instance();
+	auto* CameraParts = Camera::Camera3D::Instance();
+	auto* PostPassParts = DXLibRef::PostPassEffect::Instance();
 
 	TitleScene Title{};
 	MainScene Main{};
@@ -41,14 +43,55 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		for (int loop = 0; loop < DrawerMngr->GetUpdateTickCount(); ++loop) {
 			Util::KeyParam::Instance()->Update();
 			SceneMngr->Update();
-			Camera::Camera3D::Instance()->Update();
+			CameraParts->Update();
 		}
 		//描画
-
-		// キューブマップをセット
-		SceneMngr->ReadyDraw();
+		{
+			// キューブマップをセット
+			{
+				Util::Vector3DX Pos = CameraParts->GetMainCamera().GetCamPos(); Pos.y *= -1.f;
+				PostPassParts->Update_CubeMap([]() { Util::SceneManager::Instance()->CubeMapDraw(); }, Pos);
+			}
+			// 影をセット
+			{
+				if (PostPassParts->UpdateShadowActive() && false) {
+					Util::Vector3DX Pos = CameraParts->GetMainCamera().GetCamPos();
+					Pos.x = 0.f;
+					Pos.z = 0.f;
+					PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowFarDraw3D(); }, Pos, true);
+				}
+				PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowDraw3D(); }, CameraParts->GetMainCamera().GetCamPos(), false);
+			}
+			// 全ての画面を初期化
+			PostPassParts->StartDraw();
+			// 空
+			PostPassParts->DrawGBuffer(1000.0f, 50000.0f, []() { Util::SceneManager::Instance()->BGDraw(); });
+			// 3距離
+			{
+				Draw::Camera3DInfo camInfo = CameraParts->GetMainCamera();
+				float Far = 1000000.f;
+				float Near = camInfo.GetCamFar();
+				for (int loop = 0; loop < 3; ++loop) {
+					PostPassParts->DrawGBuffer(Near, Far, []() { Util::SceneManager::Instance()->Draw3D(); });
+					Far = Near;
+					if (loop == 0) {
+						Near = camInfo.GetCamNear();
+					}
+					else if (loop == 1) {
+						Near = 0.01f;
+					}
+				}
+			}
+			// 影
+			PostPassParts->SetDrawShadow([]() { Util::SceneManager::Instance()->Draw3D(); }, []() { Util::SceneManager::Instance()->Draw3D(); });
+			// ポストプロセス
+			PostPassParts->DrawPostProcess();
+		}
 		DrawerMngr->StartDraw();
-		SceneMngr->Draw();
+		{
+			PostPassParts->GetBufferScreen().DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
+			SceneMngr->UIDraw();
+		}
 		DrawerMngr->EndDraw();
 		//終了判定
 		if (SceneMngr->IsEndScene()) {

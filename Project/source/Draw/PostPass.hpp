@@ -117,7 +117,7 @@ namespace DXLibRef {
 			}
 			this->m_Shaderhandle = LoadPixelShader(Shader);
 			// 影用の深度記録画像を作成した際のカメラのビュー行列と射影行列を設定するための定数バッファの作成
-			for (auto& h : m_LightCameraMatrixHandle) {
+			for (auto& h : this->m_LightCameraMatrixHandle) {
 				h = CreateShaderConstantBuffer(sizeof(LIGHTCAMERA_MATRIX));
 			}
 		}
@@ -135,7 +135,7 @@ namespace DXLibRef {
 		// ピクセルシェーダ―のSlot番目のレジスタに情報をセット(Slot>=4)
 		void			SetCameraMatrix(int Slot, const Util::Matrix4x4DX& View, const Util::Matrix4x4DX& Projection) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
-			auto& BufferHandle = m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
+			auto& BufferHandle = this->m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
 			// 設定したカメラのビュー行列と射影行列を取得しておく
 			LIGHTCAMERA_MATRIX* LightCameraMatrixConst = (LIGHTCAMERA_MATRIX*)GetBufferShaderConstantBuffer(BufferHandle);
 			LightCameraMatrixConst->ViewMatrix = View.get();
@@ -237,7 +237,7 @@ namespace DXLibRef {
 			}
 			this->m_PixelShaderhandle = LoadPixelShader(PixelShader);
 			// 影用の深度記録画像を作成した際のカメラのビュー行列と射影行列を設定するための定数バッファの作成
-			for (auto& h : m_LightCameraMatrixHandle) {
+			for (auto& h : this->m_LightCameraMatrixHandle) {
 				h = CreateShaderConstantBuffer(sizeof(LIGHTCAMERA_MATRIX));
 			}
 		}
@@ -250,7 +250,7 @@ namespace DXLibRef {
 		void			Dispose(void) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
 			// 頂点シェーダー周り
-			for (auto& h : m_LightCameraMatrixHandle) {
+			for (auto& h : this->m_LightCameraMatrixHandle) {
 				DeleteShaderConstantBuffer(h);
 			}
 			for (auto& h : this->m_VertexShadercbhandle) {
@@ -271,7 +271,7 @@ namespace DXLibRef {
 		// 頂点シェーダ―のSlot番目のレジスタに情報をセット(Slot>=4)
 		void			SetVertexCameraMatrix(int Slot, const Util::Matrix4x4DX& View, const Util::Matrix4x4DX& Projection) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
-			auto& BufferHandle = m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
+			auto& BufferHandle = this->m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
 			// 設定したカメラのビュー行列と射影行列を取得しておく
 			LIGHTCAMERA_MATRIX* LightCameraMatrixConst = (LIGHTCAMERA_MATRIX*)GetBufferShaderConstantBuffer(BufferHandle);
 			LightCameraMatrixConst->ViewMatrix = View.get();
@@ -336,7 +336,7 @@ namespace DXLibRef {
 		// ピクセルシェーダ―のSlot番目のレジスタに情報をセット(Slot>=4)
 		void			SetPixelCameraMatrix(int Slot, const Util::Matrix4x4DX& View, const Util::Matrix4x4DX& Projection) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
-			auto& BufferHandle = m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
+			auto& BufferHandle = this->m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
 			// 設定したカメラのビュー行列と射影行列を取得しておく
 			LIGHTCAMERA_MATRIX* LightCameraMatrixConst = (LIGHTCAMERA_MATRIX*)GetBufferShaderConstantBuffer(BufferHandle);
 			LightCameraMatrixConst->ViewMatrix = View.get();
@@ -530,6 +530,45 @@ namespace DXLibRef {
 	private:
 		friend class Util::SingletonBase<PostPassEffect>;
 	public:
+		class Gbuffer {
+		public:
+			Gbuffer(void) noexcept {}
+			Gbuffer(const Gbuffer&) = delete;
+			Gbuffer(Gbuffer&&) = delete;
+			Gbuffer& operator=(const Gbuffer&) = delete;
+			Gbuffer& operator=(Gbuffer&&) = delete;
+			virtual ~Gbuffer(void) noexcept {}
+		private:
+			Draw::GraphHandle			m_ColorScreen;	// そのまま透過なしにしたスクリーン
+			Draw::GraphHandle			m_NormalScreen;	// 法線のGバッファ
+			Draw::GraphHandle			m_DepthScreen;	// 深度のGバッファ
+		public:
+			const auto& GetColorBuffer() const noexcept { return this->m_ColorScreen; }
+			const auto& GetNormalBuffer() const noexcept { return this->m_NormalScreen; }
+			const auto& GetDepthBuffer() const noexcept { return this->m_DepthScreen; }
+		public:
+			void		Load(int xsize, int ysize) noexcept {
+				auto Prev = GetCreateDrawValidGraphZBufferBitDepth();
+				SetCreateDrawValidGraphZBufferBitDepth(24);
+				this->m_ColorScreen.Make(xsize, ysize, false);
+				this->m_NormalScreen.Make(xsize, ysize, false);
+				this->m_DepthScreen.MakeDepth(xsize, ysize);
+				SetCreateDrawValidGraphZBufferBitDepth(Prev);
+			}
+			void		Dispose(void) noexcept {
+				this->m_ColorScreen.Dispose();
+				this->m_NormalScreen.Dispose();
+				this->m_DepthScreen.Dispose();
+			}
+			void		Reset(void) noexcept {
+				this->m_ColorScreen.SetDraw_Screen();
+				this->m_NormalScreen.SetDraw_Screen();
+				this->m_NormalScreen.FillGraph(128, 128, 255);
+				this->m_DepthScreen.SetDraw_Screen();
+				this->m_DepthScreen.FillGraph(255, 0, 0);
+			}
+		};
+	public:
 		// ベース
 		class PostPassBase {
 		protected:
@@ -542,7 +581,7 @@ namespace DXLibRef {
 			virtual void Load_Sub(void) noexcept {}
 			virtual void Dispose_Sub(void) noexcept {}
 			virtual bool IsActive_Sub(void) noexcept { return true; }
-			virtual void SetEffect_Sub(Draw::GraphHandle*, Draw::GraphHandle*, Draw::GraphHandle*, Draw::GraphHandle*) noexcept {}
+			virtual void SetEffect_Sub(Draw::GraphHandle*, Gbuffer*) noexcept {}
 		public:
 			bool IsActive(void) noexcept { return IsActive_Sub(); }
 			void UpdateActive(bool active) noexcept {
@@ -556,9 +595,9 @@ namespace DXLibRef {
 					}
 				}
 			}
-			void SetEffect(Draw::GraphHandle* TargetGraph, Draw::GraphHandle* ColorGraph, Draw::GraphHandle* NormalPtr, Draw::GraphHandle* DepthPtr) noexcept {
+			void SetEffect(Draw::GraphHandle* TargetGraph, Gbuffer* pGbuffer) noexcept {
 				if (IsActive()) {
-					SetEffect_Sub(TargetGraph, ColorGraph, NormalPtr, DepthPtr);
+					SetEffect_Sub(TargetGraph, pGbuffer);
 				}
 			}
 		};
@@ -567,83 +606,127 @@ namespace DXLibRef {
 		class ShadowDraw {
 			static const int EXTEND = 1;
 		private:
-			Draw::GraphHandle			BaseShadowHandle;
-			Draw::GraphHandle			DepthBaseScreenHandle;
-			Draw::GraphHandle			DepthScreenHandle;
-			Draw::GraphHandle			DepthFarScreenHandle;
+			Draw::GraphHandle			m_BaseShadowHandle;
+			Draw::GraphHandle			m_DepthBaseScreenHandle;
+			Draw::GraphHandle			m_DepthScreenHandle;
+			Draw::GraphHandle			m_DepthFarScreenHandle;
 
 			ShaderController			m_Shader;
 			ShaderController			m_ShaderRigid;
 			Util::Vector3DX				m_ShadowVec{ Util::Vector3DX::up() };
 			float						m_Scale{ 1.f };
-			float						m_ScaleFar{ 1.f };
 
 			bool						m_PrevShadow{ false };
-			char		padding[3]{};
+			char		padding[7]{};
 
 			std::array<Util::Matrix4x4DX, 2>	m_CamViewMatrix{};
 			std::array<Util::Matrix4x4DX, 2>	m_CamProjectionMatrix{};
+		public:
+			ShadowDraw(void) noexcept {
+				this->m_PrevShadow = false;
+				UpdateActive();
+			}
+			ShadowDraw(const ShadowDraw&) = delete;
+			ShadowDraw(ShadowDraw&&) = delete;
+			ShadowDraw& operator=(const ShadowDraw&) = delete;
+			ShadowDraw& operator=(ShadowDraw&&) = delete;
+			~ShadowDraw(void) noexcept {
+				if (this->m_PrevShadow) {
+					Dispose();
+				}
+			}
 		private:
 			void SetupCam(Util::Vector3DX Center, float scale) const noexcept {
 				ClearDrawScreen();
-				SetupCamera_Ortho(30.f * scale * Scale3DRate);		// カメラのタイプを正射影タイプにセット、描画範囲も指定
-				SetCameraNearFar(0.05f * scale * Scale3DRate, 60.f * scale * Scale3DRate);		// 描画する奥行き範囲をセット
+				SetupCamera_Ortho(30.f * scale);		// カメラのタイプを正射影タイプにセット、描画範囲も指定
+				SetCameraNearFar(0.05f * scale, 60.f * scale);		// 描画する奥行き範囲をセット
 				// カメラの位置と注視点はステージ全体が見渡せる位置
 				auto Vec = this->m_ShadowVec;
 				if (this->m_ShadowVec.x == 0.f && this->m_ShadowVec.z == 0.f) {
 					Vec.z = (0.1f);
 				}
-				SetCameraPositionAndTarget_UpVecY((Center - Vec.normalized() * (30.f * scale * Scale3DRate)).get(), Center.get());
+				SetCameraPositionAndTarget_UpVecY((Center - Vec.normalized() * (30.f * scale)).get(), Center.get());
 			}
-		public:
-			ShadowDraw(void) noexcept {}
-			ShadowDraw(const ShadowDraw&) = delete;
-			ShadowDraw(ShadowDraw&&) = delete;
-			ShadowDraw& operator=(const ShadowDraw&) = delete;
-			ShadowDraw& operator=(ShadowDraw&&) = delete;
-			~ShadowDraw(void) noexcept { Dispose(); }
+			void			Init(void) noexcept {
+				auto* DrawerMngr = Draw::MainDraw::Instance();
+
+				int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
+				int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+
+				this->m_BaseShadowHandle.Make(xsizeEx, ysizeEx, TRUE);
+				int size = 2 << 10;
+				this->m_DepthBaseScreenHandle.Make(size, size, FALSE);			// 深度バッファ用の作成
+				this->m_DepthScreenHandle.MakeDepth(size, size);					// 深度バッファの作成
+				this->m_DepthFarScreenHandle.MakeDepth(size, size);				// 深度バッファの作成
+				this->m_Shader.Init("CommonData/shader/VS_SoftShadow.vso", "CommonData/shader/PS_SoftShadow.pso");
+				this->m_ShaderRigid.Init("CommonData/shader/VS_SoftShadow_Rigid.vso", "CommonData/shader/PS_SoftShadow.pso");
+			}
+			void			Dispose(void) noexcept {
+				this->m_BaseShadowHandle.Dispose();
+				this->m_DepthBaseScreenHandle.Dispose();
+				this->m_DepthScreenHandle.Dispose();
+				this->m_DepthFarScreenHandle.Dispose();
+				this->m_Shader.Dispose();
+				this->m_ShaderRigid.Dispose();
+			}
 		public:
 			const auto& GetCamViewMatrix(bool isFar) const noexcept { return this->m_CamViewMatrix[static_cast<size_t>(isFar ? 1 : 0)]; }
 			const auto& GetCamProjectionMatrix(bool isFar) const noexcept { return this->m_CamProjectionMatrix[static_cast<size_t>(isFar ? 1 : 0)]; }
-			const auto& GetDepthScreen(void) const noexcept { return DepthScreenHandle; }
-			const auto& GetDepthFarScreen(void) const noexcept { return DepthFarScreenHandle; }//未使用
+			const auto& GetDepthScreen(void) const noexcept { return this->m_DepthScreenHandle; }
+			const auto& GetDepthFarScreen(void) const noexcept { return this->m_DepthFarScreenHandle; }//未使用
 			const auto& GetShadowDir(void) const noexcept { return this->m_ShadowVec; }
 		public:
 			void			SetVec(const Util::Vector3DX& Vec) noexcept { this->m_ShadowVec = Vec; }
 			void			SetDraw(std::function<void()> doing_rigid, std::function<void()> doing, Draw::Camera3DInfo tmp_cam) noexcept {
-				auto* pOption = Util::OptionParam::Instance();
-				BaseShadowHandle.SetUseTextureToShader(0);				// 影用深度記録画像をテクスチャにセット
-				DepthScreenHandle.SetUseTextureToShader(1);
-				DepthFarScreenHandle.SetUseTextureToShader(2);
+				this->m_BaseShadowHandle.SetUseTextureToShader(0);				// 影用深度記録画像をテクスチャにセット
+				this->m_DepthScreenHandle.SetUseTextureToShader(1);
+				this->m_DepthFarScreenHandle.SetUseTextureToShader(2);
 				// 影の結果を出力
 				tmp_cam.SetCamInfo(tmp_cam.GetCamFov(), 0.01f * Scale3DRate, 30.f * Scale3DRate);
-				BaseShadowHandle.SetDraw_Screen();
+				this->m_BaseShadowHandle.SetDraw_Screen();
 				tmp_cam.FlipCamInfo();
 				{
-					this->m_Shader.SetPixelParam(3, static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect()), this->m_Scale * 180.f, 0.f, 0.f);
-					this->m_Shader.SetVertexCameraMatrix(4, this->m_CamViewMatrix[0], this->m_CamProjectionMatrix[0]);
-					this->m_Shader.SetVertexCameraMatrix(5, this->m_CamViewMatrix[1], this->m_CamProjectionMatrix[1]);
+					auto* pOption = Util::OptionParam::Instance();
+					const float ShadowLevel = static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect());
+					this->m_Shader.SetPixelParam(3, ShadowLevel, this->m_Scale * 180.f, 0.f, 0.f);
+					this->m_Shader.SetVertexCameraMatrix(4, GetCamViewMatrix(false), GetCamProjectionMatrix(false));
+					this->m_Shader.SetVertexCameraMatrix(5, GetCamViewMatrix(true), GetCamProjectionMatrix(true));
 					this->m_Shader.Draw_lamda(doing);
-					this->m_ShaderRigid.SetPixelParam(3, static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect()), this->m_Scale * 180.f, 0.f, 0.f);
-					this->m_ShaderRigid.SetVertexCameraMatrix(4, this->m_CamViewMatrix[0], this->m_CamProjectionMatrix[0]);
-					this->m_ShaderRigid.SetVertexCameraMatrix(5, this->m_CamViewMatrix[1], this->m_CamProjectionMatrix[1]);
+					this->m_ShaderRigid.SetPixelParam(3, ShadowLevel, this->m_Scale * 180.f, 0.f, 0.f);
+					this->m_ShaderRigid.SetVertexCameraMatrix(4, GetCamViewMatrix(false), GetCamProjectionMatrix(false));
+					this->m_ShaderRigid.SetVertexCameraMatrix(5, GetCamViewMatrix(true), GetCamProjectionMatrix(true));
 					this->m_ShaderRigid.Draw_lamda(doing_rigid);
 				}
 				SetUseTextureToShader(1, InvalidID);				// 使用テクスチャの設定を解除
 				SetUseTextureToShader(2, InvalidID);				// 使用テクスチャの設定を解除
 				// 後処理
-				BaseShadowHandle.GraphBlend(DepthBaseScreenHandle, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
+				this->m_BaseShadowHandle.GraphBlend(this->m_DepthBaseScreenHandle, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
 					DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_R);
 			}
-
+			bool			UpdateActive(void) noexcept {
+				auto* pOption = Util::OptionParam::Instance();
+				bool shadow = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0;
+				if (this->m_PrevShadow != shadow) {
+					this->m_PrevShadow = shadow;
+					if (shadow) {
+						Init();
+						return true;
+					}
+					else {
+						Dispose();
+					}
+				}
+				return false;
+			}
+		public:
 			void			Update(std::function<void()> Shadowdoing, Util::Vector3DX Center, float Scale) noexcept {
 				this->m_Scale = Scale;
 				// 影用の深度記録画像の準備を行う
-				DepthBaseScreenHandle.SetRenderTargetToShader(0);
+				this->m_DepthBaseScreenHandle.SetRenderTargetToShader(0);
 				SetRenderTargetToShader(1, InvalidID);
-				DepthScreenHandle.SetRenderTargetToShader(2);
+				this->m_DepthScreenHandle.SetRenderTargetToShader(2);
 				{
-					SetupCam(Center, this->m_Scale);
+					SetupCam(Center, this->m_Scale * Scale3DRate);
 					this->m_CamViewMatrix[0] = GetCameraViewMatrix();
 					this->m_CamProjectionMatrix[0] = GetCameraProjectionMatrix();
 					Shadowdoing();
@@ -653,13 +736,12 @@ namespace DXLibRef {
 				SetRenderTargetToShader(2, InvalidID);
 			}
 			void			UpdateFar(std::function<void()> Shadowdoing, Util::Vector3DX Center, float Scale) noexcept {
-				this->m_ScaleFar = Scale;
 				// 影用の深度記録画像の準備を行う
-				DepthBaseScreenHandle.SetRenderTargetToShader(0);
+				this->m_DepthBaseScreenHandle.SetRenderTargetToShader(0);
 				SetRenderTargetToShader(1, InvalidID);
-				DepthFarScreenHandle.SetRenderTargetToShader(2);
+				this->m_DepthFarScreenHandle.SetRenderTargetToShader(2);
 				{
-					SetupCam(Center, this->m_ScaleFar);
+					SetupCam(Center, Scale * Scale3DRate);
 					this->m_CamViewMatrix[1] = GetCameraViewMatrix();
 					this->m_CamProjectionMatrix[1] = GetCameraProjectionMatrix();
 					Shadowdoing();
@@ -671,45 +753,9 @@ namespace DXLibRef {
 			void			Draw(void) noexcept {
 				auto* DrawerMngr = Draw::MainDraw::Instance();
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-				BaseShadowHandle.DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+				this->m_BaseShadowHandle.DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 				// DepthScreenHandle.DrawExtendGraph(0, 0,1080,1080, true);
-			}
-			void			Dispose(void) noexcept {
-				BaseShadowHandle.Dispose();
-				DepthBaseScreenHandle.Dispose();
-				DepthScreenHandle.Dispose();
-				DepthFarScreenHandle.Dispose();
-				this->m_Shader.Dispose();
-				this->m_ShaderRigid.Dispose();
-			}
-		public:
-			void			SetActive(void) noexcept {
-				auto* DrawerMngr = Draw::MainDraw::Instance();
-				auto* pOption = Util::OptionParam::Instance();
-				this->m_PrevShadow = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0;
-				BaseShadowHandle.Make(DrawerMngr->GetDispWidth() / EXTEND, DrawerMngr->GetDispHeight() / EXTEND, TRUE);
-				int size = 2 << 10;
-				DepthBaseScreenHandle.Make(size, size, FALSE);			// 深度バッファ用の作成
-				DepthScreenHandle.MakeDepth(size, size);					// 深度バッファの作成
-				DepthFarScreenHandle.MakeDepth(size, size);				// 深度バッファの作成
-				this->m_Shader.Init("CommonData/shader/VS_SoftShadow.vso", "CommonData/shader/PS_SoftShadow.pso");
-				this->m_ShaderRigid.Init("CommonData/shader/VS_SoftShadow_Rigid.vso", "CommonData/shader/PS_SoftShadow.pso");
-			}
-			bool			UpdateActive(void) noexcept {
-				auto* pOption = Util::OptionParam::Instance();
-				bool shadow = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0;
-				if (this->m_PrevShadow != shadow) {
-					this->m_PrevShadow = shadow;
-					if (shadow) {
-						SetActive();
-						return true;
-					}
-					else {
-						Dispose();
-					}
-				}
-				return false;
 			}
 		};
 		// キューブマップ生成
@@ -778,9 +824,7 @@ namespace DXLibRef {
 		bool						m_IsActiveGBuffer{ false };
 		char		padding[7]{};
 		Draw::GraphHandle			m_BufferScreen;	// 描画スクリーン
-		Draw::GraphHandle			m_ColorScreen;	// そのまま透過なしにしたスクリーン
-		Draw::GraphHandle			m_NormalScreen;	// 法線のGバッファ
-		Draw::GraphHandle			m_DepthScreen;	// 深度のGバッファ
+		Gbuffer						m_Gbuffer;
 		// 
 		float						m_near_DoF = 0.f;
 		float						m_far_DoF = 0.f;
@@ -815,7 +859,7 @@ namespace DXLibRef {
 		const auto&		GetCamViewMat(void) const noexcept { return this->m_CamViewMat; }
 		const auto&		GetCamProjectionMat(void) const noexcept { return this->m_CamProjectionMat; }
 		const auto&		GetShadowDraw(void) const noexcept { return this->m_ShadowDraw; }
-		const auto&		GetCubeMapTex(void) const noexcept { return this->m_RealTimeCubeMap.GetCubeMapTex(); }
+		const auto&		GetCubeMapHandle(void) const noexcept { return this->m_RealTimeCubeMap.GetCubeMapTex(); }
 		const auto&		Get_near_DoF(void) const noexcept { return this->m_near_DoF; }
 		const auto&		Get_far_DoF(void) const noexcept { return this->m_far_DoF; }
 		const auto&		Get_near_DoFMax(void) const noexcept { return this->m_near_DoFMax; }
@@ -886,15 +930,13 @@ namespace DXLibRef {
 			auto Prev = GetCreateDrawValidGraphZBufferBitDepth();
 			SetCreateDrawValidGraphZBufferBitDepth(24);
 			this->m_BufferScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
-			this->m_ColorScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
 			SetCreateDrawValidGraphZBufferBitDepth(Prev);
 			this->m_ShadowDraw = std::make_unique<ShadowDraw>();
 			// 影生成
-			this->m_ShadowDraw->UpdateActive();
+			UpdateShadowActive();
 		}
 		void		Dispose(void) noexcept {
 			PostPassScreenBufferPool::Release();
-			ResetAllBuffer();
 			// ポストエフェクト
 			for (auto& P : this->m_PostPass) {
 				if (!P) { continue; }
@@ -903,31 +945,21 @@ namespace DXLibRef {
 			this->m_ShadowDraw.reset();
 		}
 	private:
-		void		LoadGBuffer(void) noexcept {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			auto Prev = GetCreateDrawValidGraphZBufferBitDepth();
-			SetCreateDrawValidGraphZBufferBitDepth(24);
-			this->m_NormalScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), false);
-			this->m_DepthScreen.MakeDepth(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
-			SetCreateDrawValidGraphZBufferBitDepth(Prev);
-		}
-		void		DisposeGBuffer(void) noexcept {
-			this->m_NormalScreen.Dispose();
-			this->m_DepthScreen.Dispose();
-		}
 		void		UpdateActiveGBuffer(bool ActiveGBuffer) noexcept {
 			if (this->m_IsActiveGBuffer != ActiveGBuffer) {
 				this->m_IsActiveGBuffer = ActiveGBuffer;
 				if (this->m_IsActiveGBuffer) {
-					LoadGBuffer();
+					auto* DrawerMngr = Draw::MainDraw::Instance();
+					this->m_Gbuffer.Load(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
 				}
 				else {
-					DisposeGBuffer();
+					this->m_Gbuffer.Dispose();
 				}
 			}
 		}
+	private:
 		void		UpdateActiveCubeMap(bool ActiveCubeMap) noexcept {
-			if (ActiveCubeMap != this->m_IsCubeMap) {
+			if (this->m_IsCubeMap != ActiveCubeMap) {
 				this->m_IsCubeMap = ActiveCubeMap;
 				if (this->m_IsCubeMap) {
 					this->m_RealTimeCubeMap.Init();
@@ -940,15 +972,14 @@ namespace DXLibRef {
 	public:
 		bool		UpdateShadowActive(void) noexcept { return this->m_ShadowDraw->UpdateActive(); }
 		void		SetAmbientLight(const Util::Vector3DX& AmbientLightVec) noexcept { this->m_ShadowDraw->SetVec(AmbientLightVec); }
-		void		UpdateActive(void) noexcept {
+		void		UpdateBuffer(void) noexcept {
 			auto* pOption = Util::OptionParam::Instance();
 			bool ActiveGBuffer = false;
 			for (auto& P : this->m_PostPass) {
 				if (!P) { continue; }
-				if (P->IsActive()) {
-					ActiveGBuffer = true;
-					break;
-				}
+				if (!P->IsActive()) { continue; }
+				ActiveGBuffer = true;
+				break;
 			}
 			UpdateActiveGBuffer(ActiveGBuffer);
 			for (auto& P : this->m_PostPass) {
@@ -957,28 +988,41 @@ namespace DXLibRef {
 			}
 			UpdateActiveCubeMap((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false);
 		}
-		void		SetCamMat(void) noexcept {
+		void		Update_CubeMap(std::function<void()> doing, const Util::Vector3DX& CenterPos) noexcept {
+			auto* pOption = Util::OptionParam::Instance();
+			if ((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false) {
+				this->m_RealTimeCubeMap.ReadyDraw(CenterPos, doing);
+			}
+		}
+		void		Update_Shadow(std::function<void()> doing, const Util::Vector3DX& CenterPos, bool IsFar) noexcept {
+			auto* pOption = Util::OptionParam::Instance();
+			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
+				// 影用の深度記録画像の準備を行う
+				if (!IsFar) {
+					this->m_ShadowDraw->Update(doing, CenterPos, this->GetShadowScale());
+				}
+				else {
+					this->m_ShadowDraw->UpdateFar(doing, CenterPos, this->GetShadowScale() * 4.f);
+				}
+			}
+		}
+		void		StartDraw(void) noexcept {
+			// リセット
+			if (this->m_IsActiveGBuffer) {
+				this->m_Gbuffer.Reset();
+			}
+			// カメラ
 			auto* CameraParts = Camera::Camera3D::Instance();
 			this->m_CamViewMat = CameraParts->GetMainCamera().GetViewMatrix();
 			this->m_CamProjectionMat = CameraParts->GetMainCamera().GetProjectionMatrix();
-		}
-		void		ResetBuffer(void) noexcept {
-			if (this->m_IsActiveGBuffer) {
-				// リセット替わり
-				this->m_ColorScreen.SetDraw_Screen();
-				this->m_NormalScreen.SetDraw_Screen();
-				this->m_NormalScreen.FillGraph(128, 128, 255);
-				this->m_DepthScreen.SetDraw_Screen();
-				this->m_DepthScreen.FillGraph(255, 0, 0);
-			}
 		}
 		void		DrawGBuffer(float near_len, float far_len, std::function<void()> done) noexcept {
 			auto* CameraParts = Camera::Camera3D::Instance();
 			// カラーバッファを描画対象0に、法線バッファを描画対象1に設定
 			this->m_BufferScreen.SetRenderTargetToShader(0);
 			if (this->m_IsActiveGBuffer) {
-				this->m_NormalScreen.SetRenderTargetToShader(1);
-				this->m_DepthScreen.SetRenderTargetToShader(2);
+				this->m_Gbuffer.GetNormalBuffer().SetRenderTargetToShader(1);
+				this->m_Gbuffer.GetDepthBuffer().SetRenderTargetToShader(2);
 			}
 			ClearDrawScreenZBuffer();
 			CameraParts->GetMainCamera().FlipCamInfo();
@@ -1015,36 +1059,22 @@ namespace DXLibRef {
 			if (this->m_IsActiveGBuffer) {
 				for (auto& P : this->m_PostPass) {
 					if (!P) { continue; }
-					this->m_ColorScreen.GraphFilterBlt(this->m_BufferScreen, DX_GRAPH_FILTER_DOWN_SCALE, 1);
-					P->SetEffect(&this->m_BufferScreen, &this->m_ColorScreen, &this->m_NormalScreen, &this->m_DepthScreen);
+					if (!P->IsActive()) { continue; }
+					this->m_Gbuffer.GetColorBuffer().GraphFilterBlt(this->m_BufferScreen, DX_GRAPH_FILTER_DOWN_SCALE, 1);
+					P->SetEffect(&this->m_BufferScreen, &this->m_Gbuffer);
 				}
 			}
 		}
-		void		ResetAllBuffer(void) noexcept {
+	public:
+		void		Reset(void) noexcept {
 			UpdateActiveGBuffer(false);
 			for (auto& P : this->m_PostPass) {
 				if (!P) { continue; }
 				P->UpdateActive(false);
 			}
 			UpdateActiveCubeMap(false);
-		}
-		void		Update_Shadow(std::function<void()> doing, const Util::Vector3DX& CenterPos, bool IsFar) noexcept {
-			auto* pOption = Util::OptionParam::Instance();
-			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
-				// 影用の深度記録画像の準備を行う
-				if (!IsFar) {
-					this->m_ShadowDraw->Update(doing, CenterPos, this->GetShadowScale());
-				}
-				else {
-					this->m_ShadowDraw->UpdateFar(doing, CenterPos, this->GetShadowScale() * 4.f);
-				}
-			}
-		}
-		void		Update_CubeMap(std::function<void()> doing, const Util::Vector3DX& CenterPos) noexcept {
-			auto* pOption = Util::OptionParam::Instance();
-			if ((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false) {
-				this->m_RealTimeCubeMap.ReadyDraw(CenterPos, doing);
-			}
+			UpdateBuffer();
+			ResetAllParams();
 		}
 	};
 };
