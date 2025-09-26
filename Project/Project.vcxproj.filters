@@ -74,6 +74,9 @@
     <ClCompile Include="source\Draw\Camera.cpp">
       <Filter>ソース ファイル\Draw</Filter>
     </ClCompile>
+    <ClCompile Include="source\Draw\Light.cpp">
+      <Filter>ソース ファイル\Draw</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\File\json.hpp">
@@ -131,6 +134,9 @@
       <Filter>ソース ファイル\Draw</Filter>
     </ClInclude>
     <ClInclude Include="source\Draw\Camera.hpp">
+      <Filter>ソース ファイル\Draw</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Draw\Light.hpp">
       <Filter>ソース ファイル\Draw</Filter>
     </ClInclude>
   </ItemGroup>

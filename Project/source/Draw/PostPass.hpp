@@ -642,7 +642,7 @@ namespace Draw {
 				DxLib::SetCameraNearFar(0.05f * scale, 60.f * scale);		// 描画する奥行き範囲をセット
 				// カメラの位置と注視点はステージ全体が見渡せる位置
 				auto Vec = this->m_ShadowVec;
-				if (this->m_ShadowVec.x == 0.f && this->m_ShadowVec.z == 0.f) {
+				if (Vec.x == 0.f && Vec.z == 0.f) {
 					Vec.z = (0.1f);
 				}
 				DxLib::SetCameraPositionAndTarget_UpVecY((Center - Vec.normalized() * (30.f * scale)).get(), Center.get());
@@ -674,10 +674,12 @@ namespace Draw {
 			const auto& GetCamProjectionMatrix(bool isFar) const noexcept { return this->m_CamProjectionMatrix[static_cast<size_t>(isFar ? 1 : 0)]; }
 			const auto& GetDepthScreen(void) const noexcept { return this->m_DepthScreenHandle; }
 			const auto& GetDepthFarScreen(void) const noexcept { return this->m_DepthFarScreenHandle; }//未使用
-			const auto& GetShadowDir(void) const noexcept { return this->m_ShadowVec; }
 		public:
 			void			SetVec(const Util::VECTOR3D& Vec) noexcept { this->m_ShadowVec = Vec; }
-			void			SetDraw(std::function<void()> doing_rigid, std::function<void()> doing, Draw::Camera3DInfo tmp_cam) noexcept {
+			void			SetDraw(std::function<void()> doing_rigid, std::function<void()> doing) noexcept {
+				auto* CameraParts = Camera::Camera3D::Instance();
+				Draw::Camera3DInfo tmp_cam = CameraParts->GetMainCamera();
+
 				this->m_BaseShadowHandle.SetUseTextureToShader(0);				// 影用深度記録画像をテクスチャにセット
 				this->m_DepthScreenHandle.SetUseTextureToShader(1);
 				this->m_DepthFarScreenHandle.SetUseTextureToShader(2);
@@ -755,7 +757,7 @@ namespace Draw {
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 				this->m_BaseShadowHandle.DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-				// DepthScreenHandle.DrawExtendGraph(0, 0,1080,1080, true);
+				//this->m_DepthBaseScreenHandle.DrawExtendGraph(0, 0,1080,1080, true);
 			}
 		};
 		// キューブマップ生成
@@ -874,7 +876,6 @@ namespace Draw {
 		const auto&		GetAberrationPower(void) const noexcept { return this->m_AberrationPower; }
 		auto			GetGodRayPerRet(void) const noexcept { return this->m_GodRayPer * this->m_GodRayPerByPostPass; }
 		const auto&		GetDistortionPer(void) const noexcept { return this->m_DistortionPer; }
-		const auto&		GetShadowScale(void) const noexcept { return this->m_ShadowScale; }
 		const auto&		GetGodRayPer(void) const noexcept { return this->m_GodRayPer; }
 	public:
 		void			Set_is_lens(bool value) noexcept { this->m_useScope = value; }
@@ -999,10 +1000,10 @@ namespace Draw {
 			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
 				// 影用の深度記録画像の準備を行う
 				if (!IsFar) {
-					this->m_ShadowDraw->Update(doing, CenterPos, this->GetShadowScale());
+					this->m_ShadowDraw->Update(doing, CenterPos, this->m_ShadowScale);
 				}
 				else {
-					this->m_ShadowDraw->UpdateFar(doing, CenterPos, this->GetShadowScale() * 4.f);
+					this->m_ShadowDraw->UpdateFar(doing, CenterPos, this->m_ShadowScale * 4.f);
 				}
 			}
 		}
@@ -1037,12 +1038,11 @@ namespace Draw {
 			}
 		}
 		void		SetDrawShadow(std::function<void()> setshadowdoing_rigid, std::function<void()> setshadowdoing) noexcept {
-			auto* CameraParts = Camera::Camera3D::Instance();
 			auto* pOption = Util::OptionParam::Instance();
 			// 影
 			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
 				// 影画像の用意
-				this->m_ShadowDraw->SetDraw(setshadowdoing_rigid, setshadowdoing, CameraParts->GetMainCamera());
+				this->m_ShadowDraw->SetDraw(setshadowdoing_rigid, setshadowdoing);
 				// ソフトシャドウ重ね
 				this->m_BufferScreen.SetDraw_Screen(false);
 				{

@@ -23,6 +23,7 @@
     <ClCompile Include="source\Draw\DrawUISystem.cpp" />
     <ClCompile Include="source\Draw\FontDraw.cpp" />
     <ClCompile Include="source\Draw\ImageDraw.cpp" />
+    <ClCompile Include="source\Draw\Light.cpp" />
     <ClCompile Include="source\Draw\MainDraw.cpp" />
     <ClCompile Include="source\Draw\PostPass.cpp" />
     <ClCompile Include="source\File\FileStream.cpp" />
@@ -42,6 +43,7 @@
     <ClInclude Include="source\Draw\DrawUISystem.hpp" />
     <ClInclude Include="source\Draw\FontDraw.hpp" />
     <ClInclude Include="source\Draw\ImageDraw.hpp" />
+    <ClInclude Include="source\Draw\Light.hpp" />
     <ClInclude Include="source\Draw\MainDraw.hpp" />
     <ClInclude Include="source\Draw\PostPass.hpp" />
     <ClInclude Include="source\File\FileStream.hpp" />

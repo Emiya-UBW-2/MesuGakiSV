@@ -10,10 +10,12 @@
 #include "../Draw/MainDraw.hpp"
 
 #include "../Draw/Camera.hpp"
+#include "../Draw/PostPass.hpp"
+#include "../Draw/Light.hpp"
 
 class MainScene : public Util::SceneBase {
 	int ModelID{ InvalidID };
-	char		padding[4]{};
+	int MapID{ InvalidID };
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -24,6 +26,19 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {
 		ModelID = DxLib::MV1LoadModel("data/Soldier/model_DISABLE.mv1");
+		MapID = DxLib::MV1LoadModel("data/Map/model.mqoz");
+
+		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(1.f, -1.f, 1.f).normalized();
+
+		auto* PostPassParts = Draw::PostPassEffect::Instance();
+		PostPassParts->SetShadowScale(1.f);
+		PostPassParts->SetAmbientLight(LightVec);
+
+		SetLightEnable(FALSE);
+		auto* LightParts = DXLibRef::LightPool::Instance();
+		auto& FirstLight = LightParts->Put(DXLibRef::LightType::DIRECTIONAL, LightVec);
+		SetLightAmbColorHandle(FirstLight.get(), GetColorF(0.25f, 0.25f, 0.25f, 1.0f));
+		SetLightDifColorHandle(FirstLight.get(), GetColorF(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 	void Update_Sub(void) noexcept override {
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -32,7 +47,7 @@ protected:
 			SceneBase::SetEndScene();
 		}
 		auto* CameraParts = Camera::Camera3D::Instance();
-		CameraParts->SetMainCamera().SetCamPos(DxLib::VGet(0, 15.f, -40.f), DxLib::VGet(0, 15.f, 0.f), DxLib::VGet(0, 1.f, 0));
+		CameraParts->SetMainCamera().SetCamPos(DxLib::VGet(0, 1.5f * Scale3DRate, -5.f * Scale3DRate), DxLib::VGet(0, 0.5f * Scale3DRate, 0.f), DxLib::VGet(0, 1.f, 0));
 		CameraParts->SetMainCamera().SetCamInfo(Util::deg2rad(45), 0.5f, 80.f);
 
 	}
@@ -42,6 +57,7 @@ protected:
 
 	}
 	void Draw_Sub(void) noexcept override {
+		DxLib::MV1DrawModel(MapID);
 		DxLib::MV1DrawModel(ModelID);
 	}
 	void UIDraw_Sub(void) noexcept override {
@@ -50,6 +66,8 @@ protected:
 	}
 
 	void Dispose_Sub(void) noexcept override {
+		DxLib::MV1DeleteModel(MapID);
+		MapID = InvalidID;
 		DxLib::MV1DeleteModel(ModelID);
 		ModelID = InvalidID;
 	}

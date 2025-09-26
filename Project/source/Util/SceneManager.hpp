@@ -4,6 +4,7 @@
 #include "Util.hpp"
 #include "../Draw/PostPass.hpp"
 #include "../Draw/Camera.hpp"
+#include "../Draw/Light.hpp"
 
 #pragma warning(disable:4710)
 #pragma warning( push, 3 )
@@ -148,6 +149,8 @@ namespace Util {
 				if (this->m_NowScene) {
 					auto* PostPassParts = Draw::PostPassEffect::Instance();
 					PostPassParts->Reset();
+					auto* LightParts = DXLibRef::LightPool::Instance();
+					LightParts->Dispose();
 					this->m_NowScene->Init();
 					this->m_Phase = EnumScenePhase::Update;
 				}
@@ -157,6 +160,8 @@ namespace Util {
 					this->m_NowScene->Dispose();
 					auto* PostPassParts = Draw::PostPassEffect::Instance();
 					PostPassParts->Reset();
+					auto* LightParts = DXLibRef::LightPool::Instance();
+					LightParts->Dispose();
 				}
 				break;
 			default:

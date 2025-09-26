@@ -10,6 +10,7 @@
 #include "Util/Key.hpp"
 #include "Scene/TitleScene.hpp"
 #include "Scene/MainScene.hpp"
+#include "Draw/Light.hpp"
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Util::OptionParam::Create();
@@ -23,6 +24,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Util::LocalizePool::Create();
 	Camera::Camera3D::Create();
 	Draw::PostPassEffect::Create();
+	DXLibRef::LightPool::Create();
 
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* SceneMngr = Util::SceneManager::Instance();
@@ -98,6 +100,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 	}
+	DXLibRef::LightPool::Release();
 	Draw::PostPassEffect::Release();
 	Camera::Camera3D::Release();
 	Util::LocalizePool::Release();
