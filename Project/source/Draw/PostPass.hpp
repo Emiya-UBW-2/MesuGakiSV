@@ -47,16 +47,20 @@ namespace DXLibRef {
 				Screen_vertex[1].pos = VGet(static_cast<float>(xp2), static_cast<float>(yp1), 0.0f);
 				Screen_vertex[2].pos = VGet(static_cast<float>(xp1), static_cast<float>(yp2), 0.0f);
 				Screen_vertex[3].pos = VGet(static_cast<float>(xp2), static_cast<float>(yp2), 0.0f);
+				Screen_vertex[0].dif = GetColorU8(255, 255, 255, 255);
+				Screen_vertex[1].dif = GetColorU8(255, 255, 255, 255);
+				Screen_vertex[2].dif = GetColorU8(255, 255, 255, 255);
+				Screen_vertex[3].dif = GetColorU8(255, 255, 255, 255);
+				Screen_vertex[0].u = 0.0f; Screen_vertex[0].v = 0.0f;
+				Screen_vertex[1].u = 1.0f; Screen_vertex[1].v = 0.0f;
+				Screen_vertex[2].u = 0.0f; Screen_vertex[3].v = 1.0f;
+				Screen_vertex[3].u = 1.0f; Screen_vertex[2].v = 1.0f;
 
 				Screen_vertex[0].rhw = 1.0f;
 				Screen_vertex[1].rhw = 1.0f;
 				Screen_vertex[2].rhw = 1.0f;
 				Screen_vertex[3].rhw = 1.0f;
 
-				Screen_vertex[0].dif = GetColorU8(255, 255, 255, 255);
-				Screen_vertex[1].dif = GetColorU8(255, 255, 255, 255);
-				Screen_vertex[2].dif = GetColorU8(255, 255, 255, 255);
-				Screen_vertex[3].dif = GetColorU8(255, 255, 255, 255);
 				Screen_vertex[0].spc = GetColorU8(0, 0, 0, 0);
 				Screen_vertex[1].spc = GetColorU8(0, 0, 0, 0);
 				Screen_vertex[2].spc = GetColorU8(0, 0, 0, 0);
@@ -76,20 +80,26 @@ namespace DXLibRef {
 				Screen_vertex[5] = Screen_vertex[1];
 			}
 		};
+		// 影用の深度記録画像を作成した際のカメラのビュー行列と射影行列
+		struct LIGHTCAMERA_MATRIX {
+			MATRIX ViewMatrix;
+			MATRIX ProjectionMatrix;
+		};
 	private:
 		// シェーダーハンドル
-		int					m_PixelShaderhandle{ InvalidID };
+		int					m_Shaderhandle{ InvalidID };
 		// シェーダーに渡す追加パラメーターを配するハンドル
-		int					m_PixelShaderSendDispSizeHandle{ InvalidID };
-		std::array<int, 3>	m_PixelShadercbhandle{};
+		std::array<int, 3>	m_LightCameraMatrixHandle{};	// 影用の深度記録画像を作成した際のカメラのビュー行列と射影行列を設定するための定数バッファ
+		int					m_ShaderSendDispSizeHandle{ InvalidID };
+		std::array<int, 3>	m_Shadercbhandle{};
 		ScreenVertex		m_ScreenVertex;					// 頂点データ
 	public:
 		Shader2DController(void) noexcept {
 			// シェーダーハンドル
-			this->m_PixelShaderhandle = InvalidID;
+			this->m_Shaderhandle = InvalidID;
 			// シェーダーに渡す追加パラメーターを配するハンドル
-			this->m_PixelShaderSendDispSizeHandle = InvalidID;
-			for (auto& h : this->m_PixelShadercbhandle) {
+			this->m_ShaderSendDispSizeHandle = InvalidID;
+			for (auto& h : this->m_Shadercbhandle) {
 				h = InvalidID;
 			}
 		}
@@ -98,30 +108,46 @@ namespace DXLibRef {
 		}
 	public:
 		// 初期化
-		void			Init(const char* PixelShader) noexcept {
+		void			Init(const char* Shader) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
 			// ピクセルシェーダ―周り
-			this->m_PixelShaderSendDispSizeHandle = CreateShaderConstantBuffer(sizeof(float) * 4);
-			for (auto& h : this->m_PixelShadercbhandle) {
+			this->m_ShaderSendDispSizeHandle = CreateShaderConstantBuffer(sizeof(float) * 4);
+			for (auto& h : this->m_Shadercbhandle) {
 				h = CreateShaderConstantBuffer(sizeof(float) * 4);
 			}
-			this->m_PixelShaderhandle = LoadPixelShader(PixelShader);
+			this->m_Shaderhandle = LoadPixelShader(Shader);
+			// 影用の深度記録画像を作成した際のカメラのビュー行列と射影行列を設定するための定数バッファの作成
+			for (auto& h : m_LightCameraMatrixHandle) {
+				h = CreateShaderConstantBuffer(sizeof(LIGHTCAMERA_MATRIX));
+			}
 		}
 		// 後始末
 		void			Dispose(void) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
 			// ピクセルシェーダ―周り
-			DeleteShaderConstantBuffer(this->m_PixelShaderSendDispSizeHandle);
-			for (auto& h : this->m_PixelShadercbhandle) {
+			DeleteShaderConstantBuffer(this->m_ShaderSendDispSizeHandle);
+			for (auto& h : this->m_Shadercbhandle) {
 				DeleteShaderConstantBuffer(h);
 			}
-			DeleteShader(this->m_PixelShaderhandle);
+			DeleteShader(this->m_Shaderhandle);
 		}
 	public:
-		// ピクセルシェーダ―の2番目のレジスタに画面サイズの情報をセット
-		void			SetPixelDispSize(int dispx, int dispy) noexcept {
+		// ピクセルシェーダ―のSlot番目のレジスタに情報をセット(Slot>=4)
+		void			SetCameraMatrix(int Slot, const Util::Matrix4x4DX& View, const Util::Matrix4x4DX& Projection) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
-			auto& BufferHandle = this->m_PixelShaderSendDispSizeHandle;
+			auto& BufferHandle = m_LightCameraMatrixHandle[static_cast<size_t>(Slot - 4)];
+			// 設定したカメラのビュー行列と射影行列を取得しておく
+			LIGHTCAMERA_MATRIX* LightCameraMatrixConst = (LIGHTCAMERA_MATRIX*)GetBufferShaderConstantBuffer(BufferHandle);
+			LightCameraMatrixConst->ViewMatrix = View.get();
+			LightCameraMatrixConst->ProjectionMatrix = Projection.get();
+
+			UpdateShaderConstantBuffer(BufferHandle);
+			SetShaderConstantBuffer(BufferHandle, DX_SHADERTYPE_PIXEL, Slot);		// 影用深度記録画像を描画したときのカメラのビュー行列と射影行列を定数に設定する
+		}
+		// ピクセルシェーダ―の2番目のレジスタに画面サイズの情報をセット
+		void			SetDispSize(int dispx, int dispy) noexcept {
+			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
+			auto& BufferHandle = this->m_ShaderSendDispSizeHandle;
 			FLOAT2* dispsize = (FLOAT2*)GetBufferShaderConstantBuffer(BufferHandle);	// ピクセルシェーダー用の定数バッファのアドレスを取得
 			dispsize->u = static_cast<float>(dispx);
 			dispsize->v = static_cast<float>(dispy);
@@ -130,9 +156,9 @@ namespace DXLibRef {
 			this->m_ScreenVertex.SetScreenVertex(dispx, dispy);
 		}
 		// ピクセルシェーダ―のSlot番目のレジスタに情報をセット(Slot>=3)
-		void			SetPixelParam(int Slot, float param1, float param2, float param3, float param4) noexcept {
+		void			SetParam(int Slot, float param1, float param2, float param3, float param4) noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
-			auto& BufferHandle = this->m_PixelShadercbhandle[static_cast<size_t>(Slot - 3)];
+			auto& BufferHandle = this->m_Shadercbhandle[static_cast<size_t>(Slot - 3)];
 			FLOAT4* f4 = (FLOAT4*)GetBufferShaderConstantBuffer(BufferHandle);				// ピクセルシェーダー用の定数バッファのアドレスを取得
 			f4->x = param1;
 			f4->y = param2;
@@ -144,7 +170,7 @@ namespace DXLibRef {
 		// 3D空間に適用する場合の関数(引数に3D描画のラムダ式を代入)
 		void			Draw(void) const noexcept {
 			if (GetUseDirect3DVersion() != DX_DIRECT3D_11) { return; }
-			SetUsePixelShader(this->m_PixelShaderhandle);											// 使用するピクセルシェーダーをセット
+			SetUsePixelShader(this->m_Shaderhandle);											// 使用するピクセルシェーダーをセット
 			MV1SetUseOrigShader(TRUE);
 			DrawPolygon2DToShader(this->m_ScreenVertex.GetScreenVertex(), 2);
 			MV1SetUseOrigShader(FALSE);

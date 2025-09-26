@@ -14,13 +14,13 @@ namespace DXLibRef {
 	class PostPassSSAO : public PostPassEffect::PostPassBase {
 		static const int EXTEND = 4;
 	private:
-		Shader2DController				m_ShaderSSAO;		// シェーダー
+		Shader2DController				m_Shader;		// シェーダー
 	protected:
 		void		Load_Sub(void) noexcept override {
-			this->m_ShaderSSAO.Init("CommonData/shader/PS_SSAO.pso");
+			this->m_Shader.Init("CommonData/shader/PS_SSAO.pso");
 		}
 		void		Dispose_Sub(void) noexcept override {
-			this->m_ShaderSSAO.Dispose();
+			this->m_Shader.Dispose();
 		}
 		bool		IsActive_Sub(void) noexcept override {
 			auto* pOption = Util::OptionParam::Instance();
@@ -51,9 +51,9 @@ namespace DXLibRef {
 				pColorScreen->SetUseTextureToShader(0);
 				pNormalScreen->SetUseTextureToShader(1);
 				pDepthScreen->SetUseTextureToShader(2);
-				this->m_ShaderSSAO.SetPixelDispSize(xsizeEx, ysizeEx);
-				this->m_ShaderSSAO.SetPixelParam(3, 0.0f, Scale3DRate, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
-				this->m_ShaderSSAO.Draw();
+				this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
+				this->m_Shader.SetParam(3, 0.0f, Scale3DRate, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
+				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 				SetUseTextureToShader(1, InvalidID);
 				SetUseTextureToShader(2, InvalidID);
@@ -108,7 +108,7 @@ namespace DXLibRef {
 					int xr = xsizeEx * 30 / 100;
 					int yr = ysizeEx * 60 / 100;
 
-					DrawOval(xsizeEx / 2, ysizeEx / 2, xr, yr, GetColor(255,255,255), TRUE);
+					DrawOval(xsizeEx / 2, ysizeEx / 2, xr, yr, GetColor(255, 255, 255), TRUE);
 
 					int p = 1;
 					for (int r = 0; r < 255; r += p) {
@@ -159,10 +159,10 @@ namespace DXLibRef {
 					this->m_bkScreen2.SetUseTextureToShader(3);
 				}
 				this->m_bkScreen2.SetUseTextureToShader(4);
-				this->m_Shader.SetPixelDispSize(xsizeEx, ysizeEx);
-				this->m_Shader.SetPixelParam(3, static_cast<float>(RayInterval), Scale3DRate, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), DepthThreshold);
-				this->m_Shader.SetPixelCameraMatrix(4, PostPassParts->GetCamViewMat(), PostPassParts->GetCamProjectionMat());
-				this->m_Shader.SetPixelParam(5, static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect()), false/*cubemap*/ ? 1.f : 0.f, 0.f, 0.f);
+				this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
+				this->m_Shader.SetParam(3, static_cast<float>(RayInterval), Scale3DRate, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), DepthThreshold);
+				this->m_Shader.SetCameraMatrix(4, PostPassParts->GetCamViewMat(), PostPassParts->GetCamProjectionMat());
+				this->m_Shader.SetParam(5, static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect()), false/*cubemap*/ ? 1.f : 0.f, 0.f, 0.f);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 				SetUseTextureToShader(1, InvalidID);
@@ -221,8 +221,8 @@ namespace DXLibRef {
 				pNearScreen->SetUseTextureToShader(1);
 				pFarScreen->SetUseTextureToShader(2);
 				DepthPtr->SetUseTextureToShader(3);
-				this->m_Shader.SetPixelDispSize(xsize, ysize);
-				this->m_Shader.SetPixelParam(3, PostPassParts->Get_near_DoF(), PostPassParts->Get_far_DoF(), PostPassParts->Get_near_DoFMax(), PostPassParts->Get_far_DoFMin());
+				this->m_Shader.SetDispSize(xsize, ysize);
+				this->m_Shader.SetParam(3, PostPassParts->Get_near_DoF(), PostPassParts->Get_far_DoF(), PostPassParts->Get_near_DoFMax(), PostPassParts->Get_far_DoFMin());
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 				SetUseTextureToShader(1, InvalidID);
@@ -736,7 +736,7 @@ namespace DXLibRef {
 			TargetGraph->SetDraw_Screen();
 			{
 				ColorGraph->SetUseTextureToShader(0);
-				this->m_Shader.SetPixelDispSize(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
+				this->m_Shader.SetDispSize(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 			}
@@ -812,11 +812,11 @@ namespace DXLibRef {
 					default:
 						break;
 					}
-					this->m_Shader.SetPixelDispSize(xsizeEx, ysizeEx);
-					this->m_Shader.SetPixelParam(3, Power, 0.f, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
-					this->m_Shader.SetPixelCameraMatrix(4, PostPassParts->GetCamViewMat().inverse(), PostPassParts->GetCamProjectionMat().inverse());
-					this->m_Shader.SetPixelCameraMatrix(5, PostPassParts->GetShadowDraw()->GetCamViewMatrix(false), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(false));
-					this->m_Shader.SetPixelCameraMatrix(6, PostPassParts->GetShadowDraw()->GetCamViewMatrix(true), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(true));
+					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
+					this->m_Shader.SetParam(3, Power, 0.f, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.SetCameraMatrix(4, PostPassParts->GetCamViewMat().inverse(), PostPassParts->GetCamProjectionMat().inverse());
+					this->m_Shader.SetCameraMatrix(5, PostPassParts->GetShadowDraw()->GetCamViewMatrix(false), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(false));
+					this->m_Shader.SetCameraMatrix(6, PostPassParts->GetShadowDraw()->GetCamViewMatrix(true), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(true));
 					this->m_Shader.Draw();
 				}
 				SetUseTextureToShader(0, InvalidID);
@@ -873,8 +873,8 @@ namespace DXLibRef {
 			// レンズ
 			TargetGraph->SetDraw_Screen(false);
 			{
-				this->m_Shader.SetPixelDispSize(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
-				this->m_Shader.SetPixelParam(3, PostPassParts->zoom_xpos(), PostPassParts->zoom_ypos(), PostPassParts->zoom_size(), PostPassParts->zoom_lens());
+				this->m_Shader.SetDispSize(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
+				this->m_Shader.SetParam(3, PostPassParts->zoom_xpos(), PostPassParts->zoom_ypos(), PostPassParts->zoom_size(), PostPassParts->zoom_lens());
 				ColorGraph->SetUseTextureToShader(0);	// 使用するテクスチャをセット
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
@@ -907,8 +907,8 @@ namespace DXLibRef {
 			TargetGraph->SetDraw_Screen(false);
 			{
 				ColorGraph->SetUseTextureToShader(0);	// 使用するテクスチャをセット
-				this->m_Shader.SetPixelDispSize(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
-				this->m_Shader.SetPixelParam(3, PostPassParts->GetBlackoutPer(), 0.f, 0.f, 0.f);
+				this->m_Shader.SetDispSize(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
+				this->m_Shader.SetParam(3, PostPassParts->GetBlackoutPer(), 0.f, 0.f, 0.f);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 			}
