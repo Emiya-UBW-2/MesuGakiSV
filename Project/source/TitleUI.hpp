@@ -11,7 +11,7 @@
 class TitleUI {
 private:
 	Draw::DrawUISystem* m_DrawUI{ nullptr };
-	int				m_UIBase = InvalidID;
+	int				m_UIBase{ InvalidID };
 	int				m_ButtonID[4] = { InvalidID,InvalidID,InvalidID,InvalidID };
 	bool			m_IsActive{};
 	char		padding[3]{};

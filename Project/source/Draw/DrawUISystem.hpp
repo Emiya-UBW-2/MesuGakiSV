@@ -51,14 +51,14 @@ namespace Draw {
 	};
 
 	struct Param2D {
-		Util::VECTOR2D	OfsNoRad = Util::VECTOR2D::vget(0.f, 0.f);
+		Util::VECTOR2D	OfsNoRad{ Util::VECTOR2D::vget(0.f, 0.f) };
 		Util::VECTOR2D	Ofs{};
 		Util::VECTOR2D	Size{};
-		Util::VECTOR2D	Scale = Util::VECTOR2D::vget(1.f, 1.f);
-		Util::VECTOR2D	Center = Util::VECTOR2D::vget(0.f, 0.f);
-		float			Rad = Util::deg2rad(0.f);
+		Util::VECTOR2D	Scale{ Util::VECTOR2D::vget(1.f, 1.f) };
+		Util::VECTOR2D	Center{ Util::VECTOR2D::vget(0.f, 0.f) };
+		float			Rad{ Util::deg2rad(0.f) };
 		char			padding[4]{};
-		Util::ColorRGBA	Color = Util::ColorRGBA(255, 255, 255, 255);
+		Util::ColorRGBA	Color{ Util::ColorRGBA(255, 255, 255, 255) };
 	};
 
 	class DrawUISystem;
@@ -121,9 +121,9 @@ namespace Draw {
 			char		padding[7]{};
 		};
 	private:
-		std::vector<PartsParam>	m_PartsParam;
-		std::vector<AnimData>	m_AnimData;
-		Param2D					m_BasePositionParam = Param2D();
+		std::vector<PartsParam>	m_PartsParam{};
+		std::vector<AnimData>	m_AnimData{};
+		Param2D					m_BasePositionParam{ Param2D() };
 		int						m_AnimDataLastSelect{};
 		int						m_Frame{};
 		bool					m_IsSelect{};

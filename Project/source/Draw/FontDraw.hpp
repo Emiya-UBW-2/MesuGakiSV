@@ -1,4 +1,8 @@
 ﻿#pragma once
+#pragma warning(disable:4464)
+#pragma warning(disable:4514)
+#pragma warning(disable:4668)
+#pragma warning(disable:5039)
 #define NOMINMAX
 #pragma warning( push, 3 )
 #include "DxLib.h"
@@ -7,27 +11,21 @@
 #include <stdexcept>
 #include <memory>
 #pragma warning( pop )
-
 #include "../Util/Enum.hpp"
-
-#pragma warning(disable:4464)
-#pragma warning(disable:4514)
-#pragma warning(disable:4668)
-#pragma warning(disable:5039)
 #include "../Util/Util.hpp"
 
 namespace Draw {
-	enum class FontXCenter : int {
+	enum class FontXCenter :size_t {
 		LEFT,
 		MIDDLE,
 		RIGHT,
 	};
-	enum class FontYCenter : int {
+	enum class FontYCenter :size_t {
 		TOP,
 		MIDDLE,
 		BOTTOM,
 	};
-	enum class FontType {
+	enum class FontType :size_t {
 		MS_Gothic,			// MSゴシック
 		DIZ_UD_Gothic,		// DIZ UD ゴシック
 	};
@@ -197,8 +195,7 @@ namespace Draw {
 		// 
 		int				m_scaleType{ DX_DRAWMODE_BILINEAR };
 		int				m_CommonSize{ 0 };// フォントハンドル固有のサイズ
-		char		padding[4]{};
-		FontHandle		m_Handle;
+		FontHandle		m_Handle{};
 	public:
 		Fonthave(FontType type, int fontSize, int edgeSize) noexcept;
 		Fonthave(const Fonthave&) = delete;
@@ -249,7 +246,7 @@ namespace Draw {
 		friend class Util::SingletonBase<FontPool>;
 	public:
 	private:
-		std::vector<std::unique_ptr<Fonthave>>	m_Pools;
+		std::vector<std::unique_ptr<Fonthave>>	m_Pools{};
 	private:
 		FontPool(void) noexcept {}
 		FontPool(const FontPool&) = delete;

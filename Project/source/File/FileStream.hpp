@@ -22,7 +22,7 @@ namespace File {
 	//ファイル読み込み
 	class InputFileStream {
 #if USE_DXLIB
-		int mdata = InvalidID;
+		int mdata{ InvalidID };
 #else
 		std::ifstream stream{};
 #endif

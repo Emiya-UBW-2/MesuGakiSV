@@ -18,8 +18,8 @@
 
 namespace Draw {
 	class Camera3DInfo {
-		Util::VECTOR3D	m_pos;
-		Util::VECTOR3D	m_vec;
+		Util::VECTOR3D	m_pos{};
+		Util::VECTOR3D	m_vec{};
 		Util::VECTOR3D	m_up{ Util::VECTOR3D::up() };	// カメラ
 		float		m_fov{ DX_PI_F / 2 };		// カメラ
 		float		m_near{ 0.1f };
@@ -38,9 +38,7 @@ namespace Draw {
 			this->m_up = cam_up;
 		}
 		void			SetNowCamPos(void) noexcept {
-			this->m_pos = DxLib::GetCameraPosition();
-			this->m_vec = DxLib::GetCameraTarget();
-			this->m_up = DxLib::GetCameraUpVector();
+			SetCamPos(DxLib::GetCameraPosition(), DxLib::GetCameraTarget(), DxLib::GetCameraUpVector());
 		}
 		void			SetCamInfo(float cam_fov_, float cam_near_, float cam_far_) noexcept {
 			this->m_fov = cam_fov_;

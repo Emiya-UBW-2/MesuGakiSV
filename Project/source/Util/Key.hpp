@@ -665,11 +665,11 @@ namespace Util {
 		std::array<std::array<std::vector<KeyPair>, 2>, static_cast<size_t>(InputType::Max)>	m_MenuKey{};
 		std::array<std::array<std::vector<KeyPair>, 2>, static_cast<size_t>(InputType::Max)>	m_BattleKey{};
 		InputType				m_InputType{ InputType::XInput };
-		bool					m_DeviceChangeSwitch = true;
+		bool					m_DeviceChangeSwitch{ true };
 		char		padding[3]{};
-		DxLib::XINPUT_STATE			m_inputXInput;
+		DxLib::XINPUT_STATE			m_inputXInput{};
 		char		padding2[2]{};
-		DxLib::DINPUT_JOYSTATE			m_inputDInput;
+		DxLib::DINPUT_JOYSTATE			m_inputDInput{};
 	private:
 		//コンストラクタ
 		KeyParam(void) noexcept {

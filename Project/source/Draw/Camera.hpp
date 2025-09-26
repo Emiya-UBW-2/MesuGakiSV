@@ -17,10 +17,9 @@ namespace Camera {
 		float						m_SendCamShakeTime{ 1.f };
 		float						m_SendCamShakePower{ 1.f };
 		float						m_CamShake{ 0.f };
-		Util::VECTOR3D					m_CamShake1;
-		Util::VECTOR3D					m_CamShake2;
-
-		Draw::Camera3DInfo				m_MainCamera;				// カメラ
+		Util::VECTOR3D				m_CamShake1{};
+		Util::VECTOR3D				m_CamShake2{};
+		Draw::Camera3DInfo			m_MainCamera{};
 	public:
 		const auto& GetMainCamera(void) const noexcept { return this->m_MainCamera; }
 		auto& SetMainCamera(void) noexcept { return this->m_MainCamera; }

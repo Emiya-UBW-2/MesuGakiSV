@@ -32,8 +32,8 @@ namespace Draw {
 	private:
 		friend class Util::SingletonBase<MainDraw>;
 	private:
-		LONGLONG	m_TickTime = 0;
-		LONGLONG	m_StartTime = 0;
+		LONGLONG	m_TickTime{ 0 };
+		LONGLONG	m_StartTime{ 0 };
 		int			m_ScreenWidth{ 960 };			//スクリーンサイズX
 		int			m_ScreenHeight{ 720 };			//スクリーンサイズY
 		int			m_WindowDrawWidth{ 960 };		//ウィンドウサイズX
@@ -45,10 +45,10 @@ namespace Draw {
 		int			m_MouseY{ InvalidID };
 		int			m_DispWidth{ 1920 };			//UI描画などの基準X
 		int			m_DispHeight{ 1080 };			//UI描画などの基準Y
-		int			m_CalculateTick = 60;			//更新レート
-		int			m_UpdateTickCount = 1;
-		int			m_FPSLimit = 60;			//更新レート
-		bool		m_WaitVSync = true;
+		int			m_CalculateTick{ 60 };			//更新レート
+		int			m_UpdateTickCount{ 1 };
+		int			m_FPSLimit{ 60 };				//更新レート
+		bool		m_WaitVSync{ true };
 		char		padding[3]{};
 	private:
 		static const int		BaseDPI = 96;

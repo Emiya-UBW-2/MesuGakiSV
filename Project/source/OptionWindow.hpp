@@ -25,10 +25,10 @@ private:
 
 	Draw::DrawUISystem*	m_DrawUI{ nullptr };
 	int				m_TabButton[4] = { InvalidID,InvalidID,InvalidID,InvalidID };
-	int				m_UIBase = InvalidID;
-	int				m_CloseButton = InvalidID;
-	int				m_NowSelectTab = 0;
-	int				m_NowTabMax = 0;
+	int				m_UIBase{ InvalidID };
+	int				m_CloseButton{ InvalidID };
+	int				m_NowSelectTab{ 0 };
+	int				m_NowTabMax{ 0 };
 	ParamButton		m_Param[m_ParamMax]{};
 	int				m_LanguagePrev{};
 	char		padding[4]{};

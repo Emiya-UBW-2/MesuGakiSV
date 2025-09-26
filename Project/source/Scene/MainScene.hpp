@@ -12,7 +12,7 @@
 #include "../Draw/Camera.hpp"
 
 class MainScene : public Util::SceneBase {
-	int ModelID = InvalidID;
+	int ModelID{ InvalidID };
 	char		padding[4]{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
