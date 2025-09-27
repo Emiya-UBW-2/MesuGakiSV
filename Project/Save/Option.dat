@@ -1,5 +1,5 @@
 VSync=False
-FPSLimit=60
+FPSLimit=1000
 WindowMode=Window
 GraphicsPreset=High
 DrawScale=100
@@ -11,8 +11,8 @@ SSAO=True
 Fov=90
 ScreenEffect=True
 Distortion=False
-Reflection=Middle
-MotionBlur=True
+Reflection=Low
+MotionBlur=False
 AntiAliasing=True
 GodRay=False
 MasterVolume=50

@@ -55,11 +55,9 @@ Texture2D g_Register1MapTexture : register(t1); // 法線マップテクスチャ
 SamplerState g_Register2MapSampler : register(s2); // 深度マップサンプラ
 Texture2D g_Register2MapTexture : register(t2); // 深度マップテクスチャ
 
-SamplerState FilterSampler		: register(s3);
-Texture2D  FilterTexture		: register(t3);
-
 //関数
 float4 GetTexColor0(float2 texCoord, int2 offset = int2(0, 0)) {
+    texCoord.y *= -1.f;
 	return g_Register0MapTexture.Sample(g_Register0MapSampler, texCoord, offset);
 }
 float4 GetTexColor1(float2 texCoord, int2 offset = int2(0, 0)) {
@@ -105,15 +103,15 @@ bool Hitcheck(float3 position) {
 		) {
 		float depth = GetTexColor2(screenUV).r;
 		float z = depth / (caminfo.y * 0.005f);
-        return (position.z < z && z < position.z + (caminfo.y*1.3f));
+        return (position.z < z && z < position.z + (caminfo.y * 1.0f));
     }
 	else {
 		return false;
 	}
 }
 
-static float maxLength = 12.5f *300.f; // 反射最大距離
-static int BinarySearchIterations = 8; //2分探索最大数
+static float maxLength = 12.5f *100.f; // 反射最大距離
+static int BinarySearchIterations = 24; //2分探索最大数
 
 float4 applySSR(float3 normal, float2 screenUV) {
     float pixelStride;
@@ -166,7 +164,10 @@ PS_OUTPUT main(PS_INPUT PSInput) {
 	//戻り値
 	PS_OUTPUT PSOutput;
 	//反射をどれだけ見せるか
-    float Per = GetTexColor2(PSInput.TextureCoord0).g * FilterTexture.Sample(FilterSampler, PSInput.TextureCoord0).r;
+    float uvFactor = 2.0 * length(PSInput.TextureCoord0 - float2(0.5, 0.5));
+    uvFactor *= uvFactor;
+    float edge = max(0.0, 1.0 - uvFactor);
+    float Per = GetTexColor2(PSInput.TextureCoord0).g * edge;
 	//ノーマル座標取得
     float3 normal = GetTexColor1(PSInput.TextureCoord0).xyz * 2.f - 1.f;
 	

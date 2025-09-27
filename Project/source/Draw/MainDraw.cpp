@@ -136,6 +136,12 @@ namespace Draw {
 				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2, this->m_WindowDrawHeight / 2 + this->m_WindowHeight / 2,
 				false);
 			DxLib::SetDrawMode(prev);
+
+			FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontXCenter::RIGHT, FontYCenter::TOP,
+				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2,
+				DxLib::GetColor(0, 192, 0), DxLib::GetColor(0, 32, 0),
+				"FPS:[%4.1f]\n", DxLib::GetFPS());
 		}
 		DxLib::ScreenFlip();
 		if (!this->m_WaitVSync) {

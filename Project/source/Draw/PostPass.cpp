@@ -106,9 +106,7 @@ namespace Draw {
 		}
 	};
 	class PostPassSSR : public PostPassEffect::PostPassBase {
-		static const int EXTEND = 4;
 	private:
-		Draw::GraphHandle				m_bkScreen2;	// ブレンド
 		Shader2DController				m_Shader;		// シェーダー
 	public:
 		PostPassSSR(void) noexcept {}
@@ -120,31 +118,9 @@ namespace Draw {
 		virtual ~PostPassSSR(void) noexcept {}
 	protected:
 		void		Load_Sub(void) noexcept override {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
-			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
-			{
-				this->m_bkScreen2.Make(xsizeEx, ysizeEx, false);
-				this->m_bkScreen2.SetDraw_Screen(false);
-				this->m_bkScreen2.FillGraph(0, 0, 0);
-				{
-					int xr = xsizeEx * 30 / 100;
-					int yr = ysizeEx * 60 / 100;
-
-					DxLib::DrawOval(xsizeEx / 2, ysizeEx / 2, xr, yr, DxLib::GetColor(255, 255, 255), TRUE);
-
-					int p = 1;
-					for (int r = 0; r < 255; r += p) {
-						uint8_t c = static_cast<uint8_t>(255 - static_cast<int>(std::powf(static_cast<float>(255 - r) / 255.f, 1.5f) * 255.f));
-
-						DxLib::DrawOval(xsizeEx / 2, ysizeEx / 2, xr - r / p, yr - r / p, DxLib::GetColor(c, c, c), FALSE, 2);
-					}
-				}
-			}
 			this->m_Shader.Init("CommonData/shader/PS_SSR.pso");
 		}
 		void		Dispose_Sub(void) noexcept override {
-			this->m_bkScreen2.Dispose();
 			this->m_Shader.Dispose();
 		}
 		bool		IsActive_Sub(void) noexcept override {
@@ -160,6 +136,7 @@ namespace Draw {
 			int ReflectionLevel = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect();
 
 			if (ReflectionLevel == 1) {
+				static const int EXTEND = 8;
 
 				int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
 				int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
@@ -176,14 +153,12 @@ namespace Draw {
 					pColorScreen->SetUseTextureToShader(0);
 					pNormalScreen->SetUseTextureToShader(1);
 					pDepthScreen->SetUseTextureToShader(2);
-					this->m_bkScreen2.SetUseTextureToShader(3);
 					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
-					this->m_Shader.SetParam(3, 200.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.SetParam(3, 70.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
 					this->m_Shader.Draw();
 					SetUseTextureToShader(0, InvalidID);
 					SetUseTextureToShader(1, InvalidID);
 					SetUseTextureToShader(2, InvalidID);
-					SetUseTextureToShader(3, InvalidID);
 				}
 				pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 200);
 				TargetGraph->SetDraw_Screen(false);
@@ -197,6 +172,7 @@ namespace Draw {
 				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
 			}
 			else if (ReflectionLevel == 2) {
+				static const int EXTEND = 4;
 
 				int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
 				int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
@@ -213,14 +189,12 @@ namespace Draw {
 					pColorScreen->SetUseTextureToShader(0);
 					pNormalScreen->SetUseTextureToShader(1);
 					pDepthScreen->SetUseTextureToShader(2);
-					this->m_bkScreen2.SetUseTextureToShader(3);
 					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
-					this->m_Shader.SetParam(3, 200.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.SetParam(3, 70.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
 					this->m_Shader.Draw();
 					SetUseTextureToShader(0, InvalidID);
 					SetUseTextureToShader(1, InvalidID);
 					SetUseTextureToShader(2, InvalidID);
-					SetUseTextureToShader(3, InvalidID);
 				}
 				pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 200);
 				TargetGraph->SetDraw_Screen(false);
@@ -234,6 +208,7 @@ namespace Draw {
 				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
 			}
 			else if (ReflectionLevel == 3) {
+				static const int EXTEND = 2;
 
 				int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
 				int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
@@ -250,14 +225,12 @@ namespace Draw {
 					pColorScreen->SetUseTextureToShader(0);
 					pNormalScreen->SetUseTextureToShader(1);
 					pDepthScreen->SetUseTextureToShader(2);
-					this->m_bkScreen2.SetUseTextureToShader(3);
 					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
-					this->m_Shader.SetParam(3, 200.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.SetParam(3, 70.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
 					this->m_Shader.Draw();
 					SetUseTextureToShader(0, InvalidID);
 					SetUseTextureToShader(1, InvalidID);
 					SetUseTextureToShader(2, InvalidID);
-					SetUseTextureToShader(3, InvalidID);
 				}
 				pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 200);
 				TargetGraph->SetDraw_Screen(false);
