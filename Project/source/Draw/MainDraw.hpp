@@ -43,6 +43,8 @@ namespace Draw {
 		GraphHandle	m_BufferScreen{};
 		int			m_MouseX{ InvalidID };
 		int			m_MouseY{ InvalidID };
+		int			m_RenderDispWidth{ 1920 };			//UI描画などの基準X
+		int			m_RenderDispHeight{ 1080 };			//UI描画などの基準Y
 		int			m_DispWidth{ 1920 };			//UI描画などの基準X
 		int			m_DispHeight{ 1080 };			//UI描画などの基準Y
 		int			m_CalculateTick{ 60 };			//更新レート
@@ -50,6 +52,8 @@ namespace Draw {
 		int			m_FPSLimit{ 60 };				//更新レート
 		bool		m_WaitVSync{ true };
 		char		padding[3]{};
+		float		m_CalcTimer{};
+		float		m_DrawTimer{};
 	private:
 		static const int		BaseDPI = 96;
 		static int GetDPI(void) noexcept {
@@ -68,6 +72,9 @@ namespace Draw {
 		MainDraw& operator=(MainDraw&&) = delete;
 		~MainDraw(void) noexcept;
 	public://Getter
+		auto	GetRenderDispWidth(void) const noexcept { return this->m_RenderDispWidth; }//描画範囲のX座標
+		auto	GetRenderDispHeight(void) const noexcept { return this->m_RenderDispHeight; }//描画範囲のY座標
+
 		auto	GetDispWidth(void) const noexcept { return this->m_DispWidth; }//描画範囲のX座標
 		auto	GetDispHeight(void) const noexcept { return this->m_DispHeight; }//描画範囲のY座標
 		auto	GetMousePositionX(void) const noexcept { return this->m_MouseX; }//マウスのX座標
@@ -132,7 +139,7 @@ namespace Draw {
 			return DxLib::ProcessMessage() == 0;
 		}
 		void		Update(void) noexcept;
-		void		StartDraw(void) const noexcept;
+		void		StartDraw(void) noexcept;
 		void		EndDraw(void) noexcept;
 	};
 }

@@ -16,6 +16,10 @@
 class MainScene : public Util::SceneBase {
 	int ModelID{ InvalidID };
 	int MapID{ InvalidID };
+	int SkyBoxID{ InvalidID };
+
+	float m_XRad = 0.f;
+	float m_YRad = 0.f;
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -26,7 +30,8 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {
 		ModelID = DxLib::MV1LoadModel("data/Soldier/model_DISABLE.mv1");
-		MapID = DxLib::MV1LoadModel("data/Map/model.mv1");
+		MapID = DxLib::MV1LoadModel("data/Map/model.mqoz");
+		SkyBoxID = DxLib::MV1LoadModel("data/SkyBox/model.mqoz");
 
 		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(1.f, -1.f, 1.f).normalized();
 
@@ -39,6 +44,11 @@ protected:
 		auto& FirstLight = LightParts->Put(DXLibRef::LightType::DIRECTIONAL, LightVec);
 		SetLightAmbColorHandle(FirstLight.get(), GetColorF(0.25f, 0.25f, 0.25f, 1.0f));
 		SetLightDifColorHandle(FirstLight.get(), GetColorF(1.0f, 1.0f, 1.0f, 1.0f));
+
+		//DoF
+		PostPassParts->Set_DoFNearFar(
+			(Scale3DRate * 0.15f), Scale3DRate * 5.0f,
+			(Scale3DRate * 0.05f), Scale3DRate * 30.0f);
 	}
 	void Update_Sub(void) noexcept override {
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -46,15 +56,38 @@ protected:
 			SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Title)));
 			SceneBase::SetEndScene();
 		}
+		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::A)) {
+			m_YRad -= Util::deg2rad(60.f) / 60.f;
+		}
+		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::D)) {
+			m_YRad += Util::deg2rad(60.f) / 60.f;
+		}
+
+		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::W)) {
+			m_XRad += Util::deg2rad(60.f) / 60.f;
+		}
+		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::S)) {
+			m_XRad -= Util::deg2rad(60.f) / 60.f;
+		}
+
+		Util::VECTOR3D CamPos = Util::VECTOR3D::vget(0, 1.5f, -5.f) * Scale3DRate;
+		CamPos = Util::Matrix3x3::Vtrans(CamPos,
+			Util::Matrix3x3::RotAxis(Util::VECTOR3D::right(), m_XRad) * 
+			Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), m_YRad)
+		);
+
 		auto* CameraParts = Camera::Camera3D::Instance();
-		CameraParts->SetCamPos(Util::VECTOR3D::vget(0, 1.5f * Scale3DRate, -5.f * Scale3DRate), Util::VECTOR3D::vget(0, 0.5f * Scale3DRate, 0.f), Util::VECTOR3D::vget(0, 1.f, 0));
-		CameraParts->SetCamInfo(Util::deg2rad(45), 0.5f, 80.f);
+		CameraParts->SetCamPos(
+			CamPos,
+			Util::VECTOR3D::vget(0, 0.5f, 0.f) * Scale3DRate,
+			Util::VECTOR3D::vget(0, 1.f, 0));
+		CameraParts->SetCamInfo(Util::deg2rad(45), 0.5f, Scale3DRate * 30.0f);
 
 	}
 	void BGDraw_Sub(void) noexcept override {
-		auto* DrawerMngr = Draw::MainDraw::Instance();
-		DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), DxLib::GetColor(100, 150, 255), TRUE);
-
+		DxLib::SetUseLighting(FALSE);
+		DxLib::MV1DrawModel(SkyBoxID);
+		DxLib::SetUseLighting(TRUE);
 	}
 	void Draw_Sub(void) noexcept override {
 		DxLib::MV1DrawModel(MapID);
@@ -66,6 +99,8 @@ protected:
 	}
 
 	void Dispose_Sub(void) noexcept override {
+		DxLib::MV1DeleteModel(SkyBoxID);
+		SkyBoxID = InvalidID;
 		DxLib::MV1DeleteModel(MapID);
 		MapID = InvalidID;
 		DxLib::MV1DeleteModel(ModelID);

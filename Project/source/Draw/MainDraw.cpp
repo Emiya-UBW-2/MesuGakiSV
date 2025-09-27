@@ -83,6 +83,9 @@ namespace Draw {
 		}
 		SetWaitVSync(pOption->GetParam(pOption->GetOptionType(Util::OptionType::VSync))->IsActive());
 		this->m_FPSLimit = std::stoi(pOption->GetParam(pOption->GetOptionType(Util::OptionType::FPSLimit))->GetValueNow());
+
+		this->m_RenderDispWidth = this->m_DispWidth * pOption->GetParam(pOption->GetOptionType(Util::OptionType::DrawScale))->GetSelect() / 100;
+		this->m_RenderDispHeight = this->m_DispHeight * pOption->GetParam(pOption->GetOptionType(Util::OptionType::DrawScale))->GetSelect() / 100;
 	}
 
 	void MainDraw::Update(void) noexcept {
@@ -118,13 +121,15 @@ namespace Draw {
 		this->m_MouseX = (-(this->m_WindowDrawWidth - this->m_WindowWidth) / 2 + this->m_MouseX) * GetDispWidth() / this->m_WindowWidth;
 		this->m_MouseY = (-(this->m_WindowDrawHeight - this->m_WindowHeight) / 2 + this->m_MouseY) * GetDispHeight() / this->m_WindowHeight;
 	}
-	void MainDraw::StartDraw(void) const noexcept {
+	void MainDraw::StartDraw(void) noexcept {
+		if (this->m_UpdateTickCount > 0) {
+			this->m_CalcTimer = static_cast<float>(DxLib::GetNowHiPerformanceCount() - this->m_StartTime) / 1000.f / static_cast<float>(this->m_UpdateTickCount);
+		}
 		this->m_BufferScreen.SetDraw_Screen();
 	}
 	void MainDraw::EndDraw(void) noexcept {
-#if _DEBUG
-		//デバッグ表示
-		DxLib::printfDx("FPS:[%4.1f]\n", DxLib::GetFPS());
+#if _DEBUG		//デバッグ表示
+		//DxLib::printfDx("FPS:[%4.1f]\n", DxLib::GetFPS());
 #endif
 		DxLib::SetDrawScreen(DX_SCREEN_BACK);
 		DxLib::ClearDrawScreen();
@@ -139,12 +144,31 @@ namespace Draw {
 
 			FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
 				FontXCenter::RIGHT, FontYCenter::TOP,
-				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2,
+				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2 - 32, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2 + 32 + 24 * 0,
 				DxLib::GetColor(0, 192, 0), DxLib::GetColor(0, 32, 0),
-				"FPS:[%4.1f]\n", DxLib::GetFPS());
+				"%05.2f FPS", DxLib::GetFPS());
+
+			FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontXCenter::RIGHT, FontYCenter::TOP,
+				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2 - 32, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2 + 32 + 24 * 1,
+				DxLib::GetColor(0, 192, 0), DxLib::GetColor(0, 32, 0),
+				"Calc %05.2f ms", this->m_CalcTimer);
+
+			FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontXCenter::RIGHT, FontYCenter::TOP,
+				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2 - 32, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2 + 32 + 24 * 2,
+				DxLib::GetColor(0, 192, 0), DxLib::GetColor(0, 32, 0),
+				"Draw %05.2f ms", this->m_DrawTimer);
+
+			FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontXCenter::RIGHT, FontYCenter::TOP,
+				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2 - 32, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2 + 32 + 24 * 3,
+				DxLib::GetColor(0, 192, 0), DxLib::GetColor(0, 32, 0),
+				"DrawCall %3d", DxLib::GetDrawCallCount());
 		}
 		DxLib::ScreenFlip();
 		if (!this->m_WaitVSync) {
+			this->m_DrawTimer = static_cast<float>(DxLib::GetNowHiPerformanceCount() - this->m_StartTime) / 1000.f - this->m_CalcTimer;
 			// 4msだけスリープ
 			while ((DxLib::GetNowHiPerformanceCount() - this->m_StartTime) < static_cast<LONGLONG>(1000 * (1000 / this->m_FPSLimit - 4))) {
 				if (DxLib::ProcessMessage() != 0) { return; }

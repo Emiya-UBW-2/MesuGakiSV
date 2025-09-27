@@ -193,12 +193,12 @@ void OptionWindow::Update(void) noexcept {
 					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
 						Draw::MainDraw::Instance()->FlipSetting();
-						Draw::PostPassEffect::Instance()->UpdateBuffer();
+						Draw::PostPassEffect::Instance()->Reset();
 					}
 					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
 						Draw::MainDraw::Instance()->FlipSetting();
-						Draw::PostPassEffect::Instance()->UpdateBuffer();
+						Draw::PostPassEffect::Instance()->Reset();
 					}
 				}
 			}

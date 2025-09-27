@@ -392,7 +392,7 @@ namespace Draw {
 		friend class Util::SingletonBase<PostPassScreenBufferPool>;
 	private:
 		class PostPassScreenBuffer {
-			static const int			m_Size = 3;
+			static const int			m_Size = 4;
 		private:
 			std::array<Draw::GraphHandle, m_Size>	m_Screen{};
 			int										m_xSize{};
@@ -650,8 +650,8 @@ namespace Draw {
 			void			Init(void) noexcept {
 				auto* DrawerMngr = Draw::MainDraw::Instance();
 
-				int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
-				int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+				int xsizeEx = DrawerMngr->GetRenderDispWidth() / EXTEND;
+				int ysizeEx = DrawerMngr->GetRenderDispHeight() / EXTEND;
 
 				this->m_BaseShadowHandle.Make(xsizeEx, ysizeEx, TRUE);
 				int size = 2 << 10;
@@ -705,17 +705,24 @@ namespace Draw {
 				this->m_BaseShadowHandle.GraphBlend(this->m_DepthBaseScreenHandle, 255, DX_GRAPH_BLEND_RGBA_SELECT_MIX,
 					DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_G, DX_RGBA_SELECT_SRC_R);
 			}
-			bool			UpdateActive(void) noexcept {
-				auto* pOption = Util::OptionParam::Instance();
-				bool shadow = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0;
+			void			SetActive(bool shadow) noexcept {
 				if (this->m_PrevShadow != shadow) {
 					this->m_PrevShadow = shadow;
 					if (shadow) {
 						Init();
-						return true;
 					}
 					else {
 						Dispose();
+					}
+				}
+			}
+			bool			UpdateActive(void) noexcept {
+				auto* pOption = Util::OptionParam::Instance();
+				bool shadow = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0;
+				if (this->m_PrevShadow != shadow) {
+					SetActive(shadow);
+					if (shadow) {
+						return true;
 					}
 				}
 				return false;
@@ -755,7 +762,7 @@ namespace Draw {
 			void			Draw(void) noexcept {
 				auto* DrawerMngr = Draw::MainDraw::Instance();
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-				this->m_BaseShadowHandle.DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+				this->m_BaseShadowHandle.DrawExtendGraph(0, 0, DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight(), true);
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 				//this->m_DepthBaseScreenHandle.DrawExtendGraph(0, 0,1080,1080, true);
 			}
@@ -865,14 +872,7 @@ namespace Draw {
 		void		Init(void) noexcept {
 			PostPassScreenBufferPool::Create();
 			//
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			auto Prev = DxLib::GetCreateDrawValidGraphZBufferBitDepth();
-			DxLib::SetCreateDrawValidGraphZBufferBitDepth(24);
-			this->m_BufferScreen.Make(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
-			DxLib::SetCreateDrawValidGraphZBufferBitDepth(Prev);
 			this->m_ShadowDraw = std::make_unique<ShadowDraw>();
-			// 影生成
-			UpdateShadowActive();
 		}
 		void		Dispose(void) noexcept {
 			PostPassScreenBufferPool::Release();
@@ -889,7 +889,7 @@ namespace Draw {
 				this->m_IsActiveGBuffer = ActiveGBuffer;
 				if (this->m_IsActiveGBuffer) {
 					auto* DrawerMngr = Draw::MainDraw::Instance();
-					this->m_Gbuffer.Load(DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight());
+					this->m_Gbuffer.Load(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight());
 				}
 				else {
 					this->m_Gbuffer.Dispose();
@@ -1001,8 +1001,16 @@ namespace Draw {
 				if (!P) { continue; }
 				P->UpdateActive(false);
 			}
+			this->m_ShadowDraw->SetActive(false);
 			UpdateBuffer();
 			ResetAllParams();
+			UpdateShadowActive();
+
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			auto Prev = DxLib::GetCreateDrawValidGraphZBufferBitDepth();
+			DxLib::SetCreateDrawValidGraphZBufferBitDepth(24);
+			this->m_BufferScreen.Make(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight(), true);
+			DxLib::SetCreateDrawValidGraphZBufferBitDepth(Prev);
 		}
 	};
 };
