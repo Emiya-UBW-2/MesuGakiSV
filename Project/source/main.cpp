@@ -57,6 +57,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowFarDraw3D(); }, Pos, true);
 				}
 				PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowDraw3D(); }, CameraParts->GetCameraForDraw().GetCamPos(), false);
+				PostPassParts->SetDrawShadow([]() { Util::SceneManager::Instance()->Draw3D(); }, []() { Util::SceneManager::Instance()->Draw3D(); });
 			}
 		}
 		//描画
@@ -80,10 +81,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					}
 				}
 			}
-			// 影
-			PostPassParts->SetDrawShadow([]() { Util::SceneManager::Instance()->Draw3D(); }, []() { Util::SceneManager::Instance()->Draw3D(); });
 			// ポストプロセス
-			PostPassParts->DrawPostProcess();
+			PostPassParts->EndDraw();
 		}
 		DrawerMngr->StartDraw();
 		{

@@ -93,7 +93,9 @@ namespace Draw {
 				pFarScreen->SetUseTextureToShader(2);
 				pGbuffer->GetDepthBuffer().SetUseTextureToShader(3);
 				this->m_Shader.SetDispSize(xsize, ysize);
-				this->m_Shader.SetParam(3, PostPassParts->Get_near_DoF(), PostPassParts->Get_far_DoF(), PostPassParts->Get_near_DoFMax(), PostPassParts->Get_far_DoFMin());
+				this->m_Shader.SetParam(3,
+					PostPassParts->GetDoFParam().m_near, PostPassParts->GetDoFParam().m_far,
+					PostPassParts->GetDoFParam().m_near_Max, PostPassParts->GetDoFParam().m_far_Min);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 				SetUseTextureToShader(1, InvalidID);
@@ -316,7 +318,7 @@ namespace Draw {
 			return
 				(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) &&
 				pOption->GetParam(pOption->GetOptionType(Util::OptionType::GodRay))->IsActive() &&
-				(PostPassParts->GetGodRayPer() > 0.f);
+				PostPassParts->GetGodRayParam().IsActive();
 		}
 		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer* pGbuffer) noexcept override {
 			auto* pOption = Util::OptionParam::Instance();
@@ -373,13 +375,13 @@ namespace Draw {
 				this->m_SoftImage.GetDrawScreen(0, 0, 1, 1);
 				this->m_SoftImage.GetPixel(0, 0, &this->m_GodRayRed, nullptr, nullptr, nullptr);
 			}
-			PostPassParts->SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(this->m_GodRayRed) / 128.f, 0.f, 1.f));
+			PostPassParts->SetGodRayParam().SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(this->m_GodRayRed) / 128.f, 0.f, 1.f));
 
 			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 300);
 			TargetGraph->SetDraw_Screen();
 			{
 				pGbuffer->GetColorBuffer().DrawGraph(0, 0, true);
-				SetDrawBlendMode(DX_BLENDMODE_ADD, static_cast<int>(255.f * PostPassParts->GetGodRayPerRet()));
+				SetDrawBlendMode(DX_BLENDMODE_ADD, static_cast<int>(255.f * PostPassParts->GetGodRayParam().GetGodRayPerRet()));
 				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight(), true);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
@@ -876,13 +878,15 @@ namespace Draw {
 		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer* pGbuffer) noexcept override {
 			auto* PostPassParts = PostPassEffect::Instance();
 			auto* DrawerMngr = Draw::MainDraw::Instance();
-			if (!PostPassParts->is_lens()) { return; }
+			if (!PostPassParts->GetScopeParam().m_IsActive) { return; }
 			// レンズ
 			TargetGraph->SetDraw_Screen(false);
 			{
-				this->m_Shader.SetDispSize(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight());
-				this->m_Shader.SetParam(3, PostPassParts->zoom_xpos(), PostPassParts->zoom_ypos(), PostPassParts->zoom_size(), PostPassParts->zoom_lens());
 				pGbuffer->GetColorBuffer().SetUseTextureToShader(0);	// 使用するテクスチャをセット
+				this->m_Shader.SetDispSize(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight());
+				this->m_Shader.SetParam(3,
+					PostPassParts->GetScopeParam().m_Xpos, PostPassParts->GetScopeParam().m_Ypos,
+					PostPassParts->GetScopeParam().m_Radius, PostPassParts->GetScopeParam().m_Zoom);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 			}
@@ -909,13 +913,13 @@ namespace Draw {
 		void		SetEffect_Sub(Draw::GraphHandle* TargetGraph, PostPassEffect::Gbuffer* pGbuffer) noexcept override {
 			auto* PostPassParts = PostPassEffect::Instance();
 			auto* DrawerMngr = Draw::MainDraw::Instance();
-			if (!PostPassParts->is_Blackout()) { return; }
+			if (!PostPassParts->GetBlackOutParam().m_IsActive) { return; }
 			// レンズ
 			TargetGraph->SetDraw_Screen(false);
 			{
 				pGbuffer->GetColorBuffer().SetUseTextureToShader(0);	// 使用するテクスチャをセット
 				this->m_Shader.SetDispSize(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight());
-				this->m_Shader.SetParam(3, PostPassParts->GetBlackoutPer(), 0.f, 0.f, 0.f);
+				this->m_Shader.SetParam(3, PostPassParts->GetBlackOutParam().m_Per, 0.f, 0.f, 0.f);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 			}

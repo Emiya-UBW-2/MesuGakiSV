@@ -767,95 +767,123 @@ namespace Draw {
 				//this->m_DepthBaseScreenHandle.DrawExtendGraph(0, 0,1080,1080, true);
 			}
 		};
+		//
+		struct DoFParam {
+			float						m_near{ 0.f };
+			float						m_far{ 0.f };
+			float						m_near_Max{ 0.f };
+			float						m_far_Min{ 0.f };
+		public:
+			void			Reset(void) noexcept {
+				this->m_near = 0.f;
+				this->m_far = 0.f;
+				this->m_near_Max = 0.f;
+				this->m_far_Min = 0.f;
+			}
+		};
+		struct ScopeParam {
+			bool						m_IsActive{ false };
+			char		padding[3]{};
+			float						m_Xpos{ 0.f };
+			float						m_Ypos{ 0.f };
+			float						m_Radius{ 0.f };
+			float						m_Zoom{ 0.f };
+		public:
+			void			Reset(void) noexcept {
+				this->m_IsActive = false;
+				this->m_Zoom = 1.f;
+			}
+		};
+		struct BlackOutParam {
+			bool						m_IsActive{ false };
+			char		padding[3]{};
+			float						m_Per{ 1.f };
+		public:
+			void			Reset(void) noexcept {
+				this->m_IsActive = false;
+				this->m_Per = 1.f;
+			}
+		};
+		struct GodRayParam {
+			float						m_GodRayPer{ 0.5f };
+			float						m_GodRayPerByPostPass{ 1.f };
+		public:
+			void			Reset(void) noexcept {
+			}
+			auto			GetGodRayPerRet(void) const noexcept { return this->m_GodRayPer * this->m_GodRayPerByPostPass; }
+			auto			IsActive(void) const noexcept { return this->m_GodRayPer > 0.f; }
+		public:
+			void			SetGodRayPer(float value) noexcept { this->m_GodRayPer = value; }
+			void			SetGodRayPerByPostPass(float value) noexcept {
+				this->m_GodRayPerByPostPass = Util::Lerp(this->m_GodRayPerByPostPass, value, 1.f - 0.975f);
+			}
+		};
+		struct ColorParam {
+			int							m_InColorPerMin = 20;
+			int							m_InColorPerMax = 255;
+			float						m_InColorGamma = 1.1f;
+		public:
+			void			Reset(void) noexcept {
+			}
+		public:
+		};
 	private:
 		std::array<std::unique_ptr<PostPassBase>, 16>	m_PostPass;
 		//
-		bool						m_IsActiveGBuffer{ false };
-		char		padding[7]{};
-		Draw::GraphHandle			m_BufferScreen;	// 描画スクリーン
-		Gbuffer						m_Gbuffer;
-		// 
-		float						m_near_DoF = 0.f;
-		float						m_far_DoF = 0.f;
-		float						m_near_DoFMax = 0.f;
-		float						m_far_DoFMin = 0.f;
-		int							m_InColorPerMin = 20;
-		int							m_InColorPerMax = 255;
-		float						m_InColorGamma = 1.1f;
-		Util::Matrix4x4			m_CamViewMat{};
-		Util::Matrix4x4			m_CamProjectionMat{};
-		bool						m_useScope{ false };
-		char		padding2[3]{};
-		float						m_ScopeXpos{ 0.f };
-		float						m_ScopeYpos{ 0.f };
-		float						m_ScopeSize{ 0.f };
-		float						m_ScopeZoom{ 0.f };
-		bool						m_useBlackOut{ false };
-		char		padding3[3]{};
-		float						m_BlackOutPer{ 1.f };
-
-		float						m_AberrationPower{ 1.f };
-		float						m_DistortionPer{ 120.f };
-		float						m_GodRayPer{ 0.5f };
-		float						m_GodRayPerByPostPass{ 1.f };
 		std::unique_ptr<ShadowDraw>	m_ShadowDraw;
 		float						m_ShadowScale{ 1.f };
 		bool						m_ShadowFarChange{ false };
-		char		padding4[3]{};
+		bool						m_IsActiveGBuffer{ false };
+		char		padding[2]{};
+		Draw::GraphHandle			m_BufferScreen;	// 描画スクリーン
+		Gbuffer						m_Gbuffer;
+		Util::Matrix4x4				m_CamViewMat{};
+		Util::Matrix4x4				m_CamProjectionMat{};
+		ColorParam					m_ColorParam{};
+		DoFParam					m_DoFParam{};
+		ScopeParam					m_ScopeParam{};
+		BlackOutParam				m_BlackOutParam{};
+		float						m_AberrationPower{ 1.f };
+		float						m_DistortionPer{ 120.f };
+		GodRayParam					m_GodRayParam{};
 	public:
 		auto&			GetBufferScreen(void) noexcept { return this->m_BufferScreen; }
 		const auto&		GetCamViewMat(void) const noexcept { return this->m_CamViewMat; }
 		const auto&		GetCamProjectionMat(void) const noexcept { return this->m_CamProjectionMat; }
 		const auto&		GetShadowDraw(void) const noexcept { return this->m_ShadowDraw; }
-		const auto&		Get_near_DoF(void) const noexcept { return this->m_near_DoF; }
-		const auto&		Get_far_DoF(void) const noexcept { return this->m_far_DoF; }
-		const auto&		Get_near_DoFMax(void) const noexcept { return this->m_near_DoFMax; }
-		const auto&		Get_far_DoFMin(void) const noexcept { return this->m_far_DoFMin; }
-		const auto&		is_lens(void) const noexcept { return this->m_useScope; }
-		const auto&		zoom_xpos(void) const noexcept { return this->m_ScopeXpos; }
-		const auto&		zoom_ypos(void) const noexcept { return this->m_ScopeYpos; }
-		const auto&		zoom_size(void) const noexcept { return this->m_ScopeSize; }
-		const auto&		zoom_lens(void) const noexcept { return this->m_ScopeZoom; }
-		const auto&		is_Blackout(void) const noexcept { return this->m_useBlackOut; }
-		const auto&		GetBlackoutPer(void) const noexcept { return this->m_BlackOutPer; }
+
+		const auto&		GetDoFParam(void) const noexcept { return this->m_DoFParam; }
+		const auto&		GetScopeParam(void) const noexcept { return this->m_ScopeParam; }
+		const auto&		GetBlackOutParam(void) const noexcept { return this->m_BlackOutParam; }
+		const auto&		GetGodRayParam(void) const noexcept { return this->m_GodRayParam; }
+
 		const auto&		GetAberrationPower(void) const noexcept { return this->m_AberrationPower; }
-		auto			GetGodRayPerRet(void) const noexcept { return this->m_GodRayPer * this->m_GodRayPerByPostPass; }
 		const auto&		GetDistortionPer(void) const noexcept { return this->m_DistortionPer; }
-		const auto&		GetGodRayPer(void) const noexcept { return this->m_GodRayPer; }
-	public:
-		void			Set_is_lens(bool value) noexcept { this->m_useScope = value; }
-		void			Set_xp_lens(float value) noexcept { this->m_ScopeXpos = value; }
-		void			Set_yp_lens(float value) noexcept { this->m_ScopeYpos = value; }
-		void			Set_size_lens(float value) noexcept { this->m_ScopeSize = value; }
-		void			Set_zoom_lens(float value) noexcept { this->m_ScopeZoom = value; }
-		void			Set_is_Blackout(bool value) noexcept { this->m_useBlackOut = value; }
-		void			Set_Per_Blackout(float value) noexcept { this->m_BlackOutPer = value; }
 		void			SetAberrationPower(float value) noexcept { this->m_AberrationPower = value; }
-		void			SetGodRayPer(float value) noexcept { this->m_GodRayPer = value; }
-		void			SetGodRayPerByPostPass(float value) noexcept {
-			this->m_GodRayPerByPostPass = Util::Lerp(this->m_GodRayPerByPostPass, value, 1.f - 0.975f);
-		}
 		void			SetDistortionPer(float value) noexcept { this->m_DistortionPer = value; }
+	public:
+		auto&			SetScopeParam(void) noexcept { return this->m_ScopeParam; }
+		auto&			SetBlackOutParam(void) noexcept { return this->m_BlackOutParam; }
+		auto&			SetGodRayParam(void) noexcept { return this->m_GodRayParam; }
+
 		void			SetShadowScale(float value) noexcept { this->m_ShadowScale = value; }
 		// ボケ始める場所を指定(完全にボケるのはニアファーの限度)
 		void			Set_DoFNearFar(float near_d, float far_d, float near_m, float far_m) noexcept {
-			this->m_near_DoF = near_d;
-			this->m_far_DoF = far_d;
-			this->m_near_DoFMax = near_m;
-			this->m_far_DoFMin = far_m;
+			this->m_DoFParam.m_near = near_d;
+			this->m_DoFParam.m_far = far_d;
+			this->m_DoFParam.m_near_Max = near_m;
+			this->m_DoFParam.m_far_Min = far_m;
 		}
 		void			SetLevelFilter(int inMin, int inMax, float gamma) noexcept {
-			this->m_InColorPerMin = std::clamp(inMin, 0, 255);
-			this->m_InColorPerMax = std::clamp(inMax, 0, 255);
-			this->m_InColorGamma = std::max(1.f, gamma);
+			this->m_ColorParam.m_InColorPerMin = std::clamp(inMin, 0, 255);
+			this->m_ColorParam.m_InColorPerMax = std::clamp(inMax, 0, 255);
+			this->m_ColorParam.m_InColorGamma = std::max(1.f, gamma);
 		}
 		void			ResetAllParams(void) noexcept {
 			SetLevelFilter(0, 255, 1.f);
 			SetAberrationPower(1.f);
-			Set_is_Blackout(false);
-			Set_Per_Blackout(0.f);
-			Set_is_lens(false);
-			Set_zoom_lens(1.f);
+			this->m_ScopeParam.Reset();
+			this->m_BlackOutParam.Reset();
 			// 環境光と影の初期化
 			SetAmbientLight(Util::VECTOR3D::vget(0.25f, -1.f, 0.25f));
 		}
@@ -875,6 +903,7 @@ namespace Draw {
 			this->m_ShadowDraw = std::make_unique<ShadowDraw>();
 		}
 		void		Dispose(void) noexcept {
+			this->m_BufferScreen.Dispose();
 			PostPassScreenBufferPool::Release();
 			// ポストエフェクト
 			for (auto& P : this->m_PostPass) {
@@ -896,23 +925,6 @@ namespace Draw {
 				}
 			}
 		}
-	public:
-		void		UpdateShadowActive(void) noexcept {
-			if (this->m_ShadowDraw->UpdateActive()) {
-				SetShadowFarChange();
-			}
-		}
-
-		void		SetShadowFarChange(void) noexcept { this->m_ShadowFarChange = true; }
-		bool		PopShadowFarChange(void) noexcept {
-			if (m_ShadowFarChange) {
-				m_ShadowFarChange = false;
-				return true;
-			}
-			return false;
-		}
-
-		void		SetAmbientLight(const Util::VECTOR3D& AmbientLightVec) noexcept { this->m_ShadowDraw->SetVec(AmbientLightVec); }
 		void		UpdateBuffer(void) noexcept {
 			bool ActiveGBuffer = false;
 			for (auto& P : this->m_PostPass) {
@@ -927,6 +939,23 @@ namespace Draw {
 				P->UpdateActive(P->IsActive());
 			}
 		}
+	public:
+		//
+		void		SetAmbientLight(const Util::VECTOR3D& AmbientLightVec) noexcept { this->m_ShadowDraw->SetVec(AmbientLightVec); }
+		//
+		void		UpdateShadowActive(void) noexcept {
+			if (this->m_ShadowDraw->UpdateActive()) {
+				SetShadowFarChange();
+			}
+		}
+		void		SetShadowFarChange(void) noexcept { this->m_ShadowFarChange = true; }
+		bool		PopShadowFarChange(void) noexcept {
+			if (m_ShadowFarChange) {
+				m_ShadowFarChange = false;
+				return true;
+			}
+			return false;
+		}
 		void		Update_Shadow(std::function<void()> doing, const Util::VECTOR3D& CenterPos, bool IsFar) noexcept {
 			// 影用の深度記録画像の準備を行う
 			if (!IsFar) {
@@ -936,6 +965,11 @@ namespace Draw {
 				this->m_ShadowDraw->UpdateFar(doing, CenterPos, this->m_ShadowScale * 4.f);
 			}
 		}
+		void		SetDrawShadow(std::function<void()> setshadowdoing_rigid, std::function<void()> setshadowdoing) noexcept {
+			// 影画像の用意
+			this->m_ShadowDraw->SetDraw(setshadowdoing_rigid, setshadowdoing);
+		}
+		//
 		void		StartDraw(void) noexcept {
 			// リセット
 			if (this->m_IsActiveGBuffer) {
@@ -966,25 +1000,17 @@ namespace Draw {
 				DxLib::SetRenderTargetToShader(2, InvalidID);
 			}
 		}
-		void		SetDrawShadow(std::function<void()> setshadowdoing_rigid, std::function<void()> setshadowdoing) noexcept {
+		void		EndDraw(void) noexcept {
+			this->m_BufferScreen.SetDraw_Screen(false);
 			auto* pOption = Util::OptionParam::Instance();
 			// 影
 			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
-				// 影画像の用意
-				this->m_ShadowDraw->SetDraw(setshadowdoing_rigid, setshadowdoing);
-				// ソフトシャドウ重ね
-				this->m_BufferScreen.SetDraw_Screen(false);
-				{
-					this->m_ShadowDraw->Draw();
-				}
+				this->m_ShadowDraw->Draw();
 			}
-		}
-		void		DrawPostProcess(void) noexcept {
-			this->m_BufferScreen.SetDraw_Screen(false);
 			// 色味補正
-			this->m_BufferScreen.GraphFilter(DX_GRAPH_FILTER_LEVEL, this->m_InColorPerMin, this->m_InColorPerMax, static_cast<int>(this->m_InColorGamma * 100), 0, 255);
+			this->m_BufferScreen.GraphFilter(DX_GRAPH_FILTER_LEVEL, this->m_ColorParam.m_InColorPerMin, this->m_ColorParam.m_InColorPerMax, static_cast<int>(this->m_ColorParam.m_InColorGamma * 100), 0, 255);
+			// ポストプロセス
 			PostPassScreenBufferPool::Instance()->FirstUpdate();
-			// ポストパスエフェクトのbufに描画
 			if (this->m_IsActiveGBuffer) {
 				for (auto& P : this->m_PostPass) {
 					if (!P) { continue; }
@@ -1005,6 +1031,8 @@ namespace Draw {
 			UpdateBuffer();
 			ResetAllParams();
 			UpdateShadowActive();
+
+			this->m_BufferScreen.Dispose();
 
 			auto* DrawerMngr = Draw::MainDraw::Instance();
 			auto Prev = DxLib::GetCreateDrawValidGraphZBufferBitDepth();
