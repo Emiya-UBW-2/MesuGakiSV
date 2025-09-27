@@ -12,32 +12,37 @@ namespace Camera {
 	private:
 		friend class Util::SingletonBase<Camera3D>;
 	private:
-		bool						m_SendCamShake{ false };
-		char		padding[3]{};
-		float						m_SendCamShakeTime{ 1.f };
-		float						m_SendCamShakePower{ 1.f };
-		float						m_CamShake{ 0.f };
-		Util::VECTOR3D				m_CamShake1{};
-		Util::VECTOR3D				m_CamShake2{};
-		Draw::Camera3DInfo			m_MainCamera{};
+		float						m_SendShakeTime{ 1.f };
+		float						m_SendShakePower{ 1.f };
+		float						m_Timer{ 0.f };
+		char		padding[4]{};
+		Util::VECTOR3D				m_Shake1{};
+		Util::VECTOR3D				m_Shake2{};
+		Draw::Camera3DInfo			m_Camera{};
+		Draw::Camera3DInfo			m_CameraForDraw{};
 	public:
-		const auto& GetMainCamera(void) const noexcept { return this->m_MainCamera; }
-		auto& SetMainCamera(void) noexcept { return this->m_MainCamera; }
+		const auto& GetCamera(void) const noexcept { return this->m_Camera; }
+		const auto& GetCameraForDraw(void) const noexcept { return this->m_CameraForDraw; }
 	public:
-		const auto& GetCamShake(void) const noexcept { return this->m_CamShake2; }
-	public:
+		void			SetCamPos(const Util::VECTOR3D& cam_pos, const Util::VECTOR3D& cam_vec, const Util::VECTOR3D& cam_up) noexcept {
+			this->m_Camera.SetCamPos(cam_pos, cam_vec, cam_up);
+			this->m_CameraForDraw.SetCamPos(cam_pos + this->m_Shake2, cam_vec + this->m_Shake2 * 2.f, cam_up);
+		}
+		void			SetCamInfo(float cam_fov_, float cam_near_, float cam_far_) noexcept {
+			this->m_Camera.SetCamInfo(cam_fov_, cam_near_, cam_far_);
+			this->m_CameraForDraw.SetCamInfo(cam_fov_, cam_near_, cam_far_);
+		}
 		void			SetCamShake(float time, float power) noexcept {
-			this->m_SendCamShake = true;
-			this->m_SendCamShakeTime = time;
-			this->m_SendCamShakePower = power;
+			this->m_SendShakeTime = time;
+			this->m_SendShakePower = power;
+			this->m_Timer = this->m_SendShakeTime;
 		}
 		void			StopCamShake() noexcept {
-			this->m_SendCamShake = false;
-			this->m_SendCamShakeTime = 1.f;
-			this->m_SendCamShakePower = 1.f;
-			this->m_CamShake = 0.f;
-			this->m_CamShake1 = Util::VECTOR3D::zero();
-			this->m_CamShake2 = Util::VECTOR3D::zero();
+			this->m_SendShakeTime = 1.f;
+			this->m_SendShakePower = 1.f;
+			this->m_Timer = 0.f;
+			this->m_Shake1 = Util::VECTOR3D::zero();
+			this->m_Shake2 = Util::VECTOR3D::zero();
 		}
 	private:
 		Camera3D(void) noexcept {}
@@ -51,15 +56,11 @@ namespace Camera {
 		static float GetRandf(float arg) noexcept { return -arg + static_cast<float>(DxLib::GetRand(static_cast<int>(arg * 2.f * 10000.f))) / 10000.f; }
 
 		void Update(void) noexcept {
-			if (this->m_SendCamShakeTime > 0.f) {
-				if (this->m_SendCamShake) {
-					this->m_SendCamShake = false;
-					this->m_CamShake = this->m_SendCamShakeTime;
-				}
-				auto RandRange = this->m_CamShake / this->m_SendCamShakeTime * this->m_SendCamShakePower;
-				this->m_CamShake1 = Util::Lerp(this->m_CamShake1, Util::VECTOR3D::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 0.8f);
-				this->m_CamShake2 = Util::Lerp(this->m_CamShake2, this->m_CamShake1, 0.8f);
-				this->m_CamShake = std::max(this->m_CamShake - 1.f / 60.f, 0.f);
+			if (this->m_SendShakeTime > 0.f) {
+				auto RandRange = this->m_Timer / this->m_SendShakeTime * this->m_SendShakePower;
+				this->m_Shake1 = Util::Lerp(this->m_Shake1, Util::VECTOR3D::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 0.8f);
+				this->m_Shake2 = Util::Lerp(this->m_Shake2, this->m_Shake1, 0.8f);
+				this->m_Timer = std::max(this->m_Timer - 1.f / 60.f, 0.f);
 			}
 		}
 	};

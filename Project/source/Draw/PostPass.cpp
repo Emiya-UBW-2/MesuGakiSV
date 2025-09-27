@@ -156,55 +156,120 @@ namespace Draw {
 			auto* DrawerMngr = Draw::MainDraw::Instance();
 			auto* PostPassParts = PostPassEffect::Instance();
 			auto* CameraParts = Camera::Camera3D::Instance();
-			int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
-			int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
 
-			const Draw::GraphHandle* pColorScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
-			const Draw::GraphHandle* pNormalScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
-			const Draw::GraphHandle* pDepthScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, true)->PopBlankScreen();
-			const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+			int ReflectionLevel = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect();
 
-			pColorScreen->GraphFilterBlt(pGbuffer->GetColorBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-			pNormalScreen->GraphFilterBlt(pGbuffer->GetNormalBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-			pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
-			pScreenBuffer->SetDraw_Screen();
-			{
-				constexpr float RayInterval = 200.f;// レイの分割間隔
-				constexpr float DepthThreshold = 17.f;
-				float ReflectionLevel = static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect());
-				bool UseCubeMap = false;
-				pColorScreen->SetUseTextureToShader(0);
-				pNormalScreen->SetUseTextureToShader(1);
-				pDepthScreen->SetUseTextureToShader(2);
-				if (UseCubeMap) {
-					PostPassParts->GetCubeMapHandle().SetUseTextureToShader(3);
-				}
-				else {
+			if (ReflectionLevel == 1) {
+
+				int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
+				int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+				const Draw::GraphHandle* pColorScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+				const Draw::GraphHandle* pNormalScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+				const Draw::GraphHandle* pDepthScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, true)->PopBlankScreen();
+				const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+
+				pColorScreen->GraphFilterBlt(pGbuffer->GetColorBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pNormalScreen->GraphFilterBlt(pGbuffer->GetNormalBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pScreenBuffer->SetDraw_Screen();
+				{
+					pColorScreen->SetUseTextureToShader(0);
+					pNormalScreen->SetUseTextureToShader(1);
+					pDepthScreen->SetUseTextureToShader(2);
 					this->m_bkScreen2.SetUseTextureToShader(3);
+					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
+					this->m_Shader.SetParam(3, 200.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.Draw();
+					SetUseTextureToShader(0, InvalidID);
+					SetUseTextureToShader(1, InvalidID);
+					SetUseTextureToShader(2, InvalidID);
+					SetUseTextureToShader(3, InvalidID);
 				}
-				this->m_bkScreen2.SetUseTextureToShader(4);
-				this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
-				this->m_Shader.SetParam(3, RayInterval, Scale3DRate, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), DepthThreshold);
-				this->m_Shader.SetCameraMatrix(4, PostPassParts->GetCamViewMat(), PostPassParts->GetCamProjectionMat());
-				this->m_Shader.SetParam(5, ReflectionLevel, UseCubeMap ? 1.f : 0.f, 0.f, 0.f);
-				this->m_Shader.Draw();
-				SetUseTextureToShader(0, InvalidID);
-				SetUseTextureToShader(1, InvalidID);
-				SetUseTextureToShader(2, InvalidID);
-				SetUseTextureToShader(3, InvalidID);
-				SetUseTextureToShader(4, InvalidID);
+				pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 200);
+				TargetGraph->SetDraw_Screen(false);
+				{
+					TargetGraph->DrawGraph(0, 0, true);
+					pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+				}
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
 			}
-			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 200);
-			TargetGraph->SetDraw_Screen(false);
-			{
-				TargetGraph->DrawGraph(0, 0, true);
-				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
-			}
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, true);
-			PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+			else if (ReflectionLevel == 2) {
 
+				int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
+				int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+				const Draw::GraphHandle* pColorScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+				const Draw::GraphHandle* pNormalScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+				const Draw::GraphHandle* pDepthScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, true)->PopBlankScreen();
+				const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+
+				pColorScreen->GraphFilterBlt(pGbuffer->GetColorBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pNormalScreen->GraphFilterBlt(pGbuffer->GetNormalBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pScreenBuffer->SetDraw_Screen();
+				{
+					pColorScreen->SetUseTextureToShader(0);
+					pNormalScreen->SetUseTextureToShader(1);
+					pDepthScreen->SetUseTextureToShader(2);
+					this->m_bkScreen2.SetUseTextureToShader(3);
+					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
+					this->m_Shader.SetParam(3, 200.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.Draw();
+					SetUseTextureToShader(0, InvalidID);
+					SetUseTextureToShader(1, InvalidID);
+					SetUseTextureToShader(2, InvalidID);
+					SetUseTextureToShader(3, InvalidID);
+				}
+				pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 200);
+				TargetGraph->SetDraw_Screen(false);
+				{
+					TargetGraph->DrawGraph(0, 0, true);
+					pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+				}
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+			}
+			else if (ReflectionLevel == 3) {
+
+				int xsizeEx = DrawerMngr->GetDispWidth() / EXTEND;
+				int ysizeEx = DrawerMngr->GetDispHeight() / EXTEND;
+				const Draw::GraphHandle* pColorScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+				const Draw::GraphHandle* pNormalScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+				const Draw::GraphHandle* pDepthScreen = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true, true)->PopBlankScreen();
+				const Draw::GraphHandle* pScreenBuffer = PostPassScreenBufferPool::Instance()->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
+
+				pColorScreen->GraphFilterBlt(pGbuffer->GetColorBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pNormalScreen->GraphFilterBlt(pGbuffer->GetNormalBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				pScreenBuffer->SetDraw_Screen();
+				{
+					pColorScreen->SetUseTextureToShader(0);
+					pNormalScreen->SetUseTextureToShader(1);
+					pDepthScreen->SetUseTextureToShader(2);
+					this->m_bkScreen2.SetUseTextureToShader(3);
+					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
+					this->m_Shader.SetParam(3, 200.f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.Draw();
+					SetUseTextureToShader(0, InvalidID);
+					SetUseTextureToShader(1, InvalidID);
+					SetUseTextureToShader(2, InvalidID);
+					SetUseTextureToShader(3, InvalidID);
+				}
+				pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 200);
+				TargetGraph->SetDraw_Screen(false);
+				{
+					TargetGraph->DrawGraph(0, 0, true);
+					pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
+				}
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true, true);
+				PostPassScreenBufferPool::Instance()->ResetUseCount(xsizeEx, ysizeEx, true);
+			}
 		}
 	};
 	class PostPassSSAO : public PostPassEffect::PostPassBase {
@@ -248,7 +313,7 @@ namespace Draw {
 				pNormalScreen->SetUseTextureToShader(1);
 				pDepthScreen->SetUseTextureToShader(2);
 				this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
-				this->m_Shader.SetParam(3, 0.0f, Scale3DRate, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
+				this->m_Shader.SetParam(3, 0.0f, Scale3DRate, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 				SetUseTextureToShader(1, InvalidID);
@@ -349,7 +414,7 @@ namespace Draw {
 						break;
 					}
 					this->m_Shader.SetDispSize(xsizeEx, ysizeEx);
-					this->m_Shader.SetParam(3, Power, 0.f, std::tan(CameraParts->GetMainCamera().GetCamFov() / 2.f), 0.f);
+					this->m_Shader.SetParam(3, Power, 0.f, std::tan(CameraParts->GetCameraForDraw().GetCamFov() / 2.f), 0.f);
 					this->m_Shader.SetCameraMatrix(4, PostPassParts->GetCamViewMat().inverse(), PostPassParts->GetCamProjectionMat().inverse());
 					this->m_Shader.SetCameraMatrix(5, PostPassParts->GetShadowDraw()->GetCamViewMatrix(false), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(false));
 					this->m_Shader.SetCameraMatrix(6, PostPassParts->GetShadowDraw()->GetCamViewMatrix(true), PostPassParts->GetShadowDraw()->GetCamProjectionMatrix(true));

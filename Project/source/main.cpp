@@ -27,6 +27,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	DXLibRef::LightPool::Create();
 
 	auto* DrawerMngr = Draw::MainDraw::Instance();
+	auto* pOption = Util::OptionParam::Instance();
 	auto* SceneMngr = Util::SceneManager::Instance();
 	auto* CameraParts = Camera::Camera3D::Instance();
 	auto* PostPassParts = Draw::PostPassEffect::Instance();
@@ -46,38 +47,33 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Util::KeyParam::Instance()->Update();
 			SceneMngr->Update();
 			CameraParts->Update();
-		}
-		//描画
-		{
-			// キューブマップをセット
-			{
-				Util::VECTOR3D Pos = CameraParts->GetMainCamera().GetCamPos(); Pos.y *= -1.f;
-				PostPassParts->Update_CubeMap([]() { Util::SceneManager::Instance()->CubeMapDraw(); }, Pos);
-			}
 			// 影をセット
-			{
-				if (PostPassParts->UpdateShadowActive() && false) {
-					Util::VECTOR3D Pos = CameraParts->GetMainCamera().GetCamPos();
+			PostPassParts->UpdateShadowActive();
+			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
+				if (PostPassParts->PopShadowFarChange()) {
+					Util::VECTOR3D Pos = CameraParts->GetCameraForDraw().GetCamPos();
 					Pos.x = 0.f;
 					Pos.z = 0.f;
 					PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowFarDraw3D(); }, Pos, true);
 				}
-				PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowDraw3D(); }, CameraParts->GetMainCamera().GetCamPos(), false);
+				PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowDraw3D(); }, CameraParts->GetCameraForDraw().GetCamPos(), false);
 			}
+		}
+		//描画
+		{
 			// 全ての画面を初期化
 			PostPassParts->StartDraw();
 			// 空
 			PostPassParts->DrawGBuffer(1000.0f, 50000.0f, []() { Util::SceneManager::Instance()->BGDraw(); });
 			// 3距離
 			{
-				Draw::Camera3DInfo camInfo = CameraParts->GetMainCamera();
 				float Far = 1000000.f;
-				float Near = camInfo.GetCamFar();
+				float Near = CameraParts->GetCameraForDraw().GetCamFar();
 				for (int loop = 0; loop < 3; ++loop) {
 					PostPassParts->DrawGBuffer(Near, Far, []() { Util::SceneManager::Instance()->Draw3D(); });
 					Far = Near;
 					if (loop == 0) {
-						Near = camInfo.GetCamNear();
+						Near = CameraParts->GetCameraForDraw().GetCamNear();
 					}
 					else if (loop == 1) {
 						Near = 0.01f;

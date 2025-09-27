@@ -76,8 +76,6 @@ namespace Util {
 		SceneManager& operator=(SceneManager&&) = delete;
 		virtual ~SceneManager(void) noexcept {}
 	public:
-		void CubeMapDraw(void) noexcept {
-		}
 		void BGDraw(void) noexcept {
 			if (this->m_NowScene) {
 				this->m_NowScene->BGDraw();

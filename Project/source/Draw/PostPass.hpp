@@ -678,7 +678,7 @@ namespace Draw {
 			void			SetVec(const Util::VECTOR3D& Vec) noexcept { this->m_ShadowVec = Vec; }
 			void			SetDraw(std::function<void()> doing_rigid, std::function<void()> doing) noexcept {
 				auto* CameraParts = Camera::Camera3D::Instance();
-				Draw::Camera3DInfo tmp_cam = CameraParts->GetMainCamera();
+				Draw::Camera3DInfo tmp_cam = CameraParts->GetCameraForDraw();
 
 				this->m_BaseShadowHandle.SetUseTextureToShader(0);				// 影用深度記録画像をテクスチャにセット
 				this->m_DepthScreenHandle.SetUseTextureToShader(1);
@@ -760,66 +760,6 @@ namespace Draw {
 				//this->m_DepthBaseScreenHandle.DrawExtendGraph(0, 0,1080,1080, true);
 			}
 		};
-		// キューブマップ生成
-		class RealTimeCubeMap {
-		private:
-			Draw::GraphHandle dynamicCubeTex;		// 周囲を回る小さいモデルたちを映りこませるための描画対象にできるキューブマップテクスチャ
-			Util::VECTOR3D lookAt[6]{};	// 映りこむ周囲の環境を描画する際のカメラの注視点
-			Util::VECTOR3D up[6]{};		// 移りこむ周囲の環境を描画する際のカメラの上方向
-			int MIPLEVEL = 2;
-			char		padding[4]{};
-		public:
-			RealTimeCubeMap(void) noexcept {}
-			RealTimeCubeMap(const RealTimeCubeMap&) = delete;
-			RealTimeCubeMap(RealTimeCubeMap&&) = delete;
-			RealTimeCubeMap& operator=(const RealTimeCubeMap&) = delete;
-			RealTimeCubeMap& operator=(RealTimeCubeMap&&) = delete;
-
-			~RealTimeCubeMap(void) noexcept {}
-		public:
-			void Init(void) noexcept {
-				// 描画対象にできるキューブマップテクスチャを作成
-				DxLib::SetCreateDrawValidGraphMipLevels(MIPLEVEL);
-				DxLib::SetCubeMapTextureCreateFlag(TRUE);
-				dynamicCubeTex.Make(512, 512, true);
-				DxLib::SetCubeMapTextureCreateFlag(FALSE);
-				DxLib::SetCreateDrawValidGraphMipLevels(0);
-				// 映りこむ環境を描画する際に使用するカメラの注視点とカメラの上方向を設定
-				lookAt[0] = Util::VECTOR3D::right();
-				lookAt[1] = Util::VECTOR3D::left();
-				lookAt[2] = Util::VECTOR3D::up();
-				lookAt[3] = Util::VECTOR3D::down();
-				lookAt[4] = Util::VECTOR3D::forward();
-				lookAt[5] = Util::VECTOR3D::back();
-				up[0] = Util::VECTOR3D::up();
-				up[1] = Util::VECTOR3D::up();
-				up[2] = Util::VECTOR3D::back();
-				up[3] = Util::VECTOR3D::forward();
-				up[4] = Util::VECTOR3D::up();
-				up[5] = Util::VECTOR3D::up();
-			}
-
-			void ReadyDraw(const Util::VECTOR3D& Pos, const std::function<void()>& Doing) noexcept {
-				for (int loop = 0; loop < 6; ++loop) {		// 映りこむ環境を描画する面の数だけ繰り返し
-					for (int loop2 = 0; loop2 < MIPLEVEL; ++loop2) {			// ミップマップの数だけ繰り返し
-						dynamicCubeTex.SetRenderTargetToShader(0, loop, loop2);		// 描画先番号０番の描画対象を描画対象にできるキューブマップのloop番目の面に設定
-						DxLib::ClearDrawScreen();										// クリア
-						{
-							DxLib::SetupCamera_Perspective(90.0f / 180.0f * DX_PI_F);								// カメラの画角は90度に設定
-							DxLib::SetCameraNearFar(0.5f * Scale3DRate, 1000.0f * Scale3DRate);									// Nearクリップ面とFarクリップ面の距離を設定
-							DxLib::SetCameraPositionAndTargetAndUpVec(Pos.get(), (Pos + lookAt[static_cast<size_t>(loop)]).get(), up[static_cast<size_t>(loop)].get());	// カメラの位置と注視点、カメラの上方向を設定
-							Doing();
-						}
-					}
-				}
-			}
-
-			void Dispose(void) noexcept {
-				dynamicCubeTex.Dispose();
-			}
-
-			const auto& GetCubeMapTex(void) const noexcept { return dynamicCubeTex; }
-		};
 	private:
 		std::array<std::unique_ptr<PostPassBase>, 16>	m_PostPass;
 		//
@@ -853,15 +793,13 @@ namespace Draw {
 		float						m_GodRayPerByPostPass{ 1.f };
 		std::unique_ptr<ShadowDraw>	m_ShadowDraw;
 		float						m_ShadowScale{ 1.f };
-		bool						m_IsCubeMap{ false };
+		bool						m_ShadowFarChange{ false };
 		char		padding4[3]{};
-		RealTimeCubeMap				m_RealTimeCubeMap;
 	public:
 		auto&			GetBufferScreen(void) noexcept { return this->m_BufferScreen; }
 		const auto&		GetCamViewMat(void) const noexcept { return this->m_CamViewMat; }
 		const auto&		GetCamProjectionMat(void) const noexcept { return this->m_CamProjectionMat; }
 		const auto&		GetShadowDraw(void) const noexcept { return this->m_ShadowDraw; }
-		const auto&		GetCubeMapHandle(void) const noexcept { return this->m_RealTimeCubeMap.GetCubeMapTex(); }
 		const auto&		Get_near_DoF(void) const noexcept { return this->m_near_DoF; }
 		const auto&		Get_far_DoF(void) const noexcept { return this->m_far_DoF; }
 		const auto&		Get_near_DoFMax(void) const noexcept { return this->m_near_DoFMax; }
@@ -958,23 +896,24 @@ namespace Draw {
 				}
 			}
 		}
-	private:
-		void		UpdateActiveCubeMap(bool ActiveCubeMap) noexcept {
-			if (this->m_IsCubeMap != ActiveCubeMap) {
-				this->m_IsCubeMap = ActiveCubeMap;
-				if (this->m_IsCubeMap) {
-					this->m_RealTimeCubeMap.Init();
-				}
-				else {
-					this->m_RealTimeCubeMap.Dispose();
-				}
+	public:
+		void		UpdateShadowActive(void) noexcept {
+			if (this->m_ShadowDraw->UpdateActive()) {
+				SetShadowFarChange();
 			}
 		}
-	public:
-		bool		UpdateShadowActive(void) noexcept { return this->m_ShadowDraw->UpdateActive(); }
+
+		void		SetShadowFarChange(void) noexcept { this->m_ShadowFarChange = true; }
+		bool		PopShadowFarChange(void) noexcept {
+			if (m_ShadowFarChange) {
+				m_ShadowFarChange = false;
+				return true;
+			}
+			return false;
+		}
+
 		void		SetAmbientLight(const Util::VECTOR3D& AmbientLightVec) noexcept { this->m_ShadowDraw->SetVec(AmbientLightVec); }
 		void		UpdateBuffer(void) noexcept {
-			auto* pOption = Util::OptionParam::Instance();
 			bool ActiveGBuffer = false;
 			for (auto& P : this->m_PostPass) {
 				if (!P) { continue; }
@@ -987,24 +926,14 @@ namespace Draw {
 				if (!P) { continue; }
 				P->UpdateActive(P->IsActive());
 			}
-			UpdateActiveCubeMap((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false);
-		}
-		void		Update_CubeMap(std::function<void()> doing, const Util::VECTOR3D& CenterPos) noexcept {
-			auto* pOption = Util::OptionParam::Instance();
-			if ((pOption->GetParam(pOption->GetOptionType(Util::OptionType::Reflection))->GetSelect() > 0) && false) {
-				this->m_RealTimeCubeMap.ReadyDraw(CenterPos, doing);
-			}
 		}
 		void		Update_Shadow(std::function<void()> doing, const Util::VECTOR3D& CenterPos, bool IsFar) noexcept {
-			auto* pOption = Util::OptionParam::Instance();
-			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
-				// 影用の深度記録画像の準備を行う
-				if (!IsFar) {
-					this->m_ShadowDraw->Update(doing, CenterPos, this->m_ShadowScale);
-				}
-				else {
-					this->m_ShadowDraw->UpdateFar(doing, CenterPos, this->m_ShadowScale * 4.f);
-				}
+			// 影用の深度記録画像の準備を行う
+			if (!IsFar) {
+				this->m_ShadowDraw->Update(doing, CenterPos, this->m_ShadowScale);
+			}
+			else {
+				this->m_ShadowDraw->UpdateFar(doing, CenterPos, this->m_ShadowScale * 4.f);
 			}
 		}
 		void		StartDraw(void) noexcept {
@@ -1014,8 +943,8 @@ namespace Draw {
 			}
 			// カメラ
 			auto* CameraParts = Camera::Camera3D::Instance();
-			this->m_CamViewMat = CameraParts->GetMainCamera().GetViewMatrix();
-			this->m_CamProjectionMat = CameraParts->GetMainCamera().GetProjectionMatrix();
+			this->m_CamViewMat = CameraParts->GetCameraForDraw().GetViewMatrix();
+			this->m_CamProjectionMat = CameraParts->GetCameraForDraw().GetProjectionMatrix();
 		}
 		void		DrawGBuffer(float near_len, float far_len, std::function<void()> done) noexcept {
 			auto* CameraParts = Camera::Camera3D::Instance();
@@ -1026,7 +955,7 @@ namespace Draw {
 				this->m_Gbuffer.GetDepthBuffer().SetRenderTargetToShader(2);
 			}
 			DxLib::ClearDrawScreenZBuffer();
-			CameraParts->GetMainCamera().FlipCamInfo();
+			CameraParts->GetCameraForDraw().FlipCamInfo();
 			DxLib::SetCameraNearFar(near_len, far_len);
 			{
 				done();
@@ -1072,7 +1001,6 @@ namespace Draw {
 				if (!P) { continue; }
 				P->UpdateActive(false);
 			}
-			UpdateActiveCubeMap(false);
 			UpdateBuffer();
 			ResetAllParams();
 		}

@@ -399,9 +399,9 @@ namespace Util {
 			float f{}, Sin{}, Cos{};
 
 			zv2 = RotateAxis.normalized();
-			yv2 = DxLib::VGet(0.0f, 1.0f, 0.0f);
+			yv2 = Util::VECTOR3D::vget(0.0f, 1.0f, 0.0f);
 			if (VECTOR3D::Cross(yv2, zv2).sqrMagnitude() < 0.00001f) {
-				yv2 = DxLib::VGet(0.0f, 0.0f, 1.0f);
+				yv2 = Util::VECTOR3D::vget(0.0f, 0.0f, 1.0f);
 			}
 			xv2 = VECTOR3D::Cross(zv2, yv2);
 			yv2 = VECTOR3D::Cross(xv2, zv2).normalized();

@@ -26,7 +26,7 @@ public:
 protected:
 	void Init_Sub(void) noexcept override {
 		ModelID = DxLib::MV1LoadModel("data/Soldier/model_DISABLE.mv1");
-		MapID = DxLib::MV1LoadModel("data/Map/model.mqoz");
+		MapID = DxLib::MV1LoadModel("data/Map/model.mv1");
 
 		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(1.f, -1.f, 1.f).normalized();
 
@@ -47,8 +47,8 @@ protected:
 			SceneBase::SetEndScene();
 		}
 		auto* CameraParts = Camera::Camera3D::Instance();
-		CameraParts->SetMainCamera().SetCamPos(DxLib::VGet(0, 1.5f * Scale3DRate, -5.f * Scale3DRate), DxLib::VGet(0, 0.5f * Scale3DRate, 0.f), DxLib::VGet(0, 1.f, 0));
-		CameraParts->SetMainCamera().SetCamInfo(Util::deg2rad(45), 0.5f, 80.f);
+		CameraParts->SetCamPos(Util::VECTOR3D::vget(0, 1.5f * Scale3DRate, -5.f * Scale3DRate), Util::VECTOR3D::vget(0, 0.5f * Scale3DRate, 0.f), Util::VECTOR3D::vget(0, 1.f, 0));
+		CameraParts->SetCamInfo(Util::deg2rad(45), 0.5f, 80.f);
 
 	}
 	void BGDraw_Sub(void) noexcept override {
