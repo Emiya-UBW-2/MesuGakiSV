@@ -65,3 +65,54 @@ public:
 		delete this->m_DrawUI;
 	}
 };
+
+class EndUI {
+private:
+	Draw::DrawUISystem* m_DrawUI{ nullptr };
+	int				m_UIBase{ InvalidID };
+	int				m_ButtonID{ InvalidID };
+	int				m_CloseButtonID{ InvalidID };
+	std::function<void()>	m_ButtonDo{};
+public:
+	EndUI(void) noexcept {}
+	EndUI(const EndUI&) = delete;
+	EndUI(EndUI&&) = delete;
+	EndUI& operator=(const EndUI&) = delete;
+	EndUI& operator=(EndUI&&) = delete;
+	virtual ~EndUI(void) noexcept {}
+public:
+	bool		IsEnd(void) const noexcept { return !this->m_DrawUI->Get(this->m_UIBase).IsActive() && this->m_DrawUI->Get(this->m_UIBase).IsAnimeEnd(); }
+	bool		IsActive(void) const noexcept { return this->m_DrawUI->Get(this->m_UIBase).IsActive(); }
+	void		SetActive(bool value) noexcept { this->m_DrawUI->Get(this->m_UIBase).SetActive(value); }
+	void		SetEvent(const std::function<void()>& value) noexcept { this->m_ButtonDo = value; }
+public:
+	void		Init(void) noexcept {
+		this->m_DrawUI = new Draw::DrawUISystem();
+		this->m_DrawUI->Init("data/UI/Title/EndUI.json");
+		this->m_UIBase = this->m_DrawUI->GetID("");
+
+		this->m_ButtonID = this->m_DrawUI->GetID("Button");
+		this->m_CloseButtonID = this->m_DrawUI->GetID("CloseButton");
+		SetActive(false);
+	}
+	void		Update(void) noexcept {
+		auto* KeyMngr = Util::KeyParam::Instance();
+		if (IsActive()) {
+			if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
+				if (this->m_DrawUI->Get(this->m_ButtonID).IsSelectButton()) {
+					this->m_ButtonDo();
+				}
+				if (this->m_DrawUI->Get(this->m_CloseButtonID).IsSelectButton()) {
+					SetActive(false);
+				}
+			}
+		}
+		this->m_DrawUI->Update(IsActive());
+	}
+	void		Draw(void) noexcept {
+		this->m_DrawUI->Draw();
+	}
+	void		Dispose(void) noexcept {
+		delete this->m_DrawUI;
+	}
+};
