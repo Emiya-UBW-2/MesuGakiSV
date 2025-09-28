@@ -134,7 +134,7 @@ namespace Util {
 			void SetSelect(int Value) noexcept {
 				this->m_Value = std::clamp(Value, GetSelectMin(), GetSelectMax());
 			}
-			void SetSelect(std::string Value) noexcept {
+			void SetSelect(const std::string& Value) noexcept {
 				switch (this->m_SelectType) {
 				case EnumOptionSelectType::Bool:
 				case EnumOptionSelectType::Select:

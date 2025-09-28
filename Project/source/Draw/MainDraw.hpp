@@ -40,7 +40,7 @@ namespace Draw {
 		int			m_WindowDrawHeight{ 720 };		//ウィンドウサイズY
 		int			m_WindowWidth{ 960 };			//ディスプレイ表示X
 		int			m_WindowHeight{ 720 };			//ディスプレイ表示Y
-		GraphHandle	m_BufferScreen{};
+		ScreenHandle	m_BufferScreen{};
 		int			m_MouseX{ InvalidID };
 		int			m_MouseY{ InvalidID };
 		int			m_RenderDispWidth{ 1920 };			//UI描画などの基準X

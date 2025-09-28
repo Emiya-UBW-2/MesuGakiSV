@@ -15,9 +15,9 @@
 #include "../Draw/MV1.hpp"
 
 class MainScene : public Util::SceneBase {
-	DXLibRef::MV1 ModelID{};
-	DXLibRef::MV1 MapID{};
-	DXLibRef::MV1 SkyBoxID{};
+	Draw::MV1 ModelID{};
+	Draw::MV1 MapID{};
+	Draw::MV1 SkyBoxID{};
 
 	float m_XRad = 0.f;
 	float m_YRad = 0.f;
@@ -30,9 +30,9 @@ public:
 	virtual ~MainScene(void) noexcept {}
 protected:
 	void Init_Sub(void) noexcept override {
-		DXLibRef::MV1::Load("data/Soldier/model_DISABLE.mv1", &ModelID);
-		DXLibRef::MV1::Load("data/Map/model.mqoz", &MapID);
-		DXLibRef::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
+		Draw::MV1::Load("data/Soldier/model_DISABLE.mv1", &ModelID);
+		Draw::MV1::Load("data/Map/model.mqoz", &MapID);
+		Draw::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
 
 		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-1.f, -1.f, 1.f).normalized();
 
@@ -41,8 +41,8 @@ protected:
 		PostPassParts->SetAmbientLight(LightVec);
 
 		SetLightEnable(FALSE);
-		auto* LightParts = DXLibRef::LightPool::Instance();
-		auto& FirstLight = LightParts->Put(DXLibRef::LightType::DIRECTIONAL, LightVec);
+		auto* LightParts = Draw::LightPool::Instance();
+		auto& FirstLight = LightParts->Put(Draw::LightType::DIRECTIONAL, LightVec);
 		SetLightAmbColorHandle(FirstLight.get(), GetColorF(0.25f, 0.25f, 0.25f, 1.0f));
 		SetLightDifColorHandle(FirstLight.get(), GetColorF(1.0f, 1.0f, 1.0f, 1.0f));
 

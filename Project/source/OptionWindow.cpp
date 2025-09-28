@@ -16,10 +16,6 @@ void OptionWindow::SetActive(bool value) noexcept {
 			KeyMngr->Save(static_cast<Util::InputType>(loop));
 		}
 		pOption->Save();
-		if (this->m_LanguagePrev != pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect()) {
-			Util::LocalizePool::Instance()->Load();
-			//todo:言語切替により再起動
-		}
 	}
 	this->m_NowSelectTab = 0;
 }
@@ -187,18 +183,20 @@ void OptionWindow::Update(void) noexcept {
 			break;
 			case 1:
 			{
+				auto* DrawerMngr = Draw::MainDraw::Instance();
+				auto* PostPassParts = Draw::PostPassEffect::Instance();
 				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
 					auto& param = this->m_Param[loop];
 					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::WindowMode)));
 					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
-						Draw::MainDraw::Instance()->FlipSetting();
-						Draw::PostPassEffect::Instance()->Reset();
+						DrawerMngr->FlipSetting();
+						PostPassParts->Reset();
 					}
 					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
-						Draw::MainDraw::Instance()->FlipSetting();
-						Draw::PostPassEffect::Instance()->Reset();
+						DrawerMngr->FlipSetting();
+						PostPassParts->Reset();
 					}
 				}
 			}
@@ -227,14 +225,17 @@ void OptionWindow::Update(void) noexcept {
 			break;
 			case 3:
 			{
+				auto* Localize = Util::LocalizePool::Instance();
 				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
 					auto& param = this->m_Param[loop];
 					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::HeadBobbing)));
 					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
+						Localize->Load();
 					}
 					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
+						Localize->Load();
 					}
 				}
 			}

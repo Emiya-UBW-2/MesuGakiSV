@@ -23,7 +23,7 @@
 			"Override":[
 				{
 					"Target":"String1",
-					"FontID":1001
+					"FontID":101
 				}
 			]
 		}

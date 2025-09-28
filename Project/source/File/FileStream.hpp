@@ -82,9 +82,9 @@ namespace File {
 		}
 	public:
 		// 文字列から=より右の値取得
-		static std::string getleft(std::string tempname, std::string_view DivWord) noexcept { return tempname.substr(0, tempname.find(DivWord)); }
+		static std::string getleft(const std::string& tempname, std::string_view DivWord) noexcept { return tempname.substr(0, tempname.find(DivWord)); }
 		// 文字列から=より右の値取得
-		static std::string getright(std::string tempname, std::string_view DivWord) noexcept { return tempname.substr(tempname.find(DivWord) + 1); }
+		static std::string getright(const std::string& tempname, std::string_view DivWord) noexcept { return tempname.substr(tempname.find(DivWord) + 1); }
 	};
 
 	//ファイル出力
@@ -109,7 +109,7 @@ namespace File {
 			stream.open(FilePath);
 		}
 		// 1行書き込む
-		void AddLine(std::string Str) noexcept {
+		void AddLine(const std::string& Str) noexcept {
 			stream << Str + "\n";
 		}
 		//　閉じる

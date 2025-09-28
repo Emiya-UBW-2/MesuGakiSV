@@ -228,7 +228,7 @@ namespace Util {
 	};
 
 	//
-	static auto		UTF8toSjis(std::string srcUTF8) {
+	static auto		UTF8toSjis(const std::string& srcUTF8) {
 		//Unicodeへ変換後の文字列長を得る
 		int lenghtUnicode = static_cast<int>(MultiByteToWideChar(CP_UTF8, 0, srcUTF8.c_str(), static_cast<int>(srcUTF8.size()) + 1, nullptr, 0));
 
@@ -255,7 +255,7 @@ namespace Util {
 		return strSJis;
 	}
 	//
-	static auto		SjistoUTF8(std::string srcSjis) {
+	static auto		SjistoUTF8(const std::string& srcSjis) {
 		std::wstring wide;
 		{
 			int lengthSJis = MultiByteToWideChar(CP_ACP, 0U, srcSjis.c_str(), -1, nullptr, 0U);

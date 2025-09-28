@@ -10,7 +10,7 @@
 #include "../Util/Util.hpp"
 #include "../Util/Algorithm.hpp"
 
-namespace DXLibRef {
+namespace Draw {
 	enum class LightType {
 		POINT = DX_LIGHTTYPE_POINT,
 		SPOT = DX_LIGHTTYPE_SPOT,

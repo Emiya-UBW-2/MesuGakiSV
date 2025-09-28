@@ -19,7 +19,7 @@ namespace Util {
 			LocalizeStr() {
 
 			}
-			LocalizeStr(LocalizeID ID, std::string	 Str) {
+			LocalizeStr(LocalizeID ID, std::string_view Str) {
 				this->m_ID = ID;
 				this->m_Str = Str;
 			}

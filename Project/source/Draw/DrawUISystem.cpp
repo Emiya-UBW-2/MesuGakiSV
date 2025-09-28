@@ -179,6 +179,8 @@ namespace Draw {
 		{
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.GetA());
 			if (Rad == 0.f) {
+				auto* Font = FontPool::Instance();
+				auto* Localize = Util::LocalizePool::Instance();
 				/*
 				DxLib::DrawBox(
 					static_cast<int>(x1), static_cast<int>(y1),
@@ -191,11 +193,11 @@ namespace Draw {
 					static_cast<int>(x2), static_cast<int>(y2),
 					Color.GetColor(), DxLib::GetColor(0, 0, 0), this->String);
 				//*/
-				FontPool::Instance()->Get(FontType::DIZ_UD_Gothic, static_cast<int>(18.f * scale.y), 3)->DrawString(
+				Font->Get(FontType::DIZ_UD_Gothic, static_cast<int>(18.f * scale.y), 3)->DrawString(
 					FontXCenter::MIDDLE, FontYCenter::MIDDLE,
 					static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
 					Color.GetColor(), DxLib::GetColor(0, 0, 0),
-					Util::SjistoUTF8(this->m_String));
+					Util::SjistoUTF8((this->m_String != "") ? this->m_String : Localize->Get(this->m_StringID)));
 			}
 			else {
 			}
@@ -263,7 +265,7 @@ namespace Draw {
 		this->m_DrawModuleHandle = DrawUI->Add(FilePath, ChildBranch);
 		SetDefault();
 	}
-	void DrawModule::PartsParam::SetByJson(DrawUISystem* DrawUI, nlohmann::json& data, std::string BranchName) noexcept {
+	void DrawModule::PartsParam::SetByJson(DrawUISystem* DrawUI, nlohmann::json& data, const std::string& BranchName) noexcept {
 		this->m_Name = data["Name"];
 		{
 			std::string TypeStr = data["Type"];
@@ -302,7 +304,7 @@ namespace Draw {
 
 		if (data.contains("FontID")) {
 			this->m_StringID= data["FontID"];
-			this->m_String = Util::LocalizePool::Instance()->Get(this->m_StringID);
+			this->m_String = "";
 		}
 		if (data.contains("Min")) {
 			this->m_Min.SetByJson(data["Min"]);
@@ -340,7 +342,7 @@ namespace Draw {
 					auto* Parts = DrawUI->Get(ID).GetParts(Target);
 					if (o.contains("FontID")) {
 						Parts->m_StringID = o["FontID"];
-						Parts->m_String = Util::LocalizePool::Instance()->Get(Parts->m_StringID);
+						Parts->m_String = "";
 					}
 				}
 			}

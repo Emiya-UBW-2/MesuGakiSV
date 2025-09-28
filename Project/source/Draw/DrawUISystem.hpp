@@ -95,11 +95,11 @@ namespace Draw {
 			int					m_DrawModuleHandle{};
 			int					m_StringID{};
 			std::string			m_String{};
-			const GraphHandle* m_ImageHandle{};
+			const GraphHandle*	m_ImageHandle{};
 			bool				m_IsHitCheck{};
 			char		padding2[7]{};
 		public:
-			void			SetString(std::string value) noexcept { this->m_String = value; }
+			void			SetString(std::string_view value) noexcept { this->m_String = value; }
 			const auto& GetName(void) const noexcept { return this->m_Name; }
 			bool			IsHitCheck(void) const noexcept { return this->m_IsHitCheck; }
 		public:
@@ -112,7 +112,7 @@ namespace Draw {
 				this->m_Before = this->m_Now = this->m_Base;
 			}
 			void			AddChild(DrawUISystem* DrawUI, std::string_view ChildName, std::string_view ChildBranch, std::string_view FilePath, Param2D Param) noexcept;
-			void			SetByJson(DrawUISystem* DrawUI, nlohmann::json& data, std::string BranchName) noexcept;
+			void			SetByJson(DrawUISystem* DrawUI, nlohmann::json& data, const std::string& BranchName) noexcept;
 		};
 		struct AnimData {
 			AnimType				m_Type{ AnimType::None };

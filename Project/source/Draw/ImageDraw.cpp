@@ -9,7 +9,7 @@
 const Draw::GraphPool* Util::SingletonBase<Draw::GraphPool>::m_Singleton = nullptr;
 
 namespace Draw {
-	Graphhave::Graphhave(std::string FilePath) noexcept {
+	Graphhave::Graphhave(std::string_view FilePath) noexcept {
 		this->m_FilePath = FilePath;
 		this->m_Handle.Load(this->m_FilePath);
 	}

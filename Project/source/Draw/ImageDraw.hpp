@@ -103,24 +103,21 @@ namespace Draw {
 		void DerivationGraph(int x, int y, int xsize, int ysize, const GraphHandle& baseImage) noexcept {
 			Util::DXHandle::SetHandleDirect(DxLib::DerivationGraph(x, y, xsize, ysize, baseImage.get()));
 		}
-		void Make(int SizeX, int SizeY, bool trns = false) noexcept {
-			Util::DXHandle::SetHandleDirect(DxLib::MakeScreen(SizeX, SizeY, (trns ? TRUE : FALSE)));
-		}
-		void MakeDepth(int SizeX, int SizeY) noexcept {
-			// 深度を描画するテクスチャの作成( 2チャンネル浮動小数点32ビットテクスチャ )
-			auto prevMip = DxLib::GetCreateDrawValidGraphChannelNum();
-			auto prevFloatType = DxLib::GetDrawValidFloatTypeGraphCreateFlag();
-			auto prevBit = DxLib::GetCreateGraphChannelBitDepth();
-			DxLib::SetCreateDrawValidGraphChannelNum(2);
-			DxLib::SetDrawValidFloatTypeGraphCreateFlag(TRUE);
-			DxLib::SetCreateGraphChannelBitDepth(32);
-			Util::DXHandle::SetHandleDirect(DxLib::MakeScreen(SizeX, SizeY, FALSE));
-			DxLib::SetCreateDrawValidGraphChannelNum(prevMip);
-			DxLib::SetDrawValidFloatTypeGraphCreateFlag(prevFloatType);
-			DxLib::SetCreateGraphChannelBitDepth(prevBit);
-		}
 		void CreateGraphFromBmp(const BITMAPINFO* RGBBmpInfo, const void* RGBBmpImage, const BITMAPINFO* AlphaBmpInfo = nullptr, const void* AlphaBmpImage = nullptr, bool TextureFlag = true, bool ReverseFlag = false) noexcept {
 			Util::DXHandle::SetHandleDirect(DxLib::CreateGraphFromBmp(RGBBmpInfo, RGBBmpImage, AlphaBmpInfo, AlphaBmpImage, TextureFlag ? TRUE : FALSE, ReverseFlag ? TRUE : FALSE));
+		}
+		static void LoadDiv(std::basic_string_view<TCHAR> FileName, int AllNum, int XNum, int YNum, int  XSize, int  YSize, std::vector<GraphHandle>* Handles, bool NotUse3DFlag = false) noexcept {
+			int* HandleArray = new int[static_cast<size_t>(AllNum)];
+			DxLib::LoadDivGraphWithStrLen(FileName.data(), FileName.length(), AllNum, XNum, YNum, XSize, YSize, HandleArray, NotUse3DFlag);
+
+			Handles->clear();
+			for (size_t loop = 0; loop < static_cast<size_t>(AllNum); ++loop) {
+				Handles->emplace_back();
+				Handles->back().SetHandleDirect(HandleArray[loop]);
+			}
+			delete[] HandleArray;
+
+			return;
 		}
 	public:
 		void DrawGraph(int posx, int posy, bool trns) const noexcept {
@@ -181,6 +178,47 @@ namespace Draw {
 			DxLib::GetGraphSize(Util::DXHandle::get(), xsize, ysize);
 		}
 		// 
+		void SetUseTextureToShader(int ID) const noexcept {
+			DxLib::SetUseTextureToShader(ID, Util::DXHandle::get());
+		}
+		void SetRenderTargetToShader(int ID, int SurfaceIndex = 0, int MipLevel = 0) const noexcept {
+			DxLib::SetRenderTargetToShader(ID, Util::DXHandle::get(), SurfaceIndex, MipLevel);
+		}
+	};
+
+	class ScreenHandle :public GraphHandle {
+	public:
+		ScreenHandle(void) noexcept {}
+		ScreenHandle(const ScreenHandle& o) = delete;
+		ScreenHandle(ScreenHandle&& o) noexcept {
+			Util::DXHandle::SetHandleDirect(o.get());
+			o.SetHandleDirect(InvalidID);
+		}
+		ScreenHandle& operator=(const ScreenHandle& o) = delete;
+		ScreenHandle& operator=(ScreenHandle&& o) noexcept {
+			Util::DXHandle::SetHandleDirect(o.get());
+			o.SetHandleDirect(InvalidID);
+			return *this;
+		}
+		virtual ~ScreenHandle(void) noexcept {}
+	public:
+		void Make(int SizeX, int SizeY, bool trns = false) noexcept {
+			Util::DXHandle::SetHandleDirect(DxLib::MakeScreen(SizeX, SizeY, (trns ? TRUE : FALSE)));
+		}
+		void MakeDepth(int SizeX, int SizeY) noexcept {
+			// 深度を描画するテクスチャの作成( 2チャンネル浮動小数点32ビットテクスチャ )
+			auto prevMip = DxLib::GetCreateDrawValidGraphChannelNum();
+			auto prevFloatType = DxLib::GetDrawValidFloatTypeGraphCreateFlag();
+			auto prevBit = DxLib::GetCreateGraphChannelBitDepth();
+			DxLib::SetCreateDrawValidGraphChannelNum(2);
+			DxLib::SetDrawValidFloatTypeGraphCreateFlag(TRUE);
+			DxLib::SetCreateGraphChannelBitDepth(32);
+			Util::DXHandle::SetHandleDirect(DxLib::MakeScreen(SizeX, SizeY, FALSE));
+			DxLib::SetCreateDrawValidGraphChannelNum(prevMip);
+			DxLib::SetDrawValidFloatTypeGraphCreateFlag(prevFloatType);
+			DxLib::SetCreateGraphChannelBitDepth(prevBit);
+		}
+	public:
 		void SetDraw_Screen(bool Clear = true) const noexcept {
 			DxLib::SetDrawScreen(Util::DXHandle::get());
 			if (Clear) {
@@ -188,43 +226,11 @@ namespace Draw {
 			}
 		}
 		// 
-		void SetUseTextureToShader(int ID) const noexcept {
-			DxLib::SetUseTextureToShader(ID, Util::DXHandle::get());
-		}
-		void SetRenderTargetToShader(int ID, int SurfaceIndex = 0, int MipLevel = 0) const noexcept {
-			DxLib::SetRenderTargetToShader(ID, Util::DXHandle::get(), SurfaceIndex, MipLevel);
-		}
-	public:
-		// 
 		static void SetDraw_Screen(int handle, bool Clear = true) noexcept {
 			DxLib::SetDrawScreen(handle);
 			if (Clear) {
 				DxLib::ClearDrawScreen();
 			}
-		}
-		// 
-		/*
-		static void SetUseTextureToShader(int ID, int handle) noexcept {
-			DxLib::SetUseTextureToShader(ID, handle);
-		}
-		//
-		static void SetRenderTargetToShader(int ID, int handle, int SurfaceIndex = 0, int MipLevel = 0) noexcept {
-			DxLib::SetRenderTargetToShader(ID, handle, SurfaceIndex, MipLevel);
-		}
-		//*/
-
-		static void LoadDiv(std::basic_string_view<TCHAR> FileName, int AllNum, int XNum, int YNum, int  XSize, int  YSize, std::vector<GraphHandle>* Handles, bool NotUse3DFlag = false) noexcept {
-			int* HandleArray = new int[static_cast<size_t>(AllNum)];
-			DxLib::LoadDivGraphWithStrLen(FileName.data(), FileName.length(), AllNum, XNum, YNum, XSize, YSize, HandleArray, NotUse3DFlag);
-
-			Handles->clear();
-			for (size_t loop = 0; loop < static_cast<size_t>(AllNum); ++loop) {
-				Handles->emplace_back();
-				Handles->back().SetHandleDirect(HandleArray[loop]);
-			}
-			delete[] HandleArray;
-
-			return;
 		}
 	};
 	//
@@ -265,7 +271,7 @@ namespace Draw {
 		std::string		m_FilePath;
 		GraphHandle		m_Handle;
 	public:
-		Graphhave(std::string FilePath) noexcept;
+		Graphhave(std::string_view FilePath) noexcept;
 		Graphhave(const Graphhave&) = delete;
 		Graphhave(Graphhave&&) = delete;
 		Graphhave& operator=(const Graphhave&) = delete;
@@ -275,7 +281,7 @@ namespace Draw {
 			this->m_Handle.Dispose();
 		}
 	public:
-		bool			Equal(std::string FilePath) const noexcept {
+		bool			Equal(std::string_view FilePath) const noexcept {
 			return (this->m_FilePath == FilePath);
 		}
 	public:
@@ -295,7 +301,7 @@ namespace Draw {
 		GraphPool& operator=(const GraphPool&) = delete;
 		GraphPool& operator=(GraphPool&&) = delete;
 	public:
-		std::unique_ptr<Graphhave>& Get(std::string FilePath) noexcept {
+		std::unique_ptr<Graphhave>& Get(std::string_view FilePath) noexcept {
 			auto Find = std::find_if(this->m_Pools.begin(), this->m_Pools.end(), [&](const std::unique_ptr<Graphhave>& tgt) {return tgt->Equal(FilePath); });
 			if (Find != this->m_Pools.end()) {
 				return *Find;

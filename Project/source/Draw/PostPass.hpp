@@ -394,7 +394,7 @@ namespace Draw {
 		class PostPassScreenBuffer {
 			static const int			m_Size = 4;
 		private:
-			std::array<Draw::GraphHandle, m_Size>	m_Screen{};
+			std::array<Draw::ScreenHandle, m_Size>	m_Screen{};
 			int										m_xSize{};
 			int										m_ySize{};
 			int										m_ZBufferBitDepth{};
@@ -441,7 +441,7 @@ namespace Draw {
 				}
 			}
 		public:
-			const Draw::GraphHandle* PopBlankScreen(void) noexcept {
+			const Draw::ScreenHandle* PopBlankScreen(void) noexcept {
 				if (this->m_UsedLocal >= this->m_Size) {
 					MessageBox(NULL, "None Blank PostPassScreenBuffer", "", MB_OK);
 					exit(InvalidID);
@@ -539,9 +539,9 @@ namespace Draw {
 			Gbuffer& operator=(Gbuffer&&) = delete;
 			virtual ~Gbuffer(void) noexcept {}
 		private:
-			Draw::GraphHandle			m_ColorScreen;	// そのまま透過なしにしたスクリーン
-			Draw::GraphHandle			m_NormalScreen;	// 法線のGバッファ
-			Draw::GraphHandle			m_DepthScreen;	// 深度のGバッファ
+			Draw::ScreenHandle			m_ColorScreen;	// そのまま透過なしにしたスクリーン
+			Draw::ScreenHandle			m_NormalScreen;	// 法線のGバッファ
+			Draw::ScreenHandle			m_DepthScreen;	// 深度のGバッファ
 		public:
 			const auto& GetColorBuffer() const noexcept { return this->m_ColorScreen; }
 			const auto& GetNormalBuffer() const noexcept { return this->m_NormalScreen; }
@@ -581,7 +581,7 @@ namespace Draw {
 			virtual void Load_Sub(void) noexcept {}
 			virtual void Dispose_Sub(void) noexcept {}
 			virtual bool IsActive_Sub(void) noexcept { return true; }
-			virtual void SetEffect_Sub(Draw::GraphHandle*, Gbuffer*) noexcept {}
+			virtual void SetEffect_Sub(Draw::ScreenHandle*, Gbuffer*) noexcept {}
 		public:
 			bool IsActive(void) noexcept { return IsActive_Sub(); }
 			void UpdateActive(bool active) noexcept {
@@ -595,7 +595,7 @@ namespace Draw {
 					}
 				}
 			}
-			void SetEffect(Draw::GraphHandle* TargetGraph, Gbuffer* pGbuffer) noexcept {
+			void SetEffect(Draw::ScreenHandle* TargetGraph, Gbuffer* pGbuffer) noexcept {
 				if (IsActive()) {
 					SetEffect_Sub(TargetGraph, pGbuffer);
 				}
@@ -606,10 +606,10 @@ namespace Draw {
 		class ShadowDraw {
 			static const int EXTEND = 1;
 		private:
-			Draw::GraphHandle			m_BaseShadowHandle;
-			Draw::GraphHandle			m_DepthBaseScreenHandle;
-			Draw::GraphHandle			m_DepthScreenHandle;
-			Draw::GraphHandle			m_DepthFarScreenHandle;
+			Draw::ScreenHandle			m_BaseShadowHandle;
+			Draw::ScreenHandle			m_DepthBaseScreenHandle;
+			Draw::ScreenHandle			m_DepthScreenHandle;
+			Draw::ScreenHandle			m_DepthFarScreenHandle;
 
 			ShaderController			m_Shader;
 			ShaderController			m_ShaderRigid;
@@ -835,7 +835,7 @@ namespace Draw {
 		bool						m_ShadowFarChange{ false };
 		bool						m_IsActiveGBuffer{ false };
 		char		padding[2]{};
-		Draw::GraphHandle			m_BufferScreen;	// 描画スクリーン
+		Draw::ScreenHandle			m_BufferScreen;	// 描画スクリーン
 		Gbuffer						m_Gbuffer;
 		Util::Matrix4x4				m_CamViewMat{};
 		Util::Matrix4x4				m_CamProjectionMat{};
@@ -1003,6 +1003,7 @@ namespace Draw {
 		void		EndDraw(void) noexcept {
 			this->m_BufferScreen.SetDraw_Screen(false);
 			auto* pOption = Util::OptionParam::Instance();
+			auto* ScreenBufferPool = PostPassScreenBufferPool::Instance();
 			// 影
 			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
 				this->m_ShadowDraw->Draw();
@@ -1010,7 +1011,7 @@ namespace Draw {
 			// 色味補正
 			this->m_BufferScreen.GraphFilter(DX_GRAPH_FILTER_LEVEL, this->m_ColorParam.m_InColorPerMin, this->m_ColorParam.m_InColorPerMax, static_cast<int>(this->m_ColorParam.m_InColorGamma * 100), 0, 255);
 			// ポストプロセス
-			PostPassScreenBufferPool::Instance()->FirstUpdate();
+			ScreenBufferPool->FirstUpdate();
 			if (this->m_IsActiveGBuffer) {
 				for (auto& P : this->m_PostPass) {
 					if (!P) { continue; }

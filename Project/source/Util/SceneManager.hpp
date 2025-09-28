@@ -158,7 +158,7 @@ namespace Util {
 				if (this->m_NowScene) {
 					auto* PostPassParts = Draw::PostPassEffect::Instance();
 					PostPassParts->Reset();
-					auto* LightParts = DXLibRef::LightPool::Instance();
+					auto* LightParts = Draw::LightPool::Instance();
 					LightParts->Dispose();
 					this->m_NowScene->Init();
 					this->m_Phase = EnumScenePhase::Update;
@@ -169,7 +169,7 @@ namespace Util {
 					this->m_NowScene->Dispose();
 					auto* PostPassParts = Draw::PostPassEffect::Instance();
 					PostPassParts->Reset();
-					auto* LightParts = DXLibRef::LightPool::Instance();
+					auto* LightParts = Draw::LightPool::Instance();
 					LightParts->Dispose();
 				}
 				break;
