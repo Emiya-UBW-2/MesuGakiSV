@@ -146,5 +146,14 @@ PS_OUTPUT main(PS_INPUT PSInput)
     //ao = lerp(ao, 1.0f, saturate(pos.z / 1000.f));
     
     PSOutput.color0 = float4(ao, ao, ao, 1.0f);
+    
+    if (g_DepthMapTexture.Sample(g_DepthMapSampler, PSInput.TextureCoord0).r / 100.f < 0.1f)
+    {
+        PSOutput.color0.r = 1.f;
+        PSOutput.color0.g = 1.f;
+        PSOutput.color0.b = 1.f;
+        PSOutput.color0.a = 1.f;
+    }
+    
     return PSOutput;
 }

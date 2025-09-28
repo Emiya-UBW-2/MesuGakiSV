@@ -191,12 +191,12 @@ namespace Draw {
 				this->m_FontHandle->DrawStringAutoFit(
 					static_cast<int>(x1), static_cast<int>(y1),
 					static_cast<int>(x2), static_cast<int>(y2),
-					Color.GetColor(), DxLib::GetColor(0, 0, 0), this->String);
+					Color.GetColor(), ColorPalette::Black, this->String);
 				//*/
 				Font->Get(FontType::DIZ_UD_Gothic, static_cast<int>(18.f * scale.y), 3)->DrawString(
 					FontXCenter::MIDDLE, FontYCenter::MIDDLE,
 					static_cast<int>((x2 + x1) / 2.f), static_cast<int>((y2 + y1) / 2.f),
-					Color.GetColor(), DxLib::GetColor(0, 0, 0),
+					Color.GetColor(), ColorPalette::Black,
 					Util::SjistoUTF8((this->m_String != "") ? this->m_String : Localize->Get(this->m_StringID)));
 			}
 			else {

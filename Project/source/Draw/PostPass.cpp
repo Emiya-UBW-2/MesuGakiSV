@@ -38,7 +38,7 @@ namespace Draw {
 			const Draw::ScreenHandle* pScreenBuffer = ScreenBufferPool->GetBlankScreen(xsize, ysize, true)->PopBlankScreen();
 			const Draw::ScreenHandle* pGaussScreen = ScreenBufferPool->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
 
-			pScreenBuffer->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_TWO_COLOR, 250, DxLib::GetColor(0, 0, 0), 255, DxLib::GetColor(128, 128, 128), 255);
+			pScreenBuffer->GraphFilterBlt(*TargetGraph, DX_GRAPH_FILTER_TWO_COLOR, 250, ColorPalette::Black, 255, ColorPalette::Gray50, 255);
 			pGaussScreen->GraphFilterBlt(*pScreenBuffer, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
 			pGaussScreen->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 1000);
 			TargetGraph->SetDraw_Screen(false);
@@ -290,14 +290,14 @@ namespace Draw {
 	class PostPassGodRay : public PostPassEffect::PostPassBase {
 		static const int EXTEND = 8;
 	private:
+		Shader2DController				m_Shader;		// シェーダー
 		Draw::ScreenHandle				m_Min;			// 描画スクリーン
 		Draw::SoftImageHandle			m_SoftImage;
-		int								m_GodRayRed = InvalidID;
+		int								m_GodRayRed{ InvalidID };
+		float							m_GodRayTime{ 0.f };
+		float							m_range{ 1.f };
 		bool							m_IsUpdateSoftImage{ false };
-		float							m_GodRayTime = 0.f;
-		Shader2DController				m_Shader;			// シェーダー
-		float							m_range = 1.f;
-		char		padding[4]{};
+		char		padding[3]{};
 	public:
 		PostPassGodRay(void) noexcept {}
 		PostPassGodRay(const PostPassGodRay&) = delete;
@@ -754,7 +754,7 @@ namespace Draw {
 					int xr = DrawerMngr->GetRenderDispWidth() * 60 / 100;
 					int yr = DrawerMngr->GetRenderDispHeight() * 70 / 100;
 
-					DrawOval(DrawerMngr->GetRenderDispWidth() / 2, DrawerMngr->GetRenderDispHeight() / 2, xr, yr, DxLib::GetColor(255, 255, 255), TRUE);
+					DrawOval(DrawerMngr->GetRenderDispWidth() / 2, DrawerMngr->GetRenderDispHeight() / 2, xr, yr, ColorPalette::White, TRUE);
 
 					int p = 1;
 					for (int r = 0; r < 255; r += p) {

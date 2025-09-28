@@ -659,7 +659,7 @@ namespace Util {
 		struct KeyPair {
 			EnumInput	m_ID{ EnumInput::Max };
 			EnumInput	m_DefaultID{ EnumInput::Max };
-			Key*		m_Ptr{nullptr};
+			Key*		m_Ptr{ nullptr };
 		};
 	private:
 		std::vector<Key>		m_Input{};
@@ -929,12 +929,7 @@ namespace Util {
 			}
 		}
 	private:
-		void Assign(InputType type) noexcept {
-			if (this->m_InputType != type) {
-				this->m_InputType = type;
-				this->m_DeviceChangeSwitch = true;
-			}
-		}
+		void Assign(InputType type) noexcept;
 	public:
 		void DefaultAssignID(EnumMenu Select, int ID, EnumInput Input) noexcept {
 			auto& menu = this->m_MenuKey.at(static_cast<size_t>(GetLastInputDevice())).at(static_cast<size_t>(ID)).at(static_cast<size_t>(Select));

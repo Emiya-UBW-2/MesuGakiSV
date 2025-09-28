@@ -91,7 +91,7 @@ void OptionWindow::UpdateColumnStr() noexcept {
 			}
 		}
 	}
-		break;
+	break;
 	default:
 		break;
 	}
@@ -299,7 +299,7 @@ void OptionWindow::Update(void) noexcept {
 					}
 				}
 			}
-				break;
+			break;
 			default:
 				break;
 			}

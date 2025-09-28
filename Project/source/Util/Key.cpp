@@ -4,10 +4,19 @@
 #pragma warning(disable:5259)
 #include "Key.hpp"
 #include "../Draw/MainDraw.hpp"
+#include "../Draw/KeyGuide.hpp"
 
 const Util::KeyParam* Util::SingletonBase<Util::KeyParam>::m_Singleton = nullptr;
 
 namespace Util {
+	void KeyParam::Assign(InputType type) noexcept {
+		if (this->m_InputType != type) {
+			this->m_InputType = type;
+			this->m_DeviceChangeSwitch = true;
+			auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+			KeyGuideParts->SetGuideFlip();
+		}
+	}
 	void KeyParam::Update(void) noexcept {
 		this->m_DeviceChangeSwitch = false;
 		//最後に入力したデバイスに更新

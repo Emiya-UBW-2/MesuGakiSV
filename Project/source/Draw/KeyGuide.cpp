@@ -35,7 +35,7 @@ namespace DXLibRef {
 			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
 				Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
 				x + ofs, y + 24 / 2,
-				DxLib::GetColor(255,255,255), DxLib::GetColor(0, 0, 0), Util::SjistoUTF8(GuideString));
+				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(GuideString));
 		}
 	}
 	// 

@@ -192,7 +192,7 @@ namespace Draw {
 			for (auto& parts : this->m_PartsParam) {
 				parts.Draw(DrawUI, this->m_BasePositionParam);
 			}
-			//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, GetBranchName().c_str(), DxLib::GetColor(255, 0, 0));
+			//DrawString(Param.OfsNoRad.x, Param.OfsNoRad.y, GetBranchName().c_str(), ColorPalette::Red);
 		}
 	};
 
