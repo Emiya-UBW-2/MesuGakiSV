@@ -473,7 +473,7 @@ namespace Draw {
 		this->m_BasePositionParam = Param;
 		AnimType SelectNow = AnimType::Normal;
 		if (this->m_UseActive) {
-			if (this->m_IsActive) {
+			if (IsActive()) {
 				SelectNow = AnimType::Active;
 			}
 			else {

@@ -200,6 +200,8 @@ namespace Draw {
 
 	class DrawUISystem {
 		std::vector<DrawModule> m_DrawModule;
+		bool					m_IsFirstFrameDraw{};
+		char		padding[7]{};
 	public://コンストラクタ、デストラクタ
 		DrawUISystem(void) noexcept {
 			this->m_DrawModule.reserve(128);
@@ -269,6 +271,7 @@ namespace Draw {
 	public:
 		void			Init(std::string_view Path) noexcept {
 			Add(Path, "");
+			m_IsFirstFrameDraw = true;
 		}
 		void			Update(bool IsActiveMouseMove) noexcept {
 			if (this->m_DrawModule.size() == 0) { return; }
@@ -405,6 +408,10 @@ namespace Draw {
 		}
 		void			Draw(void) noexcept {
 			if (this->m_DrawModule.size() == 0) { return; }
+			if (m_IsFirstFrameDraw) {
+				m_IsFirstFrameDraw = false;
+				return;
+			}
 			this->m_DrawModule.at(0).Draw(this);
 		}
 		void			Dispose(void) noexcept {

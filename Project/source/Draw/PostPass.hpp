@@ -884,8 +884,6 @@ namespace Draw {
 			SetAberrationPower(1.f);
 			this->m_ScopeParam.Reset();
 			this->m_BlackOutParam.Reset();
-			// 環境光と影の初期化
-			SetAmbientLight(Util::VECTOR3D::vget(0.25f, -1.f, 0.25f));
 		}
 	private:
 		PostPassEffect(void) noexcept;

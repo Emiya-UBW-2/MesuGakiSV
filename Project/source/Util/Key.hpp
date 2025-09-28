@@ -582,6 +582,7 @@ namespace Util {
 		UP,
 		RIGHT,
 		DOWN,
+		Tab,
 		Max,
 	};
 
@@ -701,6 +702,7 @@ namespace Util {
 				switch (static_cast<InputType>(loop)) {
 				case InputType::KeyBoard:
 					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
+					AssignID(EnumMenu::Tab, 0, EnumInput::Key_TAB);
 					//
 					AssignID(EnumMenu::Diside, 0, EnumInput::Mouse_Left);
 					AssignID(EnumMenu::Diside, 1, EnumInput::Key_F);
@@ -713,6 +715,8 @@ namespace Util {
 					break;
 				case InputType::XInput:
 					AssignID(EnumMenu::Esc, 0, EnumInput::XInput_ESCAPE);
+					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
+					AssignID(EnumMenu::Tab, 0, EnumInput::XInput_OPTION);
 					//
 					AssignID(EnumMenu::Diside, 0, EnumInput::XInput_OK);
 					AssignID(EnumMenu::Cancel, 0, EnumInput::XInput_NG);
@@ -728,6 +732,7 @@ namespace Util {
 				case InputType::DInput:
 					AssignID(EnumMenu::Esc, 0, EnumInput::DInput_ESCAPE);
 					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
+					AssignID(EnumMenu::Tab, 0, EnumInput::DInput_OPTION);
 					//
 					AssignID(EnumMenu::Diside, 0, EnumInput::DInput_OK);
 					AssignID(EnumMenu::Cancel, 0, EnumInput::DInput_NG);
