@@ -18,61 +18,12 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="source\Draw\Camera.cpp" />
-    <ClCompile Include="source\Draw\DrawUISystem.cpp" />
-    <ClCompile Include="source\Draw\FontDraw.cpp" />
-    <ClCompile Include="source\Draw\ImageDraw.cpp" />
-    <ClCompile Include="source\Draw\KeyGuide.cpp" />
-    <ClCompile Include="source\Draw\Light.cpp" />
-    <ClCompile Include="source\Draw\MainDraw.cpp" />
-    <ClCompile Include="source\Draw\MV1.cpp" />
-    <ClCompile Include="source\Draw\PostPass.cpp" />
-    <ClCompile Include="source\File\FileStream.cpp" />
-    <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\OptionWindow.cpp" />
-    <ClCompile Include="source\PauseUI.cpp" />
-    <ClCompile Include="source\Scene\MainScene.cpp" />
-    <ClCompile Include="source\Scene\TitleScene.cpp" />
-    <ClCompile Include="source\TitleUI.cpp" />
-    <ClCompile Include="source\Util\Key.cpp" />
-    <ClCompile Include="source\Util\Localize.cpp" />
-    <ClCompile Include="source\Util\Option.cpp" />
-    <ClCompile Include="source\Util\SceneManager.cpp" />
-    <ClCompile Include="source\Util\Util.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="source\Draw\Camera.hpp" />
-    <ClInclude Include="source\Draw\DrawUISystem.hpp" />
-    <ClInclude Include="source\Draw\FontDraw.hpp" />
-    <ClInclude Include="source\Draw\ImageDraw.hpp" />
-    <ClInclude Include="source\Draw\KeyGuide.hpp" />
-    <ClInclude Include="source\Draw\Light.hpp" />
-    <ClInclude Include="source\Draw\MainDraw.hpp" />
-    <ClInclude Include="source\Draw\MV1.hpp" />
-    <ClInclude Include="source\Draw\PostPass.hpp" />
-    <ClInclude Include="source\File\FileStream.hpp" />
-    <ClInclude Include="source\File\json.hpp" />
-    <ClInclude Include="source\OptionWindow.hpp" />
-    <ClInclude Include="source\PauseUI.hpp" />
-    <ClInclude Include="source\Scene\MainScene.hpp" />
-    <ClInclude Include="source\Scene\TitleScene.hpp" />
-    <ClInclude Include="source\TitleUI.hpp" />
-    <ClInclude Include="source\Util\Algorithm.hpp" />
-    <ClInclude Include="source\Util\Enum.hpp" />
-    <ClInclude Include="source\Util\Key.hpp" />
-    <ClInclude Include="source\Util\Localize.hpp" />
-    <ClInclude Include="source\Util\Option.hpp" />
-    <ClInclude Include="source\Util\SceneManager.hpp" />
-    <ClInclude Include="source\Util\Util.hpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{e45d9127-d356-4c5b-95fe-8ec3ce33318f}</ProjectGuid>
     <RootNamespace>VisualStudio2022用</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>Project</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -167,14 +118,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\DxLib_VC\DX_VC</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -184,7 +133,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -192,8 +141,6 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\DxLib_VC\DX_VC</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -203,6 +150,12 @@
       <AdditionalLibraryDirectories>..\..\DxLib_VC\DX_VC</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\プロジェクトに追加すべきファイル_VC用\DxLib.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
