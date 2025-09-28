@@ -101,10 +101,10 @@ protected:
 		}
 		//更新
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::A)) {
-			m_YRad -= Util::deg2rad(60.f) / 60.f;
+			m_YRad += Util::deg2rad(60.f) / 60.f;
 		}
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::D)) {
-			m_YRad += Util::deg2rad(60.f) / 60.f;
+			m_YRad -= Util::deg2rad(60.f) / 60.f;
 		}
 
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::W)) {

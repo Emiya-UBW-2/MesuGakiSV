@@ -824,7 +824,26 @@ namespace Util {
 						if (Left0 == BattleStr[static_cast<size_t>(loop)]) {
 							int ID = std::stoi(Left1);
 							EnumInput Enum = EnumInput::Max;
-							for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
+							int Min = static_cast<int>(EnumInput::Begin);
+							int Max = static_cast<int>(EnumInput::Max);
+							switch (type) {
+							case InputType::KeyBoard:
+								Min = static_cast<int>(EnumInput::Mouse_Begin);
+								Max = static_cast<int>(EnumInput::Key_Max);
+								break;
+							case InputType::XInput:
+								Min = static_cast<int>(EnumInput::XInput_Begin);
+								Max = static_cast<int>(EnumInput::XInput_Max);
+								break;
+							case InputType::DInput:
+								Min = static_cast<int>(EnumInput::DInput_Begin);
+								Max = static_cast<int>(EnumInput::DInput_Max);
+								break;
+							case InputType::Max:
+							default:
+								break;
+							}
+							for (int loop2 = Min; loop2 < Max; ++loop2) {
 								if (Right == GetKeyStr(static_cast<EnumInput>(loop2))) {
 									Enum = static_cast<EnumInput>(loop2);
 									break;
@@ -850,7 +869,26 @@ namespace Util {
 						if (Left0 == BattleStr[static_cast<size_t>(loop)]) {
 							int ID = std::stoi(Left1);
 							EnumInput Enum = EnumInput::Max;
-							for (int loop2 = static_cast<int>(EnumInput::Begin); loop2 < static_cast<int>(EnumInput::Max); ++loop2) {
+							int Min = static_cast<int>(EnumInput::Begin);
+							int Max = static_cast<int>(EnumInput::Max);
+							switch (type) {
+							case InputType::KeyBoard:
+								Min = static_cast<int>(EnumInput::Mouse_Begin);
+								Max = static_cast<int>(EnumInput::Key_Max);
+								break;
+							case InputType::XInput:
+								Min = static_cast<int>(EnumInput::XInput_Begin);
+								Max = static_cast<int>(EnumInput::XInput_Max);
+								break;
+							case InputType::DInput:
+								Min = static_cast<int>(EnumInput::DInput_Begin);
+								Max = static_cast<int>(EnumInput::DInput_Max);
+								break;
+							case InputType::Max:
+							default:
+								break;
+							}
+							for (int loop2 = Min; loop2 < Max; ++loop2) {
 								if (Right == GetKeyStr(static_cast<EnumInput>(loop2))) {
 									Enum = static_cast<EnumInput>(loop2);
 									break;
