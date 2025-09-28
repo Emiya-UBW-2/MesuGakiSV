@@ -54,3 +54,8 @@
 1001=Tutorial
 1002=Option
 1003=Credit
+
+1100=PAUSE
+1101=Return Title
+1102=Option
+1103=Return Game
