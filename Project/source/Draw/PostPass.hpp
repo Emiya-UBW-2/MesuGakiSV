@@ -815,7 +815,7 @@ namespace Draw {
 		public:
 			void			SetGodRayPer(float value) noexcept { this->m_GodRayPer = value; }
 			void			SetGodRayPerByPostPass(float value) noexcept {
-				this->m_GodRayPerByPostPass = Util::Lerp(this->m_GodRayPerByPostPass, value, 1.f - 0.975f);
+				this->m_GodRayPerByPostPass = Util::Lerp(this->m_GodRayPerByPostPass, value, 1.f - 0.995f);
 			}
 		};
 		struct ColorParam {

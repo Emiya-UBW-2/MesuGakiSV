@@ -293,6 +293,7 @@ namespace Draw {
 		Draw::ScreenHandle				m_Min;			// 描画スクリーン
 		Draw::SoftImageHandle			m_SoftImage;
 		int								m_GodRayRed = InvalidID;
+		bool							m_IsUpdateSoftImage{ false };
 		float							m_GodRayTime = 0.f;
 		Shader2DController				m_Shader;			// シェーダー
 		float							m_range = 1.f;
@@ -310,6 +311,7 @@ namespace Draw {
 			this->m_Shader.Init("CommonData/shader/PS_GodRay.pso");
 			this->m_Min.Make(1, 1, true);
 			this->m_SoftImage.Make(1, 1);
+			this->m_IsUpdateSoftImage = false;
 		}
 		void		Dispose_Sub(void) noexcept override {
 			this->m_Shader.Dispose();
@@ -370,15 +372,22 @@ namespace Draw {
 				SetUseTextureToShader(2, InvalidID);
 			}
 			this->m_GodRayTime += 1.f / 60.f;
-			if (this->m_GodRayTime > 1.f) {
-				this->m_GodRayTime -= 1.f;
-				this->m_Min.SetDraw_Screen();
-				auto Prev = DxLib::GetDrawMode();
-				DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
-				pScreenBuffer->DrawExtendGraph(0, 0, 1, 1, true);
-				DxLib::SetDrawMode(Prev);
-				this->m_SoftImage.GetDrawScreen(0, 0, 1, 1);
-				this->m_SoftImage.GetPixel(0, 0, &this->m_GodRayRed, nullptr, nullptr, nullptr);
+			if (this->m_GodRayTime > 0.5f) {
+				this->m_GodRayTime -= 0.5f;
+				if (!this->m_IsUpdateSoftImage) {
+					this->m_Min.SetDraw_Screen();
+					auto Prev = DxLib::GetDrawMode();
+					DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
+					pScreenBuffer->DrawExtendGraph(0, 0, 1, 1, true);
+					DxLib::SetDrawMode(Prev);
+				}
+				else {
+					this->m_Min.SetDraw_Screen(false);
+					this->m_SoftImage.GetDrawScreen(0, 0, 1, 1);
+					this->m_SoftImage.GetPixel(0, 0, &this->m_GodRayRed, nullptr, nullptr, nullptr);
+				}
+				this->m_IsUpdateSoftImage ^= 1;
+
 			}
 			PostPassParts->SetGodRayParam().SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(this->m_GodRayRed) / 128.f, 0.f, 1.f));
 

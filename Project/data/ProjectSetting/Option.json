@@ -20,7 +20,7 @@
 		{
 			"Type":"GraphicsPreset",
 			"SelectType": "Select",
-			"Value" : ["Low","Middle","High"],
+			"Value" : ["Low","Middle","High","Ultra"],
 			"DefaultValue" : "Low"
 		},
 		{
@@ -72,22 +72,10 @@
 			"DefaultValue" : "True"
 		},
 		{
-			"Type":"Distortion",
-			"SelectType": "Select",
-			"SelectType" : "Bool",
-			"DefaultValue" : "True"
-		},
-		{
 			"Type":"Reflection",
 			"SelectType": "Select",
 			"Value" : ["OFF","Low","Middle","High"],
 			"DefaultValue" : "OFF"
-		},
-		{
-			"Type":"MotionBlur",
-			"SelectType": "Select",
-			"SelectType" : "Bool",
-			"DefaultValue" : "True"
 		},
 		{
 			"Type":"AntiAliasing",
@@ -97,6 +85,18 @@
 		},
 		{
 			"Type":"GodRay",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
+			"Type":"Distortion",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
+			"Type":"MotionBlur",
 			"SelectType": "Select",
 			"SelectType" : "Bool",
 			"DefaultValue" : "True"

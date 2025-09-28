@@ -187,14 +187,72 @@ void OptionWindow::Update(void) noexcept {
 				auto* PostPassParts = Draw::PostPassEffect::Instance();
 				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
 					auto& param = this->m_Param[loop];
-					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::WindowMode)));
+					Util::OptionType OptType = static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::WindowMode));
+					auto Type = pOption->GetOptionType(OptType);
+					bool IsChange = false;
 					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
-						DrawerMngr->FlipSetting();
-						PostPassParts->Reset();
+						IsChange = true;
 					}
 					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
+						IsChange = true;
+					}
+					if (IsChange) {
+						if (OptType == Util::OptionType::GraphicsPreset) {
+							switch (pOption->GetParam(Type)->GetSelect()) {
+							case 0:
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::DrawScale), 50);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::DoF), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Bloom), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Shadow), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::SSAO), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Reflection), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::AntiAliasing), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::GodRay), 0);
+								break;
+							case 1:
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::DrawScale), 100);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::DoF), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Bloom), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Shadow), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::SSAO), 0);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Reflection), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::AntiAliasing), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::GodRay), 1);
+								break;
+							case 2:
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::DrawScale), 100);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel), 2);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::DoF), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Bloom), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Shadow), 2);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::SSAO), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Reflection), 2);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::AntiAliasing), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::GodRay), 1);
+								break;
+							case 3:
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::DrawScale), 100);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel), 2);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::DoF), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Bloom), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Shadow), 3);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::SSAO), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::ScreenEffect), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::Reflection), 3);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::AntiAliasing), 1);
+								pOption->SetParam(pOption->GetOptionType(Util::OptionType::GodRay), 1);
+								break;
+							default:
+								break;
+							}
+						}
 						DrawerMngr->FlipSetting();
 						PostPassParts->Reset();
 					}

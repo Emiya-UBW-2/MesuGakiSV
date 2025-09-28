@@ -15,19 +15,19 @@
 0201=VSync
 0202=FPSLimit
 0203=Fov
-0204=DrawScale
-0205=GraphicsPreset
+0204=GraphicsPreset
+0205=DrawScale
 0206=ObjectLevel
 0207=DoF
 0208=Bloom
 0209=Shadow
 0210=SSAO
 0211=ScreenEffect
-0212=Distortion
-0213=Reflection
-0214=MotionBlur
-0215=AntiAliasing
-0216=GodRay
+0212=Reflection
+0213=AntiAliasing
+0214=GodRay
+0215=Distortion
+0216=MotionBlur
 
 0300=XSensing
 0301=YSensing

@@ -58,8 +58,8 @@ namespace Camera {
 		void Update(void) noexcept {
 			if (this->m_SendShakeTime > 0.f) {
 				auto RandRange = this->m_Timer / this->m_SendShakeTime * this->m_SendShakePower;
-				this->m_Shake1 = Util::Lerp(this->m_Shake1, Util::VECTOR3D::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 0.8f);
-				this->m_Shake2 = Util::Lerp(this->m_Shake2, this->m_Shake1, 0.8f);
+				this->m_Shake1 = Util::Lerp(this->m_Shake1, Util::VECTOR3D::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 1.f - 0.8f);
+				this->m_Shake2 = Util::Lerp(this->m_Shake2, this->m_Shake1, 1.f - 0.8f);
 				this->m_Timer = std::max(this->m_Timer - 1.f / 60.f, 0.f);
 			}
 		}
