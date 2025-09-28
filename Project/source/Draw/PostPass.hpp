@@ -392,7 +392,7 @@ namespace Draw {
 		friend class Util::SingletonBase<PostPassScreenBufferPool>;
 	private:
 		class PostPassScreenBuffer {
-			static const int			m_Size = 4;
+			static const int			m_Size = 3;
 		private:
 			std::array<Draw::ScreenHandle, m_Size>	m_Screen{};
 			int										m_xSize{};

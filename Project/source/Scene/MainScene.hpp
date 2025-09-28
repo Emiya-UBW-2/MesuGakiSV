@@ -114,6 +114,8 @@ protected:
 			m_XRad -= Util::deg2rad(60.f) / 60.f;
 		}
 
+		m_XRad = std::clamp(m_XRad, Util::deg2rad(-60.f), Util::deg2rad(60.f));
+
 		/*
 		ModelID.SetMatrix(
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_XRad) *
