@@ -40,13 +40,19 @@ namespace Util {
 		}
 		void Update(void) noexcept { Update_Sub(); }
 		void BGDraw(void) noexcept { BGDraw_Sub(); }
+		void DrawRigid(void) noexcept { DrawRigid_Sub(); }
 		void Draw(void) noexcept { Draw_Sub(); }
+		void ShadowDrawFar(void) noexcept { ShadowDrawFar_Sub(); }
+		void ShadowDraw(void) noexcept { ShadowDraw_Sub(); }
 		void UIDraw(void) noexcept { UIDraw_Sub(); }
 		void Dispose(void) noexcept { Dispose_Sub(); }
 		virtual void Init_Sub(void) noexcept = 0;
 		virtual void Update_Sub(void) noexcept = 0;
 		virtual void BGDraw_Sub(void) noexcept = 0;
+		virtual void DrawRigid_Sub(void) noexcept = 0;
 		virtual void Draw_Sub(void) noexcept = 0;
+		virtual void ShadowDrawFar_Sub(void) noexcept = 0;
+		virtual void ShadowDraw_Sub(void) noexcept = 0;
 		virtual void UIDraw_Sub(void) noexcept = 0;
 		virtual void Dispose_Sub(void) noexcept = 0;
 	};
@@ -83,12 +89,17 @@ namespace Util {
 		}
 		void ShadowFarDraw3D(void) noexcept {
 			if (this->m_NowScene) {
-				this->m_NowScene->Draw();
+				this->m_NowScene->ShadowDrawFar();
 			}
 		}
 		void ShadowDraw3D(void) noexcept {
 			if (this->m_NowScene) {
-				this->m_NowScene->Draw();
+				this->m_NowScene->ShadowDraw();
+			}
+		}
+		void Draw3DRigid(void) noexcept {
+			if (this->m_NowScene) {
+				this->m_NowScene->DrawRigid();
 			}
 		}
 		void Draw3D(void) noexcept {

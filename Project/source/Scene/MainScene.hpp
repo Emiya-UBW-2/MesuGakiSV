@@ -12,11 +12,12 @@
 #include "../Draw/Camera.hpp"
 #include "../Draw/PostPass.hpp"
 #include "../Draw/Light.hpp"
+#include "../Draw/MV1.hpp"
 
 class MainScene : public Util::SceneBase {
-	int ModelID{ InvalidID };
-	int MapID{ InvalidID };
-	int SkyBoxID{ InvalidID };
+	DXLibRef::MV1 ModelID{};
+	DXLibRef::MV1 MapID{};
+	DXLibRef::MV1 SkyBoxID{};
 
 	float m_XRad = 0.f;
 	float m_YRad = 0.f;
@@ -29,11 +30,11 @@ public:
 	virtual ~MainScene(void) noexcept {}
 protected:
 	void Init_Sub(void) noexcept override {
-		ModelID = DxLib::MV1LoadModel("data/Soldier/model_DISABLE.mv1");
-		MapID = DxLib::MV1LoadModel("data/Map/model.mqoz");
-		SkyBoxID = DxLib::MV1LoadModel("data/SkyBox/model.mqoz");
+		DXLibRef::MV1::Load("data/Soldier/model_DISABLE.mv1", &ModelID);
+		DXLibRef::MV1::Load("data/Map/model.mqoz", &MapID);
+		DXLibRef::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
 
-		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(1.f, -1.f, 1.f).normalized();
+		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-1.f, -1.f, 1.f).normalized();
 
 		auto* PostPassParts = Draw::PostPassEffect::Instance();
 		PostPassParts->SetShadowScale(1.f);
@@ -86,12 +87,20 @@ protected:
 	}
 	void BGDraw_Sub(void) noexcept override {
 		DxLib::SetUseLighting(FALSE);
-		DxLib::MV1DrawModel(SkyBoxID);
+		SkyBoxID.DrawModel();
 		DxLib::SetUseLighting(TRUE);
 	}
+	void DrawRigid_Sub(void) noexcept override {
+		MapID.Draw(false);
+	}
 	void Draw_Sub(void) noexcept override {
-		DxLib::MV1DrawModel(MapID);
-		DxLib::MV1DrawModel(ModelID);
+		ModelID.Draw(true);
+	}
+	void ShadowDrawFar_Sub(void) noexcept override {
+		MapID.Draw(false);
+	}
+	void ShadowDraw_Sub(void) noexcept override {
+		ModelID.Draw(true);
 	}
 	void UIDraw_Sub(void) noexcept override {
 		auto* DrawerMngr = Draw::MainDraw::Instance();
@@ -99,11 +108,8 @@ protected:
 	}
 
 	void Dispose_Sub(void) noexcept override {
-		DxLib::MV1DeleteModel(SkyBoxID);
-		SkyBoxID = InvalidID;
-		DxLib::MV1DeleteModel(MapID);
-		MapID = InvalidID;
-		DxLib::MV1DeleteModel(ModelID);
-		ModelID = InvalidID;
+		SkyBoxID.Dispose();
+		MapID.Dispose();
+		ModelID.Dispose();
 	}
 };

@@ -57,7 +57,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowFarDraw3D(); }, Pos, true);
 				}
 				PostPassParts->Update_Shadow([]() { Util::SceneManager::Instance()->ShadowDraw3D(); }, CameraParts->GetCameraForDraw().GetCamPos(), false);
-				PostPassParts->SetDrawShadow([]() { Util::SceneManager::Instance()->Draw3D(); }, []() { Util::SceneManager::Instance()->Draw3D(); });
+				PostPassParts->SetDrawShadow([]() { Util::SceneManager::Instance()->Draw3DRigid(); }, []() { Util::SceneManager::Instance()->Draw3D(); });
 			}
 		}
 		//描画
@@ -71,7 +71,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				float Far = 1000000.f;
 				float Near = CameraParts->GetCameraForDraw().GetCamFar();
 				for (int loop = 0; loop < 3; ++loop) {
-					PostPassParts->DrawGBuffer(Near, Far, []() { Util::SceneManager::Instance()->Draw3D(); });
+					PostPassParts->DrawGBuffer(Near, Far, []() {
+						Util::SceneManager::Instance()->Draw3DRigid();
+						Util::SceneManager::Instance()->Draw3D();
+					});
 					Far = Near;
 					if (loop == 0) {
 						Near = CameraParts->GetCameraForDraw().GetCamNear();

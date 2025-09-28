@@ -52,10 +52,11 @@ protected:
 		}
 		this->m_OptionWindow.Update();
 	}
-	void BGDraw_Sub(void) noexcept override {
-	}
-	void Draw_Sub(void) noexcept override {
-	}
+	void BGDraw_Sub(void) noexcept override {}
+	void DrawRigid_Sub(void) noexcept override {}
+	void Draw_Sub(void) noexcept override {}
+	void ShadowDrawFar_Sub(void) noexcept override {}
+	void ShadowDraw_Sub(void) noexcept override {}
 	void UIDraw_Sub(void) noexcept override {
 		this->m_TitleUI.Draw();
 		this->m_OptionWindow.Draw();
