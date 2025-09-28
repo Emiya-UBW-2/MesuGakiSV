@@ -223,81 +223,81 @@ enum class EnumInput :size_t {
 };
 
 static const char* MouseInputStr[static_cast<size_t>(EnumInput::Mouse_Max) - static_cast<size_t>(EnumInput::Mouse_Begin)] = {
-	"LMOUSE",
-	"RMOUSE",
-	"MMOUSE",
+	"LM",
+	"RM",
+	"MM",
+	"M4",
+	"M5",
+	"M6",
+	"M7",
+	"M8",
+};
+
+static const char* KeyInputStr[static_cast<size_t>(EnumInput::Key_Max) - static_cast<size_t>(EnumInput::Key_Begin)] = {
+	"BackSpace",
+	"Tab",
+	"Enter",
+
+	"Shift",
+	"Shift",
+	"Ctrl",
+	"Ctrl",
+	"ESC",
+	"none",
+	"PageUp",
+	"PageDown",
+	"End",
+	"Home",
+	"hidari",
+	"ue",
+	"migi",
+	"sita",
+	"Ins",
+	"Del",
+
+	"mainasu",
+	"en",
+	"quotation",
+	"period",
+	"slash",
+	"Alt",
+	"Alt",
+	"ScrollLock",
+	"semikoron",
+	"coron",
+	"kakko3",
+	"kakko4",
+	"atto",
+	"backslash",
+	"comma",
+	"kanji",
+	"Henkan",
+	"Muhenkan",
+	"kana",
+	"F",
+	"CapsLock",
+	"PrintScreen",
+	"Pause",
+	"W",
+	"W",
+
+	"NumLock",
+	"0",
+	"1",
+	"2",
+	"3",
 	"4",
 	"5",
 	"6",
 	"7",
 	"8",
-};
-
-static const char* KeyInputStr[static_cast<size_t>(EnumInput::Key_Max) - static_cast<size_t>(EnumInput::Key_Begin)] = {
-	"BACK",
-	"TAB",
-	"RETURN",
-
-	"LSHIFT",
-	"RSHIFT",
-	"LCTRL",
-	"RCTRL",
-	"ESCAPE",
-	"SPACE",
-	"PGUP",
-	"PGDN",
-	"END",
-	"HOME",
-	"LEFT",
-	"UP",
-	"RIGHT",
-	"DOWN",
-	"INSERT",
-	"DELETE",
-
-	"-",
-	"\\",
-	"^",
-	".",
-	"/",
-	"LALT",
-	"RALT",
-	"SCROLL",
-	";",
-	":",
-	"[",
-	"]",
-	"@",
-	"\\",
-	",",
-	"KANJI",
-	"CONV",
-	"NOCONV",
-	"KANA",
-	"APPS",
-	"CAPS",
-	"SYSRQ",
-	"PAUSE",
-	"L WIN",
-	"R WIN",
-
-	"NMLOCK",
-	"NUM0",
-	"NUM1",
-	"NUM2",
-	"NUM3",
-	"NUM4",
-	"NUM5",
-	"NUM6",
-	"NUM7",
-	"NUM8",
-	"NUM9",
-	"NUM*",
-	"NUM+",
-	"NUM-",
-	"NUM.",
-	"NUM/",
-	"ENTER",
+	"9",
+	"asutarisku",
+	"purasu",
+	"mainasu",
+	"period",
+	"slash",
+	"Enter",
 
 	"F1",
 	"F2",
@@ -353,57 +353,57 @@ static const char* KeyInputStr[static_cast<size_t>(EnumInput::Key_Max) - static_
 };
 
 static const char* XInputInputStr[static_cast<size_t>(EnumInput::XInput_Max) - static_cast<size_t>(EnumInput::XInput_Begin)] = {
-	"X",
-	"A",
-	"B",
-	"Y",
+	"square",
+	"ng",
+	"ok",
+	"triangle",
 	"L1",
 	"R1",
 	"L2",
 	"R2",
-	"START",
-	"L3",
-	"R3",
-	"LEFT",
-	"UP",
-	"RIGHT",
-	"DOWN",
-	"BACK",
-	"LSLEFT",
-	"LSUP",
-	"LSRIGHT",
-	"LSDOWN",
-	"RSLEFT",
-	"RSUP",
-	"RSRIGHT",
-	"RSDOWN",
+	"option",
+	"L_stick",
+	"R_stick",
+	"left",
+	"up",
+	"right",
+	"down",
+	"share",
+	"L_stick",
+	"L_stick",
+	"L_stick",
+	"L_stick",
+	"R_stick",
+	"R_stick",
+	"R_stick",
+	"R_stick",
 };
 
 static const char* DInputInputStr[static_cast<size_t>(EnumInput::DInput_Max) - static_cast<size_t>(EnumInput::DInput_Begin)] = {
-	"Å†",
-	"Å~",
-	"ÅZ",
-	"Å¢",
+	"square",
+	"ng",
+	"ok",
+	"triangle",
 	"L1",
 	"R1",
 	"L2",
 	"R2",
-	"START",
-	"L3",
-	"R3",
-	"LEFT",
-	"UP",
-	"RIGHT",
-	"DOWN",
-	"BACK",
-	"LSLEFT",
-	"LSUP",
-	"LSRIGHT",
-	"LSDOWN",
-	"RSLEFT",
-	"RSUP",
-	"RSRIGHT",
-	"RSDOWN",
+	"option",
+	"L_stick",
+	"R_stick",
+	"left",
+	"up",
+	"right",
+	"down",
+	"share",
+	"L_stick",
+	"L_stick",
+	"L_stick",
+	"L_stick",
+	"R_stick",
+	"R_stick",
+	"R_stick",
+	"R_stick",
 };
 
 static const char* GetKeyStr(EnumInput ID) noexcept {
@@ -423,7 +423,7 @@ static const char* GetKeyStr(EnumInput ID) noexcept {
 }
 
 
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	auto maincontrol = std::make_unique<DXDraw>();
 
 	int LastSize = 512;
@@ -438,7 +438,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		int ysMax = 0;
 
 		int num = 0;
-		int phase = 0;
 		while(true){
 			std::string Path = "key_glay/";
 			std::string Name = "";
@@ -474,8 +473,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			DeleteGraph(KeyGraph);
 
 			outputfile << Name + "=" + std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(xs) + "," + std::to_string(ys) + "\n";
-			if (phase == 3) { break; }
 			x += xs + 1;
+
+			++num;
+			if (static_cast<size_t>(EnumInput::DInput_Max) <= static_cast<size_t>(num)) {
+				break;
+			}
 		}
 
 		outputfile.close();

@@ -5,6 +5,7 @@
 #include "../Draw/PostPass.hpp"
 #include "../Draw/Camera.hpp"
 #include "../Draw/Light.hpp"
+#include "../Draw/KeyGuide.hpp"
 
 #pragma warning(disable:4710)
 #pragma warning( push, 3 )
@@ -111,6 +112,8 @@ namespace Util {
 			if (this->m_NowScene) {
 				this->m_NowScene->UIDraw();
 			}
+			auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+			KeyGuideParts->Draw();
 		}
 	public:
 		auto IsEndScene(void) const noexcept { return (this->m_Phase == EnumScenePhase::GoEnd); }
@@ -160,8 +163,11 @@ namespace Util {
 					PostPassParts->Reset();
 					auto* LightParts = Draw::LightPool::Instance();
 					LightParts->Dispose();
+					auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+					KeyGuideParts->Dispose();
 					this->m_NowScene->Init();
 					this->m_Phase = EnumScenePhase::Update;
+					KeyGuideParts->SetGuideFlip();
 				}
 				break;
 			case EnumScenePhase::GoEnd:
@@ -171,6 +177,8 @@ namespace Util {
 					PostPassParts->Reset();
 					auto* LightParts = Draw::LightPool::Instance();
 					LightParts->Dispose();
+					auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+					KeyGuideParts->Dispose();
 				}
 				break;
 			default:

@@ -3,14 +3,15 @@
 #pragma warning(disable:4668)
 #pragma warning(disable:4711)
 #pragma warning(disable:5039)
-#include "Draw/MainDraw.hpp"
 
 #include "Util/SceneManager.hpp"
 #include "Util/Enum.hpp"
 #include "Util/Key.hpp"
 #include "Scene/TitleScene.hpp"
 #include "Scene/MainScene.hpp"
+#include "Draw/MainDraw.hpp"
 #include "Draw/Light.hpp"
+#include "Draw/KeyGuide.hpp"
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Util::OptionParam::Create();
@@ -25,6 +26,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Camera::Camera3D::Create();
 	Draw::PostPassEffect::Create();
 	Draw::LightPool::Create();
+	DXLibRef::KeyGuide::Create();
 
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* pOption = Util::OptionParam::Instance();
@@ -114,6 +116,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 	}
+	DXLibRef::KeyGuide::Release();
 	Draw::LightPool::Release();
 	Draw::PostPassEffect::Release();
 	Camera::Camera3D::Release();

@@ -47,6 +47,16 @@
 0315=Change Weapon
 0316=Reload Weapon
 
+0330=Œˆ’è
+0331=–ß‚é
+0332=‘I‘ğ
+0333=PAUSE
+
+0334=ˆÚ“®
+0335=ŒX‚­
+0336=UŒ‚
+0337=\‚¦‚é
+
 0400=HeadBobbing
 0401=Language
 

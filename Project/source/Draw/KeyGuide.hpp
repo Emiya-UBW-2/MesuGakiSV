@@ -88,13 +88,11 @@ namespace DXLibRef {
 	public:
 		static int GetPADStoOffset(Util::EnumMenu PAD) noexcept {
 			auto* KeyMngr = Util::KeyParam::Instance();
-			Util::KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(PAD, 0));
-			return 0;
+			return static_cast<int>(KeyMngr->GetKeyAssign(PAD, 0));
 		}
 		static int GetPADStoOffset(Util::EnumBattle PAD) noexcept {
 			auto* KeyMngr = Util::KeyParam::Instance();
-			Util::KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(PAD, 0));
-			return 0;
+			return static_cast<int>(KeyMngr->GetKeyAssign(PAD, 0));
 		}
 	public:
 		void SetGuideFlip(void) noexcept { this->m_IsFlipGuide = true; }

@@ -21,7 +21,7 @@ namespace DXLibRef {
 	int KeyGuide::KeyGuideOnce::GetDrawSize(void) const noexcept {
 		int ofs = (this->m_GuideGraph) ? this->m_GuideGraph->GetDrawSize() : 0;
 		if (GuideString != "") {
-			ofs += Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->GetStringWidth(GuideString) + 12;
+			ofs += Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->GetStringWidth(Util::SjistoUTF8(GuideString)) + 12;
 		}
 		return ofs;
 	}
@@ -35,7 +35,7 @@ namespace DXLibRef {
 			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
 				Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
 				x + ofs, y + 24 / 2,
-				DxLib::GetColor(255,255,255), DxLib::GetColor(0, 0, 0), GuideString);
+				DxLib::GetColor(255,255,255), DxLib::GetColor(0, 0, 0), Util::SjistoUTF8(GuideString));
 		}
 	}
 	// 
@@ -77,6 +77,8 @@ namespace DXLibRef {
 		if (this->m_IsFlipGuide) {
 			this->m_IsFlipGuide = false;
 			Dispose();
+			//AddGuide(GetPADStoOffset(Util::EnumBattle::W), "");
+			//AddGuide(GetPADStoOffset(Util::EnumBattle::A), "aaaa");
 			// ガイド
 			Guide_Pad();
 		}

@@ -41,6 +41,22 @@ protected:
 			});
 		this->m_TitleUI.SetEvent(3, []() {
 			});
+
+		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+
+		KeyGuideParts->SetGuideFlip();
+		KeyGuideParts->ChangeGuide(
+			[]() {
+				auto* Localize = Util::LocalizePool::Instance();
+				auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Cancel), Localize->Get(331));
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::LEFT), "");
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::UP), "");
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::RIGHT), "");
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::DOWN), Localize->Get(332));
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Diside), Localize->Get(330));
+			}
+		);
 	}
 	void Update_Sub(void) noexcept override {
 		this->m_TitleUI.SetActive(!this->m_OptionWindow.IsActive());
