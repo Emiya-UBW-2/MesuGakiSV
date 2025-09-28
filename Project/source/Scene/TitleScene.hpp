@@ -50,14 +50,15 @@ protected:
 		this->m_EndUI.SetActive(false);
 
 		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
-
 		KeyGuideParts->SetGuideFlip();
+	}
+	void Update_Sub(void) noexcept override {
+		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 		KeyGuideParts->ChangeGuide(
 			[]() {
 				auto* Localize = Util::LocalizePool::Instance();
 				auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Esc), Localize->Get(340));
-				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Cancel), Localize->Get(331));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::UP), "");
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::DOWN), "");
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::LEFT), "");
@@ -65,8 +66,6 @@ protected:
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Diside), Localize->Get(330));
 			}
 		);
-	}
-	void Update_Sub(void) noexcept override {
 		this->m_EndUI.Update();
 		if (this->m_EndUI.IsActive()) { return; }
 		this->m_TitleUI.SetActive(!this->m_OptionWindow.IsActive());

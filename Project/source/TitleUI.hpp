@@ -72,6 +72,7 @@ private:
 	int				m_UIBase{ InvalidID };
 	int				m_ButtonID{ InvalidID };
 	int				m_CloseButtonID{ InvalidID };
+	char		padding[4]{};
 	std::function<void()>	m_ButtonDo{};
 public:
 	EndUI(void) noexcept {}
@@ -90,7 +91,6 @@ public:
 		this->m_DrawUI = new Draw::DrawUISystem();
 		this->m_DrawUI->Init("data/UI/Title/EndUI.json");
 		this->m_UIBase = this->m_DrawUI->GetID("");
-
 		this->m_ButtonID = this->m_DrawUI->GetID("Button");
 		this->m_CloseButtonID = this->m_DrawUI->GetID("CloseButton");
 		SetActive(false);

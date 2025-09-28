@@ -98,6 +98,7 @@ namespace DXLibRef {
 		void SetGuideFlip(void) noexcept { this->m_IsFlipGuide = true; }
 		void ChangeGuide(std::function<void()>Guide_Pad) noexcept;
 		void AddGuide(int graphOffset, const std::string& GuideStr) noexcept {
+			if (graphOffset == static_cast<int>(Util::EnumInput::Max)) { return; }
 			this->m_Key.emplace_back(std::make_unique<KeyGuideOnce>());
 			this->m_Key.back()->AddGuide((graphOffset != InvalidID) ? this->m_DerivationGuideImage[static_cast<size_t>(graphOffset)] : nullptr, GuideStr);
 		}

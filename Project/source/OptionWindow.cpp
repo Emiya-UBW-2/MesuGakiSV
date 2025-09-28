@@ -5,19 +5,22 @@
 void OptionWindow::SetActive(bool value) noexcept {
 	auto* pOption = Util::OptionParam::Instance();
 	auto* KeyMngr = Util::KeyParam::Instance();
+	bool IsChange = (value != IsActive());
 	this->m_DrawUI->Get(this->m_UIBase).SetActive(value);
-	if (IsActive()) {
-		this->m_LanguagePrev = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect();
-		SetTab();
-	}
-	else {
-		EndTab();
-		for (int loop = 0; loop < static_cast<int>(Util::InputType::Max); ++loop) {
-			KeyMngr->Save(static_cast<Util::InputType>(loop));
+	if (IsChange) {
+		if (IsActive()) {
+			this->m_LanguagePrev = pOption->GetParam(pOption->GetOptionType(Util::OptionType::Language))->GetSelect();
+			SetTab();
 		}
-		pOption->Save();
+		else {
+			EndTab();
+			for (int loop = 0; loop < static_cast<int>(Util::InputType::Max); ++loop) {
+				KeyMngr->Save(static_cast<Util::InputType>(loop));
+			}
+			pOption->Save();
+		}
+		this->m_NowSelectTab = 0;
 	}
-	this->m_NowSelectTab = 0;
 }
 
 void OptionWindow::UpdateColumnStr() noexcept {
@@ -138,7 +141,6 @@ void OptionWindow::Init(void) noexcept {
 	this->m_DrawUI->Init("data/UI/Option/OptionBase.json");
 
 	this->m_UIBase = this->m_DrawUI->GetID("");
-	this->m_DrawUI->Get(this->m_UIBase).SetActive(false);
 	for (int loop = 0; loop < 4; ++loop) {
 		std::string Path = "OptionUI/Tab";
 		Path += std::to_string(loop + 1);
@@ -147,7 +149,7 @@ void OptionWindow::Init(void) noexcept {
 	}
 	this->m_NowSelectTab = 0;
 	this->m_CloseButton = this->m_DrawUI->GetID("OptionUI/CloseButton");
-
+	SetActive(false);
 }
 void OptionWindow::Update(void) noexcept {
 	auto* pOption = Util::OptionParam::Instance();
