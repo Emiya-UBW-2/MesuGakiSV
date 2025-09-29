@@ -84,7 +84,8 @@ protected:
 		this->m_OptionWindow.Update();
 	}
 	void BGDraw_Sub(void) noexcept override {}
-	void DrawRigid_Sub(void) noexcept override {}
+	void SetShadowDrawRigid_Sub(void) noexcept override {}
+	void SetShadowDraw_Sub(void) noexcept override {}
 	void Draw_Sub(void) noexcept override {}
 	void ShadowDrawFar_Sub(void) noexcept override {}
 	void ShadowDraw_Sub(void) noexcept override {}

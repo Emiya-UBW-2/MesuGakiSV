@@ -86,6 +86,9 @@
     <ClCompile Include="source\Draw\KeyGuide.cpp">
       <Filter>ソース ファイル\Draw</Filter>
     </ClCompile>
+    <ClCompile Include="source\Draw\Voxel.cpp">
+      <Filter>ソース ファイル\Draw</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\File\json.hpp">
@@ -155,6 +158,9 @@
       <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="source\Draw\KeyGuide.hpp">
+      <Filter>ソース ファイル\Draw</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Draw\Voxel.hpp">
       <Filter>ソース ファイル\Draw</Filter>
     </ClInclude>
   </ItemGroup>

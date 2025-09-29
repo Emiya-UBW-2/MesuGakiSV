@@ -50,6 +50,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			SceneMngr->Update();
 			CameraParts->Update();
 			// 影をセット
+			PostPassParts->SetShadowFarChange();
+
 			PostPassParts->UpdateShadowActive();
 			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
 				if (PostPassParts->PopShadowFarChange()) {
@@ -67,10 +69,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					}, CameraParts->GetCameraForDraw().GetCamPos(), false);
 				PostPassParts->SetDrawShadow([]() {
 						auto* SceneMngr = Util::SceneManager::Instance();
-						SceneMngr->Draw3DRigid();
+						SceneMngr->SetShadowDrawRigid();
 					}, []() {
 						auto* SceneMngr = Util::SceneManager::Instance();
-						SceneMngr->Draw3D();
+						SceneMngr->SetShadowDraw();
 					});
 			}
 		}
@@ -90,7 +92,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				for (int loop = 0; loop < 3; ++loop) {
 					PostPassParts->DrawGBuffer(Near, Far, []() {
 						auto* SceneMngr = Util::SceneManager::Instance();
-						SceneMngr->Draw3DRigid();
 						SceneMngr->Draw3D();
 					});
 					Far = Near;
