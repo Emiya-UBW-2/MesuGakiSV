@@ -154,9 +154,9 @@ protected:
 		}
 		m_XRad = std::clamp(m_XRad, Util::deg2rad(-60.f), Util::deg2rad(60.f));
 		//*/
-
+		float Per = this->m_Character.GetSpeed() / this->m_Character.GetSpeedMax();
 		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + Util::VECTOR3D::vget(0, 1.f, 0.f) * Scale3DRate;
-		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 3.5f, -2.f) * Scale3DRate;
+		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 3.5f, -2.f) * Scale3DRate * Util::Lerp(1.25f, 1.f, Per);
 
 		auto* CameraParts = Camera::Camera3D::Instance();
 		CameraParts->SetCamPos(CamPos + CamVec, CamPos, Util::VECTOR3D::vget(0, 1.f, 0));
