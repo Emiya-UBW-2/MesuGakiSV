@@ -20,9 +20,6 @@ class MainScene : public Util::SceneBase {
 	char		padding[6]{};
 
 	Character		m_Character{};
-
-	float m_XRad = 0.f;
-	float m_YRad = 0.f;
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -142,33 +139,27 @@ protected:
 			return;
 		}
 		//更新
+		/*
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::A)) {
 			m_YRad += Util::deg2rad(60.f) / 60.f;
 		}
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::D)) {
 			m_YRad -= Util::deg2rad(60.f) / 60.f;
 		}
-
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::W)) {
 			m_XRad += Util::deg2rad(60.f) / 60.f;
 		}
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::S)) {
 			m_XRad -= Util::deg2rad(60.f) / 60.f;
 		}
-
 		m_XRad = std::clamp(m_XRad, Util::deg2rad(-60.f), Util::deg2rad(60.f));
+		//*/
 
-		Util::VECTOR3D CamPos = Util::VECTOR3D::vget(0, 1.5f, -5.f) * Scale3DRate;
-		CamPos = Util::Matrix3x3::Vtrans(CamPos,
-			Util::Matrix3x3::RotAxis(Util::VECTOR3D::right(), m_XRad) *
-			Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), m_YRad)
-		);
+		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + Util::VECTOR3D::vget(0, 1.f, 0.f) * Scale3DRate;
+		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 3.5f, -2.f) * Scale3DRate;
 
 		auto* CameraParts = Camera::Camera3D::Instance();
-		CameraParts->SetCamPos(
-			this->m_Character.GetMat().pos() + CamPos,
-			this->m_Character.GetMat().pos(),
-			Util::VECTOR3D::vget(0, 1.f, 0));
+		CameraParts->SetCamPos(CamPos + CamVec, CamPos, Util::VECTOR3D::vget(0, 1.f, 0));
 		CameraParts->SetCamInfo(Util::deg2rad(45), 0.5f, Scale3DRate * 30.0f);
 
 		BackGround::Instance()->Update();
