@@ -6,6 +6,7 @@
 #include "../Draw/Camera.hpp"
 #include "../Draw/Light.hpp"
 #include "../Draw/KeyGuide.hpp"
+#include "../Draw/FontDraw.hpp"
 
 #pragma warning(disable:4710)
 #pragma warning( push, 3 )
@@ -34,6 +35,7 @@ namespace Util {
 		void SetEndGame(void) noexcept { this->m_IsEndGame = true; }
 		void SetEndScene(void) noexcept { this->m_IsEndScene = true; }
 	public:
+		void Load(void) noexcept { Load_Sub(); }
 		void Init(void) noexcept {
 			this->m_IsEndGame = false;
 			this->m_IsEndScene = false;
@@ -48,6 +50,8 @@ namespace Util {
 		void ShadowDraw(void) noexcept { ShadowDraw_Sub(); }
 		void UIDraw(void) noexcept { UIDraw_Sub(); }
 		void Dispose(void) noexcept { Dispose_Sub(); }
+	public:
+		virtual void Load_Sub(void) noexcept = 0;
 		virtual void Init_Sub(void) noexcept = 0;
 		virtual void Update_Sub(void) noexcept = 0;
 		virtual void BGDraw_Sub(void) noexcept = 0;
@@ -65,15 +69,18 @@ namespace Util {
 		friend class SingletonBase<SceneManager>;
 	private:
 		enum class EnumScenePhase : size_t {
+			Load,
 			Update,
 			GoNext,
 			GoEnd,
 		};
 	private:
-		SceneBase* m_FirstScene{ nullptr };
+		SceneBase*						m_FirstScene{ nullptr };
 		std::vector<const SceneBase*>	m_pScene{};
-		SceneBase* m_NowScene{ nullptr };
+		SceneBase*						m_NowScene{ nullptr };
 		EnumScenePhase					m_Phase{ EnumScenePhase::GoNext };
+		int								m_ASyncLoadNum{ 0 };
+		char		padding[4]{};
 	private:
 		SceneManager(void) noexcept {
 			this->m_NowScene = nullptr;
@@ -86,36 +93,66 @@ namespace Util {
 		virtual ~SceneManager(void) noexcept {}
 	public:
 		void BGDraw(void) noexcept {
+			if (this->m_Phase == EnumScenePhase::Load) {
+				return;
+			}
 			if (this->m_NowScene) {
 				this->m_NowScene->BGDraw();
 			}
 		}
 		void ShadowFarDraw3D(void) noexcept {
+			if (this->m_Phase == EnumScenePhase::Load) {
+				return;
+			}
 			if (this->m_NowScene) {
 				this->m_NowScene->ShadowDrawFar();
 			}
 		}
 		void ShadowDraw3D(void) noexcept {
+			if (this->m_Phase == EnumScenePhase::Load) {
+				return;
+			}
 			if (this->m_NowScene) {
 				this->m_NowScene->ShadowDraw();
 			}
 		}
 		void SetShadowDrawRigid(void) noexcept {
+			if (this->m_Phase == EnumScenePhase::Load) {
+				return;
+			}
 			if (this->m_NowScene) {
 				this->m_NowScene->SetShadowDrawRigid();
 			}
 		}
 		void SetShadowDraw(void) noexcept {
+			if (this->m_Phase == EnumScenePhase::Load) {
+				return;
+			}
 			if (this->m_NowScene) {
 				this->m_NowScene->SetShadowDraw();
 			}
 		}
 		void Draw3D(void) noexcept {
+			if (this->m_Phase == EnumScenePhase::Load) {
+				return;
+			}
 			if (this->m_NowScene) {
 				this->m_NowScene->Draw();
 			}
 		}
 		void UIDraw(void) noexcept {
+			if (this->m_Phase == EnumScenePhase::Load) {
+				auto* DrawerMngr = Draw::MainDraw::Instance();
+				// 背景
+				DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, TRUE);
+				// 
+				auto* Font = Draw::FontPool::Instance();
+				Font->Get(Draw::FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+					Draw::FontXCenter::RIGHT, Draw::FontYCenter::BOTTOM,
+					(DrawerMngr->GetDispWidth() - 32), (DrawerMngr->GetDispHeight() - 32), ColorPalette::Green, ColorPalette::Black,
+					"Loading...%d / %d", m_ASyncLoadNum - GetASyncLoadNum(), m_ASyncLoadNum);
+				return;
+			}
 			if (this->m_NowScene) {
 				this->m_NowScene->UIDraw();
 			}
@@ -144,6 +181,17 @@ namespace Util {
 			}
 #endif
 			switch (this->m_Phase) {
+			case EnumScenePhase::Load:
+				if (this->m_NowScene) {
+					if (GetASyncLoadNum() == 0) {
+						this->m_Phase = EnumScenePhase::Update;
+						//
+						auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+						KeyGuideParts->SetGuideFlip();
+						this->m_NowScene->Init();
+					}
+				}
+				break;
 			case EnumScenePhase::Update:
 				if (this->m_NowScene) {
 					this->m_NowScene->Update();
@@ -172,9 +220,11 @@ namespace Util {
 					LightParts->Dispose();
 					auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 					KeyGuideParts->Dispose();
-					this->m_NowScene->Init();
-					this->m_Phase = EnumScenePhase::Update;
-					KeyGuideParts->SetGuideFlip();
+					SetUseASyncLoadFlag(true);
+					this->m_NowScene->Load();
+					SetUseASyncLoadFlag(false);
+					this->m_Phase = EnumScenePhase::Load;
+					m_ASyncLoadNum = GetASyncLoadNum();
 				}
 				break;
 			case EnumScenePhase::GoEnd:

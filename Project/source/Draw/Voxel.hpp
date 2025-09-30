@@ -19,9 +19,10 @@
 #include "DxLib.h"
 #pragma warning( pop )
 
+#include "MV1.hpp"
+#include "ImageDraw.hpp"
 #include "../Util/Util.hpp"
 #include "../Util/Algorithm.hpp"
-
 
 namespace BG {
 	// 算術補助
@@ -267,11 +268,6 @@ namespace BG {
 	// テクスチャタイリングする際のUV分割
 	static constexpr float TexTileU = 1.0f / 2.0f;
 	static constexpr float TexTileV = 1.0f / 16.0f;
-
-
-	typedef int MV1_HANDLE;
-	typedef int GRAPH_HANDLE;
-
 
 	// ボクセル描画、コリジョン生成クラス
 	class VoxelControl {
@@ -570,10 +566,10 @@ namespace BG {
 				this->m_Now = 1 - this->m_Now;
 			}
 			// 描画する
-			void		Draw(const GRAPH_HANDLE& GrHandle) const noexcept {
+			void		Draw(const Draw::GraphHandle& GrHandle) const noexcept {
 				size_t OutputID = static_cast<size_t>(1 - this->m_Now);
 				if (this->m_32Num[OutputID] == 0) { return; }
-				DrawPolygon32bitIndexed3D(this->m_vert32[OutputID].data(), static_cast<int>(this->m_32Num[OutputID] * 4), this->m_index32[OutputID].data(), static_cast<int>(this->m_32Num[OutputID] * 6 / 3), GrHandle, true);
+				DrawPolygon32bitIndexed3D(this->m_vert32[OutputID].data(), static_cast<int>(this->m_32Num[OutputID] * 4), this->m_index32[OutputID].data(), static_cast<int>(this->m_32Num[OutputID] * 6 / 3), GrHandle.get(), true);
 			}
 			void		DrawByShader(void) const noexcept {
 				size_t OutputID = static_cast<size_t>(1 - this->m_Now);
@@ -585,8 +581,8 @@ namespace BG {
 		class DrawThreadData {
 			Util::VECTOR3D				m_DrawCenterPos{};	// 描画時の中心座標
 			Util::VECTOR3D				m_CamVec{};			// 描画時の視点の向き
-			VERTEX3DData		m_Vert32{};			// 描画先
-			ThreadJobs			m_Jobs{};			// 生成用スレッド
+			VERTEX3DData				m_Vert32{};			// 描画先
+			ThreadJobs					m_Jobs{};			// 生成用スレッド
 		public:
 			DrawThreadData(void) noexcept {}
 			DrawThreadData(const DrawThreadData&) = delete;
@@ -625,7 +621,7 @@ namespace BG {
 				this->m_Jobs.Update(value);
 			}
 			// 描画
-			void		Draw(const GRAPH_HANDLE& GrHandle) const noexcept {
+			void		Draw(const Draw::GraphHandle& GrHandle) const noexcept {
 				auto prev = DxLib::GetDrawMode();
 				DxLib::SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
 				this->m_Vert32.Draw(GrHandle);
@@ -642,12 +638,11 @@ namespace BG {
 		};
 	private:
 		std::array<CellsData, TotalCellLayer>	m_CellxN{};								// 各層の描画ポリゴンデータ
-		int								m_MaxDrawLOD = 1;								// 実体の描画限界
-		int								m_ShadowMaxDrawLOD = 1;							// 影の描画限界
-		GRAPH_HANDLE					m_tex{};										// 表示に使用するテクスチャ
-		char		padding[4]{};
+		int										m_MaxDrawLOD = 1;						// 実体の描画限界
+		int										m_ShadowMaxDrawLOD = 1;					// 影の描画限界
+		Draw::GraphHandle						m_tex{};								// 表示に使用するテクスチャ
 		std::array<DrawThreadData, TotalCellLayer + TotalCellLayer>	m_DrawThreadDatas;	// 0~TotalCellLayer-1 = 表示ポリゴンスレッド用 / TotalCellLayer~ = 影スレッド用
-		int								m_ThreadCounter = 0;
+		int										m_ThreadCounter = 0;
 		Util::VECTOR3D							m_DrawCenterPos{};
 		Util::VECTOR3D							m_CamVec{};
 		Util::VECTOR3D							m_ShadowDrawCenterPos{};
@@ -677,7 +672,7 @@ namespace BG {
 		// ボクセルとの線での当たり判定を取る
 		int				CheckLine(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, Util::VECTOR3D* Normal = nullptr) const noexcept;
 		// 対人を想定した壁判定を行う
-		bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<MV1_HANDLE>& addonColObj) const noexcept;
+		bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept;
 		// ボクセルデータをロードする
 		void			LoadCellsFile(const char* Path) noexcept;
 		// ボクセルデータをセーブする

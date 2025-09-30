@@ -21,6 +21,9 @@
     <Filter Include="ソース ファイル\Util">
       <UniqueIdentifier>{388ab0f7-01f8-4be7-ab61-37ad835eb231}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\MainScene">
+      <UniqueIdentifier>{4d3d0e26-709f-4969-a8ae-7bbe1fac924d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp">
@@ -88,6 +91,12 @@
     </ClCompile>
     <ClCompile Include="source\Draw\Voxel.cpp">
       <Filter>ソース ファイル\Draw</Filter>
+    </ClCompile>
+    <ClCompile Include="source\MainScene\BackGround.cpp">
+      <Filter>ソース ファイル\MainScene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\MainScene\Character.cpp">
+      <Filter>ソース ファイル\MainScene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -162,6 +171,12 @@
     </ClInclude>
     <ClInclude Include="source\Draw\Voxel.hpp">
       <Filter>ソース ファイル\Draw</Filter>
+    </ClInclude>
+    <ClInclude Include="source\MainScene\BackGround.hpp">
+      <Filter>ソース ファイル\MainScene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\MainScene\Character.hpp">
+      <Filter>ソース ファイル\MainScene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

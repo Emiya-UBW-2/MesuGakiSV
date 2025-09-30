@@ -402,7 +402,7 @@ namespace BG {
 		}
 		return HitCount;
 	}
-	bool		VoxelControl::CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<MV1_HANDLE>& addonColObj) const noexcept {
+	bool		VoxelControl::CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept {
 		Util::VECTOR3D MoveVector = *EndPos - StartPos;
 		// プレイヤーの周囲にあるステージポリゴンを取得する( 検出する範囲は移動距離も考慮する )
 		std::vector<MV1_COLL_RESULT_POLY> kabes;// 壁ポリゴンと判断されたポリゴンの構造体のアドレスを保存しておく
@@ -483,7 +483,7 @@ namespace BG {
 
 		// *
 		for (auto& ad : addonColObj) {
-			MV1_COLL_RESULT_POLY_DIM HitDim = MV1CollCheck_Sphere(ad, -1, StartPos.get(), AddCapsuleMax.magnitude() + MoveVector.magnitude());
+			MV1_COLL_RESULT_POLY_DIM HitDim = MV1CollCheck_Sphere(ad->get(), -1, StartPos.get(), AddCapsuleMax.magnitude() + MoveVector.magnitude());
 			// 検出されたポリゴンが壁ポリゴン( ＸＺ平面に垂直なポリゴン )か床ポリゴン( ＸＺ平面に垂直ではないポリゴン )かを判断する
 			for (int i = 0; i < HitDim.HitNum; ++i) {
 				kabes.emplace_back(HitDim.Dim[i]);// ポリゴンの構造体のアドレスを壁ポリゴンポインタ配列に保存する
@@ -665,7 +665,7 @@ namespace BG {
 	}
 
 	void		VoxelControl::Load(void) noexcept {
-		this->m_tex = LoadGraph("data/tex.png");
+		this->m_tex.Load("data/tex.png");
 	}
 	void		VoxelControl::InitStart(void) noexcept {
 		// 全階層の初期化
@@ -838,7 +838,7 @@ namespace BG {
 		float Near = GetCameraNear() / MaxLimit;
 		float Far = GetCameraFar() / MinLimit;
 
-		SetUseTextureToShader(0, this->m_tex);
+		this->m_tex.SetUseTextureToShader(0);
 		for (int loop = 0; loop < TotalCellLayer; ++loop) {
 			const CellsData& cellx = this->m_CellxN[static_cast<size_t>(loop)];
 			if (cellx.isReferenceCell() && !(cellx.Scale < Far)) { continue; }
@@ -857,7 +857,6 @@ namespace BG {
 		}
 	}
 	void		VoxelControl::Dispose_Load(void) noexcept {
-		DeleteGraph(this->m_tex);
-		this->m_tex = -1;
+		this->m_tex.Dispose();
 	}
 }

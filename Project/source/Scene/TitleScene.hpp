@@ -28,6 +28,8 @@ public:
 	TitleScene& operator=(TitleScene&&) = delete;
 	virtual ~TitleScene(void) noexcept {}
 protected:
+	void Load_Sub(void) noexcept override {
+	}
 	void Init_Sub(void) noexcept override {
 		this->m_OptionWindow.Init();
 
