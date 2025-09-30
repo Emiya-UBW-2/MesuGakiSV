@@ -1,5 +1,12 @@
 ﻿#pragma once
 #define NOMINMAX
+#pragma warning(disable:4464)
+#pragma warning(disable:4514)
+#pragma warning(disable:4668)
+#pragma warning(disable:4710)
+#pragma warning(disable:4711)
+#pragma warning(disable:5039)
+
 #pragma warning( push, 3 )
 #include "DxLib.h"
 #include <string>
@@ -8,10 +15,6 @@
 #include <memory>
 #pragma warning( pop )
 
-#pragma warning(disable:4464)
-#pragma warning(disable:4514)
-#pragma warning(disable:4668)
-#pragma warning(disable:5039)
 #include "../Util/Enum.hpp"
 #include "../Util/Util.hpp"
 #include "../Util/Algorithm.hpp"

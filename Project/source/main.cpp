@@ -50,8 +50,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			SceneMngr->Update();
 			CameraParts->Update();
 			// 影をセット
-			PostPassParts->SetShadowFarChange();
-
 			PostPassParts->UpdateShadowActive();
 			if (pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect() > 0) {
 				if (PostPassParts->PopShadowFarChange()) {

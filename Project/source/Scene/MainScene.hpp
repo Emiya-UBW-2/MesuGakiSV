@@ -3,6 +3,8 @@
 #pragma warning(disable:4464)
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
+#pragma warning(disable:4710)
+#pragma warning(disable:4711)
 #pragma warning(disable:5039)
 #include "../Util/Enum.hpp"
 #include "../Util/SceneManager.hpp"
@@ -17,21 +19,118 @@
 #include "../OptionWindow.hpp"
 #include "../PauseUI.hpp"
 
-class MainScene : public Util::SceneBase {
-	Draw::MV1 ModelID{};
-	BackGround::VoxelControl Voxel;
+class BackGround {
+	BG::VoxelControl Voxel;
 	Draw::MV1 SkyBoxID{};
+public:
+	BackGround(void) noexcept {}
+	BackGround(const BackGround&) = delete;
+	BackGround(BackGround&&) = delete;
+	BackGround& operator=(const BackGround&) = delete;
+	BackGround& operator=(BackGround&&) = delete;
+	virtual ~BackGround(void) noexcept {}
+public:
+	int				CheckLine(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, Util::VECTOR3D* Normal = nullptr) const noexcept {
+		return Voxel.CheckLine(StartPos, EndPos, Normal);
+	}
+public:
+	void Load(void) noexcept {
+		Voxel.Load();												// 事前読み込み
+		Draw::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
+	}
+	void Init(void) noexcept {
+		Voxel.InitStart();											// 初期化開始時処理
+		Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
+		Voxel.InitEnd();											// 初期化終了時処理
+	}
+	void Update(void) noexcept {
+		auto* CameraParts = Camera::Camera3D::Instance();
+		auto* PostPassParts = Draw::PostPassEffect::Instance();
+		// ボクセル処理
+		Voxel.SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
+		Voxel.SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
+		Voxel.Update();
+	}
+	void Dispose(void) noexcept {
+		Voxel.Dispose();
+		Voxel.Dispose_Load();
+		SkyBoxID.Dispose();
+	}
+
+	void BGDraw(void) const noexcept {
+		DxLib::SetUseLighting(FALSE);
+		SkyBoxID.DrawModel();
+		DxLib::SetUseLighting(TRUE);
+	}
+	void SetShadowDrawRigid(void) const noexcept {
+		Voxel.DrawByShader();
+	}
+	void SetShadowDraw(void) const noexcept {
+	}
+	void Draw(void) const noexcept {
+		Voxel.Draw();
+	}
+	void ShadowDrawFar(void) const noexcept {
+		Voxel.DrawShadow();
+	}
+	void ShadowDraw(void) const noexcept {
+	}
+
+};
+
+class Character {
+	Draw::MV1 ModelID{};
+	Util::VECTOR3D MyPos;
+public:
+	Character(void) noexcept {}
+	Character(const Character&) = delete;
+	Character(Character&&) = delete;
+	Character& operator=(const Character&) = delete;
+	Character& operator=(Character&&) = delete;
+	virtual ~Character(void) noexcept {}
+public:
+	void SetPos(const Util::VECTOR3D& Pos) noexcept {
+		MyPos = Pos;
+	}
+public:
+	void Load(void) noexcept {
+		Draw::MV1::Load("data/Soldier/model_DISABLE.mv1", &ModelID);
+	}
+	void Init(void) noexcept {
+	}
+	void Update(void) noexcept {
+		ModelID.SetMatrix(
+			Util::Matrix4x4::Mtrans(MyPos)
+		);
+	}
+	void Dispose(void) noexcept {
+		ModelID.Dispose();
+	}
+
+	void SetShadowDraw(void) const noexcept {
+		ModelID.DrawModel();
+	}
+	void Draw(void) const noexcept {
+		ModelID.DrawModel();
+	}
+	void ShadowDraw(void) const noexcept {
+		ModelID.DrawModel();
+	}
+
+};
+class MainScene : public Util::SceneBase {
+	BackGround m_BackGround{};
+	Character m_Character{};
+	OptionWindow m_OptionWindow;
+	PauseUI m_PauseUI;
 
 	float m_XRad = 0.f;
 	float m_YRad = 0.f;
 
-	OptionWindow m_OptionWindow;
-	PauseUI m_PauseUI;
-
 	bool m_IsSceneEnd{ false };
 	bool m_IsPauseActive{ false };
-	char		padding[6]{};
-	Util::VECTOR3D LightVec;
+	char		padding[2]{};
 
 	Util::VECTOR3D MyPos;
 public:
@@ -43,16 +142,15 @@ public:
 	virtual ~MainScene(void) noexcept {}
 protected:
 	void Init_Sub(void) noexcept override {
-		Voxel.Load();												// 事前読み込み
+		this->m_BackGround.Load();
 
-		Voxel.InitStart();											// 初期化開始時処理
-		Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
-		Voxel.InitEnd();											// 初期化終了時処理
+		this->m_BackGround.Init();
 
-		Draw::MV1::Load("data/Soldier/model_DISABLE.mv1", &ModelID);
-		Draw::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
+		this->m_Character.Load();
 
-		LightVec = Util::VECTOR3D::vget(-0.1f, -1.f, 0.1f).normalized();
+		this->m_Character.Init();
+
+		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.1f, -1.f, 0.1f).normalized();
 
 		auto* PostPassParts = Draw::PostPassEffect::Instance();
 		PostPassParts->SetShadowScale(0.5f);
@@ -94,11 +192,14 @@ protected:
 		KeyGuideParts->SetGuideFlip();
 
 		MyPos = Util::VECTOR3D::vget(MyPos.x, -50.f * Scale3DRate, MyPos.z);
-		Voxel.CheckLine(Util::VECTOR3D::vget(MyPos.x, 0.f * Scale3DRate, MyPos.z), &MyPos);
+		this->m_BackGround.CheckLine(Util::VECTOR3D::vget(MyPos.x, 0.f * Scale3DRate, MyPos.z), &MyPos);
+
+		this->m_Character.SetPos(MyPos);
 	}
 	void Update_Sub(void) noexcept override {
 		auto* KeyMngr = Util::KeyParam::Instance();
 		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+		auto* PostPassParts = Draw::PostPassEffect::Instance();
 		KeyGuideParts->ChangeGuide(
 			[this]() {
 				auto* Localize = Util::LocalizePool::Instance();
@@ -133,6 +234,8 @@ protected:
 				}
 			}
 		);
+		// 影をセット
+		PostPassParts->SetShadowFarChange();
 		//ポーズメニュー
 		{
 			if (KeyMngr->GetMenuKeyTrigger(Util::EnumMenu::Tab)) {
@@ -170,12 +273,6 @@ protected:
 
 		m_XRad = std::clamp(m_XRad, Util::deg2rad(-60.f), Util::deg2rad(60.f));
 
-		//*
-		ModelID.SetMatrix(
-			Util::Matrix4x4::Mtrans(MyPos)
-		);
-		//*/
-
 		Util::VECTOR3D CamPos = Util::VECTOR3D::vget(0, 1.5f, -5.f) * Scale3DRate;
 		CamPos = Util::Matrix3x3::Vtrans(CamPos,
 			Util::Matrix3x3::RotAxis(Util::VECTOR3D::right(), m_XRad) *
@@ -189,32 +286,29 @@ protected:
 			Util::VECTOR3D::vget(0, 1.f, 0));
 		CameraParts->SetCamInfo(Util::deg2rad(45), 0.5f, Scale3DRate * 30.0f);
 
-		// ボクセル処理
-		Voxel.SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
-			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
-		Voxel.SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), LightVec);// シャドウマップに描画する際の描画中心座標と描画する向きを指定
-		Voxel.Update();
+		this->m_BackGround.Update();
+		this->m_Character.Update();
 	}
 	void BGDraw_Sub(void) noexcept override {
-		DxLib::SetUseLighting(FALSE);
-		SkyBoxID.DrawModel();
-		DxLib::SetUseLighting(TRUE);
+		this->m_BackGround.BGDraw();
 	}
 	void SetShadowDrawRigid_Sub(void) noexcept override {
-		Voxel.DrawByShader();
+		this->m_BackGround.SetShadowDrawRigid();
 	}
 	void SetShadowDraw_Sub(void) noexcept override {
-		ModelID.DrawModel();
+		this->m_BackGround.SetShadowDraw();
+		this->m_Character.SetShadowDraw();
 	}
 	void Draw_Sub(void) noexcept override {
-		Voxel.Draw();
-		ModelID.DrawModel();
+		this->m_BackGround.Draw();
+		this->m_Character.Draw();
 	}
 	void ShadowDrawFar_Sub(void) noexcept override {
-		Voxel.DrawShadow();
+		this->m_BackGround.ShadowDrawFar();
 	}
 	void ShadowDraw_Sub(void) noexcept override {
-		ModelID.DrawModel();
+		this->m_BackGround.ShadowDraw();
+		this->m_Character.ShadowDraw();
 	}
 	void UIDraw_Sub(void) noexcept override {
 		this->m_PauseUI.Draw();
@@ -222,10 +316,8 @@ protected:
 	}
 
 	void Dispose_Sub(void) noexcept override {
-		Voxel.Dispose();
-		Voxel.Dispose_Load();
-		SkyBoxID.Dispose();
-		ModelID.Dispose();
+		this->m_BackGround.Dispose();
+		this->m_Character.Dispose();
 		this->m_PauseUI.Dispose();
 		this->m_OptionWindow.Dispose();
 	}

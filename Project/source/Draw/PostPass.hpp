@@ -4,6 +4,8 @@
 #pragma warning(disable:4505)
 #pragma warning(disable:4514)
 #pragma warning(disable:4668)
+#pragma warning(disable:4710)
+#pragma warning(disable:4711)
 #pragma warning(disable:5039)
 #pragma warning(disable:5045)
 #define NOMINMAX
@@ -846,7 +848,11 @@ namespace Draw {
 		float						m_AberrationPower{ 1.f };
 		float						m_DistortionPer{ 120.f };
 		GodRayParam					m_GodRayParam{};
+		Util::VECTOR3D				m_AmbientLightVec{};
+		char		padding2[4]{};
 	public:
+		const auto&		GetAmbientLightVec(void) const noexcept { return this->m_AmbientLightVec; }
+
 		auto&			GetBufferScreen(void) noexcept { return this->m_BufferScreen; }
 		const auto&		GetCamViewMat(void) const noexcept { return this->m_CamViewMat; }
 		const auto&		GetCamProjectionMat(void) const noexcept { return this->m_CamProjectionMat; }
@@ -939,7 +945,10 @@ namespace Draw {
 		}
 	public:
 		//
-		void		SetAmbientLight(const Util::VECTOR3D& AmbientLightVec) noexcept { this->m_ShadowDraw->SetVec(AmbientLightVec); }
+		void		SetAmbientLight(const Util::VECTOR3D& AmbientLightVec) noexcept {
+			m_AmbientLightVec = AmbientLightVec;
+			this->m_ShadowDraw->SetVec(m_AmbientLightVec);
+		}
 		//
 		void		UpdateShadowActive(void) noexcept {
 			if (this->m_ShadowDraw->UpdateActive()) {

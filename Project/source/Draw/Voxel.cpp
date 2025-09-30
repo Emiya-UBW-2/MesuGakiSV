@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-namespace BackGround {
+namespace BG {
 	// LODに準じて描画しない範囲
 	static constexpr int DrawMinXPlus = DrawMaxXPlus / MulPer - 1;
 	static constexpr int DrawMinXMinus = DrawMaxXMinus / MulPer;
@@ -840,10 +840,10 @@ namespace BackGround {
 
 		SetUseTextureToShader(0, this->m_tex);
 		for (int loop = 0; loop < TotalCellLayer; ++loop) {
-			const CellsData& cellx = this->m_CellxN[loop];
+			const CellsData& cellx = this->m_CellxN[static_cast<size_t>(loop)];
 			if (cellx.isReferenceCell() && !(cellx.Scale < Far)) { continue; }
 			if (!cellx.isReferenceCell() && !(Near < cellx.Scale && cellx.Scale < Far)) { continue; }
-			this->m_DrawThreadDatas[loop].DrawByShader();
+			this->m_DrawThreadDatas[static_cast<size_t>(loop)].DrawByShader();
 		}
 		SetUseTextureToShader(0, InvalidID);
 	}
