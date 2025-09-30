@@ -1,6 +1,10 @@
 ﻿#include	"Voxel.hpp"
 
+#pragma warning( push, 3 )
 #include <fstream>
+#pragma warning( pop )
+
+#include "../Util/Option.hpp"
 
 namespace BG {
 	// LODに準じて描画しない範囲
@@ -630,9 +634,31 @@ namespace BG {
 	}
 
 	void		VoxelControl::SettingChange(void) noexcept {
+		//todo::LOD設定
+		/*
+		auto* pOption = Util::OptionParam::Instance();
+		switch (pOption->GetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel))->GetSelect()) {
+		case 0:
+			this->m_ShadowMaxDrawLOD = 0;// 表示
+			this->m_MaxDrawLOD = 1;// 2段目まで表示
+			break;
+		case 1:
+			this->m_ShadowMaxDrawLOD = 1;// 表示
+			this->m_MaxDrawLOD = 2;// 2段目まで表示
+			break;
+		case 2:
+			this->m_ShadowMaxDrawLOD = 1;// 表示
+			this->m_MaxDrawLOD = 3;// 2段目まで表示
+			break;
+		default:
+			break;
+		}
+		//*/
+		//*
 		this->m_ShadowMaxDrawLOD = 0;// 表示
 		// this->m_ShadowMaxDrawLOD = -1;// 非表示
 		this->m_MaxDrawLOD = 1;// 2段目まで表示
+		//*/
 	}
 
 	void		VoxelControl::SetBlick(int Xvoxel, int Yvoxel, int Zvoxel, int8_t ID, bool CalcOther) noexcept {
