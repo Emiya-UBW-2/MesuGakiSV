@@ -21,6 +21,7 @@ class Character {
 	float Speed = 0.f;
 
 	Util::VECTOR2D VecR = Util::VECTOR2D::zero();
+	char		padding[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;

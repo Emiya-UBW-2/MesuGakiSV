@@ -43,7 +43,7 @@ protected:
 		PostPassParts->SetShadowScale(0.5f);
 		PostPassParts->SetAmbientLight(LightVec);
 
-		SetLightEnable(FALSE);
+		SetLightEnable(false);
 		auto* LightParts = Draw::LightPool::Instance();
 		auto& FirstLight = LightParts->Put(Draw::LightType::DIRECTIONAL, LightVec);
 		SetLightAmbColorHandle(FirstLight.get(), GetColorF(0.25f, 0.25f, 0.25f, 1.0f));
