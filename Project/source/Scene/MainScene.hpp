@@ -152,21 +152,6 @@ protected:
 			this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::zero(), 1.f - 0.8f);
 		}
 
-		/*
-		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::A)) {
-			m_YRad += Util::deg2rad(60.f) / 60.f;
-		}
-		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::D)) {
-			m_YRad -= Util::deg2rad(60.f) / 60.f;
-		}
-		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::W)) {
-			m_XRad += Util::deg2rad(60.f) / 60.f;
-		}
-		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::S)) {
-			m_XRad -= Util::deg2rad(60.f) / 60.f;
-		}
-		m_XRad = std::clamp(m_XRad, Util::deg2rad(-60.f), Util::deg2rad(60.f));
-		//*/
 		float Per = this->m_Character.GetSpeed() / this->m_Character.GetSpeedMax();
 		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
 		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 3.5f, -2.f) * Scale3DRate * Util::Lerp(1.25f, 1.f, Per);
