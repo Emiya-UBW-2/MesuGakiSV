@@ -69,8 +69,8 @@ namespace Util {
 			if (!(RS_X == 0 && RS_Y == 0)) {
 				//
 				IsHit = true;
-				MX += (RS_X * DrawerMngr->GetDispWidth() / 100) / 1000;
-				MY += (RS_Y * DrawerMngr->GetDispHeight() / 100) / 1000;
+				MX += (RS_X * DrawerMngr->GetDispWidth() / 20) / 1000;
+				MY += (RS_Y * DrawerMngr->GetDispHeight() / 20) / 1000;
 			}
 		}
 		//
@@ -80,8 +80,8 @@ namespace Util {
 			if (!(RS_X == 0 && RS_Y == 0)) {
 				//
 				IsHit = true;
-				MX += (RS_X * DrawerMngr->GetDispWidth() / 100) / 1000;
-				MY += (RS_Y * DrawerMngr->GetDispHeight() / 100) / 1000;
+				MX += (RS_X * DrawerMngr->GetDispWidth() / 20) / 1000;
+				MY += (RS_Y * DrawerMngr->GetDispHeight() / 20) / 1000;
 			}
 		}
 		if (IsHit) {

@@ -20,6 +20,8 @@ class MainScene : public Util::SceneBase {
 	char		padding[6]{};
 
 	Character		m_Character{};
+
+	Util::VECTOR3D	m_CamOffset{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -50,7 +52,7 @@ protected:
 		SetLightDifColorHandle(FirstLight.get(), GetColorF(1.0f, 1.0f, 1.0f, 1.0f));
 
 		//DoF
-		PostPassParts->Set_DoFNearFar(
+		PostPassParts->SetDoFNearFar(
 			(Scale3DRate * 0.15f), Scale3DRate * 5.0f,
 			(Scale3DRate * 0.05f), Scale3DRate * 30.0f);
 
@@ -139,6 +141,17 @@ protected:
 			return;
 		}
 		//更新
+		auto* DrawerMngr = Draw::MainDraw::Instance();
+		float XPer = std::clamp(static_cast<float>(DrawerMngr->GetMousePositionX() - DrawerMngr->GetDispWidth() / 2) / static_cast<float>(DrawerMngr->GetDispWidth() / 2), -1.f, 1.f);
+		float YPer = std::clamp(static_cast<float>(DrawerMngr->GetMousePositionY() - DrawerMngr->GetDispHeight() / 2) / static_cast<float>(DrawerMngr->GetDispHeight() / 2), -1.f, 1.f);
+
+		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim)) {
+			this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::vget(XPer * 3.f, 0.f, -YPer * 2.f), 1.f - 0.8f);
+		}
+		else {
+			this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::zero(), 1.f - 0.8f);
+		}
+
 		/*
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::A)) {
 			m_YRad += Util::deg2rad(60.f) / 60.f;
@@ -155,7 +168,7 @@ protected:
 		m_XRad = std::clamp(m_XRad, Util::deg2rad(-60.f), Util::deg2rad(60.f));
 		//*/
 		float Per = this->m_Character.GetSpeed() / this->m_Character.GetSpeedMax();
-		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + Util::VECTOR3D::vget(0, 1.f, 0.f) * Scale3DRate;
+		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
 		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 3.5f, -2.f) * Scale3DRate * Util::Lerp(1.25f, 1.f, Per);
 
 		auto* CameraParts = Camera::Camera3D::Instance();

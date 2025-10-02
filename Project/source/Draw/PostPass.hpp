@@ -796,16 +796,6 @@ namespace Draw {
 				this->m_Zoom = 1.f;
 			}
 		};
-		struct BlackOutParam {
-			bool						m_IsActive{ false };
-			char		padding[3]{};
-			float						m_Per{ 1.f };
-		public:
-			void			Reset(void) noexcept {
-				this->m_IsActive = false;
-				this->m_Per = 1.f;
-			}
-		};
 		struct GodRayParam {
 			float						m_GodRayPer{ 0.5f };
 			float						m_GodRayPerByPostPass{ 1.f };
@@ -844,52 +834,52 @@ namespace Draw {
 		ColorParam					m_ColorParam{};
 		DoFParam					m_DoFParam{};
 		ScopeParam					m_ScopeParam{};
-		BlackOutParam				m_BlackOutParam{};
+		float						m_BlackOutParamPer{ 0.f };
 		float						m_AberrationPower{ 1.f };
 		float						m_DistortionPer{ 120.f };
 		GodRayParam					m_GodRayParam{};
 		Util::VECTOR3D				m_AmbientLightVec{};
 		char		padding2[4]{};
 	public:
+		const auto&		GetBufferScreen(void) const noexcept { return this->m_BufferScreen; }
 		const auto&		GetAmbientLightVec(void) const noexcept { return this->m_AmbientLightVec; }
-
-		auto&			GetBufferScreen(void) noexcept { return this->m_BufferScreen; }
 		const auto&		GetCamViewMat(void) const noexcept { return this->m_CamViewMat; }
 		const auto&		GetCamProjectionMat(void) const noexcept { return this->m_CamProjectionMat; }
 		const auto&		GetShadowDraw(void) const noexcept { return this->m_ShadowDraw; }
-
 		const auto&		GetDoFParam(void) const noexcept { return this->m_DoFParam; }
 		const auto&		GetScopeParam(void) const noexcept { return this->m_ScopeParam; }
-		const auto&		GetBlackOutParam(void) const noexcept { return this->m_BlackOutParam; }
+		const auto&		GetBlackOutParamPer(void) const noexcept { return this->m_BlackOutParamPer; }
 		const auto&		GetGodRayParam(void) const noexcept { return this->m_GodRayParam; }
-
 		const auto&		GetAberrationPower(void) const noexcept { return this->m_AberrationPower; }
 		const auto&		GetDistortionPer(void) const noexcept { return this->m_DistortionPer; }
-		void			SetAberrationPower(float value) noexcept { this->m_AberrationPower = value; }
-		void			SetDistortionPer(float value) noexcept { this->m_DistortionPer = value; }
 	public:
 		auto&			SetScopeParam(void) noexcept { return this->m_ScopeParam; }
-		auto&			SetBlackOutParam(void) noexcept { return this->m_BlackOutParam; }
-		auto&			SetGodRayParam(void) noexcept { return this->m_GodRayParam; }
-
+		void			SetAberrationPower(float value) noexcept { this->m_AberrationPower = value; }
+		void			SetDistortionPer(float value) noexcept { this->m_DistortionPer = value; }
+		void			SetBlackOutParamPer(float value) noexcept { this->m_BlackOutParamPer = value; }
+		void			SetGodRayPerByPostPass(float value) noexcept { this->m_GodRayParam.SetGodRayPerByPostPass(value); }
 		void			SetShadowScale(float value) noexcept { this->m_ShadowScale = value; }
 		// ボケ始める場所を指定(完全にボケるのはニアファーの限度)
-		void			Set_DoFNearFar(float near_d, float far_d, float near_m, float far_m) noexcept {
+		void			SetDoFNearFar(float near_d, float far_d, float near_m, float far_m) noexcept {
 			this->m_DoFParam.m_near = near_d;
 			this->m_DoFParam.m_far = far_d;
 			this->m_DoFParam.m_near_Max = near_m;
 			this->m_DoFParam.m_far_Min = far_m;
 		}
+		//
 		void			SetLevelFilter(int inMin, int inMax, float gamma) noexcept {
 			this->m_ColorParam.m_InColorPerMin = std::clamp(inMin, 0, 255);
 			this->m_ColorParam.m_InColorPerMax = std::clamp(inMax, 0, 255);
 			this->m_ColorParam.m_InColorGamma = std::max(1.f, gamma);
 		}
 		void			ResetAllParams(void) noexcept {
-			SetLevelFilter(0, 255, 1.f);
-			SetAberrationPower(1.f);
 			this->m_ScopeParam.Reset();
-			this->m_BlackOutParam.Reset();
+			SetAberrationPower(1.f);
+			SetDistortionPer(1.f);
+			SetBlackOutParamPer(0.f);
+			SetGodRayPerByPostPass(0.f);
+			SetShadowScale(1.f);
+			SetLevelFilter(0, 255, 1.f);
 		}
 	private:
 		PostPassEffect(void) noexcept;

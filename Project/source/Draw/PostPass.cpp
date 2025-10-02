@@ -389,7 +389,7 @@ namespace Draw {
 				this->m_IsUpdateSoftImage ^= 1;
 
 			}
-			PostPassParts->SetGodRayParam().SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(this->m_GodRayRed) / 128.f, 0.f, 1.f));
+			PostPassParts->SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(this->m_GodRayRed) / 128.f, 0.f, 1.f));
 
 			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 300);
 			TargetGraph->SetDraw_Screen();
@@ -932,13 +932,13 @@ namespace Draw {
 		void		SetEffect_Sub(Draw::ScreenHandle* TargetGraph, PostPassEffect::Gbuffer* pGbuffer) noexcept override {
 			auto* PostPassParts = PostPassEffect::Instance();
 			auto* DrawerMngr = Draw::MainDraw::Instance();
-			if (!PostPassParts->GetBlackOutParam().m_IsActive) { return; }
+			if (PostPassParts->GetBlackOutParamPer() == 0.f) { return; }
 			// レンズ
 			TargetGraph->SetDraw_Screen(false);
 			{
 				pGbuffer->GetColorBuffer().SetUseTextureToShader(0);	// 使用するテクスチャをセット
 				this->m_Shader.SetDispSize(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight());
-				this->m_Shader.SetParam(3, PostPassParts->GetBlackOutParam().m_Per, 0.f, 0.f, 0.f);
+				this->m_Shader.SetParam(3, PostPassParts->GetBlackOutParamPer(), 0.f, 0.f, 0.f);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
 			}
