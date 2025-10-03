@@ -260,8 +260,8 @@ namespace BackGround {
 	static constexpr int DrawMaxXMinus = -70;
 	static constexpr int DrawMaxZPlus = 70;
 	static constexpr int DrawMaxZMinus = -70;
-	static constexpr int DrawMaxYPlus = 20;
-	static constexpr int DrawMaxYMinus = -30;
+	static constexpr int DrawMaxYPlus = 50;
+	static constexpr int DrawMaxYMinus = -50;
 
 	// 内部計算用
 	static constexpr int8_t s_EmptyBlick = 0;// ブロックIDがない=空であることをしめす

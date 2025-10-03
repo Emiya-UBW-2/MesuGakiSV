@@ -630,7 +630,7 @@ namespace BackGround {
 	}
 
 	void		VoxelControl::SettingChange(void) noexcept {
-		this->m_ShadowMaxDrawLOD = 0;// 表示
+		this->m_ShadowMaxDrawLOD = 1;// 表示
 		// this->m_ShadowMaxDrawLOD = -1;// 非表示
 		this->m_MaxDrawLOD = 1;// 2段目まで表示
 	}
@@ -728,7 +728,7 @@ namespace BackGround {
 			[this]() {
 				this->m_DrawThreadDatas[0].SetDrawInfo(this->m_DrawCenterPos, this->m_CamVec);
 				this->m_DrawThreadDatas[0].StartRegist();
-				AddCubes(0, 0, true, true, true);
+				AddCubes(0, 0, false, false, true);
 			},
 			[this]() {
 				this->m_DrawThreadDatas[0].EndRegist();
@@ -737,7 +737,7 @@ namespace BackGround {
 			[this]() {
 				this->m_DrawThreadDatas[1].SetDrawInfo(this->m_DrawCenterPos, this->m_CamVec);
 				this->m_DrawThreadDatas[1].StartRegist();
-				AddCubes(1, 1, true, true, true);
+				AddCubes(1, 1, false, false, true);
 			},
 			[this]() {
 				this->m_DrawThreadDatas[1].EndRegist();
@@ -746,7 +746,7 @@ namespace BackGround {
 			[this]() {
 				this->m_DrawThreadDatas[2].SetDrawInfo(this->m_DrawCenterPos, this->m_CamVec);
 				this->m_DrawThreadDatas[2].StartRegist();
-				AddCubes(2, 2, true, true, true);
+				AddCubes(2, 2, false, false, true);
 			},
 			[this]() {
 				this->m_DrawThreadDatas[2].EndRegist();
@@ -755,7 +755,7 @@ namespace BackGround {
 			[this]() {
 				this->m_DrawThreadDatas[3].SetDrawInfo(this->m_DrawCenterPos, this->m_CamVec);
 				this->m_DrawThreadDatas[3].StartRegist();
-				AddCubes(3, 3, true, true, true);
+				AddCubes(3, 3, false, false, true);
 			},
 			[this]() {
 				this->m_DrawThreadDatas[3].EndRegist();
