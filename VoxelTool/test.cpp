@@ -53,15 +53,26 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Voxel.Load();												// 事前読み込み
 
 	Voxel.InitStart();											// 初期化開始時処理
-	Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
+	//Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
+	for (int Xvoxel = 0; Xvoxel < Voxel.GetReferenceCells().All; ++Xvoxel) {
+		for (int Yvoxel = 0; Yvoxel < Voxel.GetReferenceCells().All; ++Yvoxel) {
+			for (int Zvoxel = 0; Zvoxel < Voxel.GetReferenceCells().All; ++Zvoxel) {
+				if (Yvoxel >= Voxel.GetReferenceCells().All / 2) {
+					if (Yvoxel % 20 == 0) {
+						//Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, 2, false);
+					}
+				}
+				else {
+					Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, 1, false);
+				}
+			}
+		}
+	}
 	Voxel.InitEnd();											// 初期化終了時処理
 	// 自分の座標と向きを指定
 	MyPos = VGet(0.f, 0.f, 0.f);
-	// 自分の座標を地形に合わせる
-	MyPos = VGet(MyPos.x, -50.f, MyPos.z);
-	Voxel.CheckLine(VGet(MyPos.x, 0.f, MyPos.z), &MyPos);
 
-	int Lange = 1;
+	int Lange = 10;
 	int MX{}, MY{};
 	int PMX{}, PMY{};
 	int DMX{}, DMY{};
@@ -96,11 +107,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Yrad = -0.f * DX_PI_F / 180.f;
 		}
 
-		Xrad = std::clamp(Xrad, -89.f * DX_PI_F / 180.f, 0.f * DX_PI_F / 180.f);
+		Xrad = std::clamp(Xrad, -89.f * DX_PI_F / 180.f, 90.f * DX_PI_F / 180.f);
 		MATRIX Mat = MMult(MGetRotAxis(VGet(1.f, 0.f, 0.f), Xrad), MGetRotAxis(VGet(0.f, 1.f, 0.f), Yrad));
 		//
 		Lange -= GetMouseWheelRotVol();
-		Lange = std::clamp(Lange, 1, 17);
+		Lange = std::clamp(Lange, 1, 20);
 		//
 		MyVec = VGet(0.f, 0.f, 0.f);
 		if ((GetMouseInput() & MOUSE_INPUT_MIDDLE) != 0) {
@@ -112,7 +123,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			if (CheckHitKey(KEY_INPUT_LCONTROL) != 0) {
 				Y = 0.f;
 			}
-			MyVec = VAdd(MyVec, VTransform(VGet(Y, X, 0.f), Mat));
+			MyVec = VAdd(MyVec, VTransform(VGet(Y * static_cast<float>(Lange) / 3.f, X * static_cast<float>(Lange) / 3.f, 0.f), Mat));
 		}
 
 
@@ -120,15 +131,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// 仮座標を反映
 		MyPos = VAdd(MyPos, MyVec);
 		// カメラ座標を指定
-		VECTOR CamPos = VSub(MyPos, VScale(VTransform(VGet(0.f, 0.f, -1.f), Mat), 30.f));
+		VECTOR CamPos = VSub(MyPos, VTransform(VGet(0.f, 0.f, -50.f), Mat));
 		VECTOR CamTarget = MyPos;// 自身が向いている方向を注視点とする
 		// FPSを表示
 		clsDx();
 		printfDx("%5.2f fps\n", GetFPS());
 		// シャドウマップに描画する範囲を設定
 		// ボクセル処理
-		Voxel.SetDrawInfo(VGet(0.f, -20.f,0.f), VNorm(VSub(CamTarget, CamPos)));// 描画する際の描画中心座標と描画する向きを指定
-		Voxel.SetShadowDrawInfo(VGet(0.f, -20.f, 0.f), DXParam.GetShadowVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
+		Voxel.SetDrawInfo(VGet(0.f, 0.f,0.f), VNorm(VSub(CamTarget, CamPos)));// 描画する際の描画中心座標と描画する向きを指定
+		Voxel.SetShadowDrawInfo(VGet(0.f, 0.f, 0.f), DXParam.GetShadowVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
 		Voxel.Update();
 		// シャドウマップへの描画
 		DXParam.SetShadowMapStart(CamPos);
@@ -136,10 +147,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		DXParam.SetShadowMapEnd();
 		// 裏画面への描画
 		SetDrawScreen(DX_SCREEN_BACK);				// 描画先を裏画面に変更
+		ClearDrawScreen();											// 画面をクリア
 		{
-			ClearDrawScreen();											// 画面をクリア
-			DrawBox(0, 0, 640, 480, GetColor(150, 250, 255), TRUE);		// 背景色を塗る
-
 			SetCameraPositionAndTarget_UpVecY(CamPos, CamTarget);// カメラの位置と向きを設定
 			SetCameraNearFar(0.5f, 100.0f);			// 描画する奥行き方向の範囲を設定
 			SetupCamera_Ortho(2.f* static_cast<float>(Lange));
@@ -147,9 +156,26 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			DXParam.SetUseShadowMapStart();
 			Voxel.Draw();							// 描画
 			DXParam.SetUseShadowMapEnd();
+
+			int Axis = 30;
+			for (int loop = -Axis; loop <= Axis; ++loop) {
+				DrawLine3D(VGet(static_cast<float>(-Axis), 0.f, static_cast<float>(loop)), VGet(static_cast<float>(Axis), 0.f, static_cast<float>(loop)), GetColor(255, 255, 255));
+				DrawLine3D(VGet(static_cast<float>(loop), 0.f, static_cast<float>(-Axis)), VGet(static_cast<float>(loop), 0.f, static_cast<float>(Axis)), GetColor(255, 255, 255));
+			}
+
+			DrawLine3D(VGet(-100.f, 0.f, 0.f), VGet(0.f, 0.f, 0.f), GetColor(128, 0, 0));
+			DrawLine3D(VGet(0.f, -100.f, 0.f), VGet(0.f, 0.f, 0.f), GetColor(0, 128, 0));
+			DrawLine3D(VGet(0.f, 0.f, -100.f), VGet(0.f, 0.f, 0.f), GetColor(0, 0, 128));
+
+			DrawLine3D(VGet(0.f, 0.f, 0.f), VGet(100.f, 0.f, 0.f), GetColor(255, 0, 0));
+			DrawLine3D(VGet(0.f, 0.f, 0.f), VGet(0.f, 100.f, 0.f), GetColor(0, 255, 0));
+			DrawLine3D(VGet(0.f, 0.f, 0.f), VGet(0.f, 0.f, 100.f), GetColor(0, 0, 255));
 		}
 		ScreenFlip();								// 裏画面の内容を表画面に反映
 	}
+
+	Voxel.SaveCellsFile("data/Map.txt");						// ボクセルデータの読み込み
+
 	Voxel.Dispose();
 	Voxel.Dispose_Load();
 	return 0;					// ソフトの終了

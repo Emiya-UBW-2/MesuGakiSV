@@ -256,12 +256,12 @@ namespace BackGround {
 	static constexpr float CellScale = 0.25f;// 1個のブロックの実際のサイズ設定
 
 	// ブロックの最大描画範囲
-	static constexpr int DrawMaxXPlus = 70;
-	static constexpr int DrawMaxXMinus = -70;
-	static constexpr int DrawMaxZPlus = 70;
-	static constexpr int DrawMaxZMinus = -70;
-	static constexpr int DrawMaxYPlus = 50;
-	static constexpr int DrawMaxYMinus = -50;
+	static constexpr int DrawMaxXPlus = 100;
+	static constexpr int DrawMaxXMinus = -100;
+	static constexpr int DrawMaxZPlus = 100;
+	static constexpr int DrawMaxZMinus = -100;
+	static constexpr int DrawMaxYPlus = 100;
+	static constexpr int DrawMaxYMinus = -100;
 
 	// 内部計算用
 	static constexpr int8_t s_EmptyBlick = 0;// ブロックIDがない=空であることをしめす
@@ -308,7 +308,10 @@ namespace BackGround {
 			float					Scale = (CellScale * this->ScaleRate);// 描画座標に変換する際にかける数
 		private:
 			// 特定軸のループするインデックスを取得
-			const int			GetLoopIndex(int axis) const noexcept { return (axis % this->All + this->All) % this->All; }
+			const int			GetLoopIndex(int axis) const noexcept {
+				return std::clamp(axis, 0, this->All - 1);
+				//return (axis % this->All + this->All) % this->All;
+			}
 		public:
 			const CellBuffer& GetCellBuf(int Xvoxel, int Yvoxel, int Zvoxel) const noexcept { return this->m_CellBuffer[GetCellIndex(Xvoxel, Yvoxel, Zvoxel)]; }
 			const CellBuffer& GetCellBuf(const Algorithm::Vector3Int& VoxelPoint) const noexcept { return GetCellBuf(VoxelPoint.x, VoxelPoint.y, VoxelPoint.z); }
@@ -355,7 +358,12 @@ namespace BackGround {
 					return s_EmptyBlick;
 				}
 			}
-			const bool			isInside(int Yvoxel) const noexcept { return ((0 <= Yvoxel) && (Yvoxel < this->All)); }
+			const bool			isInside(int Xvoxel, int Yvoxel, int Zvoxel) const noexcept {
+				return 
+					((0 <= Xvoxel) && (Xvoxel < this->All)) &&
+					((0 <= Yvoxel) && (Yvoxel < this->All)) &&
+					((0 <= Zvoxel) && (Zvoxel < this->All));
+			}
 			// ボクセル座標から描画座標の最小範囲に変換
 			const VECTOR		GetWorldPos(int Xvoxel, int Yvoxel, int Zvoxel) const noexcept {
 				return VGet(
@@ -380,7 +388,7 @@ namespace BackGround {
 				);
 			}
 			void				CalcOcclusion(int Xvoxel, int Yvoxel, int Zvoxel) noexcept {
-				if (!isInside(Yvoxel)) { return; }
+				if (!isInside(Xvoxel, Yvoxel, Zvoxel)) { return; }
 				if (GetCellBuf(Xvoxel, Yvoxel, Zvoxel).IsEmpty()) { return; }
 
 				SetCellBuf(Xvoxel, Yvoxel, Zvoxel).ResetOcclusion();

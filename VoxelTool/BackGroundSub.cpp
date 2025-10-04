@@ -301,7 +301,7 @@ namespace BackGround {
 		}
 		Algorithm::Vector3Int Vofs{};
 		for (Vofs.y = DrawMaxYMinus; Vofs.y <= DrawMaxYPlus; ++Vofs.y) {
-			if (!cellx.isInside(VCenter.y + Vofs.y)) { continue; }
+			if (!cellx.isInside(VCenter.x + Vofs.x, VCenter.y + Vofs.y, VCenter.z + Vofs.z)) { continue; }
 			float CamVecDotY = Draws.GetCamVec().y * (static_cast<float>(Vofs.y) + 0.5f);
 			if (UseCenterFrustumCulling) {
 				// 矩形がカメラの平面寄り裏にある場合(4点がすべて裏にある場合)はスキップ
@@ -374,7 +374,7 @@ namespace BackGround {
 						Start.x + Xofs, Start.y + Yofs, Start.z + Zofs,
 						End.x + Xofs, End.y + Yofs, End.z + Zofs,
 						[&](const Algorithm::Vector3Int& Voxel) {
-							if (!GetReferenceCells().isInside(Voxel.y)) { return false; }
+							if (!GetReferenceCells().isInside(Voxel.x, Voxel.y, Voxel.z)) { return false; }
 							if (!GetReferenceCells().GetCellBuf(Voxel).CanDraw()) { return false; }
 							VECTOR MinPos = GetReferenceCells().GetWorldPosOffset(Voxel, 0, 0, 0);
 							MinPos = VAdd(MinPos, VGet(-0.1f, -0.1f, -0.1f));
@@ -416,7 +416,7 @@ namespace BackGround {
 						Start.x + Xofs, Start.y + Yofs, Start.z + Zofs,
 						End.x + Xofs, End.y + Yofs, End.z + Zofs,
 						[&](const Algorithm::Vector3Int& Voxel) {
-							if (!GetReferenceCells().isInside(Voxel.y)) { return false; }
+							if (!GetReferenceCells().isInside(Voxel.x, Voxel.y, Voxel.z)) { return false; }
 							const auto& CellBuff = GetReferenceCells().GetCellBuf(Voxel);
 							if (!CellBuff.CanDraw()) { return false; }
 							VECTOR MinPos = GetReferenceCells().GetWorldPosOffset(Voxel, 0, 0, 0);
@@ -630,9 +630,9 @@ namespace BackGround {
 	}
 
 	void		VoxelControl::SettingChange(void) noexcept {
-		this->m_ShadowMaxDrawLOD = 1;// 表示
+		this->m_ShadowMaxDrawLOD = 0;// 表示
 		// this->m_ShadowMaxDrawLOD = -1;// 非表示
-		this->m_MaxDrawLOD = 1;// 2段目まで表示
+		this->m_MaxDrawLOD = 0;// 2段目まで表示
 	}
 
 	void		VoxelControl::SetBlick(int Xvoxel, int Yvoxel, int Zvoxel, int8_t ID, bool CalcOther) noexcept {
