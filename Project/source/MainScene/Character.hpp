@@ -104,7 +104,7 @@ public:
 		Util::VECTOR3D PosBuffer = MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -Speed, MyMat.rotation());
 		// 壁判定
 		std::vector<const Draw::MV1*> addonColObj;
-		BackGround::Instance()->CheckWall(MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.5f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
+		BackGround::Instance()->CheckWall(MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
 		// 地面判定
 		PosBuffer.y = PosBuffer.y - 0.1f * Scale3DRate;
 		if (!BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &PosBuffer)) {
