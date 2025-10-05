@@ -56,14 +56,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	//Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
 	{
 		int XSize{}, YSize{};
-		int SoftImage = LoadSoftImage("data/map.bmp");
-		GetSoftImageSize(SoftImage, &XSize, &YSize);
+		int SoftImage1F = LoadSoftImage("data/map1F.bmp");
+		GetSoftImageSize(SoftImage1F, &XSize, &YSize);
 		for (int Xvoxel = 0; Xvoxel < Voxel.GetReferenceCells().All; ++Xvoxel) {
 			for (int Zvoxel = 0; Zvoxel < Voxel.GetReferenceCells().All; ++Zvoxel) {
 				int xp = XSize * Xvoxel / (Voxel.GetReferenceCells().All - 1);
 				int yp = YSize - YSize * Zvoxel / (Voxel.GetReferenceCells().All - 1);
 				int r = 0;
-				GetPixelSoftImage(SoftImage, xp, yp, &r, nullptr, nullptr, nullptr);
+				GetPixelSoftImage(SoftImage1F, xp, yp, &r, nullptr, nullptr, nullptr);
 				if (r == 0) {
 					for (int Yvoxel = 0; Yvoxel < Voxel.GetReferenceCells().All-52; ++Yvoxel) {
 						Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, 1, false);
@@ -76,8 +76,30 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				}
 			}
 		}
-		DeleteSoftImage(SoftImage);
+		DeleteSoftImage(SoftImage1F);
 	}
+	{
+		int XSize{}, YSize{};
+		int SoftImage2F = LoadSoftImage("data/map2F.bmp");
+		GetSoftImageSize(SoftImage2F, &XSize, &YSize);
+		for (int Xvoxel = 0; Xvoxel < Voxel.GetReferenceCells().All; ++Xvoxel) {
+			for (int Zvoxel = 0; Zvoxel < Voxel.GetReferenceCells().All; ++Zvoxel) {
+				int xp = XSize * Xvoxel / (Voxel.GetReferenceCells().All - 1);
+				int yp = YSize - YSize * Zvoxel / (Voxel.GetReferenceCells().All - 1);
+				int r = 0;
+				GetPixelSoftImage(SoftImage2F, xp, yp, &r, nullptr, nullptr, nullptr);
+				if (r != 0) {
+					int Min = Voxel.GetReferenceCells().All / 4 + Voxel.GetReferenceCells().All * 3 / 4 * 160 / 255;
+					int Now = Voxel.GetReferenceCells().All / 4 + Voxel.GetReferenceCells().All * 3 / 4 * r / 255;
+					for (int Yvoxel = Min - 3; Yvoxel < Now; ++Yvoxel) {
+						Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, 1, false);
+					}
+				}
+			}
+		}
+		DeleteSoftImage(SoftImage2F);
+	}
+
 	for (int Xvoxel = 0; Xvoxel < Voxel.GetReferenceCells().All; ++Xvoxel) {
 		for (int Yvoxel = 0; Yvoxel < Voxel.GetReferenceCells().All; ++Yvoxel) {
 			for (int Zvoxel = 0; Zvoxel < Voxel.GetReferenceCells().All; ++Zvoxel) {

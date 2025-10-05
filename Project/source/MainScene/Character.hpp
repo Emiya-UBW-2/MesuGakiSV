@@ -22,7 +22,6 @@ class Character {
 
 	Util::VECTOR2D VecR = Util::VECTOR2D::zero();
 	float			m_YVec{};
-	char		padding[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;

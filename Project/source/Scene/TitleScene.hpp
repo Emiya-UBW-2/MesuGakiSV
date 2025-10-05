@@ -89,6 +89,7 @@ protected:
 	void SetShadowDrawRigid_Sub(void) noexcept override {}
 	void SetShadowDraw_Sub(void) noexcept override {}
 	void Draw_Sub(void) noexcept override {}
+	void DepthDraw_Sub(void) noexcept override {}
 	void ShadowDrawFar_Sub(void) noexcept override {}
 	void ShadowDraw_Sub(void) noexcept override {}
 	void UIDraw_Sub(void) noexcept override {

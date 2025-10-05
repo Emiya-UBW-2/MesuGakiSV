@@ -21,7 +21,7 @@ class OptionWindow {
 		char		padding[4]{};
 	};
 private:
-	constexpr static int	m_ParamMax{ 17 };
+	constexpr static int	m_ParamMax{ 18 };
 
 	Draw::DrawUISystem*	m_DrawUI{ nullptr };
 	int				m_TabButton[4] = { InvalidID,InvalidID,InvalidID,InvalidID };

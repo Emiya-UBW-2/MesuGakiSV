@@ -257,8 +257,8 @@ namespace BG {
 	// ブロックの最大描画範囲
 	static constexpr int DrawMaxXPlus = 40;
 	static constexpr int DrawMaxXMinus = -40;
-	static constexpr int DrawMaxZPlus = 40;
-	static constexpr int DrawMaxZMinus = -40;
+	static constexpr int DrawMaxZPlus = 60;
+	static constexpr int DrawMaxZMinus = -60;
 	static constexpr int DrawMaxYPlus = 30;
 	static constexpr int DrawMaxYMinus = -70;
 

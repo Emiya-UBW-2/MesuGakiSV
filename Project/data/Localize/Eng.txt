@@ -32,6 +32,7 @@
 0214=GodRay
 0215=Distortion
 0216=MotionBlur
+0217=Silhouette
 
 0300=XSensing
 0301=YSensing

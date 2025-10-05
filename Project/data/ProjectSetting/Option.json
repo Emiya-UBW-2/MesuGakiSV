@@ -102,6 +102,12 @@
 			"DefaultValue" : "True"
 		},
 		{
+			"Type":"Silhouette",
+			"SelectType": "Select",
+			"SelectType" : "Bool",
+			"DefaultValue" : "True"
+		},
+		{
 			"Type":"MasterVolume",
 			"SelectType" : "Int",
 			"Value" : [0,100],

@@ -9,6 +9,7 @@ ShaderCompiler.exe /Tps_4_0 PS_DoF.hlsl
 ShaderCompiler.exe /Tps_4_0 PS_BlackOut.hlsl
 ShaderCompiler.exe /Tps_4_0 PS_FXAA.hlsl
 ShaderCompiler.exe /Tps_4_0 PS_GodRay.hlsl
+ShaderCompiler.exe /Tps_4_0 PS_Depth.hlsl
 
 pause
 

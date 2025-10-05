@@ -22,6 +22,9 @@ class MainScene : public Util::SceneBase {
 	Character		m_Character{};
 
 	Util::VECTOR3D	m_CamOffset{};
+	Util::VECTOR3D	m_CamVec{};
+	float			m_CamCheckLen{};
+	float			m_CamCheckTimer{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -152,12 +155,32 @@ protected:
 			this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::zero(), 1.f - 0.8f);
 		}
 
-		float Per = this->m_Character.GetSpeed() / this->m_Character.GetSpeedMax();
 		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
-		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f) * Scale3DRate * Util::Lerp(1.25f, 1.f, Per);
+		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f) * (Scale3DRate * 1.25f);
+		float CheckLen = CamVec.magnitude();
+		{
+			Util::VECTOR3D Base = CamPos;
+			Util::VECTOR3D Target = CamPos + CamVec;
+			{
+				Base = CamPos + CamVec - (CamVec).normalized() * (CheckLen/2.f);
+				if (BackGround::Instance()->CheckLine(Base, &Target)) {
+					m_CamCheckTimer = 0.f;
+					m_CamCheckLen = std::max((Target - Base).magnitude() - 1.5f * Scale3DRate, 1.5f * Scale3DRate);
+				}
+				else {
+					m_CamCheckTimer = std::min(m_CamCheckTimer + 1.f / 60.f, 0.5f);
+					if (m_CamCheckTimer >= 0.5f) {
+						m_CamCheckLen = CheckLen;
+					}
+				}
+				Target = Base + (Target - Base).normalized() * m_CamCheckLen;
+			}
+			CamVec = Target - CamPos;
+		}
+		this->m_CamVec = Util::Lerp(this->m_CamVec, CamVec, 1.f - 0.9f);
 
 		auto* CameraParts = Camera::Camera3D::Instance();
-		CameraParts->SetCamPos(CamPos + CamVec, CamPos, Util::VECTOR3D::vget(0, 1.f, 0));
+		CameraParts->SetCamPos(CamPos + this->m_CamVec, CamPos, Util::VECTOR3D::vget(0, 1.f, 0));
 		CameraParts->SetCamInfo(Util::deg2rad(45), 0.5f, Scale3DRate * 30.0f);
 
 		BackGround::Instance()->Update();
@@ -175,6 +198,9 @@ protected:
 	}
 	void Draw_Sub(void) noexcept override {
 		BackGround::Instance()->Draw();
+		this->m_Character.Draw();
+	}
+	void DepthDraw_Sub(void) noexcept override {
 		this->m_Character.Draw();
 	}
 	void ShadowDrawFar_Sub(void) noexcept override {
