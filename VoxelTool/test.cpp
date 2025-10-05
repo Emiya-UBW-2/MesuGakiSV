@@ -54,6 +54,30 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Voxel.InitStart();											// 初期化開始時処理
 	//Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
+	{
+		int XSize{}, YSize{};
+		int SoftImage = LoadSoftImage("data/map.bmp");
+		GetSoftImageSize(SoftImage, &XSize, &YSize);
+		for (int Xvoxel = 0; Xvoxel < Voxel.GetReferenceCells().All; ++Xvoxel) {
+			for (int Zvoxel = 0; Zvoxel < Voxel.GetReferenceCells().All; ++Zvoxel) {
+				int xp = XSize * Xvoxel / (Voxel.GetReferenceCells().All - 1);
+				int yp = YSize - YSize * Zvoxel / (Voxel.GetReferenceCells().All - 1);
+				int r = 0;
+				GetPixelSoftImage(SoftImage, xp, yp, &r, nullptr, nullptr, nullptr);
+				if (r == 0) {
+					for (int Yvoxel = 0; Yvoxel < Voxel.GetReferenceCells().All-52; ++Yvoxel) {
+						Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, 1, false);
+					}
+				}
+				else {
+					for (int Yvoxel = 0; Yvoxel < Voxel.GetReferenceCells().All / 4 + Voxel.GetReferenceCells().All * 3 / 4 * r / 255; ++Yvoxel) {
+						Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, 1, false);
+					}
+				}
+			}
+		}
+		DeleteSoftImage(SoftImage);
+	}
 	for (int Xvoxel = 0; Xvoxel < Voxel.GetReferenceCells().All; ++Xvoxel) {
 		for (int Yvoxel = 0; Yvoxel < Voxel.GetReferenceCells().All; ++Yvoxel) {
 			for (int Zvoxel = 0; Zvoxel < Voxel.GetReferenceCells().All; ++Zvoxel) {

@@ -21,6 +21,7 @@ class Character {
 	float Speed = 0.f;
 
 	Util::VECTOR2D VecR = Util::VECTOR2D::zero();
+	float			m_YVec{};
 	char		padding[4]{};
 public:
 	Character(void) noexcept {}
@@ -39,7 +40,7 @@ public:
 	}
 	void Init(void) noexcept {
 		MyPosTarget = Util::VECTOR3D::vget(0.f, -50.f, 0.f) * Scale3DRate;
-		BackGround::Instance()->CheckLine(Util::VECTOR3D::vget(MyPosTarget.x, 0.f * Scale3DRate, MyPosTarget.z), &MyPosTarget);
+		BackGround::Instance()->CheckLine(Util::VECTOR3D::vget(MyPosTarget.x, 50.f * Scale3DRate, MyPosTarget.z), &MyPosTarget);
 		MyMat = Util::Matrix4x4::Mtrans(MyPosTarget);
 	}
 	void Update(void) noexcept {
@@ -104,12 +105,16 @@ public:
 		Util::VECTOR3D PosBuffer = MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -Speed, MyMat.rotation());
 		// 壁判定
 		std::vector<const Draw::MV1*> addonColObj;
-		BackGround::Instance()->CheckWall(MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.7f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
+		BackGround::Instance()->CheckWall(MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.5f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
 		// 地面判定
 		PosBuffer.y = PosBuffer.y - 0.1f * Scale3DRate;
 		if (!BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &PosBuffer)) {
-			// ヒットしていない際は落下させる(加速度は無視)
-			PosBuffer.y -= (9.8f * Scale3DRate) / (60.f * 60.f);
+			// ヒットしていない際は落下させる
+			m_YVec -= (9.8f * Scale3DRate) / (60.f * 60.f);
+			PosBuffer.y += m_YVec;
+		}
+		else {
+			m_YVec = 0.f;
 		}
 		// 仮座標を反映
 		MyPosTarget = PosBuffer;

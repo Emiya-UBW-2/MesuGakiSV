@@ -260,7 +260,7 @@ namespace BG {
 	static constexpr int DrawMaxZPlus = 40;
 	static constexpr int DrawMaxZMinus = -40;
 	static constexpr int DrawMaxYPlus = 30;
-	static constexpr int DrawMaxYMinus = -50;
+	static constexpr int DrawMaxYMinus = -70;
 
 	// 内部計算用
 	static constexpr int8_t s_EmptyBlick = 0;// ブロックIDがない=空であることをしめす

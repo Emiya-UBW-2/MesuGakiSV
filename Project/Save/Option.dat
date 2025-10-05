@@ -1,7 +1,7 @@
 VSync=False
 FPSLimit=1000
 WindowMode=Window
-GraphicsPreset=Middle
+GraphicsPreset=Ultra
 DrawScale=100
 ObjectLevel=High
 DoF=True
