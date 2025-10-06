@@ -21,8 +21,31 @@ class BackGround : public Util::SingletonBase<BackGround> {
 private:
 	friend class Util::SingletonBase<BackGround>;
 private:
+	struct mapGraph {
+		Draw::GraphHandle	m_Map{};
+		int					m_ID{};
+		float				m_Per{};
+	public:
+		mapGraph(void) noexcept {}
+		mapGraph(const mapGraph& o) = delete;
+		mapGraph(mapGraph&& o) noexcept {
+			this->m_Map = (Draw::GraphHandle&&)o.m_Map;
+			this->m_ID = o.m_ID;
+			this->m_Per = o.m_Per;
+		}
+		mapGraph& operator=(const mapGraph& o) = delete;
+		mapGraph& operator=(mapGraph&& o) noexcept {
+			this->m_Map = (Draw::GraphHandle&&)o.m_Map;
+			this->m_ID = o.m_ID;
+			this->m_Per = o.m_Per;
+			return *this;
+		}
+		virtual ~mapGraph(void) noexcept {}
+	};
+private:
 	BG::VoxelControl Voxel;
 	Draw::MV1 SkyBoxID{};
+	std::vector<mapGraph> m_map;
 private:
 	BackGround(void) noexcept {}
 	BackGround(const BackGround&) = delete;
@@ -31,20 +54,40 @@ private:
 	BackGround& operator=(BackGround&&) = delete;
 	virtual ~BackGround(void) noexcept { Dispose(); }
 public:
+	const BG::Algorithm::Vector3Int	GetVoxelPoint(const Util::VECTOR3D& StartPos) const noexcept {
+		BG::Algorithm::Vector3Int Pos = Voxel.GetReferenceCells().GetVoxelPoint(StartPos);
+		Pos.x -= Voxel.GetReferenceCells().All / 2;
+		Pos.z -= Voxel.GetReferenceCells().All / 2;
+		return Pos;
+	}
 	int				CheckLine(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, Util::VECTOR3D* Normal = nullptr) const noexcept {
 		return Voxel.CheckLine(StartPos, EndPos, Normal);
 	}
 	bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept {
 		return Voxel.CheckWall(StartPos, EndPos, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
 	}
+	std::vector<mapGraph>& GetMapGraph(void) noexcept { return m_map; }
 public:
 	void Load(void) noexcept {
-		Voxel.Load();												// 事前読み込み
+		Voxel.Load("data/Map1/tex.png");							// 事前読み込み
 		Draw::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
+		SetTransColor(0, 255, 0);
+		for (int loop = 0; loop < Voxel.GetReferenceCells().All; ++loop) {
+			std::string Path = "data/Map1/map";
+			Path += std::to_string(loop);
+			Path += ".png";
+			if (Util::IsFileExist(Path.c_str())) {
+				m_map.emplace_back();
+				m_map.back().m_Map.Load(Path);
+				m_map.back().m_ID = loop;
+				m_map.back().m_Per = 0.f;
+			}
+		}
+		SetTransColor(0, 0, 0);
 	}
 	void Init(void) noexcept {
 		Voxel.InitStart();											// 初期化開始時処理
-		Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
+		Voxel.LoadCellsFile("data/Map1/Map.txt");					// ボクセルデータの読み込み
 		Voxel.InitEnd();											// 初期化終了時処理
 	}
 	void Update(void) noexcept {
@@ -60,6 +103,10 @@ public:
 		Voxel.Dispose();
 		Voxel.Dispose_Load();
 		SkyBoxID.Dispose();
+		for (auto& m : m_map) {
+			m.m_Map.Dispose();
+		}
+		m_map.clear();
 	}
 
 	void BGDraw(void) const noexcept {

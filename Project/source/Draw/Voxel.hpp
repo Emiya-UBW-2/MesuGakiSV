@@ -703,7 +703,7 @@ namespace BG {
 
 		virtual ~VoxelControl(void) noexcept {}
 	public:
-		void			Load(void) noexcept;				// 事前読み込みが必要なデータのロード
+		void			Load(const char* Path) noexcept;				// 事前読み込みが必要なデータのロード
 		void			InitStart(void) noexcept;			// 各データの用意開始
 		void			InitEnd(void) noexcept;				// 構成したデータのセットアップ
 		void			Update(void) noexcept;				// 毎フレームよぶ更新処理

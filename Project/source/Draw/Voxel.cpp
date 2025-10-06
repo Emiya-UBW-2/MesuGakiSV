@@ -690,7 +690,7 @@ namespace BG {
 		}
 	}
 
-	void		VoxelControl::Load(void) noexcept {
+	void		VoxelControl::Load(const char* Path) noexcept {
 #if defined(_DEBUG)
 		{
 			std::vector<WIN32_FIND_DATA> data_t;
@@ -715,10 +715,10 @@ namespace BG {
 				Graph.DrawGraph(128 * 0, (128 * 3) * loop, false);
 				Graph.DrawGraph(128 * 1, (128 * 3) * loop, false);
 			}
-			SaveDrawValidGraphToPNG(Screen.get(), 0, 0, XSize, YSize, "data/tex.png");
+			SaveDrawValidGraphToPNG(Screen.get(), 0, 0, XSize, YSize, Path);
 		}
 #endif
-		this->m_tex.Load("data/tex.png");
+		this->m_tex.Load(Path);
 		{
 			int YSize = 128 * 3;
 			this->m_tex.GetSize(nullptr, &YSize);

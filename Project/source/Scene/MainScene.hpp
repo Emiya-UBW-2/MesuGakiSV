@@ -155,6 +155,15 @@ protected:
 			this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::zero(), 1.f - 0.8f);
 		}
 
+		/*
+		clsDx();
+		printfDx("[%d,%d,%d]\n",
+			BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos()).x,
+			BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos()).y,
+			BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos()).z
+		);
+		//*/
+
 		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
 		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f) * (Scale3DRate * 1.25f);
 		float CheckLen = CamVec.magnitude();
@@ -216,6 +225,42 @@ protected:
 		this->m_Character.ShadowDraw();
 	}
 	void UIDraw_Sub(void) noexcept override {
+		{
+			BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos());
+
+			int count = 0;
+			for (auto& m : BackGround::Instance()->GetMapGraph()) {
+				if (m.m_ID <= Pos.y) {
+					m.m_Per = std::clamp(m.m_Per + 1.f / 60.f, 0.f, 1.f);
+					++count;
+				}
+				else {
+					m.m_Per = std::clamp(m.m_Per - 1.f / 60.f, 0.f, 1.f);
+				}
+			}
+
+			int loop = 0;
+			for (const auto& m : BackGround::Instance()->GetMapGraph()) {
+				if (m.m_Per > 0.f) {
+					++loop;
+					int Bright = 255 * loop / count;
+					DxLib::SetDrawBright(Bright, Bright, Bright);
+					DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m.m_Per), 0, 255));
+					m.m_Map.DrawRotaGraph(256, 256, 3.0f, 0.0f, true);
+				}
+				if (m.m_ID <= Pos.y) {
+					DxLib::SetDrawBright(255, 255, 255);
+					DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+
+					DxLib::DrawCircle(
+						256 + static_cast<int>(static_cast<float>(Pos.x * 128 / 256) * 3.f),
+						256 + static_cast<int>(static_cast<float>(-Pos.z * 128 / 256) * 3.f),
+						3, ColorPalette::Blue, TRUE);
+				}
+			}
+			DxLib::SetDrawBright(255, 255, 255);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		}
 		this->m_PauseUI.Draw();
 		this->m_OptionWindow.Draw();
 	}

@@ -10,6 +10,7 @@
 #pragma warning( push, 3 )
 #include "DxLib.h"
 #include<string>
+#include<filesystem>
 #pragma warning( pop )
 
 #include "Enum.hpp"
@@ -401,5 +402,15 @@ namespace Util {
 			} while (FindNextFile(hFind, &win32fdt));
 		} // else{ return false; }
 		FindClose(hFind);
+	}
+
+	// ファイルが存在するかチェック
+	static bool IsFileExist(const char* Path) noexcept {
+		return std::filesystem::is_regular_file(Path);
+		//DXLIB_Initを通ってからでないと動作しない
+		/*
+		FILEINFO FileInfo;
+		return (FileRead_findFirst(Path, &FileInfo) != (DWORD_PTR)InvalidID);
+		//*/
 	}
 }
