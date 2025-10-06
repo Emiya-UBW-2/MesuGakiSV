@@ -180,6 +180,7 @@ PS_OUTPUT main(PS_INPUT PSInput)
         }
     }
 
+    /*
     if ((int) g_param.x > 2 && PSOutput.Color0.r < 128.f / 255.f)
     {
         PSOutput.Color0.r = 0.f;
