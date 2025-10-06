@@ -42,7 +42,7 @@ protected:
 		BackGround::Instance()->Init();
 		this->m_Character.Init();
 
-		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.1f, -1.f, 0.1f).normalized();
+		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.7f, 0.3f).normalized();
 
 		auto* PostPassParts = Draw::PostPassEffect::Instance();
 		PostPassParts->SetShadowScale(0.5f);

@@ -664,8 +664,54 @@ namespace BackGround {
 		}
 	}
 
+	// ディレクトリ内のファイル走査
+	static void GetFileNamesInDirectory(const char* pPath, std::vector<WIN32_FIND_DATA>* pData) noexcept {
+		pData->clear();
+		WIN32_FIND_DATA win32fdt;
+		HANDLE hFind = FindFirstFile(pPath, &win32fdt);
+		if (hFind != INVALID_HANDLE_VALUE) {
+			do {
+				if (win32fdt.cFileName[0] != '.') {
+					pData->emplace_back(win32fdt);
+				}
+
+			} while (FindNextFile(hFind, &win32fdt));
+		} // else{ return false; }
+		FindClose(hFind);
+	}
+
 	void		VoxelControl::Load(void) noexcept {
+		{
+			std::vector<WIN32_FIND_DATA> data_t;
+			GetFileNamesInDirectory("data/MapChip/*", &data_t);
+			std::vector<std::string> dataStr;
+			for (const auto& d : data_t) {
+				std::string p = d.cFileName;
+				if (p.find(".png") != std::string::npos) {
+					dataStr.emplace_back("data/MapChip/" + p);
+				}
+			}
+			int max = static_cast<int>(dataStr.size());
+			int XSize = 128 * 2;
+			int YSize = 128 * 3 * max;
+
+			int Screen = MakeScreen(XSize, YSize, false);
+			SetDrawScreen(Screen);
+			ClearDrawScreen();
+			for (int loop = 0; loop < max; ++loop) {
+				int loadGraph = LoadGraph(dataStr[static_cast<size_t>(loop)].c_str());
+				SetDrawScreen(Screen);
+				DrawGraph(128 * 0, (128 * 3) * loop, loadGraph, false);
+				DrawGraph(128 * 1, (128 * 3) * loop, loadGraph, false);
+			}
+			SaveDrawValidGraphToPNG(Screen, 0, 0, XSize, YSize, "data/tex.png");
+		}
 		this->m_tex = LoadGraph("data/tex.png");
+		{
+			int YSize = 128 * 3;
+			GetGraphSize(this->m_tex, nullptr, &YSize);
+			TexTileV = 1.f / (static_cast<float>(YSize) / 128.f);
+		}
 	}
 	void		VoxelControl::InitStart(void) noexcept {
 		// 全階層の初期化

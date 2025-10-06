@@ -267,7 +267,7 @@ namespace BG {
 	static constexpr int ReferenceCell = 0;// 基準になるボクセルタイルリストID
 	// テクスチャタイリングする際のUV分割
 	static constexpr float TexTileU = 1.0f / 2.0f;
-	static constexpr float TexTileV = 1.0f / 16.0f;
+	static float TexTileV = 1.0f / 16.0f;
 
 	// ボクセル描画、コリジョン生成クラス
 	class VoxelControl {

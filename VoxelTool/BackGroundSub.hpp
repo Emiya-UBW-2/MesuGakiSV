@@ -268,7 +268,7 @@ namespace BackGround {
 	static constexpr int ReferenceCell = 0;// 基準になるボクセルタイルリストID
 	// テクスチャタイリングする際のUV分割
 	static constexpr float TexTileU = 1.0f / 2.0f;
-	static constexpr float TexTileV = 1.0f / 16.0f;
+	static float TexTileV = 1.0f / 16.0f;
 
 
 	typedef int MV1_HANDLE;

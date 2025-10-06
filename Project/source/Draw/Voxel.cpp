@@ -691,7 +691,39 @@ namespace BG {
 	}
 
 	void		VoxelControl::Load(void) noexcept {
+#if defined(_DEBUG)
+		{
+			std::vector<WIN32_FIND_DATA> data_t;
+			Util::GetFileNamesInDirectory("data/MapChip/*", &data_t);
+			std::vector<std::string> dataStr;
+			for (const auto& d : data_t) {
+				std::string p = d.cFileName;
+				if (p.find(".png") != std::string::npos) {
+					dataStr.emplace_back("data/MapChip/" + p);
+				}
+			}
+			int max = static_cast<int>(dataStr.size());
+			int XSize = 128 * 2;
+			int YSize = 128 * 3 * max;
+
+			Draw::ScreenHandle Screen;
+			Screen.Make(XSize, YSize, false);
+			Screen.SetDraw_Screen(true);
+			for (int loop = 0; loop < max; ++loop) {
+				Draw::GraphHandle Graph; Graph.Load(dataStr[static_cast<size_t>(loop)]);
+				Screen.SetDraw_Screen(false);
+				Graph.DrawGraph(128 * 0, (128 * 3) * loop, false);
+				Graph.DrawGraph(128 * 1, (128 * 3) * loop, false);
+			}
+			SaveDrawValidGraphToPNG(Screen.get(), 0, 0, XSize, YSize, "data/tex.png");
+		}
+#endif
 		this->m_tex.Load("data/tex.png");
+		{
+			int YSize = 128 * 3;
+			this->m_tex.GetSize(nullptr, &YSize);
+			TexTileV = 1.f / (static_cast<float>(YSize) / 128.f);
+		}
 	}
 	void		VoxelControl::InitStart(void) noexcept {
 		// 全階層の初期化

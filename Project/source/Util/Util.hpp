@@ -386,4 +386,20 @@ namespace Util {
 		}
 		DxLib::DrawPolygonIndexed2D(Vertex.data(), static_cast<int>(Vertex.size()), Index.data(), static_cast<int>(Index.size()) / 3, GrHandle, TransFlag ? TRUE : FALSE);
 	}
+
+	// ディレクトリ内のファイル走査
+	static void GetFileNamesInDirectory(const char* pPath, std::vector<WIN32_FIND_DATA>* pData) noexcept {
+		pData->clear();
+		WIN32_FIND_DATA win32fdt;
+		HANDLE hFind = FindFirstFile(pPath, &win32fdt);
+		if (hFind != INVALID_HANDLE_VALUE) {
+			do {
+				if (win32fdt.cFileName[0] != '.') {
+					pData->emplace_back(win32fdt);
+				}
+
+			} while (FindNextFile(hFind, &win32fdt));
+		} // else{ return false; }
+		FindClose(hFind);
+	}
 }
