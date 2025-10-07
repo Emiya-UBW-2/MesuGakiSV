@@ -68,10 +68,11 @@ private:
 		char		padding[4]{};
 	};
 private:
-	std::vector<MapInfo> m_MapInfo;
-	BG::VoxelControl Voxel;
-	Draw::MV1 SkyBoxID{};
-	std::vector<mapGraph> m_map;
+	std::vector<MapInfo>	m_MapInfo;
+	BG::VoxelControl		Voxel;
+	Draw::MV1				SkyBoxID{};
+	std::vector<mapGraph>	m_map;
+	std::string				m_MapName;
 private:
 	BackGround(void) noexcept {}
 	BackGround(const BackGround&) = delete;
@@ -101,11 +102,12 @@ public:
 	std::vector<mapGraph>& GetMapGraph(void) noexcept { return m_map; }
 	const std::vector<MapInfo>& GetMapInfo(void) const noexcept { return m_MapInfo; }
 public:
-	void Load(void) noexcept {
-		Voxel.Load("data/Map1/tex.png");							// 事前読み込み
+	void Load(const char* MapName) noexcept {
+		m_MapName = MapName;
+		Voxel.Load(("data/" + m_MapName + "/tex.png").c_str());							// 事前読み込み
 		Draw::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
 		for (int loop = 0; loop < Voxel.GetReferenceCells().All; ++loop) {
-			std::string Path = "data/Map1/map";
+			std::string Path = "data/" + m_MapName + "/map";
 			Path += std::to_string(loop);
 			Path += ".png";
 			if (Util::IsFileExist(Path.c_str())) {
@@ -118,11 +120,11 @@ public:
 	}
 	void Init(void) noexcept {
 		Voxel.InitStart();											// 初期化開始時処理
-		Voxel.LoadCellsFile("data/Map1/Map.txt");					// ボクセルデータの読み込み
+		Voxel.LoadCellsFile(("data/" + m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
 		Voxel.InitEnd();											// 初期化終了時処理
 		m_MapInfo.clear();
-		if (std::filesystem::is_regular_file("data/Map1/Event.txt")) {
-			std::ifstream ifs("data/Map1/Event.txt");
+		if (std::filesystem::is_regular_file("data/" + m_MapName + "/Event.txt")) {
+			std::ifstream ifs("data/" + m_MapName + "/Event.txt");
 			while (true) {
 				std::string Buffer;
 				std::getline(ifs, Buffer);

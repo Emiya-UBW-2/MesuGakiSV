@@ -30,6 +30,7 @@ class MainScene : public Util::SceneBase {
 	bool			m_Exit{ false };
 
 	float			m_Fade{ 1.f };
+	std::string		m_MapName{ "Map1" };
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -40,7 +41,7 @@ public:
 protected:
 	void Load_Sub(void) noexcept override {
 		BackGround::Create();
-		BackGround::Instance()->Load();
+		BackGround::Instance()->Load(m_MapName.c_str());
 		this->m_Character.Load();
 	}
 	void Init_Sub(void) noexcept override {
@@ -219,10 +220,12 @@ protected:
 				switch (m.m_InfoType) {
 				case InfoType::Exit1:
 					m_EntrancePoint = InfoType::Entrance1;
+					m_MapName = "Map1";
 					m_Exit = true;
 					break;
 				case InfoType::Exit2:
 					m_EntrancePoint = InfoType::Entrance2;
+					m_MapName = "Map1";
 					m_Exit = true;
 					break;
 				case InfoType::Exit3:
