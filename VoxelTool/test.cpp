@@ -2,6 +2,7 @@
 #include	"BackGroundSub.hpp"
 
 #include <algorithm>
+#include <vector>
 
 class DX {
 	int ShadowMapHandle = -1;
@@ -132,20 +133,37 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		DeleteSoftImage(SoftImage2FColor);
 	}
 
-	for (int Xvoxel = 0; Xvoxel < Voxel.GetReferenceCells().All; ++Xvoxel) {
-		for (int Yvoxel = 0; Yvoxel < Voxel.GetReferenceCells().All; ++Yvoxel) {
-			for (int Zvoxel = 0; Zvoxel < Voxel.GetReferenceCells().All; ++Zvoxel) {
-				if (Yvoxel >= Voxel.GetReferenceCells().All / 2) {
-					if (Yvoxel % 20 == 0) {
-						//Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, 2, false);
-					}
-				}
-				else {
-					Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, 1, false);
-				}
-			}
-		}
+	enum class InfoType : size_t {
+		None,
+		Entrance1,
+		Entrance2,
+		Entrance3,
+		Exit1,
+		Exit2,
+		Exit3,
+		Max,
+	};
+	static const char* InfoTypeStr[static_cast<int>(InfoType::Max)] = {
+		"None",
+		"Entrance1",
+		"Entrance2",
+		"Entrance3",
+		"Exit1",
+		"Exit2",
+		"Exit3",
+	};
+
+	struct MapInfo {
+		InfoType				m_InfoType{ InfoType::None };
+		Algorithm::Vector3Int	m_pos{};
+	};
+
+	std::vector<MapInfo> m_MapInfo;
+	{
+
 	}
+	InfoType				m_InfoType{ InfoType::None };
+
 	Voxel.InitEnd();											// 初期化終了時処理
 	// 自分の座標と向きを指定
 	MyPos = VGet(0.f, 0.f, 0.f);
@@ -154,6 +172,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	int MX{}, MY{};
 	int PMX{}, PMY{};
 	int DMX{}, DMY{};
+	bool PrevPressLeft = false;
 	// メインループ
 	while (ProcessMessage() == 0) {
 		PMX = MX;
@@ -185,6 +204,51 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Yrad = -0.f * DX_PI_F / 180.f;
 		}
 
+		if (CheckHitKey(KEY_INPUT_1) != 0) {
+			m_InfoType = InfoType::Entrance1;
+		}
+		if (CheckHitKey(KEY_INPUT_2) != 0) {
+			m_InfoType = InfoType::Entrance2;
+		}
+		if (CheckHitKey(KEY_INPUT_3) != 0) {
+			m_InfoType = InfoType::Entrance3;
+		}
+		if (CheckHitKey(KEY_INPUT_4) != 0) {
+			m_InfoType = InfoType::Exit1;
+		}
+		if (CheckHitKey(KEY_INPUT_5) != 0) {
+			m_InfoType = InfoType::Exit2;
+		}
+		if (CheckHitKey(KEY_INPUT_6) != 0) {
+			m_InfoType = InfoType::Exit3;
+		}
+		if (CheckHitKey(KEY_INPUT_0) != 0) {
+			m_InfoType = InfoType::None;
+		}
+		bool PressLeft = (GetMouseInput() & MOUSE_INPUT_LEFT) != 0;
+		if (PressLeft && !PrevPressLeft) {
+			VECTOR Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(MX), static_cast<float>(MY), 0.f));
+			VECTOR Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(MX), static_cast<float>(MY), 1.f));
+
+			if (Voxel.CheckLine(Near, &Far)) {
+				auto Pos = Voxel.GetReferenceCells().GetVoxelPoint(Far);
+				if (m_InfoType != InfoType::None) {
+					m_MapInfo.emplace_back();
+					m_MapInfo.back().m_pos = Pos;
+					m_MapInfo.back().m_InfoType = m_InfoType;
+				}
+				else {
+					for (auto& m : m_MapInfo) {
+						if (m.m_pos == Pos) {
+							m_MapInfo.erase(m_MapInfo.begin() + (&m - &m_MapInfo.front()));
+							break;
+						}
+					}
+				}
+			}
+		}
+		PrevPressLeft = PressLeft;
+
 		Xrad = std::clamp(Xrad, -89.f * DX_PI_F / 180.f, 90.f * DX_PI_F / 180.f);
 		MATRIX Mat = MMult(MGetRotAxis(VGet(1.f, 0.f, 0.f), Xrad), MGetRotAxis(VGet(0.f, 1.f, 0.f), Yrad));
 		//
@@ -214,6 +278,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// FPSを表示
 		clsDx();
 		printfDx("%5.2f fps\n", GetFPS());
+		printfDx("InfoType:[%s]\n", InfoTypeStr[static_cast<size_t>(m_InfoType)]);
 		// シャドウマップに描画する範囲を設定
 		// ボクセル処理
 		Voxel.SetDrawInfo(VGet(0.f, 0.f,0.f), VNorm(VSub(CamTarget, CamPos)));// 描画する際の描画中心座標と描画する向きを指定
@@ -248,6 +313,32 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			DrawLine3D(VGet(0.f, 0.f, 0.f), VGet(100.f, 0.f, 0.f), GetColor(255, 0, 0));
 			DrawLine3D(VGet(0.f, 0.f, 0.f), VGet(0.f, 100.f, 0.f), GetColor(0, 255, 0));
 			DrawLine3D(VGet(0.f, 0.f, 0.f), VGet(0.f, 0.f, 100.f), GetColor(0, 0, 255));
+
+			{
+				for (auto& m: m_MapInfo) {
+					unsigned int Color = 0;
+					switch (m.m_InfoType) {
+					case InfoType::Entrance1:
+					case InfoType::Entrance2:
+					case InfoType::Entrance3:
+						Color = GetColor(255, 0, 0);
+						break;
+					case InfoType::Exit1:
+					case InfoType::Exit2:
+					case InfoType::Exit3:
+						Color = GetColor(255, 255, 0);
+						break;
+					default:
+						break;
+					}
+					DrawSphere3D(Voxel.GetReferenceCells().GetWorldPos(m.m_pos), 0.125f, 8, Color, GetColor(0, 0, 0), TRUE);
+				}
+				VECTOR Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(MX), static_cast<float>(MY), 0.f));
+				VECTOR Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(MX), static_cast<float>(MY), 1.f));
+				if (Voxel.CheckLine(Near, &Far)) {
+					DrawSphere3D(Voxel.GetReferenceCells().GetWorldPos(Voxel.GetReferenceCells().GetVoxelPoint(Far)), 0.125f, 8, GetColor(0, 255, 0), GetColor(0, 0, 0), FALSE);
+				}
+			}
 		}
 		ScreenFlip();								// 裏画面の内容を表画面に反映
 	}

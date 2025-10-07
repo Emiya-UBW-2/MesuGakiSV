@@ -43,6 +43,9 @@ namespace Algorithm {
 			this->z = Z;
 		}
 	public:
+		inline bool operator==(const Vector3Int& obj) const noexcept {
+			return (this->x == obj.x) && (this->y == obj.y) && (this->z == obj.z);
+		}
 		void operator+=(const Vector3Int& o) noexcept {
 			this->x += o.x;
 			this->y += o.y;
