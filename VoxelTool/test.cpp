@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <vector>
+#include <fstream>
+#include <filesystem>
 
 class DX {
 	int ShadowMapHandle = -1;
@@ -159,8 +161,33 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	};
 
 	std::vector<MapInfo> m_MapInfo;
-	{
-
+	if(std::filesystem::is_regular_file("data/Event.txt")){
+		std::ifstream ifs("data/Event.txt");
+		while (true) {
+			std::string Buffer;
+			std::getline(ifs, Buffer);
+			std::string LEFT = Buffer.substr(0, Buffer.find("="));
+			std::string RIGHT = Buffer.substr(Buffer.find("=") + 1);
+			if (LEFT == "Type") {
+				m_MapInfo.emplace_back();
+				for (int loop = 0; loop < static_cast<int>(InfoType::Max); ++loop) {
+					if (RIGHT == InfoTypeStr[static_cast<size_t>(loop)]) {
+						m_MapInfo.back().m_InfoType = static_cast<InfoType>(loop);
+						break;
+					}
+				}
+			}
+			else if (LEFT == "X") {
+				m_MapInfo.back().m_pos.x = std::stoi(RIGHT);
+			}
+			else if (LEFT == "Y") {
+				m_MapInfo.back().m_pos.y = std::stoi(RIGHT);
+			}
+			else if (LEFT == "Z") {
+				m_MapInfo.back().m_pos.z = std::stoi(RIGHT);
+			}
+			if (ifs.eof()) { break; }
+		}
 	}
 	InfoType				m_InfoType{ InfoType::None };
 
@@ -319,15 +346,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					unsigned int Color = 0;
 					switch (m.m_InfoType) {
 					case InfoType::Entrance1:
-					case InfoType::Entrance2:
-					case InfoType::Entrance3:
 						Color = GetColor(255, 0, 0);
 						break;
+					case InfoType::Entrance2:
+						Color = GetColor(255, 64, 0);
+						break;
+					case InfoType::Entrance3:
+						Color = GetColor(255, 128, 0);
+						break;
 					case InfoType::Exit1:
-					case InfoType::Exit2:
-					case InfoType::Exit3:
 						Color = GetColor(255, 255, 0);
 						break;
+					case InfoType::Exit2:
+						Color = GetColor(255, 255, 64);
+						break;
+					case InfoType::Exit3:
+						Color = GetColor(255, 255, 128);
+						break;
+					case InfoType::None:
+					case InfoType::Max:
 					default:
 						break;
 					}
@@ -347,5 +384,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Voxel.Dispose();
 	Voxel.Dispose_Load();
+	{
+		std::ofstream Ofs("data/Event.txt");
+		for (auto& m : m_MapInfo) {
+			Ofs << "Type=" << InfoTypeStr[static_cast<size_t>(m.m_InfoType)] << "\n";
+			Ofs << "X=" << std::to_string(m.m_pos.x) << "\n";
+			Ofs << "Y=" << std::to_string(m.m_pos.y) << "\n";
+			Ofs << "Z=" << std::to_string(m.m_pos.z) << "\n";
+		}
+	}
 	return 0;					// ソフトの終了
 }

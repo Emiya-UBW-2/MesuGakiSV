@@ -33,16 +33,21 @@ public:
 	const Util::Matrix4x4& GetMat(void) const noexcept { return MyMat; }
 	float GetSpeed(void) const noexcept { return Speed; }
 	float GetSpeedMax(void) const noexcept { return 4.f * Scale3DRate / 60.f; }
+	void SetPos(Util::VECTOR3D MyPos) noexcept {
+		MyPosTarget = MyPos - Util::VECTOR3D::up() * Scale3DRate;
+		if (!BackGround::Instance()->CheckLine(MyPos + Util::VECTOR3D::up() * Scale3DRate, &MyPosTarget)) {
+			MyPosTarget = MyPos;
+		}
+		MyMat = Util::Matrix4x4::Mtrans(MyPosTarget);
+	}
 public:
 	void Load(void) noexcept {
 		Draw::MV1::Load("data/Soldier/model_DISABLE.mv1", &ModelID);
 	}
 	void Init(void) noexcept {
-		MyPosTarget = Util::VECTOR3D::vget(0.f, -50.f, 0.f) * Scale3DRate;
-		BackGround::Instance()->CheckLine(Util::VECTOR3D::vget(MyPosTarget.x, 50.f * Scale3DRate, MyPosTarget.z), &MyPosTarget);
-		MyMat = Util::Matrix4x4::Mtrans(MyPosTarget);
+		Speed = 0.f;
 	}
-	void Update(void) noexcept {
+	void Update(bool isActive) noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
 		bool LeftKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::A);
 		bool RightKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::D);
@@ -51,17 +56,19 @@ public:
 		// 左右回転
 		{
 			Util::VECTOR2D Vec = Util::VECTOR2D::zero();
-			if (LeftKey) {
-				Vec += Util::VECTOR2D::left();
-			}
-			if (RightKey) {
-				Vec += Util::VECTOR2D::right();
-			}
-			if (UpKey) {
-				Vec += Util::VECTOR2D::up();
-			}
-			if (DownKey) {
-				Vec += Util::VECTOR2D::down();
+			if (isActive) {
+				if (LeftKey) {
+					Vec += Util::VECTOR2D::left();
+				}
+				if (RightKey) {
+					Vec += Util::VECTOR2D::right();
+				}
+				if (UpKey) {
+					Vec += Util::VECTOR2D::up();
+				}
+				if (DownKey) {
+					Vec += Util::VECTOR2D::down();
+				}
 			}
 			VecR = Util::Lerp(VecR, Vec, 1.f - 0.9f);
 
@@ -98,7 +105,7 @@ public:
 			}
 		}
 		// 進行方向に前進
-		Speed = Util::Lerp(Speed, (LeftKey || RightKey || UpKey || DownKey) ? GetSpeedMax() : 0.f, 1.f - 0.9f);
+		Speed = Util::Lerp(Speed, (LeftKey || RightKey || UpKey || DownKey || !isActive) ? GetSpeedMax() : 0.f, 1.f - 0.9f);
 
 		// 移動ベクトルを加算した仮座標を作成
 		Util::VECTOR3D PosBuffer = MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -Speed, MyMat.rotation());

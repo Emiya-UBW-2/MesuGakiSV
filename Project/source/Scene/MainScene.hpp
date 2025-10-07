@@ -25,6 +25,11 @@ class MainScene : public Util::SceneBase {
 	Util::VECTOR3D	m_CamVec{};
 	float			m_CamCheckLen{};
 	float			m_CamCheckTimer{};
+
+	InfoType		m_EntrancePoint{ InfoType::Entrance1 };
+	bool			m_Exit{ false };
+
+	float			m_Fade{ 1.f };
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -41,6 +46,13 @@ protected:
 	void Init_Sub(void) noexcept override {
 		BackGround::Instance()->Init();
 		this->m_Character.Init();
+		for (auto& m : BackGround::Instance()->GetMapInfo()) {
+			if (m.m_InfoType == m_EntrancePoint) {
+				this->m_Character.SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
+			}
+		}
+		m_Exit = false;
+		m_Fade = 1.f;
 
 		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.7f, 0.3f).normalized();
 
@@ -193,7 +205,44 @@ protected:
 		CameraParts->SetCamInfo(Util::deg2rad(45), 0.5f, Scale3DRate * 30.0f);
 
 		BackGround::Instance()->Update();
-		this->m_Character.Update();
+		this->m_Character.Update(!m_Exit);
+
+		m_Fade = std::clamp(m_Fade + (m_Exit ? 1.f : -1.f) / 60.f, 0.f, 1.f);
+		if (!m_Exit) {
+			for (auto& m : BackGround::Instance()->GetMapInfo()) {
+				if (m.m_InfoType == InfoType::None || m.m_InfoType == InfoType::Max) { continue; }
+				Util::VECTOR3D Vec = BackGround::Instance()->GetWorldPos(m.m_pos) - this->m_Character.GetMat().pos();
+				float Len = 0.125f * Scale3DRate;
+				if (std::fabsf(Vec.y) >= Len) { continue; }
+				Vec.y = 0.f;
+				if (Vec.sqrMagnitude() >= (Len + 0.35f * Scale3DRate) * (Len + 0.35f * Scale3DRate)) { continue; }
+				switch (m.m_InfoType) {
+				case InfoType::Exit1:
+					m_EntrancePoint = InfoType::Entrance1;
+					m_Exit = true;
+					break;
+				case InfoType::Exit2:
+					m_EntrancePoint = InfoType::Entrance2;
+					m_Exit = true;
+					break;
+				case InfoType::Exit3:
+					break;
+				case InfoType::Entrance1:
+				case InfoType::Entrance2:
+				case InfoType::Entrance3:
+				case InfoType::None:
+				case InfoType::Max:
+				default:
+					break;
+				}
+			}
+		}
+		else {
+			if (m_Fade >= 1.f) {
+				SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Main)));
+				Util::SceneBase::SetEndScene();
+			}
+		}
 	}
 	void BGDraw_Sub(void) noexcept override {
 		BackGround::Instance()->BGDraw();
@@ -266,6 +315,12 @@ protected:
 		}
 		this->m_PauseUI.Draw();
 		this->m_OptionWindow.Draw();
+		{
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m_Fade), 0, 255));
+			DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		}
 	}
 
 	void Dispose_Sub(void) noexcept override {
