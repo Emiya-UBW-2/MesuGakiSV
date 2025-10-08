@@ -28,6 +28,7 @@ class MainScene : public Util::SceneBase {
 
 	InfoType		m_EntrancePoint{ InfoType::Entrance1 };
 	bool			m_Exit{ false };
+	char		padding2[3]{};
 
 	float			m_Fade{ 1.f };
 	std::string		m_MapName{ "Map1" };

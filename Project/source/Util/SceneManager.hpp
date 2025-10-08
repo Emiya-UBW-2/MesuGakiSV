@@ -83,7 +83,7 @@ namespace Util {
 		EnumScenePhase					m_Phase{ EnumScenePhase::GoNext };
 		int								m_ASyncLoadNum{ 0 };
 		bool							m_LoadEndSwitch{ false };
-		char		padding[4]{};
+		char		padding[3]{};
 	private:
 		SceneManager(void) noexcept {
 			this->m_NowScene = nullptr;
