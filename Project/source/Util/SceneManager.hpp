@@ -82,6 +82,7 @@ namespace Util {
 		SceneBase*						m_NowScene{ nullptr };
 		EnumScenePhase					m_Phase{ EnumScenePhase::GoNext };
 		int								m_ASyncLoadNum{ 0 };
+		bool							m_LoadEndSwitch{ false };
 		char		padding[4]{};
 	private:
 		SceneManager(void) noexcept {
@@ -95,7 +96,7 @@ namespace Util {
 		virtual ~SceneManager(void) noexcept {}
 	public:
 		void BGDraw(void) noexcept {
-			if (this->m_Phase == EnumScenePhase::Load) {
+			if (this->m_Phase == EnumScenePhase::Load || this->m_LoadEndSwitch) {
 				return;
 			}
 			if (this->m_NowScene) {
@@ -103,7 +104,7 @@ namespace Util {
 			}
 		}
 		void ShadowFarDraw3D(void) noexcept {
-			if (this->m_Phase == EnumScenePhase::Load) {
+			if (this->m_Phase == EnumScenePhase::Load || this->m_LoadEndSwitch) {
 				return;
 			}
 			if (this->m_NowScene) {
@@ -111,7 +112,7 @@ namespace Util {
 			}
 		}
 		void ShadowDraw3D(void) noexcept {
-			if (this->m_Phase == EnumScenePhase::Load) {
+			if (this->m_Phase == EnumScenePhase::Load || this->m_LoadEndSwitch) {
 				return;
 			}
 			if (this->m_NowScene) {
@@ -119,7 +120,7 @@ namespace Util {
 			}
 		}
 		void SetShadowDrawRigid(void) noexcept {
-			if (this->m_Phase == EnumScenePhase::Load) {
+			if (this->m_Phase == EnumScenePhase::Load || this->m_LoadEndSwitch) {
 				return;
 			}
 			if (this->m_NowScene) {
@@ -127,7 +128,7 @@ namespace Util {
 			}
 		}
 		void SetShadowDraw(void) noexcept {
-			if (this->m_Phase == EnumScenePhase::Load) {
+			if (this->m_Phase == EnumScenePhase::Load || this->m_LoadEndSwitch) {
 				return;
 			}
 			if (this->m_NowScene) {
@@ -135,7 +136,7 @@ namespace Util {
 			}
 		}
 		void Draw3D(void) noexcept {
-			if (this->m_Phase == EnumScenePhase::Load) {
+			if (this->m_Phase == EnumScenePhase::Load || this->m_LoadEndSwitch) {
 				return;
 			}
 			if (this->m_NowScene) {
@@ -143,7 +144,7 @@ namespace Util {
 			}
 		}
 		void DepthDraw3D(void) noexcept {
-			if (this->m_Phase == EnumScenePhase::Load) {
+			if (this->m_Phase == EnumScenePhase::Load || this->m_LoadEndSwitch) {
 				return;
 			}
 			if (this->m_NowScene) {
@@ -151,7 +152,7 @@ namespace Util {
 			}
 		}
 		void UIDraw(void) noexcept {
-			if (this->m_Phase == EnumScenePhase::Load) {
+			if (this->m_Phase == EnumScenePhase::Load || this->m_LoadEndSwitch) {
 				auto* DrawerMngr = Draw::MainDraw::Instance();
 				// 背景
 				DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, TRUE);
@@ -199,10 +200,12 @@ namespace Util {
 						auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 						KeyGuideParts->SetGuideFlip();
 						this->m_NowScene->Init();
+						this->m_LoadEndSwitch = true;
 					}
 				}
 				break;
 			case EnumScenePhase::Update:
+				this->m_LoadEndSwitch = false;
 				if (this->m_NowScene) {
 					this->m_NowScene->Update();
 					if (this->m_NowScene->IsEndScene()) {
