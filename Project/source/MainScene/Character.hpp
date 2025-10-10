@@ -42,7 +42,7 @@ public:
 	}
 public:
 	void Load(void) noexcept {
-		Draw::MV1::Load("data/Soldier/model_DISABLE.mv1", &ModelID);
+		Draw::MV1::Load("data/Soldier/model.mqoz", &ModelID);
 	}
 	void Init(void) noexcept {
 		Speed = 0.f;
