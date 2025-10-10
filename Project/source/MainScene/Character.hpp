@@ -42,9 +42,10 @@ public:
 	}
 public:
 	void Load(void) noexcept {
-		Draw::MV1::Load("data/Soldier/model.mqoz", &ModelID);
+		Draw::MV1::Load("data/Soldier/model.mv1", &ModelID);
 	}
 	void Init(void) noexcept {
+		Draw::MV1::SetAnime(&ModelID, ModelID);
 		Speed = 0.f;
 	}
 	void Update(bool isActive) noexcept {
@@ -129,6 +130,16 @@ public:
 
 		MyMat = Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Yrad) * Util::Matrix4x4::Mtrans(MyPos);
 		ModelID.SetMatrix(MyMat);
+
+		float Per = GetSpeed() / GetSpeedMax();
+
+		ModelID.SetAnim(0).SetPer(1.f - Per);
+		ModelID.SetAnim(0).Update(true, 1.f);
+
+		ModelID.SetAnim(1).SetPer(Per);
+		ModelID.SetAnim(1).Update(true, 1.f);
+
+		ModelID.FlipAnimAll();
 	}
 	void Dispose(void) noexcept {
 		ModelID.Dispose();
