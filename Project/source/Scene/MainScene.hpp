@@ -65,7 +65,7 @@ protected:
 		SetLightEnable(false);
 		auto* LightParts = Draw::LightPool::Instance();
 		auto& FirstLight = LightParts->Put(Draw::LightType::DIRECTIONAL, LightVec);
-		SetLightAmbColorHandle(FirstLight.get(), GetColorF(0.25f, 0.25f, 0.25f, 1.0f));
+		SetLightAmbColorHandle(FirstLight.get(), GetColorF(1.f, 1.f, 1.f, 1.0f));
 		SetLightDifColorHandle(FirstLight.get(), GetColorF(1.0f, 1.0f, 1.0f, 1.0f));
 
 		//DoF
@@ -179,13 +179,13 @@ protected:
 		//*/
 
 		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
-		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f) * (Scale3DRate * 1.25f);
+		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f).normalized() * (Scale3DRate * 5.f);
 		float CheckLen = CamVec.magnitude();
 		{
 			Util::VECTOR3D Base = CamPos;
 			Util::VECTOR3D Target = CamPos + CamVec;
 			{
-				Base = CamPos + CamVec - (CamVec).normalized() * (CheckLen/2.f);
+				Base = CamPos + (CamVec).normalized() * (Scale3DRate * 7.5f / 2.f);
 				if (BackGround::Instance()->CheckLine(Base, &Target)) {
 					m_CamCheckTimer = 0.f;
 					m_CamCheckLen = std::max((Target - Base).magnitude() - 1.5f * Scale3DRate, 1.5f * Scale3DRate);

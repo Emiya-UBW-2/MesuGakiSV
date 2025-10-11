@@ -279,4 +279,88 @@ namespace Draw {
 		void			SaveModelToMV1File(std::basic_string_view<TCHAR> FileName, int  SaveType = MV1_SAVETYPE_NORMAL, int AnimMHandle = InvalidID, int AnimNameCheck = TRUE, int Normal8BitFlag = 1, int Position16BitFlag = 1, int Weight8BitFlag = 0, int Anim16BitFlag = 1) const noexcept { MV1SaveModelToMV1FileWithStrLen(Util::DXHandle::get(), FileName.data(), FileName.length(), SaveType, AnimMHandle, AnimNameCheck, Normal8BitFlag, Position16BitFlag, Weight8BitFlag, Anim16BitFlag); }
 		void			SetPrioritizePhysicsOverAnimFlag(bool flag) const noexcept { MV1SetPrioritizePhysicsOverAnimFlag(Util::DXHandle::get(), flag ? TRUE : FALSE); }
 	};
+
+
+
+
+	/*------------------------------------------------------------------------------------------------------------------------------------------*/
+	// IK
+	/*------------------------------------------------------------------------------------------------------------------------------------------*/
+	static void			IK_move_Arm(
+		const Util::VECTOR3D& Localyvec,
+		const Util::VECTOR3D& Localzvec,
+		Draw::MV1* pObj,
+		float XPer,
+		int Arm, const Util::Matrix4x4& FrameBaseLocalMatArm,
+		int Arm2, const Util::Matrix4x4& FrameBaseLocalMatArm2,
+		int Wrist, const Util::Matrix4x4& FrameBaseLocalMatWrist,
+		const Util::VECTOR3D& DirPos, const Util::VECTOR3D& Diryvec, const Util::VECTOR3D& Dirzvec) noexcept {
+
+		pObj->ResetFrameUserLocalMatrix(Arm);
+		pObj->ResetFrameUserLocalMatrix(Arm2);
+		pObj->ResetFrameUserLocalMatrix(Wrist);
+		auto matBase = Util::Matrix3x3::Get33DX(pObj->GetParentFrameWorldMatrix(Arm)).inverse();
+		// 基準
+		auto vec_a1 = Util::Matrix3x3::Vtrans((DirPos - pObj->GetFramePosition(Arm)).normalized(), matBase);// 基準
+		auto vec_a1L1 = Util::VECTOR3D(Util::VECTOR3D::vget(XPer, -1.f, vec_a1.y / -abs(vec_a1.z))).normalized();// x=0とする
+		float cos_t = Util::GetCosFormula((Util::VECTOR3D(pObj->GetFramePosition(Wrist)) - pObj->GetFramePosition(Arm2)).magnitude(), (Util::VECTOR3D(pObj->GetFramePosition(Arm2)) - pObj->GetFramePosition(Arm)).magnitude(), (Util::VECTOR3D(pObj->GetFramePosition(Arm)) - DirPos).magnitude());
+		auto vec_t = vec_a1 * cos_t + vec_a1L1 * std::sqrtf(1.f - cos_t * cos_t);
+		// 上腕
+		pObj->SetFrameLocalMatrix(Arm, Util::Matrix3x3::RotVec2(
+			Util::Matrix3x3::Vtrans(Util::VECTOR3D(pObj->GetFramePosition(Arm2)) - pObj->GetFramePosition(Arm), matBase),
+			vec_t
+		).Get44DX() * FrameBaseLocalMatArm);
+		// 下腕
+		matBase = Util::Matrix3x3::Get33DX(pObj->GetParentFrameWorldMatrix(Arm2)).inverse();
+		pObj->SetFrameLocalMatrix(Arm2, Util::Matrix3x3::RotVec2(
+			Util::Matrix3x3::Vtrans(Util::VECTOR3D(pObj->GetFramePosition(Wrist)) - pObj->GetFramePosition(Arm2), matBase),
+			Util::Matrix3x3::Vtrans(DirPos - pObj->GetFramePosition(Arm2), matBase)
+		).Get44DX() * FrameBaseLocalMatArm2);
+		// 手
+		matBase = Util::Matrix3x3::Get33DX(pObj->GetParentFrameWorldMatrix(Wrist)).inverse();
+		{
+			Util::Matrix3x3 mat1;
+			mat1 = Util::Matrix3x3::RotVec2(Util::Matrix3x3::Vtrans(Util::Matrix3x3::Vtrans(Localzvec, Util::Matrix3x3::Get33DX(pObj->GetFrameLocalWorldMatrix(Wrist))), matBase), Util::Matrix3x3::Vtrans(Dirzvec, matBase));
+			pObj->SetFrameLocalMatrix(Wrist, mat1.Get44DX() * FrameBaseLocalMatWrist);
+			auto xvec = Util::Matrix3x3::Vtrans(Localyvec, Util::Matrix3x3::Get33DX(pObj->GetFrameLocalWorldMatrix(Wrist)));
+			mat1 = Util::Matrix3x3::RotAxis(Localzvec, Util::VECTOR3D::Angle(xvec, Util::VECTOR3D::Cross(Diryvec, Dirzvec)) * ((Util::VECTOR3D::Dot(Diryvec, xvec) > 0.f) ? -1.f : 1.f)) * mat1;
+			pObj->SetFrameLocalMatrix(Wrist, mat1.Get44DX() * FrameBaseLocalMatWrist);
+		}
+	}
+
+	static void			IK_RightArm(Draw::MV1* pObj,
+		int Arm, const Util::Matrix4x4& FrameBaseLocalMatArm,
+		int Arm2, const Util::Matrix4x4& FrameBaseLocalMatArm2,
+		int Wrist, const Util::Matrix4x4& FrameBaseLocalMatWrist,
+		const Util::Matrix4x4& DirMat) noexcept {
+		IK_move_Arm(
+			Util::VECTOR3D::up(),
+			Util::VECTOR3D::right(),
+			pObj, -0.5f,
+			Arm,
+			FrameBaseLocalMatArm,
+			Arm2,
+			FrameBaseLocalMatArm2,
+			Wrist,
+			FrameBaseLocalMatWrist,
+			DirMat.pos(), DirMat.yvec() * -1.f, DirMat.zvec());
+	}
+	static void			IK_LeftArm(Draw::MV1* pObj,
+		int Arm, const Util::Matrix4x4& FrameBaseLocalMatArm,
+		int Arm2, const Util::Matrix4x4& FrameBaseLocalMatArm2,
+		int Wrist, const Util::Matrix4x4& FrameBaseLocalMatWrist,
+		const Util::Matrix4x4& DirMat) noexcept {
+
+		IK_move_Arm(
+			Util::VECTOR3D::up(),
+			Util::VECTOR3D::left(),
+			pObj, 0.5f,
+			Arm,
+			FrameBaseLocalMatArm,
+			Arm2,
+			FrameBaseLocalMatArm2,
+			Wrist,
+			FrameBaseLocalMatWrist,
+			DirMat.pos(), DirMat.yvec(), DirMat.zvec());
+	}
 };

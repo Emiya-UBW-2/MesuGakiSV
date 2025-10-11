@@ -39,7 +39,73 @@ enum class CharaAnim {
 	Max,
 };
 
-class Character {
+enum class CharaFrame {
+	Center,
+	Upper,
+	Upper2,
+	LeftFoot1,
+	LeftFoot2,
+	LeftFoot,
+	RightFoot1,
+	RightFoot2,
+	RightFoot,
+	RightArm,
+	RightArm2,
+	RightWrist,
+	RightHandJoint,
+	LeftArm,
+	LeftArm2,
+	LeftWrist,
+	LeftHandJoint,
+	Max,
+};
+static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
+	"センター",
+	"上半身",
+	"上半身2",
+	"左足",
+	"左ひざ",
+	"左足首",
+	"右足",
+	"右ひざ",
+	"右足首",
+	"右腕",
+	"右ひじ",
+	"右手首",
+	"右ダミー",
+	"左腕",
+	"左ひじ",
+	"左手首",
+	"左ダミー",
+};
+
+struct Frames {
+	int first{};
+	Util::Matrix4x4 second{};
+	Util::Matrix4x4 third{};
+};
+
+class BaseObject {
+protected:
+	std::vector<Frames>							m_Frames;
+public:
+	BaseObject(void) noexcept {}
+	BaseObject(const BaseObject&) = delete;
+	BaseObject(BaseObject&&) = delete;
+	BaseObject& operator=(const BaseObject&) = delete;
+	BaseObject& operator=(BaseObject&&) = delete;
+	virtual ~BaseObject(void) noexcept {}
+public:
+	virtual int	GetFrameNum(void) noexcept { return 0; }
+	virtual const char* GetFrameStr(int) noexcept { return nullptr; }
+public:
+	bool			HaveFrame(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].first != InvalidID; }
+	const auto& GetFrame(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].first; }
+	const auto& GetFrameBaseLocalMat(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].second; }
+	const auto& GetFrameBaseLocalWorldMat(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].third; }
+};
+
+class Character :public BaseObject {
 	Draw::MV1 ModelID{};
 	Util::Matrix4x4 MyMat;
 	Util::VECTOR3D MyPosTarget = Util::VECTOR3D::zero();
@@ -53,7 +119,9 @@ class Character {
 	std::array<float, static_cast<int>(CharaStyle::Max)>	m_StylePer{};
 	CharaStyle												m_CharaStyle{ CharaStyle::Stand };
 	Util::VECTOR3D											m_AimPoint;
-	//char		padding[4]{};
+	char		padding[4]{};
+	Util::Matrix4x4 m_RightPos;
+	Util::Matrix4x4 m_LeftPos;
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -61,6 +129,9 @@ public:
 	Character& operator=(const Character&) = delete;
 	Character& operator=(Character&&) = delete;
 	virtual ~Character(void) noexcept {}
+private:
+	int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
+	const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
 public:
 	const Util::Matrix4x4& GetMat(void) const noexcept { return MyMat; }
 	float GetSpeed(void) const noexcept { return Speed; }
@@ -93,6 +164,34 @@ public:
 	void Init(void) noexcept {
 		Draw::MV1::SetAnime(&ModelID, ModelID);
 		Speed = 0.f;
+
+		// フレーム
+		{
+			this->m_Frames.clear();
+			if (GetFrameNum() > 0) {
+				this->m_Frames.resize(static_cast<size_t>(GetFrameNum()));
+				for (auto& f : this->m_Frames) {
+					f.first = InvalidID;
+				}
+				size_t count = 0;
+				for (int frameNum = 0, Max = this->ModelID.GetFrameNum(); frameNum < Max; ++frameNum) {
+					if (Util::UTF8toSjis(this->ModelID.GetFrameName(frameNum)) == GetFrameStr(static_cast<int>(count))) {
+						// そのフレームを登録
+						this->m_Frames[count].first = frameNum;
+						this->m_Frames[count].second = Util::Matrix4x4::Mtrans(this->ModelID.GetFrameLocalMatrix(this->m_Frames[count].first).pos());
+						this->m_Frames[count].third = this->ModelID.GetFrameLocalWorldMatrix(this->m_Frames[count].first);
+					}
+					else if (frameNum < Max - 1) {
+						continue;// 飛ばす
+					}
+					++count;
+					frameNum = 0;
+					if (count >= this->m_Frames.size()) {
+						break;
+					}
+				}
+			}
+		}
 	}
 	void Update(bool isActive) noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -246,8 +345,6 @@ public:
 		m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Run));
 		//回転
 		{
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-
 			float Per = 0.f;
 			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim)) {
 				Per = -Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
@@ -278,6 +375,40 @@ public:
 		ModelID.SetAnim(static_cast<int>(CharaAnim::Squat)).Update(true, GetSpeed() * 2.75f);
 		ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).Update(true, GetSpeed() * 2.75f);
 		ModelID.FlipAnimAll();
+
+		Util::Matrix4x4 HandBaseMat = ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)));
+
+		m_RightPos = 
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
+			HandBaseMat.rotation() * 
+			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(-0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
+		m_LeftPos =
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
+			HandBaseMat.rotation() *
+			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
+
+		{
+			Draw::IK_RightArm(
+				&ModelID,
+				GetFrame(static_cast<int>(CharaFrame::RightArm)),
+				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm)),
+				GetFrame(static_cast<int>(CharaFrame::RightArm2)),
+				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm2)),
+				GetFrame(static_cast<int>(CharaFrame::RightWrist)),
+				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightWrist)),
+				m_RightPos);
+		}
+		{
+			Draw::IK_LeftArm(
+				&ModelID,
+				GetFrame(static_cast<int>(CharaFrame::LeftArm)),
+				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm)),
+				GetFrame(static_cast<int>(CharaFrame::LeftArm2)),
+				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm2)),
+				GetFrame(static_cast<int>(CharaFrame::LeftWrist)),
+				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftWrist)),
+				m_LeftPos);
+		}
 	}
 	void Dispose(void) noexcept {
 		ModelID.Dispose();

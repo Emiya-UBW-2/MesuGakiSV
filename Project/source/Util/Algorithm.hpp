@@ -733,4 +733,12 @@ namespace Util {
 	// ラジアンから角度に
 	template <class T, typename std::enable_if<std::is_arithmetic<T>::value>::type*& = enabler>
 	constexpr float rad2deg(T p1) noexcept { return static_cast<float>(p1) * 180.f / DX_PI_F; }
+
+	// 余弦定理
+	constexpr float GetCosFormula(float a, float b, float c) noexcept {
+		if (b + c > a && c + a > b && a + b > c) {
+			return std::clamp((b * b + c * c - a * a) / (2.f * b * c), -1.f, 1.f);
+		}
+		return 1.f;
+	}
 }
