@@ -32,7 +32,7 @@ public:
 public:
 	const Util::Matrix4x4& GetMat(void) const noexcept { return MyMat; }
 	float GetSpeed(void) const noexcept { return Speed; }
-	float GetSpeedMax(void) const noexcept { return 4.f * Scale3DRate / 60.f; }
+	float GetSpeedMax(void) const noexcept { return 2.5f * Scale3DRate / 60.f; }
 	void SetPos(Util::VECTOR3D MyPos) noexcept {
 		MyPosTarget = MyPos - Util::VECTOR3D::up() * Scale3DRate;
 		if (!BackGround::Instance()->CheckLine(MyPos + Util::VECTOR3D::up() * Scale3DRate, &MyPosTarget)) {
@@ -124,6 +124,7 @@ public:
 			m_YVec = 0.f;
 		}
 		// 仮座標を反映
+		Speed = std::clamp((MyPosTarget - PosBuffer).magnitude(), 0.f, Speed);
 		MyPosTarget = PosBuffer;
 		Util::VECTOR3D MyPos = MyMat.pos();
 		MyPos = Util::Lerp(MyPos, MyPosTarget, 1.f - 0.9f);
@@ -133,11 +134,15 @@ public:
 
 		float Per = GetSpeed() / GetSpeedMax();
 
+		//立ち
 		ModelID.SetAnim(0).SetPer(1.f - Per);
 		ModelID.SetAnim(0).Update(true, 1.f);
-
+		//歩き
 		ModelID.SetAnim(1).SetPer(Per);
-		ModelID.SetAnim(1).Update(true, 1.f);
+		ModelID.SetAnim(1).Update(true, GetSpeed() * 2.75f);
+		//走り
+		//しゃがみ
+		//しゃがみ歩き
 
 		ModelID.FlipAnimAll();
 	}
