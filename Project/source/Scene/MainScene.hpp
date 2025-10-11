@@ -259,6 +259,7 @@ protected:
 		this->m_Character.SetShadowDraw();
 	}
 	void Draw_Sub(void) noexcept override {
+		this->m_Character.CheckDraw();
 		SetVerticalFogEnable(true);
 		SetVerticalFogMode(DX_FOGMODE_LINEAR);
 		SetVerticalFogStartEnd(8.0f * Scale3DRate, 7.0f * Scale3DRate);

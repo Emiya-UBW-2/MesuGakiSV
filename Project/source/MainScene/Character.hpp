@@ -12,16 +12,48 @@
 #include "../Util/Algorithm.hpp"
 #include "../Draw/MV1.hpp"
 
+enum class CharaStyle {
+	Stand,//立ち
+	Run,//走り
+	Squat,//しゃがみ
+	Max,
+};
+enum class CharaAnim {
+	Stand,//立ち
+	Walk,//歩き
+	Run,//走り
+	Squat,//しゃがみ
+	SquatWalk,//しゃがみ歩き
+	ReftHand_1,//右親指
+	ReftHand_2,//右一指指
+	ReftHand_3,//右中指
+	ReftHand_4,//右薬指
+	ReftHand_5,//右子指
+	LeftHand_1,//左親指
+	LeftHand_2,//左一指指
+	LeftHand_3,//左中指
+	LeftHand_4,//左薬指
+	LeftHand_5,//左子指
+
+	Flip,//左に向く
+	Max,
+};
+
 class Character {
 	Draw::MV1 ModelID{};
 	Util::Matrix4x4 MyMat;
-
 	Util::VECTOR3D MyPosTarget = Util::VECTOR3D::zero();
 	float Yrad = 0.f;
+	float Zrad = 0.f;
 	float Speed = 0.f;
-
+	float MovePer = 0.f;
 	Util::VECTOR2D VecR = Util::VECTOR2D::zero();
-	float			m_YVec{};
+	float													m_YVec{};
+	std::array<float, static_cast<int>(CharaAnim::Max)>		m_AnimPer{};
+	std::array<float, static_cast<int>(CharaStyle::Max)>	m_StylePer{};
+	CharaStyle												m_CharaStyle{ CharaStyle::Stand };
+	Util::VECTOR3D											m_AimPoint;
+	//char		padding[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -32,7 +64,21 @@ public:
 public:
 	const Util::Matrix4x4& GetMat(void) const noexcept { return MyMat; }
 	float GetSpeed(void) const noexcept { return Speed; }
-	float GetSpeedMax(void) const noexcept { return 2.5f * Scale3DRate / 60.f; }
+	float GetSpeedMax(void) const noexcept {
+		switch (m_CharaStyle) {
+		case CharaStyle::Run:
+			return 4.5f * Scale3DRate / 60.f;
+			break;
+		case CharaStyle::Squat:
+			return 1.0f * Scale3DRate / 60.f;
+			break;
+		case CharaStyle::Stand:
+		case CharaStyle::Max:
+		default:
+			return 2.5f * Scale3DRate / 60.f;
+			break;
+		}
+	}
 	void SetPos(Util::VECTOR3D MyPos) noexcept {
 		MyPosTarget = MyPos - Util::VECTOR3D::up() * Scale3DRate;
 		if (!BackGround::Instance()->CheckLine(MyPos + Util::VECTOR3D::up() * Scale3DRate, &MyPosTarget)) {
@@ -54,6 +100,23 @@ public:
 		bool RightKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::D);
 		bool UpKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::W);
 		bool DownKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::S);
+		//
+		if (isActive) {
+			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
+				if (m_CharaStyle != CharaStyle::Squat) {
+					m_CharaStyle = CharaStyle::Squat;
+				}
+				else {
+					m_CharaStyle = CharaStyle::Stand;
+				}
+			}
+			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Run)) {
+				m_CharaStyle = CharaStyle::Run;
+			}
+			if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::Run)) {
+				m_CharaStyle = CharaStyle::Stand;
+			}
+		}
 		// 左右回転
 		{
 			Util::VECTOR2D Vec = Util::VECTOR2D::zero();
@@ -88,8 +151,44 @@ public:
 					}
 				}
 				float Per = std::clamp(dif / Util::deg2rad(15.f),-1.f,1.f);
+
+				float YradAdd = 0.f;
 				if (std::fabsf(Per) > 0.01f) {
-					Yrad += Per * Util::deg2rad(720.f) / 60.f;
+					float Power = 1.f;
+					switch (m_CharaStyle) {
+					case CharaStyle::Run:
+						Power = 1.5f;
+						break;
+					case CharaStyle::Squat:
+						Power = 0.5f;
+						break;
+					case CharaStyle::Stand:
+						Power = 1.f;
+						break;
+					case CharaStyle::Max:
+					default:
+						break;
+					}
+					YradAdd = Per * Util::deg2rad(720.f) * Power / 60.f;
+				}
+				Yrad += YradAdd;
+				{
+					float Power = 1.f;
+					switch (m_CharaStyle) {
+					case CharaStyle::Run:
+						Power = 1.f;
+						break;
+					case CharaStyle::Squat:
+						Power = 0.1f;
+						break;
+					case CharaStyle::Stand:
+						Power = 0.25f;
+						break;
+					case CharaStyle::Max:
+					default:
+						break;
+					}
+					Zrad = Util::Lerp(Zrad, YradAdd * Power, 1.f - 0.9f);
 				}
 				if (Yrad > 0.f) {
 					while (true) {
@@ -129,21 +228,55 @@ public:
 		Util::VECTOR3D MyPos = MyMat.pos();
 		MyPos = Util::Lerp(MyPos, MyPosTarget, 1.f - 0.9f);
 
-		MyMat = Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Yrad) * Util::Matrix4x4::Mtrans(MyPos);
+		MyMat = Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), Zrad) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Yrad) * Util::Matrix4x4::Mtrans(MyPos);
 		ModelID.SetMatrix(MyMat);
 
-		float Per = GetSpeed() / GetSpeedMax();
+		//移動割合
+		MovePer = Util::Lerp(MovePer, GetSpeed() / GetSpeedMax(), 1.f - 0.9f);
+		for (size_t loop = 0; loop < static_cast<size_t>(CharaStyle::Max); ++loop) {
+			m_StylePer.at(loop) = std::clamp(m_StylePer.at(loop) + ((m_CharaStyle == static_cast<CharaStyle>(loop)) ? 1.f : -1.f) / 60.f / 0.3f, 0.f, 1.f);
+		}
 
-		//立ち
-		ModelID.SetAnim(0).SetPer(1.f - Per);
-		ModelID.SetAnim(0).Update(true, 1.f);
-		//歩き
-		ModelID.SetAnim(1).SetPer(Per);
-		ModelID.SetAnim(1).Update(true, GetSpeed() * 2.75f);
-		//走り
-		//しゃがみ
-		//しゃがみ歩き
+		//停止
+		m_AnimPer[static_cast<size_t>(CharaAnim::Squat)] = (1.f - MovePer) * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
+		m_AnimPer[static_cast<size_t>(CharaAnim::Stand)] = (1.f - MovePer) * std::max(m_StylePer.at(static_cast<size_t>(CharaStyle::Stand)), m_StylePer.at(static_cast<size_t>(CharaStyle::Run)));
+		//移動
+		m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
+		m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Stand));
+		m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Run));
+		//回転
+		{
+			auto* DrawerMngr = Draw::MainDraw::Instance();
 
+			float Per = 0.f;
+			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim)) {
+				Per = -Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
+				Per = std::clamp(Per, -1.f, 1.f);
+			}
+			m_AnimPer[static_cast<size_t>(CharaAnim::Flip)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::Flip)], Per, 1.f - 0.9f);
+		}
+		//
+		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_1)] = 1.f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)] = 0.3f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_3)] = 1.f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_4)] = 1.f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_5)] = 1.f;
+
+		m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_1)] = 1.f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_2)] = 0.3f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_3)] = 1.f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_4)] = 1.f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_5)] = 1.f;
+
+		//アニメアップデート
+		for (size_t loop = 0; loop < static_cast<size_t>(CharaAnim::Max); ++loop) {
+			ModelID.SetAnim(loop).SetPer(m_AnimPer[loop]);
+		}
+		ModelID.SetAnim(static_cast<int>(CharaAnim::Stand)).Update(true, 1.f);
+		ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).Update(true, GetSpeed() * 2.75f);
+		ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).Update(true, GetSpeed() * 0.75f);
+		ModelID.SetAnim(static_cast<int>(CharaAnim::Squat)).Update(true, GetSpeed() * 2.75f);
+		ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).Update(true, GetSpeed() * 2.75f);
 		ModelID.FlipAnimAll();
 	}
 	void Dispose(void) noexcept {
@@ -152,6 +285,13 @@ public:
 
 	void SetShadowDraw(void) const noexcept {
 		ModelID.DrawModel();
+	}
+	void CheckDraw(void) noexcept {
+		auto* DrawerMngr = Draw::MainDraw::Instance();
+		Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
+		Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
+		Util::VECTOR3D Now = MyMat.pos();
+		m_AimPoint = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
 	}
 	void Draw(void) const noexcept {
 		ModelID.DrawModel();
