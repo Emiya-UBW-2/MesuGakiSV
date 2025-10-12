@@ -135,6 +135,7 @@ class Character :public BaseObject {
 	Sound::SoundUniqueID runfootID{ InvalidID };
 	Sound::SoundUniqueID standupID{ InvalidID };
 	char		padding3[4]{};
+	int					m_FootSoundID{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -189,7 +190,6 @@ public:
 		standupID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/standup.wav", true);
 
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
-		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 	}
 	void Init(void) noexcept {
 		Draw::MV1::SetAnime(&ModelID, ModelID);
@@ -247,14 +247,100 @@ public:
 					m_CharaStyle = CharaStyle::Stand;
 				}
 			}
-			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Run)) {
-				if (m_CharaStyle == CharaStyle::Squat) {
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+			else {
+				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Run)) {
+					if (m_CharaStyle == CharaStyle::Squat) {
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+					}
+					m_CharaStyle = CharaStyle::Run;
 				}
-				m_CharaStyle = CharaStyle::Run;
+				if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::Run)) {
+					m_CharaStyle = CharaStyle::Stand;
+				}
 			}
-			if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::Run)) {
-				m_CharaStyle = CharaStyle::Stand;
+		}
+		//
+		{
+			bool IsMoving = false;
+			switch (m_CharaStyle) {
+			case CharaStyle::Run:
+				if (ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).GetPer() > 0.5f) {
+					IsMoving = true;
+					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).GetTime();
+					float TotalTime = ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).GetTotalTime();
+
+					//L
+					if ((9.0f / 35.f * 16.f < Time && Time < 10.0f / 35.f * 16.f)) {
+						if (this->m_FootSoundID != 0) {
+							this->m_FootSoundID = 0;
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(255);
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						}
+					}
+					//R
+					if ((27.0f / 35.f * 16.f < Time && Time < 28.0f / 35.f * 16.f)) {
+						if (this->m_FootSoundID != 1) {
+							this->m_FootSoundID = 1;
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(255);
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						}
+					}
+				}
+				break;
+			case CharaStyle::Squat:
+				if (ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetPer() > 0.5f) {
+					IsMoving = true;
+					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetTime();
+					float TotalTime = ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetTotalTime();
+
+					//L
+					if ((9.0f < Time && Time < 10.0f)) {
+						if (this->m_FootSoundID != 2) {
+							this->m_FootSoundID = 2;
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(92);
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						}
+					}
+					//R
+					if ((27.0f < Time && Time < 28.0f)) {
+						if (this->m_FootSoundID != 3) {
+							this->m_FootSoundID = 3;
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(92);
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						}
+					}
+				}
+				break;
+			case CharaStyle::Stand:
+				if (ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).GetPer() > 0.5f) {
+					IsMoving = true;
+					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).GetTime();
+					float TotalTime = ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).GetTotalTime();
+
+					//L
+					if ((9.0f < Time && Time < 10.0f)) {
+						if (this->m_FootSoundID != 4) {
+							this->m_FootSoundID = 4;
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(192);
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						}
+					}
+					//R
+					if ((27.0f < Time && Time < 28.0f)) {
+						if (this->m_FootSoundID != 5) {
+							this->m_FootSoundID = 5;
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(192);
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						}
+					}
+				}
+				break;
+			case CharaStyle::Max:
+			default:
+				break;
+			}
+			if (!IsMoving) {
+				m_FootSoundID = -1;
 			}
 		}
 		// 左右回転
