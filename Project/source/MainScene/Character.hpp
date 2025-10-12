@@ -44,6 +44,7 @@ enum class CharaFrame {
 	Center,
 	Upper,
 	Upper2,
+	Head,
 	Eye,
 	LeftFoot1,
 	LeftFoot2,
@@ -65,6 +66,7 @@ static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
 	"センター",
 	"上半身",
 	"上半身2",
+	"頭",
 	"両目",
 	"左足",
 	"左ひざ",
@@ -123,7 +125,7 @@ class Character :public BaseObject {
 	std::array<float, static_cast<int>(CharaStyle::Max)>	m_StylePer{};
 	CharaStyle												m_CharaStyle{ CharaStyle::Stand };
 	Util::VECTOR3D											m_AimPoint;
-	char		padding[4]{};
+	float				m_YradDif{};
 	Util::Matrix4x4		m_RightPos;
 	Util::Matrix4x4		m_LeftPos;
 	uint8_t				m_MoveKey{};
@@ -235,7 +237,9 @@ public:
 		//
 		if (isActive) {
 			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Squat) {
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				}
 				if (m_CharaStyle != CharaStyle::Squat) {
 					m_CharaStyle = CharaStyle::Squat;
 				}
@@ -316,20 +320,20 @@ public:
 			}
 
 			if (VecR.sqrMagnitude() > 0.f) {
-				float dif = std::atan2f(-VecR.x, -VecR.y) - Yrad;
-				if (dif > 0.f) {
+				m_YradDif = std::atan2f(-VecR.x, -VecR.y) - Yrad;
+				if (m_YradDif > 0.f) {
 					while (true) {
-						if (dif < DX_PI_F) { break; }
-						dif -= DX_PI_F * 2.f;
+						if (m_YradDif < DX_PI_F) { break; }
+						m_YradDif -= DX_PI_F * 2.f;
 					}
 				}
-				if (dif < 0.f) {
+				if (m_YradDif < 0.f) {
 					while (true) {
-						if (dif > -DX_PI_F) { break; }
-						dif += DX_PI_F * 2.f;
+						if (m_YradDif > -DX_PI_F) { break; }
+						m_YradDif += DX_PI_F * 2.f;
 					}
 				}
-				float Per = std::clamp(dif / Util::deg2rad(15.f), -1.f, 1.f);
+				float Per = std::clamp(m_YradDif / Util::deg2rad(15.f), -1.f, 1.f);
 
 				float YradAdd = 0.f;
 				if (std::fabsf(Per) > 0.01f) {
@@ -457,8 +461,13 @@ public:
 		//回転
 		{
 			float Per = 0.f;
-			if (IsFreeView()) {
-				Per = -Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
+			if (!IsFPSView()) {
+				if (IsFreeView()) {
+					Per = -Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
+				}
+				else {
+					Per = m_YradDif / Util::deg2rad(90);
+				}
 			}
 			m_AnimPer[static_cast<size_t>(CharaAnim::Flip)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::Flip)], std::clamp(Per, -1.f, 1.f), 1.f - 0.9f);
 		}
@@ -486,7 +495,7 @@ public:
 		ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).Update(true, GetSpeed() * 2.75f);
 		ModelID.FlipAnimAll();
 
-		Util::Matrix4x4 HandBaseMat = ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)));
+		Util::Matrix4x4 HandBaseMat = ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Head)));
 
 		m_RightPos =
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
