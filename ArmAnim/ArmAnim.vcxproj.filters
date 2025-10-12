@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="test.cpp" />
+    <ClCompile Include="source\Draw\MV1.cpp">
+      <Filter>Draw</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Util\Util.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Draw">
+      <UniqueIdentifier>{431a6d7d-b2f4-4344-ae22-a7fc6bbe88a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{87226cba-f2fb-4418-b9c0-2fb01b10cecf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\Util\Algorithm.hpp">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Draw\MV1.hpp">
+      <Filter>Draw</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Util\Util.hpp">
+      <Filter>Util</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
