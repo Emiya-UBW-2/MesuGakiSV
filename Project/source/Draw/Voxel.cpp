@@ -387,7 +387,7 @@ namespace BG {
 							Util::VECTOR3D tmpEndPos = *EndPos;
 							Util::VECTOR3D tmpNormal;
 							if (Algorithm::ColRayBox(StartPos, &tmpEndPos, MinPos, MaxPos, &tmpNormal)) {
-								if ((tmpEndPos- StartPos).sqrMagnitude() < (*EndPos - StartPos).sqrMagnitude()) {
+								if ((tmpEndPos - StartPos).sqrMagnitude() < (*EndPos - StartPos).sqrMagnitude()) {
 									*EndPos = tmpEndPos;
 									if (Normal) {
 										*Normal = tmpNormal;
@@ -690,12 +690,12 @@ namespace BG {
 			SaveDrawValidGraphToPNG(Screen.get(), 0, 0, XSize, YSize, Path);
 		}
 #endif
-		this->m_tex.Load(Path);
-		{
-			int YSize = 128 * 3;
-			this->m_tex.GetSize(nullptr, &YSize);
-			TexTileV = 1.f / (static_cast<float>(YSize) / 128.f);
-		}
+	this->m_tex.Load(Path);
+	{
+		int YSize = 128 * 3;
+		this->m_tex.GetSize(nullptr, &YSize);
+		TexTileV = 1.f / (static_cast<float>(YSize) / 128.f);
+	}
 	}
 	void		VoxelControl::InitStart(void) noexcept {
 		// 全階層の初期化

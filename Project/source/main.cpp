@@ -59,26 +59,26 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					PostPassParts->Update_Shadow([]() {
 						auto* SceneMngr = Util::SceneManager::Instance();
 						SceneMngr->ShadowFarDraw3D();
-					}, Pos, true);
+						}, Pos, true);
 				}
 				PostPassParts->Update_Shadow([]() {
-						auto* SceneMngr = Util::SceneManager::Instance();
-						SceneMngr->ShadowDraw3D();
+					auto* SceneMngr = Util::SceneManager::Instance();
+					SceneMngr->ShadowDraw3D();
 					}, CameraParts->GetCameraForDraw().GetCamPos(), false);
 				PostPassParts->SetDrawShadow([]() {
-						auto* SceneMngr = Util::SceneManager::Instance();
-						SceneMngr->SetShadowDrawRigid();
+					auto* SceneMngr = Util::SceneManager::Instance();
+					SceneMngr->SetShadowDrawRigid();
 					}, []() {
 						auto* SceneMngr = Util::SceneManager::Instance();
 						SceneMngr->SetShadowDraw();
-					});
+						});
 			}
 			//Depth描画
 			{
 				PostPassParts->SetDepthDraw([]() {
 					auto* SceneMngr = Util::SceneManager::Instance();
 					SceneMngr->DepthDraw3D();
-				});
+					});
 			}
 		}
 		//描画
@@ -89,7 +89,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			PostPassParts->DrawGBuffer(1000.0f, 50000.0f, []() {
 				auto* SceneMngr = Util::SceneManager::Instance();
 				SceneMngr->BGDraw();
-			});
+				});
 			// 3距離
 			{
 				float Far = 1000000.f;
@@ -98,7 +98,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					PostPassParts->DrawGBuffer(Near, Far, []() {
 						auto* SceneMngr = Util::SceneManager::Instance();
 						SceneMngr->Draw3D();
-					});
+						});
 					Far = Near;
 					if (loop == 0) {
 						Near = CameraParts->GetCameraForDraw().GetCamNear();

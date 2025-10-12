@@ -303,7 +303,7 @@ namespace Draw {
 		}
 
 		if (data.contains("FontID")) {
-			this->m_StringID= data["FontID"];
+			this->m_StringID = data["FontID"];
 			this->m_String = "";
 		}
 		if (data.contains("Min")) {

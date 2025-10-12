@@ -137,7 +137,7 @@ public:
 	virtual ~Character(void) noexcept {}
 private:
 	int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
-	const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
+	const char* GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
 public:
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept { return ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Eye))); }
 
@@ -314,7 +314,7 @@ public:
 						dif += DX_PI_F * 2.f;
 					}
 				}
-				float Per = std::clamp(dif / Util::deg2rad(15.f),-1.f,1.f);
+				float Per = std::clamp(dif / Util::deg2rad(15.f), -1.f, 1.f);
 
 				float YradAdd = 0.f;
 				if (std::fabsf(Per) > 0.01f) {
@@ -473,9 +473,9 @@ public:
 
 		Util::Matrix4x4 HandBaseMat = ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)));
 
-		m_RightPos = 
+		m_RightPos =
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
-			HandBaseMat.rotation() * 
+			HandBaseMat.rotation() *
 			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(-0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
 		m_LeftPos =
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
@@ -484,11 +484,11 @@ public:
 
 		{
 			ModelID.SetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)),
-				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 60.f / 100.f)*
+				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 60.f / 100.f) *
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::Upper))
 			);
 			ModelID.SetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)),
-				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 40.f / 100.f)*
+				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 40.f / 100.f) *
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::Upper2))
 			);
 		}

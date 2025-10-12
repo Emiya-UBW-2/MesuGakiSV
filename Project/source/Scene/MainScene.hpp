@@ -15,25 +15,19 @@
 class MainScene : public Util::SceneBase {
 	OptionWindow	m_OptionWindow;
 	PauseUI			m_PauseUI;
-	bool			m_IsSceneEnd{ false };
-	bool			m_IsPauseActive{ false };
-	char		padding[6]{};
-
-	Character		m_Character{};
-
-	Util::VECTOR3D	m_CamOffset{};
-	Util::VECTOR3D	m_CamVec{};
-	float			m_CamCheckLen{};
-	float			m_CamCheckTimer{};
-
 	InfoType		m_EntrancePoint{ InfoType::Entrance1 };
 	bool			m_Exit{ false };
-	char		padding2[3]{};
-
-	float			m_Fade{ 1.f };
+	bool			m_IsSceneEnd{ false };
+	bool			m_IsPauseActive{ false };
+	char		padding[5]{};
+	Character		m_Character{};
+	Util::VECTOR3D	m_CamOffset{};
+	Util::VECTOR3D	m_CamVec{};
 	std::string		m_MapName{ "Map1" };
-
 	float			m_FPSPer{ 0.f };
+	float			m_CamCheckLen{};
+	float			m_CamCheckTimer{};
+	float			m_Fade{ 1.f };
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -177,7 +171,7 @@ protected:
 			BackGround::Instance()->SettingChange(3, 1);
 			Util::Matrix4x4 EyeMat = this->m_Character.GetEyeMat();
 			CamPosition1 = EyeMat.pos();
-			CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f*Scale3DRate);
+			CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f * Scale3DRate);
 		}
 		if (m_FPSPer != 1.f) {
 			BackGround::Instance()->SettingChange(1, 0);

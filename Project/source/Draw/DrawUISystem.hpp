@@ -276,7 +276,7 @@ namespace Draw {
 		void			Update(bool IsActiveMouseMove) noexcept {
 			if (this->m_DrawModule.size() == 0) { return; }
 			this->m_DrawModule.at(0).Update(this);
-			if(IsActiveMouseMove) {
+			if (IsActiveMouseMove) {
 				auto* DrawerMngr = Draw::MainDraw::Instance();
 				auto* KeyMngr = Util::KeyParam::Instance();
 
