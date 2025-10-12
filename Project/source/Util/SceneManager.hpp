@@ -191,8 +191,12 @@ namespace Util {
 				exit(-1);
 			}
 #endif
+			DxLib::SetMouseDispFlag(true);
+
 			auto* CameraParts = Camera::Camera3D::Instance();
+			auto* pOption = Util::OptionParam::Instance();
 			Set3DSoundListenerPosAndFrontPosAndUpVec(CameraParts->GetCameraForDraw().GetCamPos().get(), CameraParts->GetCameraForDraw().GetCamVec().get(), CameraParts->GetCameraForDraw().GetCamUp().get());		// 音位置指定
+			CameraParts->SetCamInfo(Util::deg2rad(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Fov))->GetSelect() / 2), 0.5f, Scale3DRate * 30.0f);
 
 			switch (this->m_Phase) {
 			case EnumScenePhase::Load:

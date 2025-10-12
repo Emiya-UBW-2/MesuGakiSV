@@ -134,8 +134,8 @@ class Character :public BaseObject {
 	Sound::SoundUniqueID heartID{ InvalidID };
 	Sound::SoundUniqueID runfootID{ InvalidID };
 	Sound::SoundUniqueID standupID{ InvalidID };
-	char		padding3[4]{};
 	int					m_FootSoundID{};
+	bool				m_IsFPS{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -149,10 +149,7 @@ private:
 public:
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept { return ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Eye))); }
 
-	bool IsFPSView(void) const noexcept {
-		auto* KeyMngr = Util::KeyParam::Instance();
-		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Jump);
-	}
+	bool IsFPSView(void) const noexcept { return m_IsFPS; }
 	bool IsFreeView(void) const noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
 		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) && !IsFPSView();
@@ -235,6 +232,10 @@ public:
 		MoveKey |= UpKey ? (1 << 2) : 0;
 		MoveKey |= DownKey ? (1 << 3) : 0;
 		//
+		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Jump)) {
+			m_IsFPS ^= 1;
+		}
+		//
 		if (isActive) {
 			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
 				if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Squat) {
@@ -267,7 +268,6 @@ public:
 				if (ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).GetPer() > 0.5f) {
 					IsMoving = true;
 					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).GetTime();
-					float TotalTime = ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).GetTotalTime();
 
 					//L
 					if ((9.0f / 35.f * 16.f < Time && Time < 10.0f / 35.f * 16.f)) {
@@ -291,7 +291,6 @@ public:
 				if (ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetPer() > 0.5f) {
 					IsMoving = true;
 					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetTime();
-					float TotalTime = ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetTotalTime();
 
 					//L
 					if ((9.0f < Time && Time < 10.0f)) {
@@ -315,7 +314,6 @@ public:
 				if (ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).GetPer() > 0.5f) {
 					IsMoving = true;
 					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).GetTime();
-					float TotalTime = ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).GetTotalTime();
 
 					//L
 					if ((9.0f < Time && Time < 10.0f)) {
@@ -359,6 +357,7 @@ public:
 			LookX = MX - DrawerMngr->GetWindowDrawWidth() / 2;
 			LookY = MY - DrawerMngr->GetWindowDrawHeight() / 2;
 			DxLib::SetMousePoint(DrawerMngr->GetWindowDrawWidth() / 2, DrawerMngr->GetWindowDrawHeight() / 2);
+			DxLib::SetMouseDispFlag(false);
 		}
 		m_PrevIsFPSView = IsFPSView();
 		if (IsFPSView()) {
