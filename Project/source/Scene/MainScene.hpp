@@ -162,48 +162,51 @@ protected:
 		float XPer = std::clamp(static_cast<float>(DrawerMngr->GetMousePositionX() - DrawerMngr->GetDispWidth() / 2) / static_cast<float>(DrawerMngr->GetDispWidth() / 2), -1.f, 1.f);
 		float YPer = std::clamp(static_cast<float>(DrawerMngr->GetMousePositionY() - DrawerMngr->GetDispHeight() / 2) / static_cast<float>(DrawerMngr->GetDispHeight() / 2), -1.f, 1.f);
 
-		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim)) {
-			this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::vget(XPer * 3.f, 0.f, -YPer * 2.f), 1.f - 0.8f);
+		Util::VECTOR3D CamPosition;
+		Util::VECTOR3D CamTarget;
+		if (this->m_Character.IsFPSView()) {
+			BackGround::Instance()->SettingChange(3, 0);
+			Util::Matrix4x4 EyeMat = this->m_Character.GetEyeMat();
+			CamPosition = EyeMat.pos();
+			CamTarget = CamPosition + EyeMat.zvec() * -1.f;
 		}
 		else {
-			this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::zero(), 1.f - 0.8f);
-		}
-
-		/*
-		clsDx();
-		printfDx("[%d,%d,%d]\n",
-			BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos()).x,
-			BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos()).y,
-			BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos()).z
-		);
-		//*/
-
-		Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
-		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f).normalized() * (Scale3DRate * 5.f);
-		float CheckLen = CamVec.magnitude();
-		{
-			Util::VECTOR3D Base = CamPos;
-			Util::VECTOR3D Target = CamPos + CamVec;
+			BackGround::Instance()->SettingChange(1, 0);
+			float Length = (Scale3DRate * 5.f);
+			if (this->m_Character.IsFreeView()) {
+				this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::vget(XPer * 3.f, 0.f, -YPer * 2.f), 1.f - 0.8f);
+				Length = (Scale3DRate * 5.f);
+			}
+			else {
+				this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::zero(), 1.f - 0.8f);
+				Length = (Scale3DRate * 3.f);
+			}
+			Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
+			Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f).normalized() * Length;
 			{
-				Base = CamPos + (CamVec).normalized() * (Scale3DRate * 7.5f / 2.f);
+				Util::VECTOR3D Target = CamPos + CamVec.normalized() * (Scale3DRate * 5.f);
+				Util::VECTOR3D Base = CamPos + CamVec.normalized() * (Scale3DRate * 3.75f);
 				if (BackGround::Instance()->CheckLine(Base, &Target)) {
 					m_CamCheckTimer = 0.f;
-					m_CamCheckLen = std::max((Target - Base).magnitude() - 1.5f * Scale3DRate, 1.5f * Scale3DRate);
+					m_CamCheckLen = std::clamp((Target - Base).magnitude() - 1.5f * Scale3DRate, 1.5f * Scale3DRate, Length);
 				}
 				else {
 					m_CamCheckTimer = std::min(m_CamCheckTimer + 1.f / 60.f, 0.5f);
 					if (m_CamCheckTimer >= 0.5f) {
-						m_CamCheckLen = CheckLen;
+						m_CamCheckLen = CamVec.magnitude();
 					}
 				}
 				Target = Base + (Target - Base).normalized() * m_CamCheckLen;
+				CamVec = Target - CamPos;
 			}
-			CamVec = Target - CamPos;
+			this->m_CamVec = Util::Lerp(this->m_CamVec, CamVec, 1.f - 0.9f);
+			CamPosition = CamPos + this->m_CamVec;
+			CamTarget = CamPos;
 		}
-		this->m_CamVec = Util::Lerp(this->m_CamVec, CamVec, 1.f - 0.9f);
+
 
 		auto* CameraParts = Camera::Camera3D::Instance();
-		CameraParts->SetCamPos(CamPos + this->m_CamVec, CamPos, Util::VECTOR3D::vget(0, 1.f, 0));
+		CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 		CameraParts->SetCamInfo(Util::deg2rad(45), 0.5f, Scale3DRate * 30.0f);
 
 		BackGround::Instance()->Update();
@@ -293,30 +296,32 @@ protected:
 					}
 				}
 			}
-			int loop = 0;
-			for (const auto& m : BackGround::Instance()->GetMapGraph()) {
-				if (m.m_Per > 0.f) {
-					++loop;
-					int Bright = 255 * loop / count;
-					DxLib::SetDrawBright(Bright, Bright, Bright);
-					DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m.m_Per), 0, 255));
-					m.m_Map.DrawRotaGraph(256, 256, 3.0f, 0.0f, true);
-				}
-				{
-					BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos());
-					if (m.m_ID <= Pos.y) {
-						DxLib::SetDrawBright(255, 255, 255);
-						DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+			if (count > 0) {
+				int loop = 0;
+				for (const auto& m : BackGround::Instance()->GetMapGraph()) {
+					if (m.m_Per > 0.f) {
+						++loop;
+						int Bright = 255 * loop / count;
+						DxLib::SetDrawBright(Bright, Bright, Bright);
+						DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m.m_Per), 0, 255));
+						m.m_Map.DrawRotaGraph(256, 256, 3.0f, 0.0f, true);
+					}
+					{
+						BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos());
+						if (m.m_ID <= Pos.y) {
+							DxLib::SetDrawBright(255, 255, 255);
+							DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 
-						DxLib::DrawCircle(
-							256 + static_cast<int>(static_cast<float>(Pos.x * 128 / 256) * 3.f),
-							256 + static_cast<int>(static_cast<float>(-Pos.z * 128 / 256) * 3.f),
-							3, ColorPalette::Blue, TRUE);
+							DxLib::DrawCircle(
+								256 + static_cast<int>(static_cast<float>(Pos.x * 128 / 256) * 3.f),
+								256 + static_cast<int>(static_cast<float>(-Pos.z * 128 / 256) * 3.f),
+								3, ColorPalette::Blue, TRUE);
+						}
 					}
 				}
+				DxLib::SetDrawBright(255, 255, 255);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
-			DxLib::SetDrawBright(255, 255, 255);
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
 		this->m_PauseUI.Draw();
 		this->m_OptionWindow.Draw();

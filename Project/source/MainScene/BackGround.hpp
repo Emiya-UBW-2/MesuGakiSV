@@ -101,6 +101,7 @@ public:
 	}
 	std::vector<mapGraph>& GetMapGraph(void) noexcept { return m_map; }
 	const std::vector<MapInfo>& GetMapInfo(void) const noexcept { return m_MapInfo; }
+	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { Voxel.SettingChange(DrawLOD, ShadowLOD); }
 public:
 	void Load(const char* MapName) noexcept {
 		m_MapName = MapName;

@@ -633,34 +633,6 @@ namespace BG {
 		fout.close(); // ファイルを閉じる
 	}
 
-	void		VoxelControl::SettingChange(void) noexcept {
-		//todo::LOD設定
-		/*
-		auto* pOption = Util::OptionParam::Instance();
-		switch (pOption->GetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel))->GetSelect()) {
-		case 0:
-			this->m_ShadowMaxDrawLOD = 0;// 表示
-			this->m_MaxDrawLOD = 1;// 2段目まで表示
-			break;
-		case 1:
-			this->m_ShadowMaxDrawLOD = 1;// 表示
-			this->m_MaxDrawLOD = 2;// 2段目まで表示
-			break;
-		case 2:
-			this->m_ShadowMaxDrawLOD = 1;// 表示
-			this->m_MaxDrawLOD = 3;// 2段目まで表示
-			break;
-		default:
-			break;
-		}
-		//*/
-		//*
-		this->m_ShadowMaxDrawLOD = 0;// 表示
-		// this->m_ShadowMaxDrawLOD = -1;// 非表示
-		this->m_MaxDrawLOD = 1;// 2段目まで表示
-		//*/
-	}
-
 	void		VoxelControl::SetBlick(int Xvoxel, int Yvoxel, int Zvoxel, int8_t ID, bool CalcOther) noexcept {
 		this->m_CellxN[ReferenceCell].SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetID(ID);
 		if (CalcOther) {
@@ -849,7 +821,7 @@ namespace BG {
 			}, false);
 		this->m_ThreadCounter = 0;
 		// 
-		SettingChange();
+		SettingChange(1/*2段目まで表示*/, 0/*1段目まで表示*/);
 	}
 	void		VoxelControl::Update(void) noexcept {
 		for (int loop = 0; loop < TotalCellLayer; ++loop) {

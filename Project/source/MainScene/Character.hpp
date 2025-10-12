@@ -43,6 +43,7 @@ enum class CharaFrame {
 	Center,
 	Upper,
 	Upper2,
+	Eye,
 	LeftFoot1,
 	LeftFoot2,
 	LeftFoot,
@@ -63,6 +64,7 @@ static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
 	"センター",
 	"上半身",
 	"上半身2",
+	"両目",
 	"左足",
 	"左ひざ",
 	"左足首",
@@ -109,6 +111,7 @@ class Character :public BaseObject {
 	Draw::MV1 ModelID{};
 	Util::Matrix4x4 MyMat;
 	Util::VECTOR3D MyPosTarget = Util::VECTOR3D::zero();
+	float Xrad = 0.f;
 	float Yrad = 0.f;
 	float Zrad = 0.f;
 	float Speed = 0.f;
@@ -120,8 +123,11 @@ class Character :public BaseObject {
 	CharaStyle												m_CharaStyle{ CharaStyle::Stand };
 	Util::VECTOR3D											m_AimPoint;
 	char		padding[4]{};
-	Util::Matrix4x4 m_RightPos;
-	Util::Matrix4x4 m_LeftPos;
+	Util::Matrix4x4		m_RightPos;
+	Util::Matrix4x4		m_LeftPos;
+	uint8_t				m_MoveKey{};
+	int					m_PrevMX{};
+	int					m_PrevMY{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -133,6 +139,17 @@ private:
 	int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
 	const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
 public:
+	const Util::Matrix4x4& GetEyeMat(void) const noexcept { return ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Eye))); }
+
+	bool IsFPSView(void) const noexcept {
+		auto* KeyMngr = Util::KeyParam::Instance();
+		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Jump);
+	}
+	bool IsFreeView(void) const noexcept {
+		auto* KeyMngr = Util::KeyParam::Instance();
+		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) && !IsFPSView();
+	}
+
 	const Util::Matrix4x4& GetMat(void) const noexcept { return MyMat; }
 	float GetSpeed(void) const noexcept { return Speed; }
 	float GetSpeedMax(void) const noexcept {
@@ -199,6 +216,11 @@ public:
 		bool RightKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::D);
 		bool UpKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::W);
 		bool DownKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::S);
+		uint8_t				MoveKey = 0;
+		MoveKey |= LeftKey ? (1 << 0) : 0;
+		MoveKey |= RightKey ? (1 << 1) : 0;
+		MoveKey |= UpKey ? (1 << 2) : 0;
+		MoveKey |= DownKey ? (1 << 3) : 0;
 		//
 		if (isActive) {
 			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
@@ -217,23 +239,58 @@ public:
 			}
 		}
 		// 左右回転
-		{
+
+		auto* DrawerMngr = Draw::MainDraw::Instance();
+		int MX = DrawerMngr->GetMousePositionX();
+		int MY = DrawerMngr->GetMousePositionY();
+		int LookX = MX - m_PrevMX;
+		int LookY = MY - m_PrevMY;
+		m_PrevMX = MX;
+		m_PrevMY = MY;
+
+		if (IsFPSView()) {
+			float YradAdd = Util::deg2rad(static_cast<float>(LookX) / 10.f);
+			float XradAdd = Util::deg2rad(static_cast<float>(LookY) / 10.f);
+
+			Yrad += YradAdd;
+			if (Yrad > 0.f) {
+				while (true) {
+					if (Yrad < DX_PI_F * 2.f) { break; }
+					Yrad -= DX_PI_F * 2.f;
+				}
+			}
+			if (Yrad < 0.f) {
+				while (true) {
+					if (Yrad > -DX_PI_F * 2.f) { break; }
+					Yrad += DX_PI_F * 2.f;
+				}
+			}
+
+			Xrad += XradAdd;
+		}
+		else {
 			Util::VECTOR2D Vec = Util::VECTOR2D::zero();
 			if (isActive) {
-				if (LeftKey) {
+				if ((MoveKey & (1 << 0)) != 0) {
 					Vec += Util::VECTOR2D::left();
 				}
-				if (RightKey) {
+				if ((MoveKey & (1 << 1)) != 0) {
 					Vec += Util::VECTOR2D::right();
 				}
-				if (UpKey) {
+				if ((MoveKey & (1 << 2)) != 0) {
 					Vec += Util::VECTOR2D::up();
 				}
-				if (DownKey) {
+				if ((MoveKey & (1 << 3)) != 0) {
 					Vec += Util::VECTOR2D::down();
 				}
 			}
-			VecR = Util::Lerp(VecR, Vec, 1.f - 0.9f);
+			//歩くより早く移動する場合
+			if (Speed > (3.f * Scale3DRate / 60.f)) {
+				VecR = Util::Lerp(VecR, Vec, 1.f - 0.975f);
+			}
+			else {
+				VecR = Util::Lerp(VecR, Vec, 1.f - 0.9f);
+			}
 
 			if (VecR.sqrMagnitude() > 0.f) {
 				float dif = std::atan2f(-VecR.x, -VecR.y) - Yrad;
@@ -275,7 +332,12 @@ public:
 					float Power = 1.f;
 					switch (m_CharaStyle) {
 					case CharaStyle::Run:
-						Power = 1.f;
+						if (Speed > (3.f * Scale3DRate / 60.f)) {
+							Power = 1.f;
+						}
+						else {
+							Power = 0.1f;
+						}
 						break;
 					case CharaStyle::Squat:
 						Power = 0.1f;
@@ -302,12 +364,38 @@ public:
 					}
 				}
 			}
+
+			Xrad = Util::Lerp(Xrad, 0.f, 1.f - 0.9f);
 		}
 		// 進行方向に前進
-		Speed = Util::Lerp(Speed, (LeftKey || RightKey || UpKey || DownKey || !isActive) ? GetSpeedMax() : 0.f, 1.f - 0.9f);
+		Speed = Util::Lerp(Speed, ((MoveKey != 0) || !isActive) ? GetSpeedMax() : 0.f, 1.f - 0.9f);
 
 		// 移動ベクトルを加算した仮座標を作成
-		Util::VECTOR3D PosBuffer = MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -Speed, MyMat.rotation());
+		Util::VECTOR3D PosBuffer;
+		if (IsFPSView()) {
+			Util::VECTOR3D Vec = Util::VECTOR3D::zero();
+			if (isActive) {
+				if ((MoveKey & (1 << 0)) != 0) {
+					Vec += Util::VECTOR3D::left();
+				}
+				if ((MoveKey & (1 << 1)) != 0) {
+					Vec += Util::VECTOR3D::right();
+				}
+				if ((MoveKey & (1 << 2)) != 0) {
+					Vec += Util::VECTOR3D::forward();
+				}
+				if ((MoveKey & (1 << 3)) != 0) {
+					Vec += Util::VECTOR3D::back();
+				}
+			}
+			if (Vec.sqrMagnitude() > 0.f) {
+				Vec = Vec.normalized();
+			}
+			PosBuffer = MyPosTarget + Util::Matrix4x4::Vtrans(Vec * -Speed, MyMat.rotation());
+		}
+		else {
+			PosBuffer = MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -Speed, MyMat.rotation());
+		}
 		// 壁判定
 		std::vector<const Draw::MV1*> addonColObj;
 		BackGround::Instance()->CheckWall(MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
@@ -346,11 +434,10 @@ public:
 		//回転
 		{
 			float Per = 0.f;
-			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim)) {
+			if (IsFreeView()) {
 				Per = -Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
-				Per = std::clamp(Per, -1.f, 1.f);
 			}
-			m_AnimPer[static_cast<size_t>(CharaAnim::Flip)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::Flip)], Per, 1.f - 0.9f);
+			m_AnimPer[static_cast<size_t>(CharaAnim::Flip)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::Flip)], std::clamp(Per, -1.f, 1.f), 1.f - 0.9f);
 		}
 		//
 		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_1)] = 1.f;
@@ -388,6 +475,17 @@ public:
 			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
 
 		{
+			ModelID.SetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)),
+				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 60.f / 100.f)*
+				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::Upper))
+			);
+			ModelID.SetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)),
+				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 40.f / 100.f)*
+				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::Upper2))
+			);
+		}
+
+		{
 			Draw::IK_RightArm(
 				&ModelID,
 				GetFrame(static_cast<int>(CharaFrame::RightArm)),
@@ -418,11 +516,13 @@ public:
 		ModelID.DrawModel();
 	}
 	void CheckDraw(void) noexcept {
-		auto* DrawerMngr = Draw::MainDraw::Instance();
-		Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
-		Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
-		Util::VECTOR3D Now = MyMat.pos();
-		m_AimPoint = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
+		if (IsFreeView()) {
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
+			Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
+			Util::VECTOR3D Now = MyMat.pos();
+			m_AimPoint = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
+		}
 	}
 	void Draw(void) const noexcept {
 		ModelID.DrawModel();

@@ -682,8 +682,33 @@ namespace BG {
 		// 所定の範囲のボクセルデータをセーブする
 		void			SaveCellsClip(int XMin, int XMax, int YMin, int YMax, int ZMin, int ZMax, const char* Path) const noexcept;
 		// 描写距離を設定する
-		void			SettingChange(void) noexcept;
-
+		void			SettingChange(int DrawLOD, int ShadowLOD) noexcept {
+			//todo::LOD設定
+			/*
+			auto* pOption = Util::OptionParam::Instance();
+			switch (pOption->GetParam(pOption->GetOptionType(Util::OptionType::ObjectLevel))->GetSelect()) {
+			case 0:
+				this->m_ShadowMaxDrawLOD = 0;// 表示
+				this->m_MaxDrawLOD = 1;// 2段目まで表示
+				break;
+			case 1:
+				this->m_ShadowMaxDrawLOD = 1;// 表示
+				this->m_MaxDrawLOD = 2;// 2段目まで表示
+				break;
+			case 2:
+				this->m_ShadowMaxDrawLOD = 1;// 表示
+				this->m_MaxDrawLOD = 3;// 2段目まで表示
+				break;
+			default:
+				break;
+			}
+			//*/
+			//*
+			this->m_ShadowMaxDrawLOD = ShadowLOD;// 表示
+			// this->m_ShadowMaxDrawLOD = -1;// 非表示
+			this->m_MaxDrawLOD = DrawLOD;// 2段目まで表示
+			//*/
+		}
 		inline float	GetDrawFarMax() const noexcept { return static_cast<float>(std::min(std::min(DrawMaxXPlus, DrawMaxZPlus), DrawMaxYPlus)) * CellScale; }
 
 		void			SetDrawInfo(const Util::VECTOR3D& CenterPos, const Util::VECTOR3D& CamVec) noexcept {
