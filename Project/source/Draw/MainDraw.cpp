@@ -33,6 +33,8 @@ namespace Draw {
 		DxLib::SetWindowSizeChangeEnableFlag(TRUE, FALSE);
 		DxLib::SetUsePixelLighting(TRUE);
 		DxLib::SetWaitVSyncFlag(false);
+		DxLib::Set3DSoundOneMetre(1.0f);									// 
+
 		//プロジェクト固有設定
 		{
 			std::ifstream file("data/ProjectSetting/ProjectSetting.json");

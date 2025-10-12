@@ -28,6 +28,9 @@ class MainScene : public Util::SceneBase {
 	float			m_CamCheckLen{};
 	float			m_CamCheckTimer{};
 	float			m_Fade{ 1.f };
+
+	Sound::SoundUniqueID OKID{ InvalidID };
+	Sound::SoundUniqueID EnviID{ InvalidID };
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -51,6 +54,9 @@ protected:
 		}
 		m_Exit = false;
 		m_Fade = 1.f;
+
+		OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
+		EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
 
 		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.7f, 0.3f).normalized();
 
@@ -92,6 +98,8 @@ protected:
 
 		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 		KeyGuideParts->SetGuideFlip();
+
+		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 	}
 	void Update_Sub(void) noexcept override {
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -136,6 +144,7 @@ protected:
 		//ポーズメニュー
 		{
 			if (KeyMngr->GetMenuKeyTrigger(Util::EnumMenu::Tab)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				this->m_IsPauseActive ^= 1;
 				KeyGuideParts->SetGuideFlip();
 			}
@@ -339,6 +348,7 @@ protected:
 	}
 
 	void Dispose_Sub(void) noexcept override {
+		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->StopAll();
 		BackGround::Release();
 		this->m_Character.Dispose();
 		this->m_PauseUI.Dispose();

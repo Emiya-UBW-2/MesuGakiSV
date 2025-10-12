@@ -1,5 +1,6 @@
 ﻿#include "OptionWindow.hpp"
 #include "Util/Enum.hpp"
+#include "Util/Sound.hpp"
 #include "Draw/PostPass.hpp"
 
 void OptionWindow::SetActive(bool value) noexcept {
@@ -136,6 +137,11 @@ void OptionWindow::EndTab() noexcept {
 	this->m_NowTabMax = 0;
 }
 void OptionWindow::Init(void) noexcept {
+	cancelID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cancel.wav", false);
+	cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
+	NGID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ng.wav", false);
+	OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
+
 	this->m_DrawUI = new Draw::DrawUISystem();
 
 	this->m_DrawUI->Init("data/UI/Option/OptionBase.json");
@@ -155,7 +161,26 @@ void OptionWindow::Update(void) noexcept {
 	auto* pOption = Util::OptionParam::Instance();
 	auto* KeyMngr = Util::KeyParam::Instance();
 	if (this->m_DrawUI->Get(this->m_UIBase).IsActive()) {
+		{
+			int IsSelect = InvalidID;
+			for (int loop = 0; loop < 4; ++loop) {
+				if (this->m_DrawUI->Get(this->m_TabButton[loop]).IsSelectButton()) {
+					IsSelect = loop;
+					break;
+				}
+			}
+			if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton()) {
+				IsSelect = 4;
+			}
+			if (IsSelect != InvalidID && (IsSelect != isSelectTabSoundPrev)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+			}
+			isSelectTabSoundPrev = IsSelect;
+		}
 		for (int loop = 0; loop < 4; ++loop) {
+			if (this->m_DrawUI->Get(this->m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyTrigger(Util::EnumMenu::Diside)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+			}
 			if (this->m_DrawUI->Get(this->m_TabButton[loop]).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
 				if (this->m_NowSelectTab != loop) {
 					EndTab();
@@ -164,21 +189,57 @@ void OptionWindow::Update(void) noexcept {
 				}
 			}
 		}
+
+		if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyTrigger(Util::EnumMenu::Diside)) {
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cancelID)->Play(DX_PLAYTYPE_BACK, TRUE);
+		}
 		if (this->m_DrawUI->Get(this->m_CloseButton).IsSelectButton() && KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {
 			SetActive(false);
 		}
+
+		{
+			int IsSelect = InvalidID;
+			for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+				auto& param = this->m_Param[loop];
+				if (this->m_DrawUI->Get(param.m_ID).IsSelectButton()) {
+					IsSelect = loop;
+					break;
+				}
+			}
+			if (IsSelect != InvalidID && (IsSelect != isSelectSoundPrev)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+			}
+			isSelectSoundPrev = IsSelect;
+		}
+
 		if (KeyMngr->GetMenuKeyRepeat(Util::EnumMenu::Diside)) {
+			for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+				auto& param = this->m_Param[loop];
+				if (param.m_MinID != InvalidID) {
+					if (this->m_DrawUI->Get(param.m_MinID).IsActive() && this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					}
+				}
+				if (param.m_MaxID != InvalidID) {
+					if (this->m_DrawUI->Get(param.m_MaxID).IsActive() && this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					}
+				}
+			}
+
 			switch (this->m_NowSelectTab) {
 			case 0:
 			{
 				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
 					auto& param = this->m_Param[loop];
 					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::MasterVolume)));
-					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MinID).IsActive() && this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
+						Sound::SoundPool::Instance()->FlipVolume();
 					}
-					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MaxID).IsActive() && this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
+						Sound::SoundPool::Instance()->FlipVolume();
 					}
 				}
 			}
@@ -192,11 +253,11 @@ void OptionWindow::Update(void) noexcept {
 					Util::OptionType OptType = static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::WindowMode));
 					auto Type = pOption->GetOptionType(OptType);
 					bool IsChange = false;
-					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MinID).IsActive() && this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
 						IsChange = true;
 					}
-					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MaxID).IsActive() && this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
 						IsChange = true;
 					}
@@ -266,17 +327,17 @@ void OptionWindow::Update(void) noexcept {
 				for (int loop = 0; loop < 2; ++loop) {
 					auto& param = this->m_Param[loop];
 					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::XSensing)));
-					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MinID).IsActive() && this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
 					}
-					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MaxID).IsActive() && this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
 					}
 				}
 				//
 				for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
 					auto& param = this->m_Param[loop];
-					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MaxID).IsActive() && this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
 						KeyMngr->AssignBattleID(Battle, 0, KeyMngr->GetDefaultKeyAssign(Battle, 0));
 					}
@@ -289,11 +350,11 @@ void OptionWindow::Update(void) noexcept {
 				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
 					auto& param = this->m_Param[loop];
 					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::HeadBobbing)));
-					if (this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MinID).IsActive() && this->m_DrawUI->Get(param.m_MinID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() - 1);
 						Localize->Load();
 					}
-					if (this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+					if (this->m_DrawUI->Get(param.m_MaxID).IsActive() && this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						pOption->SetParam(Type, pOption->GetParam(Type)->GetSelect() + 1);
 						Localize->Load();
 					}
@@ -314,6 +375,9 @@ void OptionWindow::Update(void) noexcept {
 					for (int loop2 = static_cast<int>(Util::EnumInput::Begin); loop2 < static_cast<int>(Util::EnumInput::Max); ++loop2) {
 						Util::EnumInput Input = static_cast<Util::EnumInput>(loop2);
 						if (KeyMngr->GetKeyPress(Input, true)) {
+							if (Input != KeyMngr->GetKeyAssign(Battle, 0)) {
+								Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+							}
 							KeyMngr->AssignBattleID(Battle, 0, Input);
 							IsChange = true;
 							break;

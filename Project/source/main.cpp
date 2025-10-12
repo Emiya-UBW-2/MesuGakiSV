@@ -7,6 +7,7 @@
 #include "Util/SceneManager.hpp"
 #include "Util/Enum.hpp"
 #include "Util/Key.hpp"
+#include "Util/Sound.hpp"
 #include "Scene/TitleScene.hpp"
 #include "Scene/MainScene.hpp"
 #include "Draw/MainDraw.hpp"
@@ -27,6 +28,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Draw::PostPassEffect::Create();
 	Draw::LightPool::Create();
 	DXLibRef::KeyGuide::Create();
+	Sound::SoundPool::Create();
 
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* pOption = Util::OptionParam::Instance();
@@ -122,6 +124,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 	}
+	Sound::SoundPool::Release();
 	DXLibRef::KeyGuide::Release();
 	Draw::LightPool::Release();
 	Draw::PostPassEffect::Release();

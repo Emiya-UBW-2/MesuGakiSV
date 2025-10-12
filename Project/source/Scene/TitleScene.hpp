@@ -80,6 +80,7 @@ protected:
 		if (this->m_TitleUI.IsActive() || this->m_OptionWindow.IsActive()) {
 			auto* KeyMngr = Util::KeyParam::Instance();
 			if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Esc)) {
+				//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				this->m_EndUI.SetActive(true);
 			}
 		}

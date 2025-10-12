@@ -191,6 +191,9 @@ namespace Util {
 				exit(-1);
 			}
 #endif
+			auto* CameraParts = Camera::Camera3D::Instance();
+			Set3DSoundListenerPosAndFrontPosAndUpVec(CameraParts->GetCameraForDraw().GetCamPos().get(), CameraParts->GetCameraForDraw().GetCamVec().get(), CameraParts->GetCameraForDraw().GetCamUp().get());		// 音位置指定
+
 			switch (this->m_Phase) {
 			case EnumScenePhase::Load:
 				if (this->m_NowScene) {

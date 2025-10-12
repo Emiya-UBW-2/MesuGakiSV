@@ -5,6 +5,7 @@
 #include "Draw/DrawUISystem.hpp"
 
 #include "Util/Localize.hpp"
+#include "Util/Sound.hpp"
 
 #pragma warning( push, 3 )
 #include <vector>
@@ -32,6 +33,12 @@ private:
 	ParamButton		m_Param[m_ParamMax]{};
 	int				m_LanguagePrev{};
 	char		padding[4]{};
+	Sound::SoundUniqueID cancelID{ InvalidID };
+	Sound::SoundUniqueID cursorID{ InvalidID };
+	Sound::SoundUniqueID NGID{ InvalidID };
+	Sound::SoundUniqueID OKID{ InvalidID };
+	int					isSelectTabSoundPrev{ InvalidID };
+	int					isSelectSoundPrev{ InvalidID };
 public:
 	OptionWindow(void) noexcept {}
 	OptionWindow(const OptionWindow&) = delete;

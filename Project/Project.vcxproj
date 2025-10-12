@@ -42,6 +42,7 @@
     <ClCompile Include="source\Util\Localize.cpp" />
     <ClCompile Include="source\Util\Option.cpp" />
     <ClCompile Include="source\Util\SceneManager.cpp" />
+    <ClCompile Include="source\Util\Sound.cpp" />
     <ClCompile Include="source\Util\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -70,6 +71,7 @@
     <ClInclude Include="source\Util\Localize.hpp" />
     <ClInclude Include="source\Util\Option.hpp" />
     <ClInclude Include="source\Util\SceneManager.hpp" />
+    <ClInclude Include="source\Util\Sound.hpp" />
     <ClInclude Include="source\Util\Util.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

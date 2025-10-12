@@ -98,6 +98,9 @@
     <ClCompile Include="source\MainScene\Character.cpp">
       <Filter>ソース ファイル\MainScene</Filter>
     </ClCompile>
+    <ClCompile Include="source\Util\Sound.cpp">
+      <Filter>ソース ファイル\Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\File\json.hpp">
@@ -177,6 +180,9 @@
     </ClInclude>
     <ClInclude Include="source\MainScene\Character.hpp">
       <Filter>ソース ファイル\MainScene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Util\Sound.hpp">
+      <Filter>ソース ファイル\Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

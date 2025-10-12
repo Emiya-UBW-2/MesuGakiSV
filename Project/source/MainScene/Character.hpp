@@ -10,6 +10,7 @@
 #include "BackGround.hpp"
 #include "../Util/Enum.hpp"
 #include "../Util/Algorithm.hpp"
+#include "../Util/Sound.hpp"
 #include "../Draw/MV1.hpp"
 
 enum class CharaStyle {
@@ -128,6 +129,10 @@ class Character :public BaseObject {
 	uint8_t				m_MoveKey{};
 	bool				m_PrevIsFPSView{};
 	char		padding2[2]{};
+	Sound::SoundUniqueID heartID{ InvalidID };
+	Sound::SoundUniqueID runfootID{ InvalidID };
+	Sound::SoundUniqueID standupID{ InvalidID };
+	char		padding3[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -177,6 +182,12 @@ public:
 public:
 	void Load(void) noexcept {
 		Draw::MV1::Load("data/Soldier/model.mv1", &ModelID);
+		heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
+		runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
+		standupID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/standup.wav", true);
+
+		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 	}
 	void Init(void) noexcept {
 		Draw::MV1::SetAnime(&ModelID, ModelID);
@@ -224,6 +235,7 @@ public:
 		//
 		if (isActive) {
 			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 				if (m_CharaStyle != CharaStyle::Squat) {
 					m_CharaStyle = CharaStyle::Squat;
 				}
@@ -232,6 +244,9 @@ public:
 				}
 			}
 			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Run)) {
+				if (m_CharaStyle == CharaStyle::Squat) {
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				}
 				m_CharaStyle = CharaStyle::Run;
 			}
 			if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::Run)) {
@@ -483,13 +498,15 @@ public:
 			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
 
 		{
+			ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)));
+			ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)));
 			ModelID.SetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)),
 				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 60.f / 100.f) *
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::Upper))
+				ModelID.GetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)))
 			);
 			ModelID.SetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)),
 				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 40.f / 100.f) *
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::Upper2))
+				ModelID.GetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)))
 			);
 		}
 
