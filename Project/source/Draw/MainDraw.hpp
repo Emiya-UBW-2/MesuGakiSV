@@ -43,6 +43,8 @@ namespace Draw {
 		ScreenHandle	m_BufferScreen{};
 		int			m_MouseX{ InvalidID };
 		int			m_MouseY{ InvalidID };
+		int			m_MouseAddX{ 0 };
+		int			m_MouseAddY{ 0 };
 		int			m_RenderDispWidth{ 1920 };			//UI描画などの基準X
 		int			m_RenderDispHeight{ 1080 };			//UI描画などの基準Y
 		int			m_DispWidth{ 1920 };			//UI描画などの基準X
@@ -77,8 +79,16 @@ namespace Draw {
 
 		auto	GetDispWidth(void) const noexcept { return this->m_DispWidth; }//描画範囲のX座標
 		auto	GetDispHeight(void) const noexcept { return this->m_DispHeight; }//描画範囲のY座標
+
+		auto	GetWindowDrawWidth(void) const noexcept { return this->m_WindowDrawWidth; }//描画範囲のX座標
+		auto	GetWindowDrawHeight(void) const noexcept { return this->m_WindowDrawHeight; }//描画範囲のY座標
+
 		auto	GetMousePositionX(void) const noexcept { return this->m_MouseX; }//マウスのX座標
 		auto	GetMousePositionY(void) const noexcept { return this->m_MouseY; }//マウスのY座標
+
+		auto	GetMouseAddX(void) const noexcept { return this->m_MouseAddX; }//マウスのX座標
+		auto	GetMouseAddY(void) const noexcept { return this->m_MouseAddY; }//マウスのY座標
+
 		auto	GetUpdateTickCount(void) const noexcept { return this->m_UpdateTickCount; }//この周回では何回アップデートできるかをチェックする
 	public://Setter
 		void		SetWindowMode(EnumWindowMode value) const noexcept {

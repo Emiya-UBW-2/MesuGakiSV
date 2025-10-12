@@ -32,6 +32,8 @@ class MainScene : public Util::SceneBase {
 
 	float			m_Fade{ 1.f };
 	std::string		m_MapName{ "Map1" };
+
+	float			m_FPSPer{ 0.f };
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -164,13 +166,20 @@ protected:
 
 		Util::VECTOR3D CamPosition;
 		Util::VECTOR3D CamTarget;
-		if (this->m_Character.IsFPSView()) {
-			BackGround::Instance()->SettingChange(3, 0);
+
+		m_FPSPer = std::clamp(m_FPSPer + (this->m_Character.IsFPSView() ? 1.f : -1.f) / 60.f / 0.25f, 0.f, 1.f);
+
+		Util::VECTOR3D CamPosition1;
+		Util::VECTOR3D CamTarget1;
+		Util::VECTOR3D CamPosition2;
+		Util::VECTOR3D CamTarget2;
+		if (m_FPSPer != 0.f) {
+			BackGround::Instance()->SettingChange(3, 1);
 			Util::Matrix4x4 EyeMat = this->m_Character.GetEyeMat();
-			CamPosition = EyeMat.pos();
-			CamTarget = CamPosition + EyeMat.zvec() * -1.f;
+			CamPosition1 = EyeMat.pos();
+			CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f*Scale3DRate);
 		}
-		else {
+		if (m_FPSPer != 1.f) {
 			BackGround::Instance()->SettingChange(1, 0);
 			float Length = (Scale3DRate * 5.f);
 			if (this->m_Character.IsFreeView()) {
@@ -200,10 +209,12 @@ protected:
 				CamVec = Target - CamPos;
 			}
 			this->m_CamVec = Util::Lerp(this->m_CamVec, CamVec, 1.f - 0.9f);
-			CamPosition = CamPos + this->m_CamVec;
-			CamTarget = CamPos;
+			CamPosition2 = CamPos + this->m_CamVec;
+			CamTarget2 = CamPos;
 		}
 
+		CamPosition = Util::Lerp(CamPosition2, CamPosition1, m_FPSPer);
+		CamTarget = Util::Lerp(CamTarget2, CamTarget1, m_FPSPer);
 
 		auto* CameraParts = Camera::Camera3D::Instance();
 		CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));

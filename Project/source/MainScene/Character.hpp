@@ -126,8 +126,8 @@ class Character :public BaseObject {
 	Util::Matrix4x4		m_RightPos;
 	Util::Matrix4x4		m_LeftPos;
 	uint8_t				m_MoveKey{};
-	int					m_PrevMX{};
-	int					m_PrevMY{};
+	bool				m_PrevIsFPSView{};
+	char		padding2[2]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -139,7 +139,7 @@ private:
 	int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
 	const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
 public:
-	const Util::Matrix4x4& GetEyeMat(void) const noexcept { return ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Eye))); }
+	const Util::Matrix4x4 GetEyeMat(void) const noexcept { return ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Eye))); }
 
 	bool IsFPSView(void) const noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -240,17 +240,25 @@ public:
 		}
 		// 左右回転
 
-		auto* DrawerMngr = Draw::MainDraw::Instance();
-		int MX = DrawerMngr->GetMousePositionX();
-		int MY = DrawerMngr->GetMousePositionY();
-		int LookX = MX - m_PrevMX;
-		int LookY = MY - m_PrevMY;
-		m_PrevMX = MX;
-		m_PrevMY = MY;
+		int LookX = 0;
+		int LookY = 0;
 
 		if (IsFPSView()) {
-			float YradAdd = Util::deg2rad(static_cast<float>(LookX) / 10.f);
-			float XradAdd = Util::deg2rad(static_cast<float>(LookY) / 10.f);
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			if (m_PrevIsFPSView != IsFPSView()) {
+				DxLib::SetMousePoint(DrawerMngr->GetWindowDrawWidth() / 2, DrawerMngr->GetWindowDrawHeight() / 2);
+			}
+			int MX = DrawerMngr->GetMousePositionX();
+			int MY = DrawerMngr->GetMousePositionY();
+			DxLib::GetMousePoint(&MX, &MY);
+			LookX = MX - DrawerMngr->GetWindowDrawWidth() / 2;
+			LookY = MY - DrawerMngr->GetWindowDrawHeight() / 2;
+			DxLib::SetMousePoint(DrawerMngr->GetWindowDrawWidth() / 2, DrawerMngr->GetWindowDrawHeight() / 2);
+		}
+		m_PrevIsFPSView = IsFPSView();
+		if (IsFPSView()) {
+			float YradAdd = Util::deg2rad(static_cast<float>(LookX) / 30.f);
+			float XradAdd = Util::deg2rad(static_cast<float>(LookY) / 30.f);
 
 			Yrad += YradAdd;
 			if (Yrad > 0.f) {
@@ -266,7 +274,7 @@ public:
 				}
 			}
 
-			Xrad += XradAdd;
+			Xrad = std::clamp(Xrad + XradAdd, Util::deg2rad(-80), Util::deg2rad(80));
 		}
 		else {
 			Util::VECTOR2D Vec = Util::VECTOR2D::zero();

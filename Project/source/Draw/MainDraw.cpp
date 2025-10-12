@@ -116,10 +116,12 @@ namespace Draw {
 				this->m_WindowHeight = HeightT * GetDPI() / BaseDPI;
 			}
 		}
-		//マウス座標取得
-		DxLib::GetMousePoint(&this->m_MouseX, &this->m_MouseY);
-		this->m_MouseX = (-(this->m_WindowDrawWidth - this->m_WindowWidth) / 2 + this->m_MouseX) * GetDispWidth() / this->m_WindowWidth;
-		this->m_MouseY = (-(this->m_WindowDrawHeight - this->m_WindowHeight) / 2 + this->m_MouseY) * GetDispHeight() / this->m_WindowHeight;
+		if (m_WindowWidth != 0 && m_WindowHeight != 0) {
+			//マウス座標取得
+			DxLib::GetMousePoint(&this->m_MouseX, &this->m_MouseY);
+			this->m_MouseX = (-(this->m_WindowDrawWidth - this->m_WindowWidth) / 2 + this->m_MouseX) * GetDispWidth() / this->m_WindowWidth;
+			this->m_MouseY = (-(this->m_WindowDrawHeight - this->m_WindowHeight) / 2 + this->m_MouseY) * GetDispHeight() / this->m_WindowHeight;
+		}
 	}
 	void MainDraw::StartDraw(void) noexcept {
 		if (this->m_UpdateTickCount > 0) {
