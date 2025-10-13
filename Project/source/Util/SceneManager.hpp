@@ -8,6 +8,8 @@
 #include "../Draw/KeyGuide.hpp"
 #include "../Draw/FontDraw.hpp"
 
+#include "../MainScene/BaseObject.hpp"
+
 #pragma warning(disable:4710)
 #pragma warning( push, 3 )
 #include <vector>
@@ -117,6 +119,7 @@ namespace Util {
 			}
 			if (this->m_NowScene) {
 				this->m_NowScene->ShadowDraw();
+				ObjectManager::Instance()->Draw_Shadow();
 			}
 		}
 		void SetShadowDrawRigid(void) noexcept {
@@ -133,6 +136,7 @@ namespace Util {
 			}
 			if (this->m_NowScene) {
 				this->m_NowScene->SetShadowDraw();
+				ObjectManager::Instance()->Draw_SetShadow();
 			}
 		}
 		void Draw3D(void) noexcept {
@@ -141,6 +145,7 @@ namespace Util {
 			}
 			if (this->m_NowScene) {
 				this->m_NowScene->Draw();
+				ObjectManager::Instance()->Draw();
 			}
 		}
 		void DepthDraw3D(void) noexcept {
@@ -149,6 +154,7 @@ namespace Util {
 			}
 			if (this->m_NowScene) {
 				this->m_NowScene->DepthDraw();
+				ObjectManager::Instance()->Draw_Depth();
 			}
 		}
 		void UIDraw(void) noexcept {
@@ -215,6 +221,7 @@ namespace Util {
 				this->m_LoadEndSwitch = false;
 				if (this->m_NowScene) {
 					this->m_NowScene->Update();
+					ObjectManager::Instance()->UpdateObject();
 					if (this->m_NowScene->IsEndScene()) {
 						this->m_Phase = EnumScenePhase::GoNext;
 					}

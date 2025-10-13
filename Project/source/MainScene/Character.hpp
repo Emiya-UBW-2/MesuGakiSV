@@ -181,7 +181,6 @@ public:
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 	}
 	void Init_Sub(void) noexcept override {
-		Draw::MV1::SetAnime(&ModelID, ModelID);
 		Speed = 0.f;
 
 		m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.txt");

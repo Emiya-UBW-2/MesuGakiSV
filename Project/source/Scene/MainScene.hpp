@@ -20,7 +20,7 @@ class MainScene : public Util::SceneBase {
 	bool			m_IsSceneEnd{ false };
 	bool			m_IsPauseActive{ false };
 	char		padding[5]{};
-	Character		m_Character{};
+	std::shared_ptr<Character>		m_Character{};
 	Util::VECTOR3D	m_CamOffset{};
 	Util::VECTOR3D	m_CamVec{};
 	std::string		m_MapName{ "Map1" };
@@ -42,14 +42,16 @@ protected:
 	void Load_Sub(void) noexcept override {
 		BackGround::Create();
 		BackGround::Instance()->Load(m_MapName.c_str());
-		this->m_Character.Load();
+		ObjectManager::Instance()->LoadModel("data/Soldier/");
 	}
 	void Init_Sub(void) noexcept override {
 		BackGround::Instance()->Init();
-		this->m_Character.Init();
+
+		this->m_Character = std::make_shared<Character>();
+		ObjectManager::Instance()->InitObject(this->m_Character, this->m_Character, "data/Soldier/");
 		for (auto& m : BackGround::Instance()->GetMapInfo()) {
 			if (m.m_InfoType == m_EntrancePoint) {
-				this->m_Character.SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
+				this->m_Character->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
 			}
 		}
 		m_Exit = false;
@@ -170,7 +172,7 @@ protected:
 		Util::VECTOR3D CamPosition;
 		Util::VECTOR3D CamTarget;
 
-		m_FPSPer = std::clamp(m_FPSPer + (this->m_Character.IsFPSView() ? 1.f : -1.f) / 60.f / 0.25f, 0.f, 1.f);
+		m_FPSPer = std::clamp(m_FPSPer + (this->m_Character->IsFPSView() ? 1.f : -1.f) / 60.f / 0.25f, 0.f, 1.f);
 
 		Util::VECTOR3D CamPosition1;
 		Util::VECTOR3D CamTarget1;
@@ -178,14 +180,14 @@ protected:
 		Util::VECTOR3D CamTarget2;
 		if (m_FPSPer != 0.f) {
 			BackGround::Instance()->SettingChange(3, 1);
-			Util::Matrix4x4 EyeMat = this->m_Character.GetEyeMat();
+			Util::Matrix4x4 EyeMat = this->m_Character->GetEyeMat();
 			CamPosition1 = EyeMat.pos();
 			CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f * Scale3DRate);
 		}
 		if (m_FPSPer != 1.f) {
 			BackGround::Instance()->SettingChange(1, 0);
 			float Length = (Scale3DRate * 5.f);
-			if (this->m_Character.IsFreeView()) {
+			if (this->m_Character->IsFreeView()) {
 				this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::vget(XPer * 3.f, 0.f, -YPer * 2.f), 1.f - 0.8f);
 				Length = (Scale3DRate * 5.f);
 			}
@@ -193,7 +195,7 @@ protected:
 				this->m_CamOffset = Util::Lerp(this->m_CamOffset, Util::VECTOR3D::zero(), 1.f - 0.8f);
 				Length = (Scale3DRate * 3.f);
 			}
-			Util::VECTOR3D CamPos = this->m_Character.GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
+			Util::VECTOR3D CamPos = this->m_Character->GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
 			Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f).normalized() * Length;
 			{
 				Util::VECTOR3D Target = CamPos + CamVec.normalized() * (Scale3DRate * 5.f);
@@ -223,16 +225,15 @@ protected:
 		CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 
 		CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45), CameraParts->GetCamera().GetCamFov(), m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
-		this->m_Character.SetIsActive(!m_Exit);
+		this->m_Character->SetIsActive(!m_Exit);
 
 		BackGround::Instance()->Update();
-		this->m_Character.Update();
 
 		m_Fade = std::clamp(m_Fade + (m_Exit ? 1.f : -1.f) / 60.f, 0.f, 1.f);
 		if (!m_Exit) {
 			for (auto& m : BackGround::Instance()->GetMapInfo()) {
 				if (m.m_InfoType == InfoType::None || m.m_InfoType == InfoType::Max) { continue; }
-				Util::VECTOR3D Vec = BackGround::Instance()->GetWorldPos(m.m_pos) - this->m_Character.GetMat().pos();
+				Util::VECTOR3D Vec = BackGround::Instance()->GetWorldPos(m.m_pos) - this->m_Character->GetMat().pos();
 				float Len = 0.125f * Scale3DRate;
 				if (std::fabsf(Vec.y) >= Len) { continue; }
 				Vec.y = 0.f;
@@ -275,33 +276,28 @@ protected:
 	}
 	void SetShadowDraw_Sub(void) noexcept override {
 		BackGround::Instance()->SetShadowDraw();
-		this->m_Character.SetShadowDraw();
 	}
 	void Draw_Sub(void) noexcept override {
-		this->m_Character.CheckDraw();
 		SetVerticalFogEnable(true);
 		SetVerticalFogMode(DX_FOGMODE_LINEAR);
 		SetVerticalFogStartEnd(8.0f * Scale3DRate, 7.0f * Scale3DRate);
 		SetVerticalFogColor(0, 0, 0);
 		BackGround::Instance()->Draw();
 		SetVerticalFogEnable(false);
-		this->m_Character.Draw();
 	}
 	void DepthDraw_Sub(void) noexcept override {
-		this->m_Character.Draw();
 	}
 	void ShadowDrawFar_Sub(void) noexcept override {
 		BackGround::Instance()->ShadowDrawFar();
 	}
 	void ShadowDraw_Sub(void) noexcept override {
 		BackGround::Instance()->ShadowDraw();
-		this->m_Character.ShadowDraw();
 	}
 	void UIDraw_Sub(void) noexcept override {
 		{
 			int count = 0;
 			{
-				BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos());
+				BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_Character->GetMat().pos());
 				for (auto& m : BackGround::Instance()->GetMapGraph()) {
 					if (m.m_ID <= Pos.y) {
 						m.m_Per = std::clamp(m.m_Per + 1.f / 60.f, 0.f, 1.f);
@@ -323,7 +319,7 @@ protected:
 						m.m_Map.DrawRotaGraph(256, 256, 3.0f, 0.0f, true);
 					}
 					{
-						BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_Character.GetMat().pos());
+						BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_Character->GetMat().pos());
 						if (m.m_ID <= Pos.y) {
 							DxLib::SetDrawBright(255, 255, 255);
 							DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
@@ -352,7 +348,8 @@ protected:
 	void Dispose_Sub(void) noexcept override {
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->StopAll();
 		BackGround::Release();
-		this->m_Character.Dispose();
+		this->m_Character.reset();
+		ObjectManager::Instance()->DeleteAll();
 		this->m_PauseUI.Dispose();
 		this->m_OptionWindow.Dispose();
 	}
