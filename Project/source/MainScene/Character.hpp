@@ -12,6 +12,9 @@
 #include "../Util/Algorithm.hpp"
 #include "../Util/Sound.hpp"
 #include "../Draw/MV1.hpp"
+#include "../File/FileStream.hpp"
+
+#include "../Util/CharaAnim.hpp"
 
 enum class CharaStyle {
 	Stand,//立ち
@@ -92,7 +95,8 @@ struct Frames {
 
 class BaseObject {
 protected:
-	std::vector<Frames>							m_Frames;
+	Draw::MV1				ModelID{};
+	std::vector<Frames>		m_Frames;
 public:
 	BaseObject(void) noexcept {}
 	BaseObject(const BaseObject&) = delete;
@@ -108,10 +112,55 @@ public:
 	const auto& GetFrame(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].first; }
 	const auto& GetFrameBaseLocalMat(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].second; }
 	const auto& GetFrameBaseLocalWorldMat(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].third; }
+public:
+	void Init(void) noexcept {
+		// フレーム
+		{
+			this->m_Frames.clear();
+			if (GetFrameNum() > 0) {
+				this->m_Frames.resize(static_cast<size_t>(GetFrameNum()));
+				for (auto& f : this->m_Frames) {
+					f.first = InvalidID;
+				}
+				size_t count = 0;
+				for (int frameNum = 0, Max = this->ModelID.GetFrameNum(); frameNum < Max; ++frameNum) {
+					if (Util::UTF8toSjis(this->ModelID.GetFrameName(frameNum)) == GetFrameStr(static_cast<int>(count))) {
+						// そのフレームを登録
+						this->m_Frames[count].first = frameNum;
+						this->m_Frames[count].second = Util::Matrix4x4::Mtrans(this->ModelID.GetFrameLocalMatrix(this->m_Frames[count].first).pos());
+						this->m_Frames[count].third = this->ModelID.GetFrameLocalWorldMatrix(this->m_Frames[count].first);
+					}
+					else if (frameNum < Max - 1) {
+						continue;// 飛ばす
+					}
+					++count;
+					frameNum = 0;
+					if (count >= this->m_Frames.size()) {
+						break;
+					}
+				}
+			}
+		}
+		Init_Sub();
+	}
+	void Dispose(void) noexcept {
+		ModelID.Dispose();
+	}
+public:
+	void SetShadowDraw(void) const noexcept {
+		ModelID.DrawModel();
+	}
+	void Draw(void) const noexcept {
+		ModelID.DrawModel();
+	}
+	void ShadowDraw(void) const noexcept {
+		ModelID.DrawModel();
+	}
+protected:
+	virtual void Init_Sub(void) noexcept = 0;
 };
 
 class Character :public BaseObject {
-	Draw::MV1 ModelID{};
 	Util::Matrix4x4 MyMat;
 	Util::VECTOR3D MyPosTarget = Util::VECTOR3D::zero();
 	float Xrad = 0.f;
@@ -126,16 +175,23 @@ class Character :public BaseObject {
 	CharaStyle												m_CharaStyle{ CharaStyle::Stand };
 	Util::VECTOR3D											m_AimPoint;
 	float				m_YradDif{};
-	Util::Matrix4x4		m_RightPos;
-	Util::Matrix4x4		m_LeftPos;
 	uint8_t				m_MoveKey{};
 	bool				m_PrevIsFPSView{};
-	char		padding2[2]{};
+	char		padding[2]{};
 	Sound::SoundUniqueID heartID{ InvalidID };
 	Sound::SoundUniqueID runfootID{ InvalidID };
 	Sound::SoundUniqueID standupID{ InvalidID };
 	int					m_FootSoundID{};
 	bool				m_IsFPS{};
+	char		padding2[3]{};
+	int					m_StandAnimIndex{};
+	int					m_WalkAnimIndex{};
+	int					m_RunAnimIndex{};
+
+	int					m_Prev{};
+	int					m_Now{};
+	float				m_AnimChangePer{};
+	bool				m_AnimMoving{ false };
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -179,6 +235,15 @@ public:
 		}
 		MyMat = Util::Matrix4x4::Mtrans(MyPosTarget);
 	}
+
+	void SetAnim(int Index) noexcept {
+		m_Now = Index;
+		if (m_Prev != m_Now && !m_AnimMoving) {
+			Util::HandAnimPool::Instance()->GoTimeStart(m_Now);
+			m_AnimChangePer = 0.f;
+			m_AnimMoving = true;
+		}
+	}
 public:
 	void Load(void) noexcept {
 		Draw::MV1::Load("data/Soldier/model.mv1", &ModelID);
@@ -188,37 +253,20 @@ public:
 
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 	}
-	void Init(void) noexcept {
+	void Init_Sub(void) noexcept override {
 		Draw::MV1::SetAnime(&ModelID, ModelID);
 		Speed = 0.f;
 
-		// フレーム
-		{
-			this->m_Frames.clear();
-			if (GetFrameNum() > 0) {
-				this->m_Frames.resize(static_cast<size_t>(GetFrameNum()));
-				for (auto& f : this->m_Frames) {
-					f.first = InvalidID;
-				}
-				size_t count = 0;
-				for (int frameNum = 0, Max = this->ModelID.GetFrameNum(); frameNum < Max; ++frameNum) {
-					if (Util::UTF8toSjis(this->ModelID.GetFrameName(frameNum)) == GetFrameStr(static_cast<int>(count))) {
-						// そのフレームを登録
-						this->m_Frames[count].first = frameNum;
-						this->m_Frames[count].second = Util::Matrix4x4::Mtrans(this->ModelID.GetFrameLocalMatrix(this->m_Frames[count].first).pos());
-						this->m_Frames[count].third = this->ModelID.GetFrameLocalWorldMatrix(this->m_Frames[count].first);
-					}
-					else if (frameNum < Max - 1) {
-						continue;// 飛ばす
-					}
-					++count;
-					frameNum = 0;
-					if (count >= this->m_Frames.size()) {
-						break;
-					}
-				}
-			}
-		}
+		m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.txt");
+		m_WalkAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Walk.txt");
+		m_RunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Run.txt");
+
+		Util::HandAnimPool::Instance()->SetAnimSpeed(m_WalkAnimIndex, 2.5f);
+
+		m_Prev = m_StandAnimIndex;
+		SetAnim(m_StandAnimIndex);
+		m_AnimChangePer = 1.f;
+		m_AnimMoving = false;
 	}
 	void Update(bool isActive) noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -258,6 +306,17 @@ public:
 				if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::Run)) {
 					m_CharaStyle = CharaStyle::Stand;
 				}
+			}
+			if (MovePer > 0.5f) {
+				if (m_CharaStyle == CharaStyle::Run) {
+					SetAnim(m_RunAnimIndex);
+				}
+				else {
+					SetAnim(m_WalkAnimIndex);
+				}
+			}
+			else {
+				SetAnim(m_StandAnimIndex);
 			}
 		}
 		//
@@ -581,15 +640,9 @@ public:
 		ModelID.FlipAnimAll();
 
 		Util::Matrix4x4 HandBaseMat = ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Head)));
-
-		m_RightPos =
-			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
-			HandBaseMat.rotation() *
-			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(-0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
-		m_LeftPos =
-			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
-			HandBaseMat.rotation() *
-			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
+		HandBaseMat = 
+			Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(0.f, 0.f, -0.15f) * Scale3DRate) * 
+			HandBaseMat.rotation() * Util::Matrix4x4::Mtrans(HandBaseMat.pos());
 
 		{
 			ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)));
@@ -603,8 +656,24 @@ public:
 				ModelID.GetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)))
 			);
 		}
-
 		{
+			Util::HandAnimPool::Instance()->Update();
+			if (m_AnimMoving) {
+				m_AnimChangePer = std::clamp(m_AnimChangePer + 1.f / 60.f / 0.25f, 0.f, 1.f);
+				if (m_AnimChangePer >= 1.f) {
+					m_AnimMoving = false;
+					m_Prev = m_Now;
+				}
+			}
+			DxLib::clsDx();
+			printfDx("[%d]\n", m_Now);
+			printfDx("[%d]\n", m_Prev);
+			printfDx("[%5.2f]\n", m_AnimChangePer);
+
+			Util::VRAnim	m_VRAnim = Util::VRAnim::LerpAnim(
+				Util::HandAnimPool::Instance()->GetAnim(m_Prev).GetAnim(),
+				Util::HandAnimPool::Instance()->GetAnim(m_Now).GetAnim(),
+				m_AnimChangePer);
 			Draw::IK_RightArm(
 				&ModelID,
 				GetFrame(static_cast<int>(CharaFrame::RightArm)),
@@ -613,9 +682,9 @@ public:
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm2)),
 				GetFrame(static_cast<int>(CharaFrame::RightWrist)),
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightWrist)),
-				m_RightPos);
-		}
-		{
+				m_VRAnim.m_RightRot.Get44DX()* HandBaseMat.rotation()*
+				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_RightHandPos, HandBaseMat.rotation()) + HandBaseMat.pos())
+			);
 			Draw::IK_LeftArm(
 				&ModelID,
 				GetFrame(static_cast<int>(CharaFrame::LeftArm)),
@@ -624,30 +693,20 @@ public:
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm2)),
 				GetFrame(static_cast<int>(CharaFrame::LeftWrist)),
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftWrist)),
-				m_LeftPos);
+				m_VRAnim.m_LeftRot.Get44DX()* HandBaseMat.rotation()*
+				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos())
+			);
 		}
-	}
-	void Dispose(void) noexcept {
-		ModelID.Dispose();
-	}
-
-	void SetShadowDraw(void) const noexcept {
-		ModelID.DrawModel();
 	}
 	void CheckDraw(void) noexcept {
-		if (IsFreeView()) {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
-			Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
-			Util::VECTOR3D Now = MyMat.pos();
-			m_AimPoint = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
+		if (!IsFPSView()) {
+			if (IsFreeView()) {
+				auto* DrawerMngr = Draw::MainDraw::Instance();
+				Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
+				Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
+				Util::VECTOR3D Now = MyMat.pos();
+				m_AimPoint = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
+			}
 		}
 	}
-	void Draw(void) const noexcept {
-		ModelID.DrawModel();
-	}
-	void ShadowDraw(void) const noexcept {
-		ModelID.DrawModel();
-	}
-
 };

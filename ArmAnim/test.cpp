@@ -1,4 +1,4 @@
-#define USE_VR (false)
+#define USE_VR (true)
 
 #define NOMINMAX
 #include "DxLib.h"
@@ -102,6 +102,7 @@ struct Frames {
 
 
 struct VRAnim {
+	int ID{};
 	Util::Matrix3x3	m_RightRot;
 	Util::Matrix3x3	m_LeftRot;
 	Util::VECTOR3D	m_LeftHandPos;
@@ -282,8 +283,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 
 		{
-			Util::Matrix4x4 HandBaseMat = Model.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Head))) *
-				Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(0.f, 0.f, -0.15f) * Scale3DRate);
+			Util::Matrix4x4 HandBaseMat = Model.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Head)));
+			HandBaseMat =
+				Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(0.f, 0.f, -0.15f) * Scale3DRate) *
+				HandBaseMat.rotation() * Util::Matrix4x4::Mtrans(HandBaseMat.pos());
 
 			if (m_IsRecord) {
 				m_VRAnim = m_VRAnims.at(std::clamp(60 * 30 - static_cast<int>(m_Time), 0, static_cast<int>(m_VRAnims.size() - 1)));
@@ -297,11 +300,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				if (DXLibRef::VRControl::Instance()->Get_VR_Hand1Device() && DXLibRef::VRControl::Instance()->Get_VR_Hand1Device()->IsActive()) {
 					DXLibRef::VRControl::Instance()->GetHand1Position(&m_VRAnim.m_LeftHandPos, &m_VRAnim.m_LeftRot);
 					m_VRAnim.m_LeftRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90));
+					m_VRAnim.m_LeftRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-45));
 					m_VRAnim.m_LeftHandPos = Util::Matrix3x3::Vtrans(m_VRAnim.m_LeftHandPos * Scale3DRate - BaseMat.pos(), Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90)));
 				}
 				if (DXLibRef::VRControl::Instance()->Get_VR_Hand2Device() && DXLibRef::VRControl::Instance()->Get_VR_Hand2Device()->IsActive()) {
 					DXLibRef::VRControl::Instance()->GetHand2Position(&m_VRAnim.m_RightHandPos, &m_VRAnim.m_RightRot);
 					m_VRAnim.m_RightRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90));
+					m_VRAnim.m_RightRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-45));
 					m_VRAnim.m_RightHandPos = Util::Matrix3x3::Vtrans(m_VRAnim.m_RightHandPos * Scale3DRate - BaseMat.pos(), Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90)));
 				}
 
@@ -361,8 +366,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// FPSを表示
 		clsDx();
 		printfDx("%5.2f fps\n", GetFPS());
-		printfDx("再生 %5.2f time\n", m_Time / 60.f);
-		printfDx("記録 %5.2f time\n", m_AminTime / 60.f);
+		printfDx("再生 %5.2f time\n", m_Time / 30.f);
+		printfDx("記録 %5.2f time\n", m_AminTime / 30.f);
 		// シャドウマップへの描画
 		DXParam.SetShadowMapStart(CamPos);
 		{

@@ -722,7 +722,18 @@ namespace Util {
 			return A + (T)((B - A) * Per);
 		}
 	}
-
+	// Matrix版の線形補完
+	inline Matrix4x4 Lerp(const Matrix4x4& A, const Matrix4x4& B, float Per) noexcept {
+		return Matrix4x4::Axis1(
+			Lerp(A.yvec(), B.yvec(), Per).normalized(),
+			Lerp(A.zvec(), B.zvec(), Per).normalized(),
+			Lerp(A.pos(), B.pos(), Per));
+	}
+	inline Matrix3x3 Lerp(const Matrix3x3& A, const Matrix3x3& B, float Per) noexcept {
+		return Matrix3x3::Axis1(
+			Lerp(A.yvec(), B.yvec(), Per).normalized(),
+			Lerp(A.zvec(), B.zvec(), Per).normalized());
+	}
 	// --------------------------------------------------------------------------------------------------
 	// 角度変換
 	// --------------------------------------------------------------------------------------------------

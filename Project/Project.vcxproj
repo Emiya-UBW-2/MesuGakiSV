@@ -38,6 +38,7 @@
     <ClCompile Include="source\Scene\MainScene.cpp" />
     <ClCompile Include="source\Scene\TitleScene.cpp" />
     <ClCompile Include="source\TitleUI.cpp" />
+    <ClCompile Include="source\Util\CharaAnim.cpp" />
     <ClCompile Include="source\Util\Key.cpp" />
     <ClCompile Include="source\Util\Localize.cpp" />
     <ClCompile Include="source\Util\Option.cpp" />
@@ -66,6 +67,7 @@
     <ClInclude Include="source\Scene\TitleScene.hpp" />
     <ClInclude Include="source\TitleUI.hpp" />
     <ClInclude Include="source\Util\Algorithm.hpp" />
+    <ClInclude Include="source\Util\CharaAnim.hpp" />
     <ClInclude Include="source\Util\Enum.hpp" />
     <ClInclude Include="source\Util\Key.hpp" />
     <ClInclude Include="source\Util\Localize.hpp" />
