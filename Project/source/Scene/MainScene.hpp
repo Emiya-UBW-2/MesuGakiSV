@@ -11,6 +11,7 @@
 #include "../PauseUI.hpp"
 #include "../MainScene/BackGround.hpp"
 #include "../MainScene/Character.hpp"
+#include "../MainScene/Gun.hpp"
 
 class MainScene : public Util::SceneBase {
 	OptionWindow	m_OptionWindow;
@@ -21,6 +22,8 @@ class MainScene : public Util::SceneBase {
 	bool			m_IsPauseActive{ false };
 	char		padding[5]{};
 	std::shared_ptr<Character>		m_Character{};
+	std::shared_ptr<Gun>			m_Gun{};
+
 	Util::VECTOR3D	m_CamOffset{};
 	Util::VECTOR3D	m_CamVec{};
 	std::string		m_MapName{ "Map1" };
@@ -40,15 +43,23 @@ public:
 	virtual ~MainScene(void) noexcept {}
 protected:
 	void Load_Sub(void) noexcept override {
+		ObjectManager::Create();
 		BackGround::Create();
 		BackGround::Instance()->Load(m_MapName.c_str());
 		ObjectManager::Instance()->LoadModel("data/Soldier/");
+		ObjectManager::Instance()->LoadModel("data/Px4/");
 	}
 	void Init_Sub(void) noexcept override {
 		BackGround::Instance()->Init();
 
 		this->m_Character = std::make_shared<Character>();
 		ObjectManager::Instance()->InitObject(this->m_Character, this->m_Character, "data/Soldier/");
+
+		this->m_Gun = std::make_shared<Gun>();
+		ObjectManager::Instance()->InitObject(this->m_Gun, this->m_Gun, "data/Px4/");
+
+		this->m_Character->SetGunUniqueID(this->m_Gun->GetObjectID());
+
 		for (auto& m : BackGround::Instance()->GetMapInfo()) {
 			if (m.m_InfoType == m_EntrancePoint) {
 				this->m_Character->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
@@ -164,6 +175,7 @@ protected:
 		if (this->m_IsPauseActive) {
 			return;
 		}
+		ObjectManager::Instance()->UpdateObject();
 		//更新
 		auto* DrawerMngr = Draw::MainDraw::Instance();
 		float XPer = std::clamp(static_cast<float>(DrawerMngr->GetMousePositionX() - DrawerMngr->GetDispWidth() / 2) / static_cast<float>(DrawerMngr->GetDispWidth() / 2), -1.f, 1.f);
@@ -221,6 +233,14 @@ protected:
 		CamPosition = Util::Lerp(CamPosition2, CamPosition1, m_FPSPer);
 		CamTarget = Util::Lerp(CamTarget2, CamTarget1, m_FPSPer);
 
+		/*
+		{
+			Util::Matrix4x4 EyeMat = this->m_Character->GetEyeMat();
+			CamPosition = EyeMat.pos() + Util::VECTOR3D::forward() * (-1.f * Scale3DRate);
+			CamTarget = EyeMat.pos();
+		}
+		//*/
+
 		auto* CameraParts = Camera::Camera3D::Instance();
 		CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 
@@ -276,6 +296,7 @@ protected:
 	}
 	void SetShadowDraw_Sub(void) noexcept override {
 		BackGround::Instance()->SetShadowDraw();
+		ObjectManager::Instance()->Draw_SetShadow();
 	}
 	void Draw_Sub(void) noexcept override {
 		SetVerticalFogEnable(true);
@@ -284,14 +305,17 @@ protected:
 		SetVerticalFogColor(0, 0, 0);
 		BackGround::Instance()->Draw();
 		SetVerticalFogEnable(false);
+		ObjectManager::Instance()->Draw();
 	}
 	void DepthDraw_Sub(void) noexcept override {
+		ObjectManager::Instance()->Draw_Depth();
 	}
 	void ShadowDrawFar_Sub(void) noexcept override {
 		BackGround::Instance()->ShadowDrawFar();
 	}
 	void ShadowDraw_Sub(void) noexcept override {
 		BackGround::Instance()->ShadowDraw();
+		ObjectManager::Instance()->Draw_Shadow();
 	}
 	void UIDraw_Sub(void) noexcept override {
 		{
@@ -349,8 +373,10 @@ protected:
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->StopAll();
 		BackGround::Release();
 		this->m_Character.reset();
+		this->m_Gun.reset();
 		ObjectManager::Instance()->DeleteAll();
 		this->m_PauseUI.Dispose();
 		this->m_OptionWindow.Dispose();
+		ObjectManager::Release();
 	}
 };

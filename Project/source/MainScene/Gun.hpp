@@ -18,6 +18,24 @@ enum class GunAnim {
 	Max,
 };
 
+enum class GunFrame {
+	Center,
+	LeftHandPos,
+	LeftHandZVec,
+	LeftHandYVec,
+	ADSPos,
+	EyePos,
+	Max,
+};
+static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
+	"センター",
+	"LeftHand",
+	"LeftHandZVec",
+	"LeftHandYVec",
+	"ADSPos",
+	"EyePos",
+};
+
 class Gun :public BaseObject {
 	std::array<float, static_cast<int>(GunAnim::Max)>		m_AnimPer{};
 	Sound::SoundUniqueID SlideOpenID{ InvalidID };
@@ -36,12 +54,17 @@ public:
 	Gun& operator=(Gun&&) = delete;
 	virtual ~Gun(void) noexcept {}
 private:
-	//int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
-	//const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
+	int				GetFrameNum(void) noexcept override { return static_cast<int>(GunFrame::Max); }
+	const char*		GetFrameStr(int id) noexcept override { return GunFrameName[id]; }
 public:
+	const auto			GetBaseLeftHandMat(void) const noexcept {
+		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandPos)).pos();
+		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandYVec)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandZVec)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
 public:
 	void Load_Sub(void) noexcept override {
-		Draw::MV1::Load("data/Px4/model.mv1", &ModelID);
 		SlideOpenID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/0.wav", true);
 		SlideCloseID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/1.wav", true);
 		ShotID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/2.wav", true);

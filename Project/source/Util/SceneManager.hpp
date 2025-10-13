@@ -85,7 +85,8 @@ namespace Util {
 		EnumScenePhase					m_Phase{ EnumScenePhase::GoNext };
 		int								m_ASyncLoadNum{ 0 };
 		bool							m_LoadEndSwitch{ false };
-		char		padding[3]{};
+		bool							m_IsUpdateActive{ false };
+		char		padding[2]{};
 	private:
 		SceneManager(void) noexcept {
 			this->m_NowScene = nullptr;
@@ -119,7 +120,6 @@ namespace Util {
 			}
 			if (this->m_NowScene) {
 				this->m_NowScene->ShadowDraw();
-				ObjectManager::Instance()->Draw_Shadow();
 			}
 		}
 		void SetShadowDrawRigid(void) noexcept {
@@ -136,7 +136,6 @@ namespace Util {
 			}
 			if (this->m_NowScene) {
 				this->m_NowScene->SetShadowDraw();
-				ObjectManager::Instance()->Draw_SetShadow();
 			}
 		}
 		void Draw3D(void) noexcept {
@@ -145,7 +144,6 @@ namespace Util {
 			}
 			if (this->m_NowScene) {
 				this->m_NowScene->Draw();
-				ObjectManager::Instance()->Draw();
 			}
 		}
 		void DepthDraw3D(void) noexcept {
@@ -154,7 +152,6 @@ namespace Util {
 			}
 			if (this->m_NowScene) {
 				this->m_NowScene->DepthDraw();
-				ObjectManager::Instance()->Draw_Depth();
 			}
 		}
 		void UIDraw(void) noexcept {
@@ -221,7 +218,6 @@ namespace Util {
 				this->m_LoadEndSwitch = false;
 				if (this->m_NowScene) {
 					this->m_NowScene->Update();
-					ObjectManager::Instance()->UpdateObject();
 					if (this->m_NowScene->IsEndScene()) {
 						this->m_Phase = EnumScenePhase::GoNext;
 					}

@@ -31,7 +31,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	DXLibRef::KeyGuide::Create();
 	Sound::SoundPool::Create();
 	Util::HandAnimPool::Create();
-	ObjectManager::Create();
 
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* pOption = Util::OptionParam::Instance();
@@ -128,7 +127,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 	}
 
-	ObjectManager::Release();
 	Util::HandAnimPool::Release();
 	Sound::SoundPool::Release();
 	DXLibRef::KeyGuide::Release();
