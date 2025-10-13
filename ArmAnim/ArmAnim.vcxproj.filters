@@ -8,6 +8,7 @@
     <ClCompile Include="source\Util\Util.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="source\VR.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Draw">
@@ -27,5 +28,6 @@
     <ClInclude Include="source\Util\Util.hpp">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="source\VR.hpp" />
   </ItemGroup>
 </Project>

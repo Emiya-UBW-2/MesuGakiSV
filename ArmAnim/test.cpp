@@ -1,3 +1,5 @@
+#define USE_VR (false)
+
 #define NOMINMAX
 #include "DxLib.h"
 
@@ -9,6 +11,7 @@
 #include "source/Util/Util.hpp"
 #include "source/Util/Algorithm.hpp"
 #include "source/Draw/MV1.hpp"
+#include "source/VR.hpp"
 
 class DX {
 	int ShadowMapHandle = -1;
@@ -98,6 +101,14 @@ struct Frames {
 };
 
 
+struct VRAnim {
+	Util::Matrix3x3	m_RightRot;
+	Util::Matrix3x3	m_LeftRot;
+	Util::VECTOR3D	m_LeftHandPos;
+	Util::VECTOR3D	m_RightHandPos;
+};
+
+
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	VECTOR MyPos = VGet(0.f, 0.f, 0.f);
 	VECTOR MyVec = VGet(0.f, 0.f, 0.f);
@@ -107,8 +118,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// 初期化
 	DX DXParam;
 
-	std::vector<Frames>							m_Frames;
-	Draw::MV1 Model;
+	int MainDrawScreen = MakeScreen(1080, 1920, false);
+
+	DXLibRef::VRControl::Create();
+#if USE_VR
+	DXLibRef::VRControl::Instance()->Init();
+#endif
+
+	VRAnim				m_VRAnim{};
+
+	std::vector<VRAnim>	m_VRAnims{};
+	m_VRAnims.resize(60 * 30);
+	float m_AminTime = 0.f;
+	int m_AminTimePrev = 0;
+
+	float m_Time = 0.f;
+	bool m_IsRecord = false;
+
+	std::vector<Frames>	m_Frames;
+	Draw::MV1			Model;
 	Util::Matrix4x4		m_RightPos;
 	Util::Matrix4x4		m_LeftPos;
 
@@ -116,6 +144,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	auto GetFrameStr = [&](int id) { return CharaFrameName[id]; };
 	auto GetFrame = [&](int frame) { return m_Frames[static_cast<size_t>(frame)].first; };
 	auto GetFrameBaseLocalMat = [&](int frame) { return m_Frames[static_cast<size_t>(frame)].second; };
+	auto GetFrameBaseLocalWorldMat = [&](int frame) { return m_Frames[static_cast<size_t>(frame)].third; };
+
+	auto Save = [&](void) {
+		std::ofstream File("data/anim.txt");
+		int loop = 0;
+		for (auto& V : m_VRAnims) {
+			File << "Frame=" + std::to_string(loop) + "\n";
+
+			File << "RightRot0=" + std::to_string(V.m_RightRot.get().m[0][0]) + "," + std::to_string(V.m_RightRot.get().m[0][1]) + "," + std::to_string(V.m_RightRot.get().m[0][2]) + "\n";
+			File << "RightRot1=" + std::to_string(V.m_RightRot.get().m[1][0]) + "," + std::to_string(V.m_RightRot.get().m[1][1]) + "," + std::to_string(V.m_RightRot.get().m[1][2]) + "\n";
+			File << "RightRot2=" + std::to_string(V.m_RightRot.get().m[2][0]) + "," + std::to_string(V.m_RightRot.get().m[2][1]) + "," + std::to_string(V.m_RightRot.get().m[2][2]) + "\n";
+			File << "RightPos=" + std::to_string(V.m_RightHandPos.x) + "," + std::to_string(V.m_RightHandPos.y) + "," + std::to_string(V.m_RightHandPos.z) + "\n";
+
+			File << "LeftRot0=" + std::to_string(V.m_LeftRot.get().m[0][0]) + "," + std::to_string(V.m_LeftRot.get().m[0][1]) + "," + std::to_string(V.m_LeftRot.get().m[0][2]) + "\n";
+			File << "LeftRot1=" + std::to_string(V.m_LeftRot.get().m[1][0]) + "," + std::to_string(V.m_LeftRot.get().m[1][1]) + "," + std::to_string(V.m_LeftRot.get().m[1][2]) + "\n";
+			File << "LeftRot2=" + std::to_string(V.m_LeftRot.get().m[2][0]) + "," + std::to_string(V.m_LeftRot.get().m[2][1]) + "," + std::to_string(V.m_LeftRot.get().m[2][2]) + "\n";
+			File << "LeftPos=" + std::to_string(V.m_LeftHandPos.x) + "," + std::to_string(V.m_LeftHandPos.y) + "," + std::to_string(V.m_LeftHandPos.z) + "\n";
+			++loop;
+		}
+	};
+
 
 	Draw::MV1::Load("data/Soldier/model.mv1",&Model);
 	// フレーム
@@ -210,18 +259,58 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 			MyVec = VAdd(MyVec, VTransform(VGet(Y * static_cast<float>(Lange) / 3.f, X * static_cast<float>(Lange) / 3.f, 0.f), Mat));
 		}
+
+		if (DXLibRef::VRControl::Instance()->Get_VR_Hand1Device() && DXLibRef::VRControl::Instance()->Get_VR_Hand1Device()->IsActive()) {
+			if (DXLibRef::VRControl::Instance()->Get_VR_Hand1Device()->PadTouch(DXLibRef::VR_PAD::TRIGGER)) {
+				if (m_AminTime == 0.f) {
+					m_AminTime = 60.f * 30.f;
+				}
+			}
+		}
+		if (DXLibRef::VRControl::Instance()->Get_VR_Hand2Device() && DXLibRef::VRControl::Instance()->Get_VR_Hand2Device()->IsActive()) {
+			if (DXLibRef::VRControl::Instance()->Get_VR_Hand2Device()->PadTouch(DXLibRef::VR_PAD::TRIGGER)) {
+				if (m_AminTime == 0.f) {
+					m_AminTime = 60.f * 30.f;
+				}
+			}
+		}
+		if (CheckHitKey(KEY_INPUT_SPACE) != 0) {
+			if (m_Time == 0.f) {
+				m_Time = 60.f * 30.f;
+				m_IsRecord = true;
+			}
+		}
+
 		{
-			Util::Matrix4x4 HandBaseMat = Model.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Head)));
+			Util::Matrix4x4 HandBaseMat = Model.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Head))) *
+				Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(0.f, 0.f, -0.15f) * Scale3DRate);
 
-			m_RightPos =
-				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
-				HandBaseMat.rotation() *
-				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(-0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
-			m_LeftPos =
-				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
-				HandBaseMat.rotation() *
-				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Util::VECTOR3D::vget(0.5f, -0.7f, 0.f) * Scale3DRate, HandBaseMat.rotation()) + HandBaseMat.pos());
+			if (m_IsRecord) {
+				m_VRAnim = m_VRAnims.at(std::clamp(60 * 30 - static_cast<int>(m_Time), 0, static_cast<int>(m_VRAnims.size() - 1)));
+				m_Time = std::max(m_Time - 30.f / GetFPS(), 0.f);
+				if (m_Time == 0.f) {
+					m_IsRecord = false;
+				}
+			}
+			else {
+				Util::Matrix4x4 BaseMat = GetFrameBaseLocalWorldMat(static_cast<int>(CharaFrame::Head));
+				if (DXLibRef::VRControl::Instance()->Get_VR_Hand1Device() && DXLibRef::VRControl::Instance()->Get_VR_Hand1Device()->IsActive()) {
+					DXLibRef::VRControl::Instance()->GetHand1Position(&m_VRAnim.m_LeftHandPos, &m_VRAnim.m_LeftRot);
+					m_VRAnim.m_LeftRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90));
+					m_VRAnim.m_LeftHandPos = Util::Matrix3x3::Vtrans(m_VRAnim.m_LeftHandPos * Scale3DRate - BaseMat.pos(), Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90)));
+				}
+				if (DXLibRef::VRControl::Instance()->Get_VR_Hand2Device() && DXLibRef::VRControl::Instance()->Get_VR_Hand2Device()->IsActive()) {
+					DXLibRef::VRControl::Instance()->GetHand2Position(&m_VRAnim.m_RightHandPos, &m_VRAnim.m_RightRot);
+					m_VRAnim.m_RightRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90));
+					m_VRAnim.m_RightHandPos = Util::Matrix3x3::Vtrans(m_VRAnim.m_RightHandPos * Scale3DRate - BaseMat.pos(), Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90)));
+				}
 
+				if (m_AminTimePrev != static_cast<int>(m_AminTime)) {
+					m_AminTimePrev = static_cast<int>(m_AminTime);
+					m_VRAnims.at(std::clamp(60 * 30 - static_cast<int>(m_AminTime), 0, static_cast<int>(m_VRAnims.size() - 1))) = m_VRAnim;
+				}
+				m_AminTime = std::max(m_AminTime - 30.f / GetFPS(), 0.f);
+			}
 
 			{
 				Draw::IK_RightArm(
@@ -232,7 +321,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm2)),
 					GetFrame(static_cast<int>(CharaFrame::RightWrist)),
 					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightWrist)),
-					m_RightPos);
+					m_VRAnim.m_RightRot.Get44DX() * HandBaseMat.rotation() *
+					Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_RightHandPos, HandBaseMat.rotation()) + HandBaseMat.pos())
+				);
 			}
 			{
 				Draw::IK_LeftArm(
@@ -243,7 +334,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm2)),
 					GetFrame(static_cast<int>(CharaFrame::LeftWrist)),
 					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftWrist)),
-					m_LeftPos);
+					m_VRAnim.m_LeftRot.Get44DX() * HandBaseMat.rotation() *
+					Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos())
+				);
 			}
 		}
 
@@ -253,9 +346,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// カメラ座標を指定
 		VECTOR CamPos = VSub(MyPos, VTransform(VGet(0.f, 0.f, -50.f), Mat));
 		VECTOR CamTarget = MyPos;// 自身が向いている方向を注視点とする
+		
+		if(false){
+			Util::VECTOR3D pos;
+			Util::Matrix3x3 mat;
+			DXLibRef::VRControl::Instance()->GetHMDPosition(&pos, &mat);
+			pos = pos * Scale3DRate;
+
+			CamPos = pos.get();
+			CamTarget = (pos + mat.zvec() * -1.f).get();
+		}
+
+		DXLibRef::VRControl::Instance()->Update();
 		// FPSを表示
 		clsDx();
 		printfDx("%5.2f fps\n", GetFPS());
+		printfDx("再生 %5.2f time\n", m_Time / 60.f);
+		printfDx("記録 %5.2f time\n", m_AminTime / 60.f);
 		// シャドウマップへの描画
 		DXParam.SetShadowMapStart(CamPos);
 		{
@@ -263,7 +370,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 		DXParam.SetShadowMapEnd();
 		// 裏画面への描画
+#if USE_VR
+		SetDrawScreen(MainDrawScreen);				// 描画先を裏画面に変更
+#else
 		SetDrawScreen(DX_SCREEN_BACK);				// 描画先を裏画面に変更
+#endif
 		ClearDrawScreen();											// 画面をクリア
 		{
 			SetCameraPositionAndTarget_UpVecY(CamPos, CamTarget);// カメラの位置と向きを設定
@@ -294,7 +405,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			DrawLine3D(VGet(0.f, 0.f, 0.f), VGet(0.f, 100.f, 0.f), GetColor(0, 255, 0));
 			DrawLine3D(VGet(0.f, 0.f, 0.f), VGet(0.f, 0.f, 100.f), GetColor(0, 0, 255));
 		}
+		DXLibRef::VRControl::Instance()->SubmitDraw(0, MainDrawScreen);
+		DXLibRef::VRControl::Instance()->SubmitDraw(1, MainDrawScreen);
+		DXLibRef::VRControl::Instance()->WaitSync();
 		ScreenFlip();								// 裏画面の内容を表画面に反映
 	}
+	DXLibRef::VRControl::Instance()->Dispose();
+	Save();
 	return 0;					// ソフトの終了
 }
