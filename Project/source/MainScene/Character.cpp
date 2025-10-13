@@ -22,7 +22,7 @@ void Character::Update_Sub(void) noexcept {
 	MoveKey |= UpKey ? (1 << 2) : 0;
 	MoveKey |= DownKey ? (1 << 3) : 0;
 	//
-	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Jump)) {
+	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Walk)) {
 		m_IsFPS ^= 1;
 	}
 	//
@@ -297,6 +297,7 @@ void Character::Update_Sub(void) noexcept {
 		m_GunADSPer = 0.f;
 	}
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::E)) {
+		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 		m_IsEquipHandgun ^= 1;
 		if (m_IsEquipHandgun) {
 			m_EquipHandgunPhase = 0;
