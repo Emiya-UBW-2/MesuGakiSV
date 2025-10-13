@@ -65,6 +65,12 @@ enum class CharaFrame {
 	LeftArm2,
 	LeftWrist,
 	LeftHandJoint,
+	Holster,
+	HolsterY,
+	HolsterZ,
+	HolsterPull,
+	HolsterYPull,
+	HolsterZPull,
 	Max,
 };
 static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
@@ -87,6 +93,12 @@ static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
 	"左ひじ",
 	"左手首",
 	"左ダミー",
+	"holster",
+	"holsterY",
+	"holsterZ",
+	"holsterPull",
+	"holsterYPull",
+	"holsterZPull",
 };
 
 class Character :public BaseObject {
@@ -121,9 +133,16 @@ class Character :public BaseObject {
 	int					m_Now{};
 	float				m_AnimChangePer{};
 	bool				m_AnimMoving{ false };
-	char		padding3[3]{};
+	bool				m_IsEquipHandgun{ false };
+	char		padding3[6]{};
 	int					m_GunUniqueID{};
 	float				m_GunReadyPer{};
+	float				m_HolsterGunPer{};
+	float				m_HolsterPer{};
+	float				m_HolsterPullPer{};
+	int					m_EquipHandgunPhase{};
+	float				m_GunADSPer{};
+	//char		padding4[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -135,7 +154,19 @@ private:
 	int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
 	const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
 public:
-	const Util::Matrix4x4 GetEyeMat(void) const noexcept { return GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)); }
+	auto			GetHolsterMat(void) const noexcept {
+		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Holster)).pos();
+		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::HolsterY)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::HolsterZ)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
+	auto			GetHolsterPullMat(void) const noexcept {
+		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::HolsterPull)).pos();
+		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::HolsterYPull)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::HolsterZPull)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
+	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
 	bool IsFPSView(void) const noexcept { return m_IsFPS; }
 	bool IsFreeView(void) const noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -179,19 +210,20 @@ public:
 	}
 public:
 	void Load_Sub(void) noexcept override {
+	}
+	void Init_Sub(void) noexcept override {
+		Speed = 0.f;
+
 		heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
 		runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
 		standupID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/standup.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
-	}
-	void Init_Sub(void) noexcept override {
-		Speed = 0.f;
 
 		m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.txt");
 		m_WalkAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Walk.txt");
 		m_RunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Run.txt");
 
-		Util::HandAnimPool::Instance()->SetAnimSpeed(m_WalkAnimIndex, 2.5f);
+		//Util::HandAnimPool::Instance()->SetAnimSpeed(m_WalkAnimIndex, 2.5f);
 
 		m_Prev = m_StandAnimIndex;
 		SetArmAnim(m_StandAnimIndex);

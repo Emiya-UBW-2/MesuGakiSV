@@ -57,7 +57,7 @@ private:
 	int				GetFrameNum(void) noexcept override { return static_cast<int>(GunFrame::Max); }
 	const char*		GetFrameStr(int id) noexcept override { return GunFrameName[id]; }
 public:
-	const auto			GetBaseLeftHandMat(void) const noexcept {
+	auto			GetBaseLeftHandMat(void) const noexcept {
 		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandPos)).pos();
 		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandYVec)).pos() - HandPos;
 		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandZVec)).pos() - HandPos;

@@ -235,9 +235,9 @@ protected:
 
 		/*
 		{
-			Util::Matrix4x4 EyeMat = this->m_Character->GetEyeMat();
-			CamPosition = EyeMat.pos() + Util::VECTOR3D::forward() * (-1.f * Scale3DRate);
-			CamTarget = EyeMat.pos();
+			Util::VECTOR3D EyeMat = this->m_Character->GetEyeMat().pos() + Util::VECTOR3D::down() * (0.5f * Scale3DRate);
+			CamPosition = EyeMat + Util::VECTOR3D::forward() * (-1.f * Scale3DRate);
+			CamTarget = EyeMat;
 		}
 		//*/
 
