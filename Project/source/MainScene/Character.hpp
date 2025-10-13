@@ -16,6 +16,8 @@
 
 #include "../Util/CharaAnim.hpp"
 
+#include "BaseObject.hpp"
+
 enum class CharaStyle {
 	Stand,//立ち
 	Run,//走り
@@ -87,81 +89,7 @@ static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
 	"左ダミー",
 };
 
-struct Frames {
-	int first{};
-	Util::Matrix4x4 second{};
-	Util::Matrix4x4 third{};
-};
-
-class BaseObject {
-protected:
-	Draw::MV1				ModelID{};
-	std::vector<Frames>		m_Frames;
-public:
-	BaseObject(void) noexcept {}
-	BaseObject(const BaseObject&) = delete;
-	BaseObject(BaseObject&&) = delete;
-	BaseObject& operator=(const BaseObject&) = delete;
-	BaseObject& operator=(BaseObject&&) = delete;
-	virtual ~BaseObject(void) noexcept {}
-public:
-	virtual int	GetFrameNum(void) noexcept { return 0; }
-	virtual const char* GetFrameStr(int) noexcept { return nullptr; }
-public:
-	bool			HaveFrame(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].first != InvalidID; }
-	const auto& GetFrame(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].first; }
-	const auto& GetFrameBaseLocalMat(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].second; }
-	const auto& GetFrameBaseLocalWorldMat(int frame) const noexcept { return this->m_Frames[static_cast<size_t>(frame)].third; }
-public:
-	void Init(void) noexcept {
-		// フレーム
-		{
-			this->m_Frames.clear();
-			if (GetFrameNum() > 0) {
-				this->m_Frames.resize(static_cast<size_t>(GetFrameNum()));
-				for (auto& f : this->m_Frames) {
-					f.first = InvalidID;
-				}
-				size_t count = 0;
-				for (int frameNum = 0, Max = this->ModelID.GetFrameNum(); frameNum < Max; ++frameNum) {
-					if (Util::UTF8toSjis(this->ModelID.GetFrameName(frameNum)) == GetFrameStr(static_cast<int>(count))) {
-						// そのフレームを登録
-						this->m_Frames[count].first = frameNum;
-						this->m_Frames[count].second = Util::Matrix4x4::Mtrans(this->ModelID.GetFrameLocalMatrix(this->m_Frames[count].first).pos());
-						this->m_Frames[count].third = this->ModelID.GetFrameLocalWorldMatrix(this->m_Frames[count].first);
-					}
-					else if (frameNum < Max - 1) {
-						continue;// 飛ばす
-					}
-					++count;
-					frameNum = 0;
-					if (count >= this->m_Frames.size()) {
-						break;
-					}
-				}
-			}
-		}
-		Init_Sub();
-	}
-	void Dispose(void) noexcept {
-		ModelID.Dispose();
-	}
-public:
-	void SetShadowDraw(void) const noexcept {
-		ModelID.DrawModel();
-	}
-	void Draw(void) const noexcept {
-		ModelID.DrawModel();
-	}
-	void ShadowDraw(void) const noexcept {
-		ModelID.DrawModel();
-	}
-protected:
-	virtual void Init_Sub(void) noexcept = 0;
-};
-
 class Character :public BaseObject {
-	Util::Matrix4x4 MyMat;
 	Util::VECTOR3D MyPosTarget = Util::VECTOR3D::zero();
 	float Xrad = 0.f;
 	float Yrad = 0.f;
@@ -183,7 +111,8 @@ class Character :public BaseObject {
 	Sound::SoundUniqueID standupID{ InvalidID };
 	int					m_FootSoundID{};
 	bool				m_IsFPS{};
-	char		padding2[3]{};
+	bool				m_IsActive{};
+	char		padding2[2]{};
 	int					m_StandAnimIndex{};
 	int					m_WalkAnimIndex{};
 	int					m_RunAnimIndex{};
@@ -192,6 +121,7 @@ class Character :public BaseObject {
 	int					m_Now{};
 	float				m_AnimChangePer{};
 	bool				m_AnimMoving{ false };
+	char		padding3[3]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -201,17 +131,14 @@ public:
 	virtual ~Character(void) noexcept {}
 private:
 	int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
-	const char* GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
+	const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
 public:
-	const Util::Matrix4x4 GetEyeMat(void) const noexcept { return ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Eye))); }
-
+	const Util::Matrix4x4 GetEyeMat(void) const noexcept { return GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)); }
 	bool IsFPSView(void) const noexcept { return m_IsFPS; }
 	bool IsFreeView(void) const noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
 		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) && !IsFPSView();
 	}
-
-	const Util::Matrix4x4& GetMat(void) const noexcept { return MyMat; }
 	float GetSpeed(void) const noexcept { return Speed; }
 	float GetSpeedMax(void) const noexcept {
 		switch (m_CharaStyle) {
@@ -235,8 +162,7 @@ public:
 		}
 		MyMat = Util::Matrix4x4::Mtrans(MyPosTarget);
 	}
-
-	void SetAnim(int Index) noexcept {
+	void SetArmAnim(int Index) noexcept {
 		m_Now = Index;
 		if (m_Prev != m_Now && !m_AnimMoving) {
 			Util::HandAnimPool::Instance()->GoTimeStart(m_Now);
@@ -244,8 +170,9 @@ public:
 			m_AnimMoving = true;
 		}
 	}
+	void SetIsActive(bool value) noexcept { m_IsActive = value; }
 public:
-	void Load(void) noexcept {
+	void Load_Sub(void) noexcept override {
 		Draw::MV1::Load("data/Soldier/model.mv1", &ModelID);
 		heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
 		runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
@@ -264,11 +191,11 @@ public:
 		Util::HandAnimPool::Instance()->SetAnimSpeed(m_WalkAnimIndex, 2.5f);
 
 		m_Prev = m_StandAnimIndex;
-		SetAnim(m_StandAnimIndex);
+		SetArmAnim(m_StandAnimIndex);
 		m_AnimChangePer = 1.f;
 		m_AnimMoving = false;
 	}
-	void Update(bool isActive) noexcept {
+	void Update_Sub(void) noexcept override {
 		auto* KeyMngr = Util::KeyParam::Instance();
 		bool LeftKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::A);
 		bool RightKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::D);
@@ -284,7 +211,7 @@ public:
 			m_IsFPS ^= 1;
 		}
 		//
-		if (isActive) {
+		if (m_IsActive) {
 			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
 				if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Squat) {
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
@@ -309,14 +236,14 @@ public:
 			}
 			if (MovePer > 0.5f) {
 				if (m_CharaStyle == CharaStyle::Run) {
-					SetAnim(m_RunAnimIndex);
+					SetArmAnim(m_RunAnimIndex);
 				}
 				else {
-					SetAnim(m_WalkAnimIndex);
+					SetArmAnim(m_WalkAnimIndex);
 				}
 			}
 			else {
-				SetAnim(m_StandAnimIndex);
+				SetArmAnim(m_StandAnimIndex);
 			}
 		}
 		//
@@ -324,9 +251,9 @@ public:
 			bool IsMoving = false;
 			switch (m_CharaStyle) {
 			case CharaStyle::Run:
-				if (ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).GetPer() > 0.5f) {
+				if (SetAnim(static_cast<int>(CharaAnim::Run)).GetPer() > 0.5f) {
 					IsMoving = true;
-					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).GetTime();
+					float Time = SetAnim(static_cast<int>(CharaAnim::Run)).GetTime();
 
 					//L
 					if ((9.0f / 35.f * 16.f < Time && Time < 10.0f / 35.f * 16.f)) {
@@ -347,9 +274,9 @@ public:
 				}
 				break;
 			case CharaStyle::Squat:
-				if (ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetPer() > 0.5f) {
+				if (SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetPer() > 0.5f) {
 					IsMoving = true;
-					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetTime();
+					float Time = SetAnim(static_cast<int>(CharaAnim::SquatWalk)).GetTime();
 
 					//L
 					if ((9.0f < Time && Time < 10.0f)) {
@@ -370,9 +297,9 @@ public:
 				}
 				break;
 			case CharaStyle::Stand:
-				if (ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).GetPer() > 0.5f) {
+				if (SetAnim(static_cast<int>(CharaAnim::Walk)).GetPer() > 0.5f) {
 					IsMoving = true;
-					float Time = ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).GetTime();
+					float Time = SetAnim(static_cast<int>(CharaAnim::Walk)).GetTime();
 
 					//L
 					if ((9.0f < Time && Time < 10.0f)) {
@@ -441,7 +368,7 @@ public:
 		}
 		else {
 			Util::VECTOR2D Vec = Util::VECTOR2D::zero();
-			if (isActive) {
+			if (m_IsActive) {
 				if ((MoveKey & (1 << 0)) != 0) {
 					Vec += Util::VECTOR2D::left();
 				}
@@ -539,13 +466,13 @@ public:
 			Xrad = Util::Lerp(Xrad, 0.f, 1.f - 0.9f);
 		}
 		// 進行方向に前進
-		Speed = Util::Lerp(Speed, ((MoveKey != 0) || !isActive) ? GetSpeedMax() : 0.f, 1.f - 0.9f);
+		Speed = Util::Lerp(Speed, ((MoveKey != 0) || !m_IsActive) ? GetSpeedMax() : 0.f, 1.f - 0.9f);
 
 		// 移動ベクトルを加算した仮座標を作成
 		Util::VECTOR3D PosBuffer;
 		if (IsFPSView()) {
 			Util::VECTOR3D Vec = Util::VECTOR3D::zero();
-			if (isActive) {
+			if (m_IsActive) {
 				if ((MoveKey & (1 << 0)) != 0) {
 					Vec += Util::VECTOR3D::left();
 				}
@@ -586,8 +513,9 @@ public:
 		Util::VECTOR3D MyPos = MyMat.pos();
 		MyPos = Util::Lerp(MyPos, MyPosTarget, 1.f - 0.9f);
 
-		MyMat = Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), Zrad) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Yrad) * Util::Matrix4x4::Mtrans(MyPos);
-		ModelID.SetMatrix(MyMat);
+		SetMatrix(
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), Zrad)* Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Yrad)* Util::Matrix4x4::Mtrans(MyPos)
+		);
 
 		//移動割合
 		MovePer = Util::Lerp(MovePer, GetSpeed() / GetSpeedMax(), 1.f - 0.9f);
@@ -630,30 +558,30 @@ public:
 
 		//アニメアップデート
 		for (size_t loop = 0; loop < static_cast<size_t>(CharaAnim::Max); ++loop) {
-			ModelID.SetAnim(loop).SetPer(m_AnimPer[loop]);
+			SetAnim(loop).SetPer(m_AnimPer[loop]);
 		}
-		ModelID.SetAnim(static_cast<int>(CharaAnim::Stand)).Update(true, 1.f);
-		ModelID.SetAnim(static_cast<int>(CharaAnim::Walk)).Update(true, GetSpeed() * 2.75f);
-		ModelID.SetAnim(static_cast<int>(CharaAnim::Run)).Update(true, GetSpeed() * 0.75f);
-		ModelID.SetAnim(static_cast<int>(CharaAnim::Squat)).Update(true, GetSpeed() * 2.75f);
-		ModelID.SetAnim(static_cast<int>(CharaAnim::SquatWalk)).Update(true, GetSpeed() * 2.75f);
+		SetAnim(static_cast<int>(CharaAnim::Stand)).Update(true, 1.f);
+		SetAnim(static_cast<int>(CharaAnim::Walk)).Update(true, GetSpeed() * 2.75f);
+		SetAnim(static_cast<int>(CharaAnim::Run)).Update(true, GetSpeed() * 0.75f);
+		SetAnim(static_cast<int>(CharaAnim::Squat)).Update(true, GetSpeed() * 2.75f);
+		SetAnim(static_cast<int>(CharaAnim::SquatWalk)).Update(true, GetSpeed() * 2.75f);
 		ModelID.FlipAnimAll();
 
-		Util::Matrix4x4 HandBaseMat = ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Head)));
+		Util::Matrix4x4 HandBaseMat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Head));
 		HandBaseMat =
 			Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(0.f, 0.f, -0.15f) * Scale3DRate) *
 			HandBaseMat.rotation() * Util::Matrix4x4::Mtrans(HandBaseMat.pos());
 
 		{
-			ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)));
-			ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)));
-			ModelID.SetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)),
+			ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper));
+			ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper2));
+			SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper),
 				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 60.f / 100.f) *
-				ModelID.GetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper)))
+				GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper))
 			);
-			ModelID.SetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)),
+			SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2),
 				Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 40.f / 100.f) *
-				ModelID.GetFrameLocalMatrix(GetFrame(static_cast<int>(CharaFrame::Upper2)))
+				GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2))
 			);
 		}
 		{
@@ -693,7 +621,10 @@ public:
 			);
 		}
 	}
-	void CheckDraw(void) noexcept {
+	void SetShadowDraw_Sub(void) const noexcept override {
+		ModelID.DrawModel();
+	}
+	void CheckDraw_Sub(void) noexcept override {
 		if (!IsFPSView()) {
 			if (IsFreeView()) {
 				auto* DrawerMngr = Draw::MainDraw::Instance();
@@ -703,5 +634,14 @@ public:
 				m_AimPoint = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
 			}
 		}
+	}
+	void Draw_Sub(void) const noexcept override {
+		ModelID.DrawModel();
+	}
+	void ShadowDraw_Sub(void) const noexcept override {
+		ModelID.DrawModel();
+	}
+	void Dispose_Sub(void) noexcept override {
+		ModelID.Dispose();
 	}
 };

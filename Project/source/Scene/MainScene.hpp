@@ -223,9 +223,10 @@ protected:
 		CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 
 		CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45), CameraParts->GetCamera().GetCamFov(), m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
+		this->m_Character.SetIsActive(!m_Exit);
 
 		BackGround::Instance()->Update();
-		this->m_Character.Update(!m_Exit);
+		this->m_Character.Update();
 
 		m_Fade = std::clamp(m_Fade + (m_Exit ? 1.f : -1.f) / 60.f, 0.f, 1.f);
 		if (!m_Exit) {

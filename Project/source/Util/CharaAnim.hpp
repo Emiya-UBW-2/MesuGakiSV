@@ -33,6 +33,7 @@ namespace Util {
 		float				m_AnimTime{};
 		float				m_Time{};
 		float				m_Speed{};
+		char		padding[4]{};
 	public:
 		const std::string& GetPath(void) const noexcept { return m_Path; }
 		const VRAnim& GetAnim(void) const noexcept { return m_VRAnims.at(std::clamp<size_t>(static_cast<size_t>(m_Time), 0, static_cast<size_t>(m_VRAnims.size() - 1))); }
