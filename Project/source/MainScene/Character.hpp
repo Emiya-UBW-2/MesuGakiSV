@@ -640,8 +640,8 @@ public:
 		ModelID.FlipAnimAll();
 
 		Util::Matrix4x4 HandBaseMat = ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(CharaFrame::Head)));
-		HandBaseMat = 
-			Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(0.f, 0.f, -0.15f) * Scale3DRate) * 
+		HandBaseMat =
+			Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(0.f, 0.f, -0.15f) * Scale3DRate) *
 			HandBaseMat.rotation() * Util::Matrix4x4::Mtrans(HandBaseMat.pos());
 
 		{
@@ -665,11 +665,6 @@ public:
 					m_Prev = m_Now;
 				}
 			}
-			DxLib::clsDx();
-			printfDx("[%d]\n", m_Now);
-			printfDx("[%d]\n", m_Prev);
-			printfDx("[%5.2f]\n", m_AnimChangePer);
-
 			Util::VRAnim	m_VRAnim = Util::VRAnim::LerpAnim(
 				Util::HandAnimPool::Instance()->GetAnim(m_Prev).GetAnim(),
 				Util::HandAnimPool::Instance()->GetAnim(m_Now).GetAnim(),
@@ -682,7 +677,7 @@ public:
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm2)),
 				GetFrame(static_cast<int>(CharaFrame::RightWrist)),
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightWrist)),
-				m_VRAnim.m_RightRot.Get44DX()* HandBaseMat.rotation()*
+				m_VRAnim.m_RightRot.Get44DX() * HandBaseMat.rotation() *
 				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_RightHandPos, HandBaseMat.rotation()) + HandBaseMat.pos())
 			);
 			Draw::IK_LeftArm(
@@ -693,7 +688,7 @@ public:
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm2)),
 				GetFrame(static_cast<int>(CharaFrame::LeftWrist)),
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftWrist)),
-				m_VRAnim.m_LeftRot.Get44DX()* HandBaseMat.rotation()*
+				m_VRAnim.m_LeftRot.Get44DX() * HandBaseMat.rotation() *
 				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos())
 			);
 		}
