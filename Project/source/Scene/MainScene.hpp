@@ -22,7 +22,8 @@ class MainScene : public Util::SceneBase {
 	bool			m_IsPauseActive{ false };
 	char		padding[5]{};
 	std::shared_ptr<Character>		m_Character{};
-	std::shared_ptr<Gun>			m_Gun{};
+	std::shared_ptr<Gun>			m_HandGun{};
+	std::shared_ptr<Gun>			m_MainGun{};
 
 	Util::VECTOR3D	m_CamOffset{};
 	Util::VECTOR3D	m_CamVec{};
@@ -48,6 +49,7 @@ protected:
 		BackGround::Instance()->Load(m_MapName.c_str());
 		ObjectManager::Instance()->LoadModel("data/Soldier/");
 		ObjectManager::Instance()->LoadModel("data/Px4/");
+		ObjectManager::Instance()->LoadModel("data/Cx4/");
 	}
 	void Init_Sub(void) noexcept override {
 		BackGround::Instance()->Init();
@@ -55,10 +57,13 @@ protected:
 		this->m_Character = std::make_shared<Character>();
 		ObjectManager::Instance()->InitObject(this->m_Character, this->m_Character, "data/Soldier/");
 
-		this->m_Gun = std::make_shared<Gun>();
-		ObjectManager::Instance()->InitObject(this->m_Gun, this->m_Gun, "data/Px4/");
+		this->m_MainGun = std::make_shared<Gun>();
+		this->m_HandGun = std::make_shared<Gun>();
+		ObjectManager::Instance()->InitObject(this->m_MainGun, this->m_MainGun, "data/Cx4/");
+		ObjectManager::Instance()->InitObject(this->m_HandGun, this->m_HandGun, "data/Px4/");
 
-		this->m_Character->SetGunUniqueID(this->m_Gun->GetObjectID());
+		this->m_Character->SetMainGunUniqueID(this->m_MainGun->GetObjectID());
+		this->m_Character->SetSubGunUniqueID(this->m_HandGun->GetObjectID());
 
 		for (auto& m : BackGround::Instance()->GetMapInfo()) {
 			if (m.m_InfoType == m_EntrancePoint) {
@@ -235,8 +240,8 @@ protected:
 
 		/*
 		{
-			Util::VECTOR3D EyeMat = this->m_Character->GetEyeMat().pos() + Util::VECTOR3D::down() * (0.5f * Scale3DRate);
-			CamPosition = EyeMat + Util::VECTOR3D::forward() * (-1.f * Scale3DRate);
+			Util::VECTOR3D EyeMat = this->m_Character->GetEyeMat().pos() + Util::VECTOR3D::up() * (-0.25f * Scale3DRate);
+			CamPosition = EyeMat + Util::VECTOR3D::forward() * (-1.5f * Scale3DRate);
 			CamTarget = EyeMat;
 		}
 		//*/
@@ -373,7 +378,8 @@ protected:
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->StopAll();
 		BackGround::Release();
 		this->m_Character.reset();
-		this->m_Gun.reset();
+		this->m_MainGun.reset();
+		this->m_HandGun.reset();
 		ObjectManager::Instance()->DeleteAll();
 		this->m_PauseUI.Dispose();
 		this->m_OptionWindow.Dispose();

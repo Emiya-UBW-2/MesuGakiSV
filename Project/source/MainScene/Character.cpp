@@ -3,11 +3,16 @@
 #include "Gun.hpp"
 
 const Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
-	auto& gun = (*ObjectManager::Instance()->GetObj(m_GunUniqueID));
-	return Util::Lerp(
-		GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)),
-		gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)),
-		m_GunADSPer);
+	Util::Matrix4x4 Mat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+	{
+		auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), m_Handgun.m_GunADSPer);
+	}
+	{
+		auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), m_Maingun.m_GunADSPer);
+	}
+	return Mat;
 }
 
 void Character::Update_Sub(void) noexcept {
@@ -283,84 +288,42 @@ void Character::Update_Sub(void) noexcept {
 	}
 
 	if (IsFPSView()) {
-		m_GunReadyPer = Util::Lerp(m_GunReadyPer,
-			m_IsEquipHandgun ? 1.f : 0.f,
+		m_Handgun.m_GunReadyPer = Util::Lerp(m_Handgun.m_GunReadyPer,
+			m_Handgun.GetIsEquip() ? 1.f : 0.f,
 			1.f - 0.9f);
-		m_GunADSPer = Util::Lerp(m_GunADSPer,
-			m_IsEquipHandgun && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) ? 1.f : 0.f,
+		m_Handgun.m_GunADSPer = Util::Lerp(m_Handgun.m_GunADSPer,
+			m_Handgun.GetIsEquip() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) ? 1.f : 0.f,
+			1.f - 0.9f);
+
+		m_Maingun.m_GunReadyPer = Util::Lerp(m_Maingun.m_GunReadyPer,
+			m_Maingun.GetIsEquip() ? 1.f : 0.f,
+			1.f - 0.9f);
+		m_Maingun.m_GunADSPer = Util::Lerp(m_Maingun.m_GunADSPer,
+			m_Maingun.GetIsEquip() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) ? 1.f : 0.f,
 			1.f - 0.9f);
 	}
 	else {
-		m_GunReadyPer = Util::Lerp(m_GunReadyPer,
-			m_IsEquipHandgun && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) ? 1.f : 0.f,
+		m_Handgun.m_GunReadyPer = Util::Lerp(m_Handgun.m_GunReadyPer,
+			m_Handgun.GetIsEquip() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) ? 1.f : 0.f,
 			1.f - 0.9f);
-		m_GunADSPer = 0.f;
+		m_Handgun.m_GunADSPer = 0.f;
+
+		m_Maingun.m_GunReadyPer = Util::Lerp(m_Maingun.m_GunReadyPer,
+			m_Maingun.GetIsEquip() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) ? 1.f : 0.f,
+			1.f - 0.9f);
+		m_Maingun.m_GunADSPer = 0.f;
 	}
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::E)) {
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
-		m_IsEquipHandgun ^= 1;
-		if (m_IsEquipHandgun) {
-			m_EquipHandgunPhase = 0;
-			m_HolsterGunPer = 0.f;
-			m_HolsterPer = 0.f;
-			m_HolsterPullPer = 0.f;
-		}
-		else {
-			m_EquipHandgunPhase = 2;
-			m_HolsterGunPer = 1.f;
-			m_HolsterPer = 0.f;
-			m_HolsterPullPer = 0.f;
-		}
+		m_Handgun.SetIsEquip(!m_Handgun.GetIsEquip());
+	}
+	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Q)) {
+		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+		m_Maingun.SetIsEquip(!m_Maingun.GetIsEquip());
 	}
 
-	if (m_IsEquipHandgun) {
-		switch (m_EquipHandgunPhase) {
-		case 0:
-			m_HolsterPer = std::clamp(m_HolsterPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-			if (m_HolsterPer >= 1.f) {
-				m_EquipHandgunPhase = 1;
-			}
-			break;
-		case 1:
-			m_HolsterGunPer = std::clamp(m_HolsterGunPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-			m_HolsterPer = std::clamp(m_HolsterPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-			m_HolsterPullPer = std::clamp(m_HolsterPullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-			if (m_HolsterPullPer >= 1.f) {
-				m_EquipHandgunPhase = 2;
-			}
-			break;
-		case 2:
-			m_HolsterPer = 0.f;
-			m_HolsterPullPer = std::clamp(m_HolsterPullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-			break;
-		default:
-			break;
-		}
-	}
-	else {
-		switch (m_EquipHandgunPhase) {
-		case 2:
-			m_HolsterPullPer = std::clamp(m_HolsterPullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-			if (m_HolsterPullPer >= 1.f) {
-				m_EquipHandgunPhase = 1;
-			}
-			break;
-		case 1:
-			m_HolsterGunPer = std::clamp(m_HolsterGunPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-			m_HolsterPullPer = std::clamp(m_HolsterPullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-			m_HolsterPer = std::clamp(m_HolsterPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-			if (m_HolsterPer >= 1.f) {
-				m_EquipHandgunPhase = 0;
-			}
-			break;
-		case 0:
-			m_HolsterPullPer = 0.f;
-			m_HolsterPer = std::clamp(m_HolsterPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-			break;
-		default:
-			break;
-		}
-	}
+	m_Handgun.Update();
+	m_Maingun.Update();
 
 	// 進行方向に前進
 	Speed = Util::Lerp(Speed, ((MoveKey != 0) || !m_IsActive) ? GetSpeedMax() : 0.f, 1.f - 0.9f);
@@ -492,19 +455,33 @@ void Character::Update_Sub(void) noexcept {
 			Util::HandAnimPool::Instance()->GetAnim(m_Now).GetAnim(),
 			m_AnimChangePer);
 
-		auto& gun = (*ObjectManager::Instance()->GetObj(m_GunUniqueID));
-		{
-			Util::VRAnim	m_AimAnim;
-			m_AimAnim.m_RightHandPos = gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)).pos()*-1.f;
-			m_AimAnim.m_RightRot = Util::Matrix3x3::Get33DX(gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)));
+		Util::Matrix4x4 LeftHandMat = m_VRAnim.m_LeftRot.Get44DX() * HandBaseMat.rotation() *
+			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
 
-			Util::VRAnim Answer = Util::VRAnim::LerpAnim(m_VRAnim, m_AimAnim, m_GunReadyPer);
+		Util::VRAnim Answer;
+		{
+			auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+			Util::VRAnim	AimAnim;
+			AimAnim.m_RightHandPos = gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)).pos() * -1.f;
+			AimAnim.m_RightRot = Util::Matrix3x3::Get33DX(gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)));
+
+			LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Handgun.m_GunReadyPer);
+			Answer = Util::VRAnim::LerpAnim(m_VRAnim, AimAnim, m_Handgun.m_GunReadyPer);
+		}
+		{
+			auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+			Util::VRAnim	AimAnim;
+			AimAnim.m_RightHandPos = gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)).pos() * -1.f;
+			AimAnim.m_RightRot = Util::Matrix3x3::Get33DX(gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)));
+
+			LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Maingun.m_GunReadyPer);
+			Answer = Util::VRAnim::LerpAnim(Answer, AimAnim, m_Maingun.m_GunReadyPer);
+		}
+		{
 			Util::Matrix4x4 Mat = Answer.m_RightRot.Get44DX() * HandBaseMat.rotation() *
 				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Answer.m_RightHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
-
-			Mat = Util::Lerp(Mat, GetHolsterMat(), m_HolsterPer);
-
-			Mat = Util::Lerp(Mat, GetHolsterPullMat(), m_HolsterPullPer);
+			Mat = Util::Lerp(Util::Lerp(Mat, GetHolsterMat(), m_Handgun.m_Per), GetHolsterPullMat(), m_Handgun.m_PullPer);
+			Mat = Util::Lerp(Util::Lerp(Mat, GetSlingMat(), m_Maingun.m_Per), GetSlingPullMat(), m_Maingun.m_PullPer);
 
 			Draw::IK_RightArm(
 				&ModelID,
@@ -519,23 +496,28 @@ void Character::Update_Sub(void) noexcept {
 		}
 
 		{
-			Util::Matrix4x4 Mat = Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
+			Util::Matrix4x4 RightMat = Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-90)) *
 				Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), Util::deg2rad(-90)) *
 				GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::RightHandJoint));
-
-			if (m_EquipHandgunPhase <= 1) {
-				Mat = Util::Lerp(GetHolsterMat(), GetHolsterPullMat(), m_HolsterGunPer);
+			{
+				Util::Matrix4x4 Mat = RightMat;
+				auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+				if (m_Handgun.m_EquipPhase <= 1) {
+					Mat = Util::Lerp(GetHolsterMat(), GetHolsterPullMat(), m_Handgun.m_GunPer);
+				}
+				gun->SetMatrix(Mat);
 			}
-			gun->SetMatrix(Mat);
+			{
+				Util::Matrix4x4 Mat = RightMat;
+				auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+				if (m_Maingun.m_EquipPhase <= 1) {
+					Mat = Util::Lerp(GetSlingMat(), GetSlingPullMat(), m_Maingun.m_GunPer);
+				}
+				gun->SetMatrix(Mat);
+			}
 		}
-
-		Util::Matrix4x4 LeftMat = ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat();
 		{
-			Util::VRAnim Answer = m_VRAnim;
-			Util::Matrix4x4 Mat = Answer.m_LeftRot.Get44DX() * HandBaseMat.rotation() *
-				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Answer.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
 
-			Mat = Util::Lerp(Mat, LeftMat, m_GunReadyPer);
 
 			Draw::IK_LeftArm(
 				&ModelID,
@@ -545,7 +527,7 @@ void Character::Update_Sub(void) noexcept {
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm2)),
 				GetFrame(static_cast<int>(CharaFrame::LeftWrist)),
 				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftWrist)),
-				Mat
+				LeftHandMat
 			);
 		}
 	}

@@ -71,6 +71,12 @@ enum class CharaFrame {
 	HolsterPull,
 	HolsterYPull,
 	HolsterZPull,
+	Sling,
+	SlingY,
+	SlingZ,
+	SlingPull,
+	SlingYPull,
+	SlingZPull,
 	Max,
 };
 static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
@@ -99,6 +105,91 @@ static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
 	"holsterPull",
 	"holsterYPull",
 	"holsterZPull",
+	"sling",
+	"slingY",
+	"slingZ",
+	"slingPull",
+	"slingYPull",
+	"slingZPull",
+};
+
+struct GunParam {
+	int					m_UniqueID{};
+	float				m_GunPer{};
+	float				m_Per{};
+	float				m_PullPer{};
+	int					m_EquipPhase{};
+	bool				m_IsEquip{ false };
+	char		padding[3]{};
+	float				m_GunReadyPer{};
+	float				m_GunADSPer{};
+public:
+	bool GetIsEquip() const noexcept { return m_IsEquip; }
+	void SetIsEquip(bool value) {
+		this->m_IsEquip = value;
+		if (this->m_IsEquip) {
+			this->m_EquipPhase = 0;
+			this->m_GunPer = 0.f;
+			this->m_Per = 0.f;
+			this->m_PullPer = 0.f;
+		}
+		else {
+			this->m_EquipPhase = 2;
+			this->m_GunPer = 1.f;
+			this->m_Per = 0.f;
+			this->m_PullPer = 0.f;
+		}
+	}
+	void Update() noexcept {
+		if (this->m_IsEquip) {
+			switch (this->m_EquipPhase) {
+			case 0:
+				this->m_Per = std::clamp(this->m_Per + 1.f / 60.f / 0.1f, 0.f, 1.f);
+				if (this->m_Per >= 1.f) {
+					this->m_EquipPhase = 1;
+				}
+				break;
+			case 1:
+				this->m_GunPer = std::clamp(this->m_GunPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+				this->m_Per = std::clamp(this->m_Per - 1.f / 60.f / 0.1f, 0.f, 1.f);
+				this->m_PullPer = std::clamp(this->m_PullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+				if (this->m_PullPer >= 1.f) {
+					this->m_EquipPhase = 2;
+				}
+				break;
+			case 2:
+				this->m_Per = 0.f;
+				this->m_PullPer = std::clamp(this->m_PullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+				break;
+			default:
+				break;
+			}
+		}
+		else {
+			switch (this->m_EquipPhase) {
+			case 2:
+				this->m_PullPer = std::clamp(this->m_PullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+				if (this->m_PullPer >= 1.f) {
+					this->m_EquipPhase = 1;
+				}
+				break;
+			case 1:
+				this->m_GunPer = std::clamp(this->m_GunPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+				this->m_PullPer = std::clamp(this->m_PullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+				this->m_Per = std::clamp(this->m_Per + 1.f / 60.f / 0.1f, 0.f, 1.f);
+				if (this->m_Per >= 1.f) {
+					this->m_EquipPhase = 0;
+				}
+				break;
+			case 0:
+				this->m_PullPer = 0.f;
+				this->m_Per = std::clamp(this->m_Per - 1.f / 60.f / 0.1f, 0.f, 1.f);
+				break;
+			default:
+				break;
+			}
+		}
+	}
 };
 
 class Character :public BaseObject {
@@ -133,16 +224,10 @@ class Character :public BaseObject {
 	int					m_Now{};
 	float				m_AnimChangePer{};
 	bool				m_AnimMoving{ false };
-	bool				m_IsEquipHandgun{ false };
 	char		padding3[6]{};
-	int					m_GunUniqueID{};
-	float				m_GunReadyPer{};
-	float				m_HolsterGunPer{};
-	float				m_HolsterPer{};
-	float				m_HolsterPullPer{};
-	int					m_EquipHandgunPhase{};
-	float				m_GunADSPer{};
-	//char		padding4[4]{};
+
+	GunParam			m_Handgun{};
+	GunParam			m_Maingun{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -164,6 +249,18 @@ public:
 		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::HolsterPull)).pos();
 		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::HolsterYPull)).pos() - HandPos;
 		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::HolsterZPull)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
+	auto			GetSlingMat(void) const noexcept {
+		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Sling)).pos();
+		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::SlingY)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::SlingZ)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
+	auto			GetSlingPullMat(void) const noexcept {
+		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::SlingPull)).pos();
+		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::SlingYPull)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::SlingZPull)).pos() - HandPos;
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
@@ -205,8 +302,11 @@ public:
 	}
 	void SetIsActive(bool value) noexcept { m_IsActive = value; }
 
-	void SetGunUniqueID(int value) noexcept {
-		m_GunUniqueID = value;
+	void SetSubGunUniqueID(int value) noexcept {
+		m_Handgun.m_UniqueID = value;
+	}
+	void SetMainGunUniqueID(int value) noexcept {
+		m_Maingun.m_UniqueID = value;
 	}
 public:
 	void Load_Sub(void) noexcept override {
