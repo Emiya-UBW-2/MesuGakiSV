@@ -90,9 +90,14 @@ namespace DXLibRef {
 					this->m_TouchPadPoint = Util::VECTOR3D::zero();
 					this->m_isActive = tmp.bPoseIsValid;
 					this->m_Pos = Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][3], tmp.mDeviceToAbsoluteTracking.m[1][3], -tmp.mDeviceToAbsoluteTracking.m[2][3]);
+					for (int x = 0; x < 3; ++x) {
+						for (int y = 0; y < 3; ++y) {
+							this->m_Mat.get().m[x][y] = tmp.mDeviceToAbsoluteTracking.m[x][y];
+						}
+					}
 					this->m_Mat = Util::Matrix3x3::Axis1(
-						Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][1], tmp.mDeviceToAbsoluteTracking.m[1][1], -tmp.mDeviceToAbsoluteTracking.m[2][1]),
-						Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][2], tmp.mDeviceToAbsoluteTracking.m[1][2], -tmp.mDeviceToAbsoluteTracking.m[2][2]) * -1.f
+						Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][1], tmp.mDeviceToAbsoluteTracking.m[1][1], tmp.mDeviceToAbsoluteTracking.m[2][1]),
+						Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][2], tmp.mDeviceToAbsoluteTracking.m[1][2], tmp.mDeviceToAbsoluteTracking.m[2][2]) * -1.f
 					);
 					break;
 				case vr::TrackedDeviceClass_Controller:
@@ -106,9 +111,16 @@ namespace DXLibRef {
 					this->m_TouchPadPoint = Util::VECTOR3D::vget(night.rAxis[0].x, night.rAxis[0].y, 0);
 					this->m_isActive = tmp.bPoseIsValid;
 					this->m_Pos = Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][3], tmp.mDeviceToAbsoluteTracking.m[1][3], -tmp.mDeviceToAbsoluteTracking.m[2][3]);
+					if (this->m_isActive && (this->m_type == vr::TrackedDeviceClass_Controller)) {
+						clsDx();
+						printfDx("[%5.2f,%5.2f,%5.2f]\n", tmp.mDeviceToAbsoluteTracking.m[0][0], tmp.mDeviceToAbsoluteTracking.m[1][0], tmp.mDeviceToAbsoluteTracking.m[2][0]);
+						printfDx("[%5.2f,%5.2f,%5.2f]\n", tmp.mDeviceToAbsoluteTracking.m[0][1], tmp.mDeviceToAbsoluteTracking.m[1][1], tmp.mDeviceToAbsoluteTracking.m[2][1]);
+						printfDx("[%5.2f,%5.2f,%5.2f]\n", tmp.mDeviceToAbsoluteTracking.m[0][2], tmp.mDeviceToAbsoluteTracking.m[1][2], tmp.mDeviceToAbsoluteTracking.m[2][2]);
+					}
 					this->m_Mat = Util::Matrix3x3::Axis1(
+						Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][0], tmp.mDeviceToAbsoluteTracking.m[1][0], -tmp.mDeviceToAbsoluteTracking.m[2][0]),
 						Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][1], tmp.mDeviceToAbsoluteTracking.m[1][1], -tmp.mDeviceToAbsoluteTracking.m[2][1]),
-						Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][2], tmp.mDeviceToAbsoluteTracking.m[1][2], -tmp.mDeviceToAbsoluteTracking.m[2][2]) * -1.f
+						Util::VECTOR3D::vget(tmp.mDeviceToAbsoluteTracking.m[0][2], tmp.mDeviceToAbsoluteTracking.m[1][2], -tmp.mDeviceToAbsoluteTracking.m[2][2])
 					);
 				}
 				break;
@@ -152,7 +164,7 @@ namespace DXLibRef {
 		void			GetHMDPosition(Util::VECTOR3D* pos_, Util::Matrix3x3* mat) noexcept {
 			auto* HMDPtr = (this->m_VR_HMDID >= 0) ? &this->m_VR_DeviceInfo.at(this->m_VR_HMDID) : nullptr;
 			if (HMDPtr) {
-				*mat = Util::Matrix3x3::Axis1(HMDPtr->GetMat().yvec(), HMDPtr->GetMat().zvec2());
+				*mat = HMDPtr->GetMat();
 				if (!HMDPtr->IsActive()) {
 					this->m_VR_HMD_StartFlag = true;
 				}
@@ -178,7 +190,7 @@ namespace DXLibRef {
 		void			GetHand1Position(Util::VECTOR3D* pos_, Util::Matrix3x3* mat) noexcept {
 			auto* Hand1Ptr = (this->m_VR_Hand1ID >= 0) ? &this->m_VR_DeviceInfo.at(this->m_VR_Hand1ID) : nullptr;
 			if (Hand1Ptr) {
-				*mat = Util::Matrix3x3::Axis1(Hand1Ptr->GetMat().yvec(), Hand1Ptr->GetMat().zvec2());
+				*mat = Hand1Ptr->GetMat();
 				*pos_ = Hand1Ptr->GetPos() - this->m_VR_HMD_StartPoint.pos();
 				*mat = *mat * Util::Matrix3x3::Get33DX(this->m_VR_HMD_StartPoint);
 			}
@@ -191,7 +203,7 @@ namespace DXLibRef {
 		void			GetHand2Position(Util::VECTOR3D* pos_, Util::Matrix3x3* mat) noexcept {
 			auto* Hand2Ptr = (this->m_VR_Hand2ID >= 0) ? &this->m_VR_DeviceInfo.at(this->m_VR_Hand2ID) : nullptr;
 			if (Hand2Ptr) {
-				*mat = Util::Matrix3x3::Axis1(Hand2Ptr->GetMat().yvec(), Hand2Ptr->GetMat().zvec2());
+				*mat = Hand2Ptr->GetMat();
 				*pos_ = Hand2Ptr->GetPos() - this->m_VR_HMD_StartPoint.pos();
 				*mat = *mat * Util::Matrix3x3::Get33DX(this->m_VR_HMD_StartPoint);
 			}

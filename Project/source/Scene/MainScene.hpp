@@ -33,6 +33,8 @@ class MainScene : public Util::SceneBase {
 	float			m_CamCheckTimer{};
 	float			m_Fade{ 1.f };
 
+	float			m_ShotFov{ 0.f };
+
 	Sound::SoundUniqueID OKID{ InvalidID };
 	Sound::SoundUniqueID EnviID{ InvalidID };
 public:
@@ -249,7 +251,16 @@ protected:
 		auto* CameraParts = Camera::Camera3D::Instance();
 		CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 
-		CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45), CameraParts->GetCamera().GetCamFov(), m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
+		if (this->m_Character->IsShotSwitch()) {
+			m_ShotFov = 1.f;
+		}
+		else {
+			m_ShotFov = Util::Lerp(m_ShotFov, 0.f, 1.f - 0.9f);
+		}
+
+		CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45),
+			CameraParts->GetCamera().GetCamFov() - m_ShotFov* Util::deg2rad(5),
+			m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
 		this->m_Character->SetIsActive(!m_Exit);
 
 		BackGround::Instance()->Update();

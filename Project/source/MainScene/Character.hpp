@@ -219,12 +219,17 @@ class Character :public BaseObject {
 	int					m_StandAnimIndex{};
 	int					m_WalkAnimIndex{};
 	int					m_RunAnimIndex{};
+	int					m_HaveHandgunAnimIndex{};
+	int					m_HaveRifleAnimIndex{};
+
 
 	int					m_Prev{};
 	int					m_Now{};
 	float				m_AnimChangePer{};
 	bool				m_AnimMoving{ false };
+	bool				m_ShotSwitch{ false };
 	char		padding3[6]{};
+	float				m_SwitchPer{};
 
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
@@ -267,6 +272,7 @@ public:
 	}
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
 	bool IsFPSView(void) const noexcept { return m_IsFPS; }
+	bool IsShotSwitch(void) const noexcept { return m_ShotSwitch; }
 	bool IsFreeView(void) const noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
 		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) && !IsFPSView();
@@ -324,6 +330,9 @@ public:
 		m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.txt");
 		m_WalkAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Walk.txt");
 		m_RunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Run.txt");
+
+		m_HaveHandgunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/HaveHandgun.txt");
+		m_HaveRifleAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/HaveRifle.txt");
 
 		//Util::HandAnimPool::Instance()->SetAnimSpeed(m_WalkAnimIndex, 2.5f);
 

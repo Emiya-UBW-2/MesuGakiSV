@@ -593,7 +593,7 @@ namespace Util {
 	class Matrix3x3 {
 		MAT33::MATRIX33	m_value;
 	public:
-		Matrix3x3(void) noexcept : m_value(MAT33::M33GetIdent()) {}
+		Matrix3x3(void) noexcept {}
 		Matrix3x3(MAT33::MATRIX33 value) noexcept { this->m_value = value; }
 		MAT33::MATRIX33 get(void) const noexcept { return this->m_value; }		// 変換
 		DxLib::MATRIX Get44(void) const noexcept {
@@ -614,6 +614,7 @@ namespace Util {
 		// 
 		static Matrix3x3 identity(void) noexcept { return MAT33::M33GetIdent(); }
 
+		static Matrix3x3 Axis1(const VECTOR3D& xvec, const VECTOR3D& yvec, const VECTOR3D& zvec) noexcept { return { MAT33::M33GetAxis1(xvec,yvec,zvec) }; }
 		static Matrix3x3 Axis1(const VECTOR3D& yvec, const VECTOR3D& zvec) noexcept { return { MAT33::M33GetAxis1(VECTOR3D::Cross(yvec, zvec),yvec,zvec) }; }
 		static Matrix3x3 Axis2(const VECTOR3D& yvec, const VECTOR3D& zvec) noexcept { return { MAT33::M33GetAxis2(VECTOR3D::Cross(yvec, zvec),yvec,zvec) }; }
 		static Matrix3x3 RotAxis(const VECTOR3D& p1, float p2) noexcept { return MAT33::M33GetRotAxis(p1, p2); }

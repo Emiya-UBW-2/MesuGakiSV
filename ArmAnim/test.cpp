@@ -299,13 +299,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				Util::Matrix4x4 BaseMat = GetFrameBaseLocalWorldMat(static_cast<int>(CharaFrame::Head));
 				if (DXLibRef::VRControl::Instance()->Get_VR_Hand1Device() && DXLibRef::VRControl::Instance()->Get_VR_Hand1Device()->IsActive()) {
 					DXLibRef::VRControl::Instance()->GetHand1Position(&m_VRAnim.m_LeftHandPos, &m_VRAnim.m_LeftRot);
-					//m_VRAnim.m_LeftRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90));
+					m_VRAnim.m_LeftRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90));
 					//m_VRAnim.m_LeftRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-45));
 					m_VRAnim.m_LeftHandPos = Util::Matrix3x3::Vtrans(m_VRAnim.m_LeftHandPos * Scale3DRate - BaseMat.pos(), Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90)));
 				}
 				if (DXLibRef::VRControl::Instance()->Get_VR_Hand2Device() && DXLibRef::VRControl::Instance()->Get_VR_Hand2Device()->IsActive()) {
 					DXLibRef::VRControl::Instance()->GetHand2Position(&m_VRAnim.m_RightHandPos, &m_VRAnim.m_RightRot);
-					//m_VRAnim.m_RightRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90));
+					m_VRAnim.m_RightRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90));
 					//m_VRAnim.m_RightRot *= Util::Matrix3x3::RotAxis(Util::VECTOR3D::right(), Util::deg2rad(-45));
 					m_VRAnim.m_RightHandPos = Util::Matrix3x3::Vtrans(m_VRAnim.m_RightHandPos * Scale3DRate - BaseMat.pos(), Util::Matrix3x3::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-90)));
 				}
@@ -364,7 +364,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		DXLibRef::VRControl::Instance()->Update();
 		// FPSÇï\é¶
-		clsDx();
+		//clsDx();
 		printfDx("%5.2f fps\n", GetFPS());
 		printfDx("çƒê∂ %5.2f time\n", m_Time / 30.f);
 		printfDx("ãLò^ %5.2f time\n", m_AminTime / 30.f);

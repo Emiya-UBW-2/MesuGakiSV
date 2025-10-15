@@ -23,8 +23,12 @@ enum class GunFrame {
 	LeftHandPos,
 	LeftHandZVec,
 	LeftHandYVec,
+	EyePosLeft,
+	RightHandPos,
+	RightHandZVec,
+	RightHandYVec,
+	EyePosRight,
 	ADSPos,
-	EyePos,
 	Max,
 };
 static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
@@ -32,8 +36,12 @@ static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
 	"LeftHand",
 	"LeftHandZVec",
 	"LeftHandYVec",
+	"EyePosLeft",
+	"RightHand",
+	"RightHandZVec",
+	"RightHandYVec",
+	"EyePosRight",
 	"ADSPos",
-	"EyePos",
 };
 
 class Gun :public BaseObject {
@@ -46,6 +54,8 @@ class Gun :public BaseObject {
 	Sound::SoundUniqueID ShotSPID{ InvalidID };
 
 	Sound::SoundUniqueID TriggerID{ InvalidID };
+
+	bool canshot{ true };
 public:
 	Gun(void) noexcept {}
 	Gun(const Gun&) = delete;
@@ -63,6 +73,21 @@ public:
 		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandZVec)).pos() - HandPos;
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
+	auto			GetBaseRightHandMat(void) const noexcept {
+		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandPos)).pos();
+		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandYVec)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandZVec)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
+public:
+	void ShotStart() {
+		if (canshot) {
+			canshot = false;
+			m_AnimPer[static_cast<int>(GunAnim::Shot)] = 1.f;
+			SetAnim(static_cast<int>(GunAnim::Shot)).SetTime(0.f);
+		}
+	}
+	bool CanShot() const { return canshot; }
 public:
 	void Load_Sub(void) noexcept override {
 		SlideOpenID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/0.wav", true);
@@ -78,11 +103,17 @@ public:
 	void Init_Sub(void) noexcept override {
 	}
 	void Update_Sub(void) noexcept override {
+		if (!canshot) {
+			if (SetAnim(static_cast<int>(GunAnim::Shot)).GetTimePer() >= 1.f) {
+				m_AnimPer[static_cast<int>(GunAnim::Shot)] = 0.f;
+				canshot = true;
+			}
+		}
 		//アニメアップデート
 		for (size_t loop = 0; loop < static_cast<size_t>(GunAnim::Max); ++loop) {
 			SetAnim(loop).SetPer(m_AnimPer[loop]);
 		}
-		SetAnim(static_cast<int>(GunAnim::Shot)).Update(false, 1.f);
+		SetAnim(static_cast<int>(GunAnim::Shot)).Update(false, 2.f);
 		ModelID.FlipAnimAll();
 	}
 	void SetShadowDraw_Sub(void) const noexcept override {

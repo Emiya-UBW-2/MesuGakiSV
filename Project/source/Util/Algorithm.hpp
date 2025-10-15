@@ -595,6 +595,7 @@ namespace Util {
 		Matrix3x3(void) noexcept : m_value(MAT33::M33GetIdent()) {}
 		Matrix3x3(MAT33::MATRIX33 value) noexcept { this->m_value = value; }
 		MAT33::MATRIX33 get(void) const noexcept { return this->m_value; }		// 変換
+		MAT33::MATRIX33& get(void) noexcept { return this->m_value; }		// 変換
 		DxLib::MATRIX Get44(void) const noexcept {
 			DxLib::MATRIX Result;
 			MAT33::M33toMATRIX(&Result, this->m_value);
