@@ -4,6 +4,18 @@
 
 const Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
 	Util::Matrix4x4 Mat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+
+	Mat = Mat.rotation() *
+		Util::Matrix4x4::Mtrans(
+			Util::Matrix4x4::Vtrans(
+				Util::VECTOR3D::vget(
+					std::cosf(m_WalkRad),
+					std::fabsf(std::sinf(m_WalkRad)) * -0.25f,
+					0.f
+				) * (MovePer * (0.03f * Scale3DRate)),
+				Mat.rotation()
+			) +
+			Mat.pos());
 	{
 		auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
 		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), m_Handgun.m_GunADSPer);
@@ -379,6 +391,14 @@ void Character::Update_Sub(void) noexcept {
 
 	//移動割合
 	MovePer = Util::Lerp(MovePer, GetSpeed() / GetSpeedMax(), 1.f - 0.9f);
+
+	if (MovePer > 0.01f) {
+		m_WalkRad += Util::deg2rad(360) / 60.f;
+	}
+	else {
+		m_WalkRad = 0.f;
+	}
+
 	for (size_t loop = 0; loop < static_cast<size_t>(CharaStyle::Max); ++loop) {
 		m_StylePer.at(loop) = std::clamp(m_StylePer.at(loop) + ((m_CharaStyle == static_cast<CharaStyle>(loop)) ? 1.f : -1.f) / 60.f / 0.3f, 0.f, 1.f);
 	}
@@ -455,9 +475,6 @@ void Character::Update_Sub(void) noexcept {
 			Util::HandAnimPool::Instance()->GetAnim(m_Now).GetAnim(),
 			m_AnimChangePer);
 
-		Util::Matrix4x4 LeftHandMat = m_VRAnim.m_LeftRot.Get44DX() * HandBaseMat.rotation() *
-			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
-
 		Util::VRAnim Answer;
 		{
 			auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
@@ -465,7 +482,6 @@ void Character::Update_Sub(void) noexcept {
 			AimAnim.m_RightHandPos = gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)).pos() * -1.f;
 			AimAnim.m_RightRot = Util::Matrix3x3::Get33DX(gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)));
 
-			LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Handgun.m_GunReadyPer);
 			Answer = Util::VRAnim::LerpAnim(m_VRAnim, AimAnim, m_Handgun.m_GunReadyPer);
 		}
 		{
@@ -474,7 +490,6 @@ void Character::Update_Sub(void) noexcept {
 			AimAnim.m_RightHandPos = gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)).pos() * -1.f;
 			AimAnim.m_RightRot = Util::Matrix3x3::Get33DX(gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePos)));
 
-			LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Maingun.m_GunReadyPer);
 			Answer = Util::VRAnim::LerpAnim(Answer, AimAnim, m_Maingun.m_GunReadyPer);
 		}
 		{
@@ -516,6 +531,18 @@ void Character::Update_Sub(void) noexcept {
 				gun->SetMatrix(Mat);
 			}
 		}
+
+		Util::Matrix4x4 LeftHandMat = m_VRAnim.m_LeftRot.Get44DX() * HandBaseMat.rotation() *
+			Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
+		{
+			auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+			LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Handgun.m_GunReadyPer);
+		}
+		{
+			auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+			LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Maingun.m_GunReadyPer);
+		}
+
 		{
 
 
