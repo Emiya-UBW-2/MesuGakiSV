@@ -62,7 +62,7 @@ class Gun :public BaseObject {
 	float				m_FireOpticalPer{};
 	Util::Matrix4x4		m_FireMat{};
 	char		padding2[4]{};
-	Draw::GraphHandle	m_SmokeGraph{};
+	const Draw::GraphHandle*	m_SmokeGraph{};
 	std::array<std::pair<Util::Matrix4x4, float>, 5>	m_SmokePer{};
 	int					m_SmokeID{};
 public:
@@ -116,7 +116,7 @@ public:
 
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 		Draw::MV1::Load("data/FireEffect/model.mv1", &m_FireEffect, DX_LOADMODEL_PHYSICS_DISABLE);
-		m_SmokeGraph.Load("data/Smoke.png");
+		m_SmokeGraph = Draw::GraphPool::Instance()->Get("data/Smoke.png")->Get();
 	}
 	void Init_Sub(void) noexcept override {
 	}
@@ -179,7 +179,7 @@ public:
 						0.5f,
 						0.2f * Scale3DRate * s.second,
 						Util::deg2rad(180.f * s.second) * ((loop % 2 == 0) ? 1.f : -1.f),
-						m_SmokeGraph.get(),
+						m_SmokeGraph->get(),
 						true
 					);
 				}
