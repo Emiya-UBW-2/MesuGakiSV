@@ -439,6 +439,7 @@ void Character::Update_Sub(void) noexcept {
 	//停止
 	m_AnimPer[static_cast<size_t>(CharaAnim::Squat)] = (1.f - MovePer) * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
 	m_AnimPer[static_cast<size_t>(CharaAnim::Stand)] = (1.f - MovePer) * std::max(m_StylePer.at(static_cast<size_t>(CharaStyle::Stand)), m_StylePer.at(static_cast<size_t>(CharaStyle::Run)));
+	m_AnimPer[static_cast<size_t>(CharaAnim::Stay)] = (1.f - std::max(m_Handgun.m_GunReadyPer, m_Maingun.m_GunReadyPer));
 	//移動
 	m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
 	m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Stand));
@@ -590,61 +591,6 @@ void Character::Update_Sub(void) noexcept {
 				LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Maingun.m_GunReadyPer);
 			}
 
-			Draw::IK_LeftArm(
-				&ModelID,
-				GetFrame(static_cast<int>(CharaFrame::LeftArm)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm)),
-				GetFrame(static_cast<int>(CharaFrame::LeftArm2)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm2)),
-				GetFrame(static_cast<int>(CharaFrame::LeftWrist)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftWrist)),
-				LeftHandMat
-			);
-		}
-
-		if (false && (1.f - m_SwitchPer) > 0.f) {
-			Util::Matrix4x4 RightHandMat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::RightWrist));
-			RightHandMat =
-				Util::Matrix4x4::Axis1(Util::VECTOR3D::back(), Util::VECTOR3D::right()) *
-				RightHandMat.rotation() *
-				Util::Matrix4x4::Mtrans(RightHandMat.pos());
-
-
-			{
-				auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-				RightHandMat = Util::Lerp(RightHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseRightHandMat(), m_Handgun.m_GunReadyPer * (1.f - m_SwitchPer));
-			}
-			{
-				auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-				RightHandMat = Util::Lerp(RightHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseRightHandMat(), m_Maingun.m_GunReadyPer * (1.f - m_SwitchPer));
-			}
-
-			Draw::IK_RightArm(
-				&ModelID,
-				GetFrame(static_cast<int>(CharaFrame::RightArm)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm)),
-				GetFrame(static_cast<int>(CharaFrame::RightArm2)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm2)),
-				GetFrame(static_cast<int>(CharaFrame::RightWrist)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightWrist)),
-				RightHandMat
-			);
-
-			Util::Matrix4x4 LeftHandMat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::LeftWrist));
-			LeftHandMat = 
-				Util::Matrix4x4::Axis1(Util::VECTOR3D::back(), Util::VECTOR3D::left()) *
-				LeftHandMat.rotation() *
-				Util::Matrix4x4::Mtrans(LeftHandMat.pos());
-
-
-			{
-				auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-				LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetMat(), m_Handgun.m_GunReadyPer * (1.f - m_SwitchPer));
-			}
-			{
-				auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-				LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetMat(), m_Maingun.m_GunReadyPer * (1.f - m_SwitchPer));
-			}
 			Draw::IK_LeftArm(
 				&ModelID,
 				GetFrame(static_cast<int>(CharaFrame::LeftArm)),

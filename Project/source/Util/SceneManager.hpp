@@ -243,7 +243,7 @@ namespace Util {
 					LightParts->Dispose();
 					auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 					KeyGuideParts->Dispose();
-					SetUseASyncLoadFlag(true);
+					SetUseASyncLoadFlag(false);
 					this->m_NowScene->Load();
 					SetUseASyncLoadFlag(false);
 					this->m_Phase = EnumScenePhase::Load;

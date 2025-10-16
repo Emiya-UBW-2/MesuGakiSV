@@ -37,6 +37,7 @@ class MainScene : public Util::SceneBase {
 
 	Sound::SoundUniqueID OKID{ InvalidID };
 	Sound::SoundUniqueID EnviID{ InvalidID };
+	char		padding2[4]{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;

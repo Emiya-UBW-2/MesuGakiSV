@@ -42,6 +42,7 @@ enum class CharaAnim {
 	LeftHand_5,//左子指
 
 	Flip,//左に向く
+	Stay,//待機
 	Max,
 };
 
@@ -235,6 +236,7 @@ class Character :public BaseObject {
 	GunParam			m_Maingun{};
 
 	float				m_WalkRad{};
+	char		paddin4[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -318,14 +320,13 @@ public:
 	}
 public:
 	void Load_Sub(void) noexcept override {
-	}
-	void Init_Sub(void) noexcept override {
-		Speed = 0.f;
-
 		heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
 		runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
 		standupID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/standup.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+	}
+	void Init_Sub(void) noexcept override {
+		Speed = 0.f;
 
 		m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.txt");
 		m_WalkAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Walk.txt");
