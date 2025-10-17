@@ -11,6 +11,8 @@
 
 #include "BaseObject.hpp"
 
+#include "BackGround.hpp"
+
 enum class GunAnim {
 	Slide,//スライド
 	Trigger,//トリガー
@@ -30,6 +32,8 @@ enum class GunFrame {
 	EyePosRight,
 	ADSPos,
 	Muzzle,
+	Case,
+	CaseVec,
 	Max,
 };
 static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
@@ -44,6 +48,8 @@ static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
 	"EyePosRight",
 	"ADSPos",
 	"muzzle",
+	"case",
+	"casevec",
 };
 
 class Gun :public BaseObject {
@@ -58,6 +64,8 @@ class Gun :public BaseObject {
 	bool canshot{ true };
 	char		padding[3]{};
 
+	Draw::MV1			m_Case{};
+
 	Draw::MV1			m_FireEffect{};
 	float				m_FireOpticalPer{};
 	Util::Matrix4x4		m_FireMat{};
@@ -65,6 +73,67 @@ class Gun :public BaseObject {
 	const Draw::GraphHandle*	m_SmokeGraph{};
 	std::array<std::pair<Util::Matrix4x4, float>, 5>	m_SmokePer{};
 	int					m_SmokeID{};
+
+	class Case {
+	public:
+		Case(void) noexcept {}
+		Case(const Case&) = delete;
+		Case(Case&&) = delete;
+		Case& operator=(const Case&) = delete;
+		Case& operator=(Case&&) = delete;
+		virtual ~Case(void) noexcept {}
+	public:
+		Draw::MV1			m_Case{};
+		Util::Matrix4x4 Mat{};
+		Util::VECTOR3D Vector{};
+		float YVecAdd{};
+		float Timer{};
+		char		padding[4]{};
+	};
+
+	std::array<Case, 5>	m_CasePer{};
+	int					m_CaseID{};
+	char		padding3[4]{};
+
+
+	class Ammo {
+	public:
+		Ammo(void) noexcept {}
+		Ammo(const Ammo&) = delete;
+		Ammo(Ammo&&) = delete;
+		Ammo& operator=(const Ammo&) = delete;
+		Ammo& operator=(Ammo&&) = delete;
+		virtual ~Ammo(void) noexcept {}
+	public:
+		Util::Matrix4x4 Mat{};
+		Util::VECTOR3D Vector{};
+		float YVecAdd{};
+		float Timer{};
+		float DrawTimer{};
+	};
+
+	std::array<Ammo, 5>	m_AmmoPer{};
+	int					m_AmmoID{};
+	char		padding4[4]{};
+
+	class AmmoEffect {
+	public:
+		AmmoEffect(void) noexcept {}
+		AmmoEffect(const AmmoEffect&) = delete;
+		AmmoEffect(AmmoEffect&&) = delete;
+		AmmoEffect& operator=(const AmmoEffect&) = delete;
+		AmmoEffect& operator=(AmmoEffect&&) = delete;
+		virtual ~AmmoEffect(void) noexcept {}
+	public:
+		Util::Matrix4x4 Mat{};
+		Util::VECTOR3D Vector{};
+		float YVecAdd{};
+		float Timer{};
+	};
+
+	std::array<AmmoEffect, 50>	m_AmmoEffectPer{};
+	int					m_AmmoEffectID{};
+	char		padding5[4]{};
 public:
 	Gun(void) noexcept {}
 	Gun(const Gun&) = delete;
@@ -102,6 +171,25 @@ public:
 			m_SmokePer.at(static_cast<size_t>(m_SmokeID)).first = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle));
 			m_SmokePer.at(static_cast<size_t>(m_SmokeID)).second = 0.f;
 			++m_SmokeID %= static_cast<int>(m_SmokePer.size());
+
+			m_CasePer.at(static_cast<size_t>(m_CaseID)).Mat = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Case));
+			m_CasePer.at(static_cast<size_t>(m_CaseID)).Vector = (
+				GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::CaseVec)).pos() -
+				GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Case)).pos()
+				).normalized() * (static_cast<float>(250 + GetRand(100)) / 100.f * Scale3DRate / 60.f);
+			m_CasePer.at(static_cast<size_t>(m_CaseID)).YVecAdd = 0.f;
+			m_CasePer.at(static_cast<size_t>(m_CaseID)).Timer = 1.f;
+			++m_CaseID %= static_cast<int>(m_CasePer.size());
+
+			auto& s = m_AmmoPer.at(static_cast<size_t>(m_AmmoID));
+			s.Mat = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle));
+			s.Vector =
+				GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle)).zvec() *
+				(-100.f * Scale3DRate / 60.f);
+			s.YVecAdd = 0.f;
+			s.Timer = 1.f;
+			s.DrawTimer = s.Timer + 1.f;
+			++m_AmmoID %= static_cast<int>(m_AmmoPer.size());
 		}
 	}
 	bool CanShot() const { return canshot; }
@@ -117,8 +205,13 @@ public:
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 		Draw::MV1::Load("data/FireEffect/model.mv1", &m_FireEffect, DX_LOADMODEL_PHYSICS_DISABLE);
 		m_SmokeGraph = Draw::GraphPool::Instance()->Get("data/Smoke.png")->Get();
+
+		Draw::MV1::Load("data/9x19/model.mv1", &m_Case, DX_LOADMODEL_PHYSICS_DISABLE);
 	}
 	void Init_Sub(void) noexcept override {
+		for (auto& s : m_CasePer) {
+			s.m_Case.Duplicate(m_Case);
+		}
 	}
 	void Update_Sub(void) noexcept override {
 		if (!canshot) {
@@ -142,6 +235,70 @@ public:
 
 		for (auto& s : m_SmokePer) {
 			s.second = std::clamp(s.second + 1.f / 60.f / 0.5f, 0.f, 1.f);
+		}
+		for (auto& s : m_AmmoPer) {
+			if (s.Timer == 0.f && s.DrawTimer == 0.f) { continue; }
+			s.DrawTimer = std::max(s.DrawTimer - 1.f / 60.f, 0.f);
+			if (s.Timer == 0.f) { continue; }
+			s.Timer = std::max(s.Timer - 1.f / 60.f, 0.f);
+			s.YVecAdd -= 1.f / 2.f * (9.8f * Scale3DRate) / (60.f * 60.f);
+			s.Vector.y += s.YVecAdd;
+			Util::VECTOR3D Target = s.Mat.pos() + s.Vector;
+			if (BackGround::Instance()->CheckLine(s.Mat.pos(), &Target)) {
+				s.Vector = Target - s.Mat.pos();
+				s.Timer = 0.f;
+				s.DrawTimer = s.Timer + 1.f;
+				for (int loop = 0; loop < 10; ++loop) {
+					auto& ae = m_AmmoEffectPer.at(static_cast<size_t>(m_AmmoEffectID));
+					ae.Mat = Util::Matrix4x4::Mtrans(Target);
+					ae.Vector = s.Vector.normalized() * -1.f;
+					ae.Vector =
+						Util::Matrix4x4::Vtrans(ae.Vector,
+							Util::Matrix4x4::RotAxis(Util::VECTOR3D::Cross(Util::VECTOR3D::forward(), ae.Vector), Util::deg2rad(45.f * (static_cast<float>(-50 + GetRand(100)) / 100.f))) *
+							Util::Matrix4x4::RotAxis(Util::VECTOR3D::Cross(Util::VECTOR3D::up(), ae.Vector), Util::deg2rad(45.f * (static_cast<float>(-50 + GetRand(100)) / 100.f)))
+						) *
+						(static_cast<float>(250 + GetRand(100)) / 100.f * Scale3DRate / 60.f);
+					ae.YVecAdd = 0.f;
+					ae.Timer = 1.f;
+					++m_AmmoEffectID %= static_cast<int>(m_AmmoEffectPer.size());
+				}
+			}
+
+			s.Mat = s.Mat.rotation() *
+				Util::Matrix4x4::RotAxis(Util::VECTOR3D::Cross(s.Vector, s.Mat.zvec()).normalized(), Util::deg2rad(1800.f) / 60.f) *
+				Util::Matrix4x4::Mtrans(Target);
+		}
+
+		for (auto& ae : m_AmmoEffectPer) {
+			if (ae.Timer == 0.f) { continue; }
+			ae.Timer = std::max(ae.Timer - 1.f / 60.f, 0.f);
+			ae.YVecAdd -= 1.f / 2.f * (9.8f * Scale3DRate) / (60.f * 60.f);
+			ae.Vector.y += ae.YVecAdd;
+			Util::VECTOR3D Target = ae.Mat.pos() + ae.Vector;
+			Util::VECTOR3D Normal;
+			if (BackGround::Instance()->CheckLine(ae.Mat.pos(), &Target, &Normal)) {
+				ae.YVecAdd = 0.f;
+				ae.Vector = Util::VECTOR3D::Reflect(ae.Vector, Normal) * 0.8f;
+			}
+			ae.Mat = ae.Mat.rotation() * Util::Matrix4x4::Mtrans(Target);
+		}
+
+		for (auto& s : m_CasePer) {
+			if (s.Timer == 0.f) { continue; }
+			s.Timer = std::max(s.Timer - 1.f / 60.f, 0.f);
+			s.YVecAdd -= 1.f / 2.f * (9.8f * Scale3DRate) / (60.f * 60.f);
+			s.Vector.y += s.YVecAdd;
+			Util::VECTOR3D Target = s.Mat.pos() + s.Vector;
+			Util::VECTOR3D Normal;
+			if (BackGround::Instance()->CheckLine(s.Mat.pos(), &Target, &Normal)) {
+				s.YVecAdd = 0.f;
+				s.Vector = Util::VECTOR3D::Reflect(s.Vector, Normal) * 0.8f;
+			}
+
+			s.Mat = s.Mat.rotation() *
+				Util::Matrix4x4::RotAxis(Util::VECTOR3D::Cross(s.Vector, s.Mat.zvec()).normalized(), Util::deg2rad(1800.f) / 60.f) *
+				Util::Matrix4x4::Mtrans(Target);
+			s.m_Case.SetMatrix(s.Mat);
 		}
 		//アニメアップデート
 		for (size_t loop = 0; loop < static_cast<size_t>(GunAnim::Max); ++loop) {
@@ -168,13 +325,48 @@ public:
 	void Draw_Sub(void) const noexcept override {
 		ModelID.DrawModel();
 		//
+		DxLib::SetUseLighting(FALSE);
+		for (auto& ae : m_AmmoEffectPer) {
+			if (ae.Timer == 0.f) { continue; }
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * ae.Timer), 0, 255));
+			DxLib::DrawCapsule3D(
+				(ae.Mat.pos() - ae.Vector * std::clamp(ae.Timer, 0.f, 1.f)).get(),
+				ae.Mat.pos().get(),
+				0.01f * Scale3DRate / 2.f,
+				6,
+				DxLib::GetColor(255, 255, 128),
+				DxLib::GetColor(255, 255, 0),
+				true
+			);
+		}
+		DxLib::SetUseLighting(TRUE);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		//
+		DxLib::SetUseLighting(FALSE);
+		for (auto& s : m_AmmoPer) {
+			if (s.DrawTimer == 0.f) { continue; }
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * s.DrawTimer), 0, 255));
+			DxLib::DrawCapsule3D(
+				(s.Mat.pos() - s.Vector * std::clamp(s.DrawTimer, 0.f, 1.f)).get(),
+				s.Mat.pos().get(),
+				0.009f * Scale3DRate / 2.f,
+				6,
+				DxLib::GetColor(255, 255, 128),
+				DxLib::GetColor(255, 255, 0),
+				true
+			);
+		}
+		DxLib::SetUseLighting(TRUE);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		//
+		DxLib::SetUseLighting(FALSE);
 		for (auto& s : m_SmokePer) {
 			float Per = std::sin(Util::deg2rad(180.f * s.second));
 			if (Per > 0.f) {
 				for (int loop = 0; loop < 3; ++loop) {
 					DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(64.f * Per));
 					DxLib::DrawBillboard3D(
-						(s.first.pos() - s.first.zvec() * (static_cast<float>(20 + (2 - loop)) / 100.f * Scale3DRate * s.second)).get(),
+						(s.first.pos() - s.first.zvec() * (static_cast<float>(10 + (2 - loop)*10) / 100.f * Scale3DRate * s.second)).get(),
 						0.5f,
 						0.5f,
 						0.2f * Scale3DRate * s.second,
@@ -183,14 +375,20 @@ public:
 						true
 					);
 				}
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 		}
+		DxLib::SetUseLighting(TRUE);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		//
 		if (!canshot) {
-			SetUseLighting(FALSE);
+			DxLib::SetUseLighting(FALSE);
 			m_FireEffect.DrawModel();
-			SetUseLighting(TRUE);
+			DxLib::SetUseLighting(TRUE);
+		}
+		//
+		for (auto& s : m_CasePer) {
+			if (s.Timer == 0.f) { continue; }
+			s.m_Case.DrawModel();
 		}
 	}
 	void ShadowDraw_Sub(void) const noexcept override {
@@ -199,5 +397,9 @@ public:
 	void Dispose_Sub(void) noexcept override {
 		ModelID.Dispose();
 		m_FireEffect.Dispose();
+		for (auto& s : m_CasePer) {
+			s.m_Case.Dispose();
+		}
+		m_Case.Dispose();
 	}
 };

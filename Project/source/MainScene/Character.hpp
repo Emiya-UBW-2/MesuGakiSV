@@ -236,7 +236,7 @@ class Character :public BaseObject {
 	GunParam			m_Maingun{};
 
 	float				m_WalkRad{};
-	char		paddin4[4]{};
+	//char		paddin4[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
