@@ -34,6 +34,8 @@ enum class GunFrame {
 	Muzzle,
 	Case,
 	CaseVec,
+	MagWel,
+	MagIn,
 	Max,
 };
 static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
@@ -50,6 +52,8 @@ static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
 	"muzzle",
 	"case",
 	"casevec",
+	"magwel",
+	"magin",
 };
 
 class Gun :public BaseObject {
@@ -69,6 +73,7 @@ class Gun :public BaseObject {
 	char		padding[3]{};
 
 	Draw::MV1			m_Case{};
+	Draw::MV1			m_Mag{};
 
 	Draw::MV1			m_FireEffect{};
 	float				m_FireOpticalPer{};
@@ -140,6 +145,14 @@ class Gun :public BaseObject {
 	std::array<AmmoEffect, 50>	m_AmmoEffectPer{};
 	int					m_AmmoEffectID{};
 	char		padding5[4]{};
+
+	float				m_MagInPer{};
+	float				m_MagLoadPer{};
+
+	bool				m_IsMagUnloadSound{};
+	bool				m_IsMagLoadSound{};
+
+	Util::Matrix4x4		m_MagLoad{};
 public:
 	Gun(void) noexcept {}
 	Gun(const Gun&) = delete;
@@ -161,6 +174,12 @@ public:
 		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandPos)).pos();
 		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandYVec)).pos() - HandPos;
 		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandZVec)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
+	auto			GetMagLeftHandMat(void) const noexcept {
+		Util::VECTOR3D HandPos = m_Mag.GetFrameLocalWorldMatrix(static_cast<int>(2)).pos();
+		Util::VECTOR3D Handyvec = m_Mag.GetFrameLocalWorldMatrix(static_cast<int>(4)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = m_Mag.GetFrameLocalWorldMatrix(static_cast<int>(3)).pos() - HandPos;
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
 public:
@@ -200,6 +219,31 @@ public:
 		}
 	}
 	bool CanShot() const { return canshot; }
+	void SetMagLoadMat(const Util::Matrix4x4& value) { m_MagLoad = value; }
+
+	void SetMagLoad(float value) {
+		m_MagInPer = std::clamp((value - 0.f) / (0.3f - 0.f), 0.f, 1.f);
+		m_MagLoadPer = std::clamp((value - 0.3f) / (1.f - 0.3f), 0.f, 1.f);
+	}
+
+	void SetMagSound(float value) {
+		if (value == 0.f) {
+			m_IsMagUnloadSound = false;
+			m_IsMagLoadSound = false;
+		}
+		if (value >= 0.1f) {
+			if (!m_IsMagUnloadSound) {
+				m_IsMagUnloadSound = true;
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, UnLoadMagID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+			}
+		}
+		if (value >= 0.8f) {
+			if (!m_IsMagLoadSound) {
+				m_IsMagLoadSound = true;
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, LoadMagID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+			}
+		}
+	}
 public:
 	void Load_Sub(void) noexcept override {
 		SlideOpenID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/0.wav", true);
@@ -215,11 +259,13 @@ public:
 		m_SmokeGraph = Draw::GraphPool::Instance()->Get("data/Smoke.png")->Get();
 
 		Draw::MV1::Load("data/9x19/model.mv1", &m_Case, DX_LOADMODEL_PHYSICS_DISABLE);
+		Draw::MV1::Load("data/Mag/model.mv1", &m_Mag, DX_LOADMODEL_PHYSICS_DISABLE);
 	}
 	void Init_Sub(void) noexcept override {
 		for (auto& s : m_CasePer) {
 			s.m_Case.Duplicate(m_Case);
 		}
+		SetMagLoad(0.f);
 	}
 	void Update_Sub(void) noexcept override {
 		if (!canshot) {
@@ -319,6 +365,13 @@ public:
 		}
 		SetAnim(static_cast<int>(GunAnim::Shot)).Update(false, 2.f);
 		ModelID.FlipAnimAll();
+		//
+		auto MagWel = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::MagWel));
+		auto MagIn = GetFrameBaseLocalMat(static_cast<int>(GunFrame::MagIn)).pos();
+		auto Mag = Util::Lerp(GetMat(), Util::Matrix4x4::RotVec2(MagIn, Util::VECTOR3D::down())* MagWel, m_MagInPer);
+
+		Mag = Util::Lerp(Mag, m_MagLoad, m_MagLoadPer);
+		m_Mag.SetMatrix(Mag);
 
 		{
 			float AnimPer = SetAnim(static_cast<int>(GunAnim::Shot)).GetTimePer();
@@ -332,11 +385,13 @@ public:
 	}
 	void SetShadowDraw_Sub(void) const noexcept override {
 		ModelID.DrawModel();
+		m_Mag.DrawModel();
 	}
 	void CheckDraw_Sub(void) noexcept override {
 	}
 	void Draw_Sub(void) const noexcept override {
 		ModelID.DrawModel();
+		m_Mag.DrawModel();
 		//
 		DxLib::SetUseLighting(FALSE);
 		for (auto& ae : m_AmmoEffectPer) {
@@ -406,6 +461,7 @@ public:
 	}
 	void ShadowDraw_Sub(void) const noexcept override {
 		ModelID.DrawModel();
+		m_Mag.DrawModel();
 	}
 	void Dispose_Sub(void) noexcept override {
 		ModelID.Dispose();
@@ -414,5 +470,6 @@ public:
 			s.m_Case.Dispose();
 		}
 		m_Case.Dispose();
+		m_Mag.Dispose();
 	}
 };

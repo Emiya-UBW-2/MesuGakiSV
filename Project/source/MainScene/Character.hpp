@@ -78,6 +78,9 @@ enum class CharaFrame {
 	SlingPull,
 	SlingYPull,
 	SlingZPull,
+	MagPouch,
+	MagPouchY,
+	MagPouchZ,
 	Max,
 };
 static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
@@ -112,6 +115,9 @@ static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
 	"slingPull",
 	"slingYPull",
 	"slingZPull",
+	"magpouch",
+	"magpouchY",
+	"magpouchZ",
 };
 
 struct GunParam {
@@ -121,11 +127,18 @@ struct GunParam {
 	float				m_PullPer{};
 	int					m_EquipPhase{};
 	bool				m_IsEquip{ false };
-	char		padding[3]{};
+	bool				m_IsGunLoad{ false };
+	char		padding[2]{};
 	float				m_GunReadyPer{};
 	float				m_GunADSPer{};
+	float				m_GunLoadHandPer{};
+	float				m_GunLoadPer{};
+	float				m_GunLoadTimer{};
+	const float			m_GunLoadTimerMax{ 2.f };
 public:
+	bool CanShot() const noexcept { return m_IsEquip && !m_IsGunLoad; }
 	bool GetIsEquip() const noexcept { return m_IsEquip; }
+	bool GetIsReload() const noexcept { return m_IsGunLoad; }
 	void SetIsEquip(bool value) {
 		this->m_IsEquip = value;
 		if (this->m_IsEquip) {
@@ -140,6 +153,12 @@ public:
 			this->m_Per = 0.f;
 			this->m_PullPer = 0.f;
 		}
+	}
+	bool GetCanReload() const noexcept { return this->m_IsEquip && !m_IsGunLoad; }
+	float GetReloadPer() const noexcept { return this->m_GunLoadTimer / this->m_GunLoadTimerMax; }
+	void ReloadStart() noexcept {
+		m_IsGunLoad = true;
+		m_GunLoadTimer = 0.f;
 	}
 	void Update() noexcept {
 		if (this->m_IsEquip) {
@@ -165,6 +184,29 @@ public:
 			default:
 				break;
 			}
+			if (m_IsGunLoad) {
+				m_GunLoadTimer = std::clamp(m_GunLoadTimer + 1.f / 60.f, 0.f, m_GunLoadTimerMax);
+				if (0.f <= GetReloadPer() && GetReloadPer() <= 0.1f) {
+					m_GunLoadHandPer = std::clamp((GetReloadPer() - 0.f) / (0.1f - 0.f), 0.f, 1.f);
+				}
+				if (0.1f <= GetReloadPer() && GetReloadPer() <= 0.3f) {
+					m_GunLoadPer = std::clamp((GetReloadPer() - 0.1f) / (0.3f - 0.1f), 0.f, 1.f);
+				}
+				if (0.6f <= GetReloadPer() && GetReloadPer() <= 0.85f) {
+					m_GunLoadPer = 1.f - std::clamp((GetReloadPer() - 0.6f) / (0.85f - 0.6f), 0.f, 1.f);
+				}
+				if (0.9f <= GetReloadPer() && GetReloadPer() <= 1.f) {
+					m_GunLoadHandPer = 1.f - std::clamp((GetReloadPer() - 0.9f) / (1.f - 0.9f), 0.f, 1.f);
+				}
+				if (GetReloadPer() == 1.f) {
+					m_IsGunLoad = false;
+				}
+			}
+			else {
+				m_GunLoadTimer = 0.f;
+				m_GunLoadPer = 0.f;
+				m_GunLoadHandPer = 0.f;
+			}
 		}
 		else {
 			switch (this->m_EquipPhase) {
@@ -189,6 +231,8 @@ public:
 			default:
 				break;
 			}
+			m_GunLoadPer = 0.f;
+			m_GunLoadHandPer = 0.f;
 		}
 	}
 };
@@ -222,6 +266,9 @@ class Character :public BaseObject {
 	int					m_RunAnimIndex{};
 	int					m_HaveHandgunAnimIndex{};
 	int					m_HaveRifleAnimIndex{};
+
+	int					m_ReloadHandgunAnimIndex{};
+	int					m_ReloadRifleAnimIndex{};
 
 
 	int					m_Prev{};
@@ -280,6 +327,14 @@ public:
 		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::SlingZPull)).pos() - HandPos;
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
+
+	auto			GetMagPouchMat(void) const noexcept {
+		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::MagPouch)).pos();
+		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::MagPouchY)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::MagPouchZ)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
+
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
 	bool IsFPSView(void) const noexcept { return m_IsFPS; }
 	bool IsShotSwitch(void) const noexcept { return m_ShotSwitch; }
@@ -342,6 +397,9 @@ public:
 
 		m_HaveHandgunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/HaveHandgun.txt");
 		m_HaveRifleAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/HaveRifle.txt");
+
+		m_ReloadHandgunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/ReloadHandgun.txt");
+		m_ReloadRifleAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/ReloadRifle.txt");
 
 		//Util::HandAnimPool::Instance()->SetAnimSpeed(m_WalkAnimIndex, 2.5f);
 

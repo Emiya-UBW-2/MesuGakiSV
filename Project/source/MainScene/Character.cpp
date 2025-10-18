@@ -66,7 +66,14 @@ void Character::Update_Sub(void) noexcept {
 				m_CharaStyle = CharaStyle::Stand;
 			}
 		}
-		if (m_Handgun.GetIsEquip()) {
+
+		if (m_Handgun.GetIsReload()) {
+			SetArmAnim(m_ReloadHandgunAnimIndex);
+		}
+		else if (m_Maingun.GetIsReload()) {
+			SetArmAnim(m_ReloadRifleAnimIndex);
+		}
+		else if (m_Handgun.GetIsEquip()) {
 			SetArmAnim(m_HaveHandgunAnimIndex);
 		}
 		else if (m_Maingun.GetIsEquip()) {
@@ -324,27 +331,27 @@ void Character::Update_Sub(void) noexcept {
 
 	if (IsFPSView()) {
 		m_Handgun.m_GunReadyPer = Util::Lerp(m_Handgun.m_GunReadyPer,
-			m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
+			!m_Handgun.GetIsReload() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
 			1.f - 0.9f);
 		m_Handgun.m_GunADSPer = Util::Lerp(m_Handgun.m_GunADSPer,
-			m_Handgun.GetIsEquip() && IsAim ? 1.f : 0.f,
+			!m_Handgun.GetIsReload() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim ? 1.f : 0.f,
 			1.f - 0.9f);
 
 		m_Maingun.m_GunReadyPer = Util::Lerp(m_Maingun.m_GunReadyPer,
-			m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
+			!m_Maingun.GetIsReload() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
 			1.f - 0.9f);
 		m_Maingun.m_GunADSPer = Util::Lerp(m_Maingun.m_GunADSPer,
-			m_Maingun.GetIsEquip() && IsAim ? 1.f : 0.f,
+			!m_Maingun.GetIsReload() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim ? 1.f : 0.f,
 			1.f - 0.9f);
 	}
 	else {
 		m_Handgun.m_GunReadyPer = Util::Lerp(m_Handgun.m_GunReadyPer,
-			m_Handgun.GetIsEquip() && IsAim ? 1.f : 0.f,
+			(m_Handgun.GetIsEquip() && IsAim) ? 1.f : 0.f,
 			1.f - 0.9f);
 		m_Handgun.m_GunADSPer = 0.f;
 
 		m_Maingun.m_GunReadyPer = Util::Lerp(m_Maingun.m_GunReadyPer,
-			m_Maingun.GetIsEquip() && IsAim ? 1.f : 0.f,
+			(m_Maingun.GetIsEquip() && IsAim) ? 1.f : 0.f,
 			1.f - 0.9f);
 		m_Maingun.m_GunADSPer = 0.f;
 	}
@@ -353,14 +360,14 @@ void Character::Update_Sub(void) noexcept {
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack)) {
 		if (m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) {
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-			if (gun->CanShot()) {
+			if (gun->CanShot() && m_Handgun.CanShot()) {
 				gun->ShotStart();
 				m_ShotSwitch = true;
 			}
 		}
 		if (m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) {
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-			if (gun->CanShot()) {
+			if (gun->CanShot() && m_Maingun.CanShot()) {
 				gun->ShotStart();
 				m_ShotSwitch = true;
 			}
@@ -375,6 +382,14 @@ void Character::Update_Sub(void) noexcept {
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Q)) {
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 		m_Maingun.SetIsEquip(!m_Maingun.GetIsEquip());
+	}
+	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Reload)) {
+		if (m_Handgun.GetCanReload()) {
+			m_Handgun.ReloadStart();
+		}
+		if (m_Maingun.GetCanReload()) {
+			m_Maingun.ReloadStart();
+		}
 	}
 
 	m_Handgun.Update();
@@ -458,7 +473,7 @@ void Character::Update_Sub(void) noexcept {
 	{
 		float Per = 0.f;
 		if (!IsFPSView()) {
-			if (IsFreeView() && (m_CharaStyle != CharaStyle::Run)) {
+			if (IsFreeView() && (m_CharaStyle != CharaStyle::Run) && !(m_Handgun.GetIsReload() || m_Maingun.GetIsReload())) {
 				Per = -Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
 			}
 			else {
@@ -579,19 +594,25 @@ void Character::Update_Sub(void) noexcept {
 				GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::RightHandJoint));
 			{
 				Util::Matrix4x4 Mat = RightMat;
-				auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
 				if (m_Handgun.m_EquipPhase <= 1) {
 					Mat = Util::Lerp(GetHolsterMat(), GetHolsterPullMat(), m_Handgun.m_GunPer);
 				}
 				gun->SetMatrix(Mat);
+				gun->SetMagLoadMat(GetMagPouchMat());
+				gun->SetMagLoad(m_Handgun.m_GunLoadPer);
+				gun->SetMagSound(m_Handgun.GetReloadPer());
 			}
 			{
 				Util::Matrix4x4 Mat = RightMat;
-				auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
 				if (m_Maingun.m_EquipPhase <= 1) {
 					Mat = Util::Lerp(GetSlingMat(), GetSlingPullMat(), m_Maingun.m_GunPer);
 				}
 				gun->SetMatrix(Mat);
+				gun->SetMagLoadMat(GetMagPouchMat());
+				gun->SetMagLoad(m_Maingun.m_GunLoadPer);
+				gun->SetMagSound(m_Maingun.GetReloadPer());
 			}
 		}
 
@@ -599,12 +620,14 @@ void Character::Update_Sub(void) noexcept {
 			Util::Matrix4x4 LeftHandMat = m_VRAnim.m_LeftRot.Get44DX() * HandBaseMat.rotation() *
 				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
 			{
-				auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-				LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Handgun.m_GunReadyPer);
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetBaseLeftHandMat(), m_Handgun.m_GunReadyPer);
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetMagLeftHandMat(), m_Handgun.m_GunLoadHandPer);
 			}
 			{
-				auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-				LeftHandMat = Util::Lerp(LeftHandMat, ((std::shared_ptr<Gun>&)gun)->GetBaseLeftHandMat(), m_Maingun.m_GunReadyPer);
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetBaseLeftHandMat(), m_Maingun.m_GunReadyPer);
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetMagLeftHandMat(), m_Maingun.m_GunLoadHandPer);
 			}
 
 			Draw::IK_LeftArm(
