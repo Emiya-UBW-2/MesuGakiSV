@@ -116,6 +116,12 @@ namespace AIs {
 		Util::VECTOR3D GetNextPoint(const Util::VECTOR3D& NowPosition, int* TargetPathPlanningIndex) const {
 			{
 				auto* BackGroundParts = BackGround::Instance();
+				const float COLLWIDTH = 0.001f * Scale3DRate;												// 当たり判定のサイズ
+				auto Goal = this->GoalPosition;
+				if (!BackGroundParts->CheckLine(NowPosition, &Goal)) {
+					// 方向は目標座標
+					return this->GoalPosition;
+				}
 				int NowIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds(NowPosition);
 				if (!((*TargetPathPlanningIndex != -1) && (this->GoalUnit))) {
 					return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(BackGroundParts->GetWayPoint()->GetNearestBuilds2(NowPosition))).GetPos();
@@ -189,7 +195,7 @@ namespace AIs {
 				ActiveFirstUnit = nullptr;
 				while (true) {
 					// ポリゴンの辺の数だけ繰り返し
-					for (int K = 0; K < 4; K++) {
+					for (int K = 0; K < 8; K++) {
 						int Index = BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(PUnit->GetPolyIndex())).GetLinkPolyIndex(K);
 						if (Index == -1) { continue; }											// 辺に隣接するポリゴンが無い場合は何もしない
 						if (Index == this->StartUnit->GetPolyIndex()) { continue; }				//スタート地点のポリゴンだった場合は何もしない
@@ -219,7 +225,6 @@ namespace AIs {
 		}
 		void Draw(void) const noexcept {
 			PATHPLANNING_UNIT* Now = GetStartUnit();
-			//for (int K = 0; K < 10; K++) {
 			while (true) {
 				if (!Now) { break; }
 				Util::VECTOR3D Vec1 = BackGround::Instance()->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(Now->GetPolyIndex())).GetPos();
@@ -327,7 +332,7 @@ public:
 	void Draw_Sub(void) const noexcept override {
 		ModelID.DrawModel();
 
-		//return;
+		return;
 		auto Pos = (MyPosTarget + Util::VECTOR3D::up() * (1.f * Scale3DRate));
 
 		int X = this->TargetPathPlanningIndex;
@@ -339,7 +344,7 @@ public:
 			Util::VECTOR3D Vec1 = m.GetPos();
 			//if (!((Vec1 - Pos).magnitude() < 10.f * Scale3DRate)) { continue; }
 			//*
-			for (int K = 0; K < 4; K++) {
+			for (int K = 0; K < 8; K++) {
 				int LinkIndex = m.GetLinkPolyIndex(K);
 				if (LinkIndex == -1) { continue; }
 				Util::VECTOR3D Vec2 = BackGround::Instance()->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(LinkIndex)).GetPos();

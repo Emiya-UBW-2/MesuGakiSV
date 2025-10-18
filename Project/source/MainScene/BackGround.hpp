@@ -46,7 +46,7 @@ static float GetMinLenSegmentToSegment(const Util::VECTOR3D& startpos, const Uti
 	return Segment_Segment_MinLength(startpos.get(), endpos.get(), tgtstartpos.get(), tgtendpos.get());
 }
 
-class WayPoint {
+class WayPointClass {
 public:
 	class Builds {
 		struct LinkBuffer {
@@ -62,7 +62,7 @@ public:
 		Util::VECTOR3D					m_MaxPos;
 		int							MyIndex{ 0 };
 	public:
-		std::array<LinkBuffer, 4>	m_LinkPosBuffer{};
+		std::array<LinkBuffer, 8>	m_LinkPosBuffer{};
 	public:
 		int	GetIndex() const noexcept { return MyIndex; }
 		int	GetLinkPolyIndex(int ID) const noexcept { return m_LinkPosBuffer[static_cast<size_t>(ID)].ID; }
@@ -185,7 +185,7 @@ public:
 				// チェック対象のポリゴンの３座標を取得 y座標を0.0にして、平面的な判定を行うようにする
 				Util::VECTOR3D Pos = this->m_WayPoints.at(static_cast<size_t>(Index)).GetPos(); Pos.y = (0.f);
 
-				for (int K = 0; K < 4; K++) {
+				for (int K = 0; K < 8; K++) {
 					int LinkIndex = this->m_WayPoints.at(static_cast<size_t>(Index)).GetLinkPolyIndex(K);
 
 					;
@@ -342,7 +342,7 @@ private:
 	Draw::MV1				SkyBoxID{};
 	std::vector<mapGraph>	m_map;
 	std::string				m_MapName;
-	std::unique_ptr<WayPoint>		m_WayPoint;
+	std::unique_ptr<WayPointClass>		m_WayPoint;
 private:
 	BackGround(void) noexcept {}
 	BackGround(const BackGround&) = delete;
@@ -394,7 +394,7 @@ public:
 		Voxel.InitStart();											// 初期化開始時処理
 		Voxel.LoadCellsFile(("data/" + m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
 		Voxel.InitEnd();											// 初期化終了時処理
-		this->m_WayPoint = std::make_unique<WayPoint>();
+		this->m_WayPoint = std::make_unique<WayPointClass>();
 		m_MapInfo.clear();
 		if (std::filesystem::is_regular_file("data/" + m_MapName + "/Event.txt")) {
 			std::ifstream ifs("data/" + m_MapName + "/Event.txt");
@@ -434,14 +434,14 @@ public:
 				for (size_t p2 = 0; p2 < m_MapInfo.size(); ++p2) {
 					auto& m2 = m_MapInfo.at(p2);
 					if (p1 == p2) { continue; }
-					if (ID > 3) { continue; }
+					if (ID >= 8) { continue; }
 					if (m2.m_InfoType != InfoType::WayPoint) { continue; }
 					auto Pos2 = Voxel.GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 					if (!CheckLine(Pos1, &Pos2)) {
 						//線分の間を埋める
 						auto Vec = Pos2 - Pos1;
 						int Len = static_cast<int>(Vec.magnitude()) + 1;
-						for (int loop = 1; loop < Len; ++loop) {
+						for (int loop = 0; loop <= Len; ++loop) {
 							float Per = static_cast<float>(loop) / static_cast<float>(Len);
 							m_MapInfo.emplace_back();
 							m_MapInfo.back().m_InfoType = InfoType::WayPoint2;
@@ -464,8 +464,11 @@ public:
 				for (size_t p2 = 0; p2 < m_MapInfo.size(); ++p2) {
 					auto& m2 = m_MapInfo.at(p2);
 					if (p1 == p2) { continue; }
-					if (!((m2.m_InfoType == InfoType::WayPoint) || (m2.m_InfoType == InfoType::WayPoint2))) { continue; }
-					if (m.m_pos == m2.m_pos) {
+					if (!(m2.m_InfoType == InfoType::WayPoint2)) { continue; }
+					if ((m.m_pos == m2.m_pos) ||
+						(m.m_pos.x == m2.m_pos.x && m.m_pos.y == m2.m_pos.y + 1 && m.m_pos.z == m2.m_pos.z) ||
+						(m.m_pos.x == m2.m_pos.x && m.m_pos.y == m2.m_pos.y + 2 && m.m_pos.z == m2.m_pos.z)
+						) {
 						m_MapInfo.erase(m_MapInfo.begin() + static_cast<int64_t>(p1));
 						--p1;
 						break;
@@ -474,23 +477,23 @@ public:
 			}
 			int count = 0;
 			for (auto& m : m_MapInfo) {
-				if ((m.m_InfoType == InfoType::WayPoint) || (m.m_InfoType == InfoType::WayPoint2)) {
+				if ((m.m_InfoType == InfoType::WayPoint2)) {
 					++count;
 				}
 			}
 			this->m_WayPoint->Init(count);
 			for (auto& m : m_MapInfo) {
-				if (!((m.m_InfoType == InfoType::WayPoint) || (m.m_InfoType == InfoType::WayPoint2))) { continue; }
+				if (!((m.m_InfoType == InfoType::WayPoint2))) { continue; }
 				auto Pos1 = Voxel.GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 				auto& bu = this->m_WayPoint->AddWayPoint(
-					Pos1 + Util::VECTOR3D::vget(1.f, 4.f, 1.f) * (-0.1f * Scale3DRate),
-					Pos1 + Util::VECTOR3D::vget(1.f, 4.f, 1.f) * (0.1f * Scale3DRate)
+					Pos1 + Util::VECTOR3D::vget(1.f, 1.f, 1.f) * (-0.125f * Scale3DRate),
+					Pos1 + Util::VECTOR3D::vget(1.f, 9.f, 1.f) * (0.125f * Scale3DRate)
 				);
 				int ID = 0;
 				for (auto& m2 : m_MapInfo) {
-					if (ID > 3) { continue; }
+					if (ID >= 8) { continue; }
 					if (&m == &m2) { continue; }
-					if (!((m2.m_InfoType == InfoType::WayPoint) || (m2.m_InfoType == InfoType::WayPoint2))) { continue; }
+					if (!((m2.m_InfoType == InfoType::WayPoint2))) { continue; }
 					auto Pos2 = Voxel.GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 					auto Vec = Pos2 - Pos1;
 					if (Vec.magnitude() >= 0.4f*Scale3DRate) { continue; }
