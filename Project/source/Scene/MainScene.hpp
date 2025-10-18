@@ -10,6 +10,7 @@
 #include "../OptionWindow.hpp"
 #include "../PauseUI.hpp"
 #include "../MainScene/BackGround.hpp"
+#include "../MainScene/EarlyCharacter.hpp"
 #include "../MainScene/Character.hpp"
 #include "../MainScene/Gun.hpp"
 
@@ -21,6 +22,7 @@ class MainScene : public Util::SceneBase {
 	bool			m_IsSceneEnd{ false };
 	bool			m_IsPauseActive{ false };
 	char		padding[5]{};
+	std::shared_ptr<EarlyCharacter>		m_EarlyCharacter{};
 	std::shared_ptr<Character>		m_Character{};
 	std::shared_ptr<Gun>			m_HandGun{};
 	std::shared_ptr<Gun>			m_MainGun{};
@@ -50,12 +52,16 @@ protected:
 		ObjectManager::Create();
 		BackGround::Create();
 		BackGround::Instance()->Load(m_MapName.c_str());
+		ObjectManager::Instance()->LoadModel("data/Early/");
 		ObjectManager::Instance()->LoadModel("data/Soldier/");
 		ObjectManager::Instance()->LoadModel("data/Px4/");
 		ObjectManager::Instance()->LoadModel("data/Cx4/");
 	}
 	void Init_Sub(void) noexcept override {
 		BackGround::Instance()->Init();
+
+		this->m_EarlyCharacter = std::make_shared<EarlyCharacter>();
+		ObjectManager::Instance()->InitObject(this->m_EarlyCharacter, this->m_EarlyCharacter, "data/Early/");
 
 		this->m_Character = std::make_shared<Character>();
 		ObjectManager::Instance()->InitObject(this->m_Character, this->m_Character, "data/Soldier/");
@@ -71,6 +77,13 @@ protected:
 		for (auto& m : BackGround::Instance()->GetMapInfo()) {
 			if (m.m_InfoType == m_EntrancePoint) {
 				this->m_Character->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
+			}
+		}
+
+		for (auto& m : BackGround::Instance()->GetMapInfo()) {
+			if (m.m_InfoType == InfoType::WayPoint) {
+				this->m_EarlyCharacter->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
+				break;
 			}
 		}
 		m_Exit = false;
@@ -181,6 +194,7 @@ protected:
 			this->m_OptionWindow.Update();
 		}
 		if (this->m_IsPauseActive) {
+			DxLib::SetMouseDispFlag(true);
 			return;
 		}
 		ObjectManager::Instance()->UpdateObject();
@@ -259,6 +273,10 @@ protected:
 			m_ShotFov = Util::Lerp(m_ShotFov, 0.f, 1.f - 0.9f);
 		}
 
+		this->m_EarlyCharacter->SetTarget(this->m_Character->GetEyeMat().pos());
+
+		DxLib::SetMouseDispFlag(!this->m_Character->IsFPSView());
+
 		CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45),
 			CameraParts->GetCamera().GetCamFov() - m_ShotFov* Util::deg2rad(5),
 			m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
@@ -292,6 +310,8 @@ protected:
 				case InfoType::Entrance2:
 				case InfoType::Entrance3:
 				case InfoType::None:
+				case InfoType::WayPoint:
+				case InfoType::WayPoint2:
 				case InfoType::Max:
 				default:
 					break;
@@ -371,6 +391,18 @@ protected:
 								3, ColorPalette::Blue, TRUE);
 						}
 					}
+					{
+						BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_EarlyCharacter->GetMat().pos());
+						if (m.m_ID <= Pos.y) {
+							DxLib::SetDrawBright(255, 255, 255);
+							DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+
+							DxLib::DrawCircle(
+								256 + static_cast<int>(static_cast<float>(Pos.x * 128 / 256) * 3.f),
+								256 + static_cast<int>(static_cast<float>(-Pos.z * 128 / 256) * 3.f),
+								3, ColorPalette::Red, TRUE);
+						}
+					}
 				}
 				DxLib::SetDrawBright(255, 255, 255);
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
@@ -389,6 +421,7 @@ protected:
 	void Dispose_Sub(void) noexcept override {
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->StopAll();
 		BackGround::Release();
+		this->m_EarlyCharacter.reset();
 		this->m_Character.reset();
 		this->m_MainGun.reset();
 		this->m_HandGun.reset();

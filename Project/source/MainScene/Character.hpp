@@ -237,6 +237,14 @@ class Character :public BaseObject {
 
 	float				m_WalkRad{};
 	//char		paddin4[4]{};
+	float				m_YradAdd{};
+	float				m_XradAdd{};
+
+	float				m_YradAddR{};
+	float				m_XradAddR{};
+
+	float				m_YradAddR2{};
+	float				m_XradAddR2{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;

@@ -68,6 +68,7 @@ protected:
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Diside), Localize->Get(330));
 			}
 		);
+		DxLib::SetMouseDispFlag(true);
 		this->m_EndUI.Update();
 		if (this->m_EndUI.IsActive()) { return; }
 		this->m_TitleUI.SetActive(!this->m_OptionWindow.IsActive());

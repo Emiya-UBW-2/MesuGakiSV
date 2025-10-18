@@ -129,6 +129,7 @@ class Gun :public BaseObject {
 		Util::VECTOR3D Vector{};
 		float YVecAdd{};
 		float Timer{};
+		char		padding[4]{};
 	};
 
 	std::array<AmmoEffect, 50>	m_AmmoEffectPer{};

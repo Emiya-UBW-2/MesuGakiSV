@@ -194,8 +194,6 @@ namespace Util {
 				exit(-1);
 			}
 #endif
-			DxLib::SetMouseDispFlag(true);
-
 			auto* CameraParts = Camera::Camera3D::Instance();
 			auto* pOption = Util::OptionParam::Instance();
 			Set3DSoundListenerPosAndFrontPosAndUpVec(CameraParts->GetCameraForDraw().GetCamPos().get(), CameraParts->GetCameraForDraw().GetCamVec().get(), CameraParts->GetCameraForDraw().GetCamUp().get());		// 音位置指定

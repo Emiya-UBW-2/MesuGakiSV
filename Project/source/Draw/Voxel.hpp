@@ -52,6 +52,10 @@ namespace BG {
 			const Vector3Int operator+(const Vector3Int& o) const noexcept {
 				return Vector3Int(this->x + o.x, this->y + o.y, this->z + o.z);
 			}
+
+			bool operator==(const Vector3Int& o) const noexcept {
+				return this->x == o.x && this->y == o.y && this->z == o.z;
+			}
 		};
 
 		// ブレゼンハムアルゴリズムで線分上にボクセルを走査

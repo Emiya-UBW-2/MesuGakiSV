@@ -183,14 +183,16 @@ void Character::Update_Sub(void) noexcept {
 		LookX = MX - DrawerMngr->GetWindowDrawWidth() / 2;
 		LookY = MY - DrawerMngr->GetWindowDrawHeight() / 2;
 		DxLib::SetMousePoint(DrawerMngr->GetWindowDrawWidth() / 2, DrawerMngr->GetWindowDrawHeight() / 2);
-		DxLib::SetMouseDispFlag(false);
 	}
 	m_PrevIsFPSView = IsFPSView();
-	if (IsFPSView()) {
-		float YradAdd = Util::deg2rad(static_cast<float>(LookX) / 30.f);
-		float XradAdd = Util::deg2rad(static_cast<float>(LookY) / 30.f);
 
-		Yrad += YradAdd;
+	float				PrevYradAdd = m_YradAdd;
+	float				PrevXradAdd = m_XradAdd;
+	if (IsFPSView()) {
+		m_YradAdd = Util::deg2rad(static_cast<float>(LookX) / 30.f);
+		m_XradAdd = Util::deg2rad(static_cast<float>(LookY) / 30.f);
+
+		Yrad += m_YradAdd;
 		if (Yrad > 0.f) {
 			while (true) {
 				if (Yrad < DX_PI_F * 2.f) { break; }
@@ -204,7 +206,7 @@ void Character::Update_Sub(void) noexcept {
 			}
 		}
 
-		Xrad = std::clamp(Xrad + XradAdd, Util::deg2rad(-80), Util::deg2rad(80));
+		Xrad = std::clamp(Xrad + m_XradAdd, Util::deg2rad(-80), Util::deg2rad(80));
 		VecR = Util::VECTOR2D::zero();
 	}
 	else {
@@ -231,6 +233,9 @@ void Character::Update_Sub(void) noexcept {
 			VecR = Util::Lerp(VecR, Vec, 1.f - 0.9f);
 		}
 
+		m_YradAdd = 0.f;
+		m_XradAdd = 0.f;
+
 		if (VecR.sqrMagnitude() > 0.f) {
 			m_YradDif = std::atan2f(-VecR.x, -VecR.y) - Yrad;
 			if (m_YradDif > 0.f) {
@@ -247,7 +252,6 @@ void Character::Update_Sub(void) noexcept {
 			}
 			float Per = std::clamp(m_YradDif / Util::deg2rad(15.f), -1.f, 1.f);
 
-			float YradAdd = 0.f;
 			if (std::fabsf(Per) > 0.01f) {
 				float Power = 1.f;
 				switch (m_CharaStyle) {
@@ -264,9 +268,8 @@ void Character::Update_Sub(void) noexcept {
 				default:
 					break;
 				}
-				YradAdd = Per * Util::deg2rad(720.f) * Power / 60.f;
+				m_YradAdd = Per * Util::deg2rad(720.f) * Power / 60.f;
 			}
-			Yrad += YradAdd;
 			{
 				float Power = 1.f;
 				switch (m_CharaStyle) {
@@ -288,24 +291,31 @@ void Character::Update_Sub(void) noexcept {
 				default:
 					break;
 				}
-				Zrad = Util::Lerp(Zrad, YradAdd * Power, 1.f - 0.9f);
-			}
-			if (Yrad > 0.f) {
-				while (true) {
-					if (Yrad < DX_PI_F * 2.f) { break; }
-					Yrad -= DX_PI_F * 2.f;
-				}
-			}
-			if (Yrad < 0.f) {
-				while (true) {
-					if (Yrad > -DX_PI_F * 2.f) { break; }
-					Yrad += DX_PI_F * 2.f;
-				}
+				Zrad = Util::Lerp(Zrad, m_YradAdd * Power, 1.f - 0.9f);
 			}
 		}
 
+		Yrad += m_YradAdd;
+		if (Yrad > 0.f) {
+			while (true) {
+				if (Yrad < DX_PI_F * 2.f) { break; }
+				Yrad -= DX_PI_F * 2.f;
+			}
+		}
+		if (Yrad < 0.f) {
+			while (true) {
+				if (Yrad > -DX_PI_F * 2.f) { break; }
+				Yrad += DX_PI_F * 2.f;
+			}
+		}
 		Xrad = Util::Lerp(Xrad, 0.f, 1.f - 0.9f);
 	}
+
+	m_YradAddR = Util::Lerp(m_YradAddR, std::clamp(m_YradAdd - PrevYradAdd, -1.f, 1.f) * 30.f, 1.f - 0.95f);
+	m_XradAddR = Util::Lerp(m_XradAddR, std::clamp(m_XradAdd - PrevXradAdd, -1.f, 1.f) * 30.f, 1.f - 0.95f);
+
+	m_YradAddR2 = Util::Lerp(m_YradAddR2, m_YradAddR, 1.f - 0.95f);
+	m_XradAddR2 = Util::Lerp(m_XradAddR2, m_XradAddR, 1.f - 0.95f);
 
 	bool IsAim = KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim);
 	if (m_CharaStyle == CharaStyle::Run) {
@@ -483,6 +493,12 @@ void Character::Update_Sub(void) noexcept {
 	ModelID.FlipAnimAll();
 
 	Util::Matrix4x4 HandBaseMat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+
+	HandBaseMat =
+		Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), -m_YradAddR2) *
+		Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), m_XradAddR2) *
+		HandBaseMat.rotation() *
+		Util::Matrix4x4::Mtrans(HandBaseMat.pos());
 
 	{
 		ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper));
