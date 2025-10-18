@@ -121,6 +121,7 @@ protected:
 	int						m_UniqueID{ 0 };
 	bool										m_IsDelete{ false };
 	char		padding[3]{};
+	std::string				m_Path{};
 public:
 	BaseObject(void) noexcept {}
 	BaseObject(const BaseObject&) = delete;
@@ -132,6 +133,11 @@ public:
 	const Util::Matrix4x4& GetMat(void) const noexcept { return MyMat; }
 	int GetObjectID(void) const noexcept { return m_UniqueID; }
 	const auto& GetIsDelete(void) const noexcept { return this->m_IsDelete; }
+
+	const auto& GetFilePath(void) const noexcept { return this->m_Path; }
+	void SetFilePath(std::string_view value) noexcept {
+		this->m_Path = value;
+	}
 
 	void SetMatrix(const Util::Matrix4x4& mat) noexcept {
 		MyMat = mat;

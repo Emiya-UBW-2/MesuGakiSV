@@ -72,6 +72,8 @@ class Gun :public BaseObject {
 	bool canshot{ true };
 	char		padding[3]{};
 
+	const Draw::GraphHandle*	m_Pic{};
+
 	Draw::MV1			m_Case{};
 	Draw::MV1			m_Mag{};
 
@@ -149,10 +151,11 @@ class Gun :public BaseObject {
 	float				m_MagInPer{};
 	float				m_MagLoadPer{};
 
+	Util::Matrix4x4		m_MagLoad{};
+
 	bool				m_IsMagUnloadSound{};
 	bool				m_IsMagLoadSound{};
-
-	Util::Matrix4x4		m_MagLoad{};
+	char		padding6[6]{};
 public:
 	Gun(void) noexcept {}
 	Gun(const Gun&) = delete;
@@ -221,6 +224,8 @@ public:
 	bool CanShot() const { return canshot; }
 	void SetMagLoadMat(const Util::Matrix4x4& value) { m_MagLoad = value; }
 
+	const auto* GetPicPtr(void) const noexcept { return m_Pic; }
+
 	void SetMagLoad(float value) {
 		m_MagInPer = std::clamp((value - 0.f) / (0.3f - 0.f), 0.f, 1.f);
 		m_MagLoadPer = std::clamp((value - 0.3f) / (1.f - 0.3f), 0.f, 1.f);
@@ -262,6 +267,8 @@ public:
 
 		Draw::MV1::Load("data/9x19/model.mv1", &m_Case, DX_LOADMODEL_PHYSICS_DISABLE);
 		Draw::MV1::Load("data/Mag/model.mv1", &m_Mag, DX_LOADMODEL_PHYSICS_DISABLE);
+
+		m_Pic = Draw::GraphPool::Instance()->Get(this->GetFilePath() + "/pic.png")->Get();
 	}
 	void Init_Sub(void) noexcept override {
 		for (auto& s : m_CasePer) {

@@ -77,12 +77,14 @@ void			ObjectManager::InitObject(const SharedObj& pObj) noexcept {
 void			ObjectManager::InitObject(const SharedObj& pObj, std::string_view filepath, std::string_view objfilename, std::string_view colfilename) noexcept {
 	AddObject(pObj);
 	LoadModelAfter(pObj, pObj, filepath, objfilename, colfilename);
+	pObj->SetFilePath(filepath);
 	pObj->Load();
 	pObj->Init();
 }
 void			ObjectManager::InitObject(const SharedObj& pObj, const SharedObj& pAnim, std::string_view filepath, std::string_view objfilename, std::string_view colfilename) noexcept {
 	AddObject(pObj);
 	LoadModelAfter(pObj, pAnim, filepath, objfilename, colfilename);
+	pObj->SetFilePath(filepath);
 	pObj->Load();
 	pObj->Init();
 }

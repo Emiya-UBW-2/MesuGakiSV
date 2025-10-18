@@ -116,7 +116,6 @@ namespace AIs {
 		Util::VECTOR3D GetNextPoint(const Util::VECTOR3D& NowPosition, int* TargetPathPlanningIndex) const {
 			{
 				auto* BackGroundParts = BackGround::Instance();
-				const float COLLWIDTH = 0.001f * Scale3DRate;												// 当たり判定のサイズ
 				auto Goal = this->GoalPosition;
 				if (!BackGroundParts->CheckLine(NowPosition, &Goal)) {
 					// 方向は目標座標

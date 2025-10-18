@@ -136,6 +136,13 @@ struct GunParam {
 	float				m_GunLoadTimer{};
 	const float			m_GunLoadTimerMax{ 2.f };
 public:
+	GunParam(void) noexcept {}
+	GunParam(const GunParam&) = delete;
+	GunParam(GunParam&&) = delete;
+	GunParam& operator=(const GunParam&) = delete;
+	GunParam& operator=(GunParam&&) = delete;
+	virtual ~GunParam(void) noexcept {}
+public:
 	bool CanShot() const noexcept { return m_IsEquip && !m_IsGunLoad; }
 	bool GetIsEquip() const noexcept { return m_IsEquip; }
 	bool GetIsReload() const noexcept { return m_IsGunLoad; }
@@ -274,16 +281,15 @@ class Character :public BaseObject {
 	int					m_Prev{};
 	int					m_Now{};
 	float				m_AnimChangePer{};
+	float				m_SwitchPer{};
 	bool				m_AnimMoving{ false };
 	bool				m_ShotSwitch{ false };
-	char		padding3[6]{};
-	float				m_SwitchPer{};
+	char		padding3[2]{};
 
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
 
 	float				m_WalkRad{};
-	//char		paddin4[4]{};
 	float				m_YradAdd{};
 	float				m_XradAdd{};
 
@@ -292,6 +298,7 @@ class Character :public BaseObject {
 
 	float				m_YradAddR2{};
 	float				m_XradAddR2{};
+	char		paddin4[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;

@@ -408,6 +408,10 @@ protected:
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 		}
+		{
+			this->m_MainGun->GetPicPtr()->DrawExtendGraph(100, 100, 100 + 256, 100 + 128, true);
+			this->m_HandGun->GetPicPtr()->DrawExtendGraph(100, 300, 100 + 256, 300 + 128, true);
+		}
 		this->m_PauseUI.Draw();
 		this->m_OptionWindow.Draw();
 		{
