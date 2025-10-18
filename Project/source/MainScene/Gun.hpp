@@ -61,6 +61,10 @@ class Gun :public BaseObject {
 	Sound::SoundUniqueID LoadMagID{ InvalidID };
 	Sound::SoundUniqueID ShotSPID{ InvalidID };
 
+	Sound::SoundUniqueID HitGroundID{ InvalidID };
+
+	Sound::SoundUniqueID FallCaseID{ InvalidID };
+
 	bool canshot{ true };
 	char		padding[3]{};
 
@@ -88,7 +92,8 @@ class Gun :public BaseObject {
 		Util::VECTOR3D Vector{};
 		float YVecAdd{};
 		float Timer{};
-		char		padding[4]{};
+		bool m_IsPlaySound{};
+		char		padding[3]{};
 	};
 
 	std::array<Case, 5>	m_CasePer{};
@@ -180,6 +185,7 @@ public:
 				).normalized() * (static_cast<float>(250 + GetRand(100)) / 100.f * Scale3DRate / 60.f);
 			m_CasePer.at(static_cast<size_t>(m_CaseID)).YVecAdd = 0.f;
 			m_CasePer.at(static_cast<size_t>(m_CaseID)).Timer = 1.f;
+			m_CasePer.at(static_cast<size_t>(m_CaseID)).m_IsPlaySound = false;
 			++m_CaseID %= static_cast<int>(m_CasePer.size());
 
 			auto& s = m_AmmoPer.at(static_cast<size_t>(m_AmmoID));
@@ -202,7 +208,8 @@ public:
 		UnLoadMagID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/3.wav", true);
 		LoadMagID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/4.wav", true);
 		ShotSPID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/5.wav", true);
-
+		HitGroundID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitGround.wav", true);
+		FallCaseID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/FallCase.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 		Draw::MV1::Load("data/FireEffect/model.mv1", &m_FireEffect, DX_LOADMODEL_PHYSICS_DISABLE);
 		m_SmokeGraph = Draw::GraphPool::Instance()->Get("data/Smoke.png")->Get();
@@ -263,6 +270,7 @@ public:
 					ae.Timer = 1.f;
 					++m_AmmoEffectID %= static_cast<int>(m_AmmoEffectPer.size());
 				}
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitGroundID)->Play3D(Target, 10.f * Scale3DRate);
 			}
 
 			s.Mat = s.Mat.rotation() *
@@ -294,6 +302,10 @@ public:
 			if (BackGround::Instance()->CheckLine(s.Mat.pos(), &Target, &Normal)) {
 				s.YVecAdd = 0.f;
 				s.Vector = Util::VECTOR3D::Reflect(s.Vector, Normal) * 0.8f;
+				if (!s.m_IsPlaySound) {
+					s.m_IsPlaySound = true;
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, FallCaseID)->Play3D(Target, 10.f * Scale3DRate);
+				}
 			}
 
 			s.Mat = s.Mat.rotation() *
