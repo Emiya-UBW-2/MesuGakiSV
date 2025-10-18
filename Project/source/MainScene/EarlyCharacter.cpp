@@ -52,10 +52,10 @@ void EarlyCharacter::Update_Sub(void) noexcept {
 		}
 		IsMove = true;// Vec.magnitude() >= 0.5f * Scale3DRate;
 
-		IsMove = Vec.magnitude() >= 0.1f * Scale3DRate;
+		//IsMove = Vec.magnitude() >= 0.1f * Scale3DRate;
 		{
-			//Util::VECTOR3D Vec3D = MyTarget - MyPosTarget; Vec3D.y = 0.f;
-			//IsMove = Vec3D.magnitude() >= 0.5f * Scale3DRate;
+			Util::VECTOR3D Vec3D = MyTarget - MyPosTarget; Vec3D.y = 0.f;
+			IsMove = Vec3D.magnitude() >= 0.5f * Scale3DRate;
 		}
 		if (Vec.magnitude() >= 1.f * Scale3DRate) {
 			Vec = Vec.normalized();

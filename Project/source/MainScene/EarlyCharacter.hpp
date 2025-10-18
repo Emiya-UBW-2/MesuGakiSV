@@ -114,6 +114,28 @@ namespace AIs {
 		const auto& GetStartUnit() const noexcept { return this->StartUnit; }
 	public:
 		Util::VECTOR3D GetNextPoint(const Util::VECTOR3D& NowPosition, int* TargetPathPlanningIndex) const {
+			{
+				auto* BackGroundParts = BackGround::Instance();
+				int NowIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds(NowPosition);
+				if (!((*TargetPathPlanningIndex != -1) && (this->GoalUnit))) {
+					return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(BackGroundParts->GetWayPoint()->GetNearestBuilds2(NowPosition))).GetPos();
+				}
+				if (NowIndex != this->GoalUnit->GetPolyIndex()) {																	// 現在乗っているポリゴンがゴール地点にあるポリゴンの場合は処理を分岐
+					if (NowIndex == *TargetPathPlanningIndex) {													// 現在乗っているポリゴンが移動中間地点のポリゴンの場合は次の中間地点を決定する処理を行う
+						auto NextIndex = this->UnitArray.at(static_cast<size_t>(*TargetPathPlanningIndex)).GetNextPolyUnit()->GetPolyIndex();
+						(*TargetPathPlanningIndex) = NextIndex;													// チェック対象を経路上の更に一つ先のポリゴンに変更する
+					}
+					// 移動方向を決定する、移動方向は現在の座標から中間地点のポリゴンの中心座標に向かう方向
+					return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(*TargetPathPlanningIndex)).GetPos();
+				}
+				else {
+					// 方向は目標座標
+					return this->GoalPosition;
+				}
+			}
+
+
+
 			auto* BackGroundParts = BackGround::Instance();
 			int NowIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds(NowPosition);
 			if (!((*TargetPathPlanningIndex != -1) && (this->GoalUnit))) {
@@ -305,16 +327,13 @@ public:
 	void Draw_Sub(void) const noexcept override {
 		ModelID.DrawModel();
 
+		//return;
 		auto Pos = (MyPosTarget + Util::VECTOR3D::up() * (1.f * Scale3DRate));
 
 		int X = this->TargetPathPlanningIndex;
 		Util::VECTOR3D Vec3D = m_PathChecker.GetNextPoint(Pos, &X);
 
-		DxLib::DrawLine3D(
-			Vec3D.get(),
-			Pos.get(),
-			DxLib::GetColor(255, 0, 0)
-		);
+		DxLib::DrawLine3D(Vec3D.get(), Pos.get(), DxLib::GetColor(255, 0, 0));
 
 		for (const auto& m : BackGround::Instance()->GetWayPoint()->GetWayPoints()) {
 			Util::VECTOR3D Vec1 = m.GetPos();
@@ -325,11 +344,7 @@ public:
 				if (LinkIndex == -1) { continue; }
 				Util::VECTOR3D Vec2 = BackGround::Instance()->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(LinkIndex)).GetPos();
 
-				DxLib::DrawLine3D(
-					Vec1.get(),
-					Vec2.get(),
-					DxLib::GetColor(255, 255, 0)
-				);
+				DxLib::DrawLine3D(Vec1.get(), Vec2.get(), DxLib::GetColor(255, 255, 0));
 			}
 			//*/
 			/*
