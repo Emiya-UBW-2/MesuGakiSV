@@ -137,7 +137,7 @@ public:
 		return -1;
 	}
 	int		GetNearestBuilds2(const Util::VECTOR3D& NowPosition) const noexcept {
-		float Len = 10.f * Scale3DRate * 10.f* Scale3DRate;
+		float Len = 10.f * Scale3DRate * 10.f * Scale3DRate;
 		int Answer = -1;
 		for (auto& bu : this->m_WayPoints) {
 			Util::VECTOR3D Length = bu.GetPos() - NowPosition;
@@ -496,7 +496,7 @@ public:
 					if (!((m2.m_InfoType == InfoType::WayPoint2))) { continue; }
 					auto Pos2 = Voxel.GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 					auto Vec = Pos2 - Pos1;
-					if (Vec.magnitude() >= 0.4f*Scale3DRate) { continue; }
+					if (Vec.magnitude() >= 0.4f * Scale3DRate) { continue; }
 					if (!CheckLine(Pos1, &Pos2)) {
 						bu.SetLinkBuffer(ID, Pos2);
 						++ID;

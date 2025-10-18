@@ -558,7 +558,7 @@ void Character::Update_Sub(void) noexcept {
 		}
 		{
 			auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-			auto EyePos = 
+			auto EyePos =
 				Util::Lerp(
 					gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePosRight)),
 					gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePosLeft)),

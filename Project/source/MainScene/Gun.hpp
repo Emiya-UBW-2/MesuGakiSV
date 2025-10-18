@@ -368,7 +368,7 @@ public:
 		//
 		auto MagWel = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::MagWel));
 		auto MagIn = GetFrameBaseLocalMat(static_cast<int>(GunFrame::MagIn)).pos();
-		auto Mag = Util::Lerp(GetMat(), Util::Matrix4x4::RotVec2(MagIn, Util::VECTOR3D::down())* MagWel, m_MagInPer);
+		auto Mag = Util::Lerp(GetMat(), Util::Matrix4x4::RotVec2(MagIn, Util::VECTOR3D::down()) * MagWel, m_MagInPer);
 
 		Mag = Util::Lerp(Mag, m_MagLoad, m_MagLoadPer);
 		m_Mag.SetMatrix(Mag);
@@ -434,7 +434,7 @@ public:
 				for (int loop = 0; loop < 3; ++loop) {
 					DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(64.f * Per));
 					DxLib::DrawBillboard3D(
-						(s.first.pos() - s.first.zvec() * (static_cast<float>(10 + (2 - loop)*10) / 100.f * Scale3DRate * s.second)).get(),
+						(s.first.pos() - s.first.zvec() * (static_cast<float>(10 + (2 - loop) * 10) / 100.f * Scale3DRate * s.second)).get(),
 						0.5f,
 						0.5f,
 						0.2f * Scale3DRate * s.second,

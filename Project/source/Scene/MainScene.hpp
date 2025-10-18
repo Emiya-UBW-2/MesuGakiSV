@@ -278,7 +278,7 @@ protected:
 		DxLib::SetMouseDispFlag(!this->m_Character->IsFPSView());
 
 		CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45),
-			CameraParts->GetCamera().GetCamFov() - m_ShotFov* Util::deg2rad(5),
+			CameraParts->GetCamera().GetCamFov() - m_ShotFov * Util::deg2rad(5),
 			m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
 		this->m_Character->SetIsActive(!m_Exit);
 
