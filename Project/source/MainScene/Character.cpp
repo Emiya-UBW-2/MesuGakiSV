@@ -217,6 +217,7 @@ void Character::Update_Sub(void) noexcept {
 		VecR = Util::VECTOR2D::zero();
 	}
 	else {
+		Camera::Camera3D::Instance()->StopCamShake();
 		Util::VECTOR2D Vec = Util::VECTOR2D::zero();
 		if (m_IsActive) {
 			if ((MoveKey & (1 << 0)) != 0) {
@@ -363,6 +364,7 @@ void Character::Update_Sub(void) noexcept {
 			if (gun->CanShot() && m_Handgun.CanShot()) {
 				gun->ShotStart();
 				m_ShotSwitch = true;
+				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
 			}
 		}
 		if (m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) {
@@ -370,6 +372,7 @@ void Character::Update_Sub(void) noexcept {
 			if (gun->CanShot() && m_Maingun.CanShot()) {
 				gun->ShotStart();
 				m_ShotSwitch = true;
+				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
 			}
 		}
 	}

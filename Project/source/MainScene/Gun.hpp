@@ -235,12 +235,14 @@ public:
 			if (!m_IsMagUnloadSound) {
 				m_IsMagUnloadSound = true;
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, UnLoadMagID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
 			}
 		}
 		if (value >= 0.8f) {
 			if (!m_IsMagLoadSound) {
 				m_IsMagLoadSound = true;
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, LoadMagID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
 			}
 		}
 	}
