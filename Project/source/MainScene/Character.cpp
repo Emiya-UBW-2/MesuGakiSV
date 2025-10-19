@@ -379,11 +379,11 @@ void Character::Update_Sub(void) noexcept {
 	{
 		{
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-			gun->SetTrigger((m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
+			gun->SetTrigger((m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) && !m_Handgun.GetIsReload() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
 		}
 		{
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-			gun->SetTrigger((m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
+			gun->SetTrigger((m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) && !m_Maingun.GetIsReload() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
 		}
 	}
 
@@ -511,11 +511,11 @@ void Character::Update_Sub(void) noexcept {
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_1)] = 1.f;
 	{
 		float Per = 0.3f;
-		if (m_Handgun.GetIsReload() || m_Maingun.GetIsReload()) {
-			Per = 0.0f;
-		}
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 			Per = 0.45f;
+		}
+		if (m_Handgun.GetIsReload() || m_Maingun.GetIsReload()) {
+			Per = 0.0f;
 		}
 		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)], Per, 1.f - 0.8f);
 	}
