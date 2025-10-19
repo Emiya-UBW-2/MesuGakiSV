@@ -128,13 +128,19 @@ struct GunParam {
 	int					m_EquipPhase{};
 	bool				m_IsEquip{ false };
 	bool				m_IsGunLoad{ false };
-	char		padding[2]{};
+	bool				m_IsCocking{ false };
+	char		padding[1]{};
 	float				m_GunReadyPer{};
+	float				m_GunPullPer{};
 	float				m_GunADSPer{};
 	float				m_GunLoadHandPer{};
 	float				m_GunLoadPer{};
 	float				m_GunLoadTimer{};
 	const float			m_GunLoadTimerMax{ 2.f };
+
+	float				m_CockingTimer{};
+	const float			m_CockingTimerMax{ 0.5f };
+	char		padding2[4]{};
 public:
 	GunParam(void) noexcept {}
 	GunParam(const GunParam&) = delete;
@@ -146,6 +152,7 @@ public:
 	bool CanShot() const noexcept { return m_IsEquip && !m_IsGunLoad; }
 	bool GetIsEquip() const noexcept { return m_IsEquip; }
 	bool GetIsReload() const noexcept { return m_IsGunLoad; }
+	bool GetIsCocking() const noexcept { return m_IsCocking; }
 	void SetIsEquip(bool value) {
 		bool IsChange = this->m_IsEquip != value;
 		this->m_IsEquip = value;
@@ -166,85 +173,12 @@ public:
 	}
 	bool GetCanReload() const noexcept { return this->m_IsEquip && !m_IsGunLoad; }
 	float GetReloadPer() const noexcept { return this->m_GunLoadTimer / this->m_GunLoadTimerMax; }
+	float GetCockingPer() const noexcept { return this->m_CockingTimer / this->m_CockingTimerMax; }
 	void ReloadStart() noexcept {
 		m_IsGunLoad = true;
 		m_GunLoadTimer = 0.f;
 	}
-	void Update() noexcept {
-		if (this->m_IsEquip) {
-			switch (this->m_EquipPhase) {
-			case 0:
-				this->m_Per = std::clamp(this->m_Per + 1.f / 60.f / 0.1f, 0.f, 1.f);
-				if (this->m_Per >= 1.f) {
-					this->m_EquipPhase = 1;
-				}
-				break;
-			case 1:
-				this->m_GunPer = std::clamp(this->m_GunPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-				this->m_Per = std::clamp(this->m_Per - 1.f / 60.f / 0.1f, 0.f, 1.f);
-				this->m_PullPer = std::clamp(this->m_PullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-				if (this->m_PullPer >= 1.f) {
-					this->m_EquipPhase = 2;
-				}
-				break;
-			case 2:
-				this->m_Per = 0.f;
-				this->m_PullPer = std::clamp(this->m_PullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-				break;
-			default:
-				break;
-			}
-			if (m_IsGunLoad) {
-				m_GunLoadTimer = std::clamp(m_GunLoadTimer + 1.f / 60.f, 0.f, m_GunLoadTimerMax);
-				if (0.f <= GetReloadPer() && GetReloadPer() <= 0.1f) {
-					m_GunLoadHandPer = std::clamp((GetReloadPer() - 0.f) / (0.1f - 0.f), 0.f, 1.f);
-				}
-				if (0.1f <= GetReloadPer() && GetReloadPer() <= 0.3f) {
-					m_GunLoadPer = std::clamp((GetReloadPer() - 0.1f) / (0.3f - 0.1f), 0.f, 1.f);
-				}
-				if (0.6f <= GetReloadPer() && GetReloadPer() <= 0.85f) {
-					m_GunLoadPer = 1.f - std::clamp((GetReloadPer() - 0.6f) / (0.85f - 0.6f), 0.f, 1.f);
-				}
-				if (0.9f <= GetReloadPer() && GetReloadPer() <= 1.f) {
-					m_GunLoadHandPer = 1.f - std::clamp((GetReloadPer() - 0.9f) / (1.f - 0.9f), 0.f, 1.f);
-				}
-				if (GetReloadPer() == 1.f) {
-					m_IsGunLoad = false;
-				}
-			}
-			else {
-				m_GunLoadTimer = 0.f;
-				m_GunLoadPer = 0.f;
-				m_GunLoadHandPer = 0.f;
-			}
-		}
-		else {
-			switch (this->m_EquipPhase) {
-			case 2:
-				this->m_PullPer = std::clamp(this->m_PullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-				if (this->m_PullPer >= 1.f) {
-					this->m_EquipPhase = 1;
-				}
-				break;
-			case 1:
-				this->m_GunPer = std::clamp(this->m_GunPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-				this->m_PullPer = std::clamp(this->m_PullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-				this->m_Per = std::clamp(this->m_Per + 1.f / 60.f / 0.1f, 0.f, 1.f);
-				if (this->m_Per >= 1.f) {
-					this->m_EquipPhase = 0;
-				}
-				break;
-			case 0:
-				this->m_PullPer = 0.f;
-				this->m_Per = std::clamp(this->m_Per - 1.f / 60.f / 0.1f, 0.f, 1.f);
-				break;
-			default:
-				break;
-			}
-			m_GunLoadPer = 0.f;
-			m_GunLoadHandPer = 0.f;
-		}
-	}
+	void Update() noexcept;
 };
 
 class Character :public BaseObject {
@@ -393,6 +327,8 @@ public:
 	void SetMainGunUniqueID(int value) noexcept {
 		m_Maingun.m_UniqueID = value;
 	}
+
+	bool GetIsReloading() const { return (m_Handgun.GetIsReload() || m_Handgun.GetIsCocking() || m_Maingun.GetIsReload() || m_Maingun.GetIsCocking()); }
 
 	int GetEquip(void) const noexcept { return m_Equip; }
 	void SetEquip(int value) noexcept { m_Equip = value; }

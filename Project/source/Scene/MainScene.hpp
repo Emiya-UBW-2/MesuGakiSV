@@ -15,32 +15,44 @@
 #include "../MainScene/Gun.hpp"
 
 class EquipUI {
-	const Draw::GraphHandle*	m_Graph{};
+	const std::shared_ptr<Gun>*	m_Gun{};
 public:
 	//コンストラクタ
 	EquipUI(void) noexcept {}
 	EquipUI(const EquipUI& o) noexcept { *this = o; }
 	EquipUI(EquipUI&& o) noexcept { *this = o; }
 	EquipUI& operator=(const EquipUI& o) noexcept {
-		this->m_Graph = o.m_Graph;
+		this->m_Gun = o.m_Gun;
 		return *this;
 	}
 	EquipUI& operator=(EquipUI&& o) noexcept {
-		this->m_Graph = o.m_Graph;
+		this->m_Gun = o.m_Gun;
 		return *this;
 	}
 	//デストラクタ
 	~EquipUI(void) noexcept {}
 public:
-	void Init(const Draw::GraphHandle* pGraph) noexcept {
-		m_Graph = pGraph;
+	void Init(const std::shared_ptr<Gun>* pGraph) noexcept {
+		m_Gun = pGraph;
 	}
 	void Draw(int xpos, int ypos) noexcept {
 		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(0, 0, 0), true);
 		DxLib::SetDrawBright(34, 177, 76);
-		this->m_Graph->DrawExtendGraph(xpos, ypos, xpos + 256, ypos + 128, true);
+		(*this->m_Gun)->GetPicPtr()->DrawExtendGraph(xpos, ypos, xpos + 256, ypos + 128, true);
 		DxLib::SetDrawBright(255, 255, 255);
 		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(34, 177, 76), false, 3);
+
+		int xsize = std::min(((xpos + 256 - 5) - (xpos + 5)) / (*this->m_Gun)->CanAmmoTotal(), 10);
+		for (int loop = 0; loop < (*this->m_Gun)->CanAmmoTotal(); ++loop) {
+			DxLib::DrawBox(
+				(xpos + 256 - 5) - (xsize * (loop + 1)) + 1, ypos + 128 - 5 - 24,
+				(xpos + 256 - 5) - (xsize * (loop + 0)) - 1, ypos + 128 - 5, GetColor(128, 128, 128), true);
+		}
+		for (int loop = 0; loop < (*this->m_Gun)->CanAmmoNum(); ++loop) {
+			DxLib::DrawBox(
+				(xpos + 256 - 5) - (xsize * (loop + 1)) + 1, ypos + 128 - 5 - 24,
+				(xpos + 256 - 5) - (xsize * (loop + 0)) - 1, ypos + 128 - 5, (loop == 0) ? GetColor(255, 0, 0) : GetColor(34, 177, 76), true);
+		}
 	}
 };
 
@@ -51,7 +63,8 @@ class MainScene : public Util::SceneBase {
 	bool			m_Exit{ false };
 	bool			m_IsSceneEnd{ false };
 	bool			m_IsPauseActive{ false };
-	char		padding[5]{};
+	bool			m_IsChangeEquip{ false };
+	char		padding[4]{};
 	std::shared_ptr<EarlyCharacter>		m_EarlyCharacter{};
 	std::shared_ptr<Character>		m_Character{};
 	std::shared_ptr<Gun>			m_HandGun{};
@@ -70,7 +83,7 @@ class MainScene : public Util::SceneBase {
 	Sound::SoundUniqueID cursorID{ InvalidID };
 	Sound::SoundUniqueID OKID{ InvalidID };
 	Sound::SoundUniqueID EnviID{ InvalidID };
-	char		padding2[4]{};
+	//char		padding2[4]{};
 	std::vector<EquipUI>	m_EquipUI;
 	float					m_EquipUITimer{};
 	float					m_EquipUIActivePer{};
@@ -130,9 +143,9 @@ protected:
 		EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
 
 		this->m_EquipUI.emplace_back();
-		this->m_EquipUI.back().Init(this->m_MainGun->GetPicPtr());
+		this->m_EquipUI.back().Init(&this->m_MainGun);
 		this->m_EquipUI.emplace_back();
-		this->m_EquipUI.back().Init(this->m_HandGun->GetPicPtr());
+		this->m_EquipUI.back().Init(&this->m_HandGun);
 
 		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.7f, 0.3f).normalized();
 
@@ -187,8 +200,7 @@ protected:
 			[this]() {
 				auto* Localize = Util::LocalizePool::Instance();
 				auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
-				auto* KeyMngr = Util::KeyParam::Instance();
-				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::E)) {
+				if (m_IsChangeEquip) {
 					KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
 
 					KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::W), "");
@@ -252,45 +264,62 @@ protected:
 			DxLib::SetMouseDispFlag(true);
 			return;
 		}
-		if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
-			KeyGuideParts->SetGuideFlip();
-			if ((this->m_EquipUITimer >= 10.f / 60.f) || (this->m_Character->GetEquip() == InvalidID)) {
-				this->m_Character->SetEquip(m_EquipID);
+		if (!this->m_Character->GetIsReloading()) {
+			if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
+				KeyGuideParts->SetGuideFlip();
+				if ((this->m_EquipUITimer >= 10.f / 60.f) || (this->m_Character->GetEquip() == InvalidID)) {
+					this->m_Character->SetEquip(m_EquipID);
+				}
+				else {
+					this->m_Character->SetEquip(InvalidID);
+				}
+			}
+			bool IsChangeEquip = KeyMngr->GetBattleKeyPress(Util::EnumBattle::E);
+			if (IsChangeEquip) {
+				if (IsChangeEquip != m_IsChangeEquip) {
+					KeyGuideParts->SetGuideFlip();
+				}
+				float Prev = this->m_EquipUITimer;
+				this->m_EquipUITimer = std::clamp(this->m_EquipUITimer + 1.f / 60.f, 0.f, 10.f / 60.f);
+				if (this->m_EquipUITimer >= 10.f / 60.f) {
+					if (Prev < 10.f / 60.f) {
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					}
+					m_EquipPer = Util::Lerp(m_EquipPer, 0.f, 1.f - 0.9f);
+					if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::W)) {
+						--m_EquipID;
+						if (m_EquipID < 0) { m_EquipID = static_cast<int>(this->m_EquipUI.size()) - 1; }
+						m_EquipPer -= 1.f;
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					}
+					if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::S)) {
+						++m_EquipID;
+						if (m_EquipID > static_cast<int>(this->m_EquipUI.size()) - 1) { m_EquipID = 0; }
+						m_EquipPer += 1.f;
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					}
+				}
 			}
 			else {
-				this->m_Character->SetEquip(InvalidID);
+				this->m_EquipUITimer = 0;
+				m_EquipPer = 0.f;
 			}
-		}
-		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::E)) {
-			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::E)) {
-				KeyGuideParts->SetGuideFlip();
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
-			}
-			this->m_EquipUITimer = std::clamp(this->m_EquipUITimer + 1.f / 60.f, 0.f, 10.f / 60.f);
-			if (this->m_EquipUITimer >= 10.f / 60.f) {
-				m_EquipUIActivePer = std::clamp(m_EquipUIActivePer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-				m_EquipPer = Util::Lerp(m_EquipPer, 0.f, 1.f - 0.9f);
-				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::W)) {
-					--m_EquipID;
-					if (m_EquipID < 0) { m_EquipID = static_cast<int>(this->m_EquipUI.size()) - 1; }
-					m_EquipPer -= 1.f;
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
-				}
-				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::S)) {
-					++m_EquipID;
-					if (m_EquipID > static_cast<int>(this->m_EquipUI.size()) - 1) { m_EquipID = 0; }
-					m_EquipPer += 1.f;
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
-				}
-				DxLib::SetMouseDispFlag(true);
-				return;
-			}
+			m_IsChangeEquip = IsChangeEquip;
 		}
 		else {
 			this->m_EquipUITimer = 0;
-			m_EquipUIActivePer = std::clamp(m_EquipUIActivePer - 1.f / 60.f / 0.1f, 0.f, 1.f);
 			m_EquipPer = 0.f;
+			m_IsChangeEquip = false;
 		}
+		if (this->m_EquipUITimer >= 10.f / 60.f) {
+			m_EquipUIActivePer = std::clamp(m_EquipUIActivePer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			DxLib::SetMouseDispFlag(true);
+			return;
+		}
+		else {
+			m_EquipUIActivePer = std::clamp(m_EquipUIActivePer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+		}
+
 		ObjectManager::Instance()->UpdateObject();
 		//更新
 		auto* DrawerMngr = Draw::MainDraw::Instance();

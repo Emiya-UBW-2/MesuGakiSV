@@ -25,6 +25,9 @@ enum class GunFrame {
 	LeftHandPos,
 	LeftHandZVec,
 	LeftHandYVec,
+	LeftHandPosPull,
+	LeftHandZVecPull,
+	LeftHandYVecPull,
 	EyePosLeft,
 	RightHandPos,
 	RightHandZVec,
@@ -43,6 +46,9 @@ static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
 	"LeftHand",
 	"LeftHandZVec",
 	"LeftHandYVec",
+	"LeftHandPull",
+	"LeftHandZVecPull",
+	"LeftHandYVecPull",
 	"EyePosLeft",
 	"RightHand",
 	"RightHandZVec",
@@ -155,8 +161,12 @@ class Gun :public BaseObject {
 
 	bool				m_IsMagUnloadSound{};
 	bool				m_IsMagLoadSound{};
+	bool				m_IsSlideCloseSound{};
 	bool				m_Trigger{};
-	char		padding6[1]{};
+	int					m_AmmoNum{};
+	bool				m_ChamberIn{};
+	char		padding6[3]{};
+	int					m_AmmoTotal{ 17 };
 public:
 	Gun(void) noexcept {}
 	Gun(const Gun&) = delete;
@@ -174,6 +184,12 @@ public:
 		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandZVec)).pos() - HandPos;
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
+	auto			GetPullLeftHandMat(void) const noexcept {
+		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandPosPull)).pos();
+		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandYVecPull)).pos() - HandPos;
+		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::LeftHandZVecPull)).pos() - HandPos;
+		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
+	}
 	auto			GetBaseRightHandMat(void) const noexcept {
 		Util::VECTOR3D HandPos = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandPos)).pos();
 		Util::VECTOR3D Handyvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandYVec)).pos() - HandPos;
@@ -187,9 +203,13 @@ public:
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
 public:
+	int CanAmmoNum() const { return m_AmmoNum + (m_ChamberIn ? 1 : 0); }
+	int CanAmmoTotal() const { return m_AmmoTotal + 1; }
+
 	void ShotStart() {
 		if (canshot) {
 			canshot = false;
+			m_ChamberIn = false;
 			m_AnimPer[static_cast<int>(GunAnim::Shot)] = 1.f;
 			SetAnim(static_cast<int>(GunAnim::Shot)).SetTime(0.f);
 
@@ -222,7 +242,8 @@ public:
 			++m_AmmoID %= static_cast<int>(m_AmmoPer.size());
 		}
 	}
-	bool CanShot() const { return canshot; }
+	bool CanReload() const { return CanAmmoNum() != CanAmmoTotal(); }
+	bool CanShot() const { return canshot && m_ChamberIn; }
 	void SetMagLoadMat(const Util::Matrix4x4& value) { m_MagLoad = value; }
 
 	const auto* GetPicPtr(void) const noexcept { return m_Pic; }
@@ -232,7 +253,7 @@ public:
 		m_MagLoadPer = std::clamp((value - 0.3f) / (1.f - 0.3f), 0.f, 1.f);
 	}
 
-	void SetMagSound(float value) {
+	void SetMagPer(float value) {
 		if (value == 0.f) {
 			m_IsMagUnloadSound = false;
 			m_IsMagLoadSound = false;
@@ -242,6 +263,7 @@ public:
 				m_IsMagUnloadSound = true;
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, UnLoadMagID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
+				m_AmmoNum = 0;
 			}
 		}
 		if (value >= 0.8f) {
@@ -249,6 +271,24 @@ public:
 				m_IsMagLoadSound = true;
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, LoadMagID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
+				m_AmmoNum = m_AmmoTotal;
+			}
+		}
+	}
+
+	void SetCockingPer(float value) {
+		if (value == 0.f) {
+			m_IsSlideCloseSound = false;
+		}
+		if (value >= 0.5f) {
+			if (!m_IsSlideCloseSound) {
+				m_IsSlideCloseSound = true;
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, SlideCloseID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
+				if (m_AmmoNum > 0) {
+					m_ChamberIn = true;
+					--m_AmmoNum;
+				}
 			}
 		}
 	}
@@ -280,6 +320,9 @@ public:
 			s.m_Case.Duplicate(m_Case);
 		}
 		SetMagLoad(0.f);
+
+		m_AmmoNum = m_AmmoTotal;
+		m_ChamberIn = true;
 	}
 	void Update_Sub(void) noexcept override {
 		if (!canshot) {
@@ -298,6 +341,10 @@ public:
 			if (SetAnim(static_cast<int>(GunAnim::Shot)).GetTimePer() >= 1.f) {
 				m_AnimPer[static_cast<int>(GunAnim::Shot)] = 0.f;
 				canshot = true;
+				if (m_AmmoNum > 0) {
+					m_ChamberIn = true;
+					--m_AmmoNum;
+				}
 			}
 		}
 
@@ -373,6 +420,8 @@ public:
 				Util::Matrix4x4::Mtrans(Target);
 			s.m_Case.SetMatrix(s.Mat);
 		}
+
+		m_AnimPer[static_cast<size_t>(GunAnim::Slide)] = Util::Lerp(m_AnimPer[static_cast<size_t>(GunAnim::Slide)], (!m_ChamberIn && canshot) ? 1.f : 0.f, 1.f - 0.8f);
 
 		m_AnimPer[static_cast<size_t>(GunAnim::Trigger)] = Util::Lerp(m_AnimPer[static_cast<size_t>(GunAnim::Trigger)], m_Trigger ? 1.f : 0.f, 1.f - 0.8f);
 		//アニメアップデート

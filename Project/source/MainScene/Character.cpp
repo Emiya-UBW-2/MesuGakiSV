@@ -2,6 +2,99 @@
 
 #include "Gun.hpp"
 
+void GunParam::Update() noexcept {
+	if (this->m_IsEquip) {
+		switch (this->m_EquipPhase) {
+		case 0:
+			this->m_Per = std::clamp(this->m_Per + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			if (this->m_Per >= 1.f) {
+				this->m_EquipPhase = 1;
+			}
+			break;
+		case 1:
+			this->m_GunPer = std::clamp(this->m_GunPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_Per = std::clamp(this->m_Per - 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_PullPer = std::clamp(this->m_PullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			if (this->m_PullPer >= 1.f) {
+				this->m_EquipPhase = 2;
+			}
+			break;
+		case 2:
+			this->m_Per = 0.f;
+			this->m_PullPer = std::clamp(this->m_PullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+			break;
+		default:
+			break;
+		}
+		if (m_IsGunLoad) {
+			m_GunLoadTimer = std::clamp(m_GunLoadTimer + 1.f / 60.f, 0.f, m_GunLoadTimerMax);
+			if (0.f <= GetReloadPer() && GetReloadPer() <= 0.1f) {
+				m_GunLoadHandPer = std::clamp((GetReloadPer() - 0.f) / (0.1f - 0.f), 0.f, 1.f);
+			}
+			if (0.1f <= GetReloadPer() && GetReloadPer() <= 0.3f) {
+				m_GunLoadPer = std::clamp((GetReloadPer() - 0.1f) / (0.3f - 0.1f), 0.f, 1.f);
+			}
+			if (0.6f <= GetReloadPer() && GetReloadPer() <= 0.85f) {
+				m_GunLoadPer = 1.f - std::clamp((GetReloadPer() - 0.6f) / (0.85f - 0.6f), 0.f, 1.f);
+			}
+			if (0.9f <= GetReloadPer() && GetReloadPer() <= 1.f) {
+				m_GunLoadHandPer = 1.f - std::clamp((GetReloadPer() - 0.9f) / (1.f - 0.9f), 0.f, 1.f);
+			}
+			if (GetReloadPer() == 1.f) {
+				m_IsGunLoad = false;
+				//コッキングが必要な時はコッキングする
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_UniqueID));
+				if (!gun->CanShot()) {
+					m_IsCocking = true;
+				}
+			}
+		}
+		else {
+			m_GunLoadTimer = 0.f;
+			m_GunLoadPer = 0.f;
+			m_GunLoadHandPer = 0.f;
+		}
+		if (m_IsCocking) {
+			m_CockingTimer = std::clamp(m_CockingTimer + 1.f / 60.f, 0.f, m_CockingTimerMax);
+			if (GetCockingPer() == 1.f) {
+				m_IsCocking = false;
+			}
+		}
+		else {
+			m_CockingTimer = 0.f;
+		}
+		m_GunPullPer = Util::Lerp(m_GunPullPer,
+			m_IsCocking ? 1.f : 0.f,
+			1.f - 0.9f);
+	}
+	else {
+		switch (this->m_EquipPhase) {
+		case 2:
+			this->m_PullPer = std::clamp(this->m_PullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			if (this->m_PullPer >= 1.f) {
+				this->m_EquipPhase = 1;
+			}
+			break;
+		case 1:
+			this->m_GunPer = std::clamp(this->m_GunPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_PullPer = std::clamp(this->m_PullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_Per = std::clamp(this->m_Per + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			if (this->m_Per >= 1.f) {
+				this->m_EquipPhase = 0;
+			}
+			break;
+		case 0:
+			this->m_PullPer = 0.f;
+			this->m_Per = std::clamp(this->m_Per - 1.f / 60.f / 0.1f, 0.f, 1.f);
+			break;
+		default:
+			break;
+		}
+		m_GunLoadPer = 0.f;
+		m_GunLoadHandPer = 0.f;
+	}
+}
+
 const Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
 	Util::Matrix4x4 Mat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
 
@@ -67,10 +160,10 @@ void Character::Update_Sub(void) noexcept {
 			}
 		}
 
-		if (m_Handgun.GetIsReload()) {
+		if (m_Handgun.GetIsReload() || m_Handgun.GetIsCocking()) {
 			SetArmAnim(m_ReloadHandgunAnimIndex);
 		}
-		else if (m_Maingun.GetIsReload()) {
+		else if (m_Maingun.GetIsReload() || m_Maingun.GetIsCocking()) {
 			SetArmAnim(m_ReloadRifleAnimIndex);
 		}
 		else if (m_Handgun.GetIsEquip()) {
@@ -332,17 +425,17 @@ void Character::Update_Sub(void) noexcept {
 
 	if (IsFPSView()) {
 		m_Handgun.m_GunReadyPer = Util::Lerp(m_Handgun.m_GunReadyPer,
-			!m_Handgun.GetIsReload() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
+			!m_Handgun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
 			1.f - 0.9f);
 		m_Handgun.m_GunADSPer = Util::Lerp(m_Handgun.m_GunADSPer,
-			!m_Handgun.GetIsReload() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim ? 1.f : 0.f,
+			!m_Handgun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim ? 1.f : 0.f,
 			1.f - 0.9f);
 
 		m_Maingun.m_GunReadyPer = Util::Lerp(m_Maingun.m_GunReadyPer,
-			!m_Maingun.GetIsReload() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
+			!m_Maingun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
 			1.f - 0.9f);
 		m_Maingun.m_GunADSPer = Util::Lerp(m_Maingun.m_GunADSPer,
-			!m_Maingun.GetIsReload() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim ? 1.f : 0.f,
+			!m_Maingun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim ? 1.f : 0.f,
 			1.f - 0.9f);
 	}
 	else {
@@ -355,6 +448,22 @@ void Character::Update_Sub(void) noexcept {
 			(m_Maingun.GetIsEquip() && IsAim) ? 1.f : 0.f,
 			1.f - 0.9f);
 		m_Maingun.m_GunADSPer = 0.f;
+	}
+	//
+	bool IsReload = KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Reload);
+	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack)) {
+		if (m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) {
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+			if (gun->CanAmmoNum() == 0 && m_Handgun.CanShot()) {
+				IsReload = true;
+			}
+		}
+		if (m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) {
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+			if (gun->CanAmmoNum() == 0 && m_Maingun.CanShot()) {
+				IsReload = true;
+			}
+		}
 	}
 	//
 	m_ShotSwitch = false;
@@ -379,11 +488,11 @@ void Character::Update_Sub(void) noexcept {
 	{
 		{
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-			gun->SetTrigger((m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) && !m_Handgun.GetIsReload() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
+			gun->SetTrigger((m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) && !m_Handgun.GetIsReload() && !m_Handgun.GetIsCocking() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
 		}
 		{
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-			gun->SetTrigger((m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) && !m_Maingun.GetIsReload() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
+			gun->SetTrigger((m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) && !m_Maingun.GetIsReload() && !m_Maingun.GetIsCocking() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
 		}
 	}
 
@@ -407,12 +516,18 @@ void Character::Update_Sub(void) noexcept {
 		}
 	}
 	m_PrevEquip = m_Equip;
-	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Reload)) {
-		if (m_Handgun.GetCanReload()) {
-			m_Handgun.ReloadStart();
+	if (IsReload) {
+		{
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+			if (m_Handgun.GetCanReload() && gun->CanReload()) {
+				m_Handgun.ReloadStart();
+			}
 		}
-		if (m_Maingun.GetCanReload()) {
-			m_Maingun.ReloadStart();
+		{
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+			if (m_Maingun.GetCanReload() && gun->CanReload()) {
+				m_Maingun.ReloadStart();
+			}
 		}
 	}
 
@@ -497,7 +612,7 @@ void Character::Update_Sub(void) noexcept {
 	{
 		float Per = 0.f;
 		if (!IsFPSView()) {
-			if (IsFreeView() && (m_CharaStyle != CharaStyle::Run) && !(m_Handgun.GetIsReload() || m_Maingun.GetIsReload())) {
+			if (IsFreeView() && (m_CharaStyle != CharaStyle::Run) && !GetIsReloading()) {
 				Per = -Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
 			}
 			else {
@@ -514,7 +629,7 @@ void Character::Update_Sub(void) noexcept {
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 			Per = 0.45f;
 		}
-		if (m_Handgun.GetIsReload() || m_Maingun.GetIsReload()) {
+		if (GetIsReloading()) {
 			Per = 0.0f;
 		}
 		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)], Per, 1.f - 0.8f);
@@ -634,7 +749,8 @@ void Character::Update_Sub(void) noexcept {
 				gun->SetMatrix(Mat);
 				gun->SetMagLoadMat(GetMagPouchMat());
 				gun->SetMagLoad(m_Handgun.m_GunLoadPer);
-				gun->SetMagSound(m_Handgun.GetReloadPer());
+				gun->SetMagPer(m_Handgun.GetReloadPer());
+				gun->SetCockingPer(m_Handgun.GetCockingPer());
 			}
 			{
 				Util::Matrix4x4 Mat = RightMat;
@@ -645,7 +761,8 @@ void Character::Update_Sub(void) noexcept {
 				gun->SetMatrix(Mat);
 				gun->SetMagLoadMat(GetMagPouchMat());
 				gun->SetMagLoad(m_Maingun.m_GunLoadPer);
-				gun->SetMagSound(m_Maingun.GetReloadPer());
+				gun->SetMagPer(m_Maingun.GetReloadPer());
+				gun->SetCockingPer(m_Maingun.GetCockingPer());
 			}
 		}
 
@@ -656,11 +773,13 @@ void Character::Update_Sub(void) noexcept {
 				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
 				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetBaseLeftHandMat(), m_Handgun.m_GunReadyPer);
 				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetMagLeftHandMat(), m_Handgun.m_GunLoadHandPer);
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetPullLeftHandMat(), m_Handgun.m_GunPullPer);
 			}
 			{
 				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
 				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetBaseLeftHandMat(), m_Maingun.m_GunReadyPer);
 				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetMagLeftHandMat(), m_Maingun.m_GunLoadHandPer);
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetPullLeftHandMat(), m_Maingun.m_GunPullPer);
 			}
 
 			Draw::IK_LeftArm(
