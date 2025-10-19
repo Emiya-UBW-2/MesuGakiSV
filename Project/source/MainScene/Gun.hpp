@@ -155,7 +155,8 @@ class Gun :public BaseObject {
 
 	bool				m_IsMagUnloadSound{};
 	bool				m_IsMagLoadSound{};
-	char		padding6[6]{};
+	bool				m_Trigger{};
+	char		padding6[1]{};
 public:
 	Gun(void) noexcept {}
 	Gun(const Gun&) = delete;
@@ -250,6 +251,10 @@ public:
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
 			}
 		}
+	}
+
+	void SetTrigger(bool value) {
+		m_Trigger = value;
 	}
 public:
 	void Load_Sub(void) noexcept override {
@@ -368,6 +373,8 @@ public:
 				Util::Matrix4x4::Mtrans(Target);
 			s.m_Case.SetMatrix(s.Mat);
 		}
+
+		m_AnimPer[static_cast<size_t>(GunAnim::Trigger)] = Util::Lerp(m_AnimPer[static_cast<size_t>(GunAnim::Trigger)], m_Trigger ? 1.f : 0.f, 1.f - 0.8f);
 		//アニメアップデート
 		for (size_t loop = 0; loop < static_cast<size_t>(GunAnim::Max); ++loop) {
 			SetAnim(loop).SetPer(m_AnimPer[loop]);

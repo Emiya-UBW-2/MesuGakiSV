@@ -376,6 +376,17 @@ void Character::Update_Sub(void) noexcept {
 			}
 		}
 	}
+	{
+		{
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+			gun->SetTrigger((m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
+		}
+		{
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+			gun->SetTrigger((m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
+		}
+	}
+
 	if (m_PrevEquip != m_Equip) {
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 		switch (m_Equip) {
@@ -498,16 +509,25 @@ void Character::Update_Sub(void) noexcept {
 	}
 	//
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_1)] = 1.f;
-	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)] = 0.3f;
+	{
+		float Per = 0.3f;
+		if (m_Handgun.GetIsReload() || m_Maingun.GetIsReload()) {
+			Per = 0.0f;
+		}
+		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
+			Per = 0.45f;
+		}
+		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)], Per, 1.f - 0.8f);
+	}
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_3)] = 1.f;
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_4)] = 1.f;
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_5)] = 1.f;
 
-	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_1)] = 1.f;
+	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_1)] = 0.f;
 	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_2)] = 0.3f;
-	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_3)] = 1.f;
-	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_4)] = 1.f;
-	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_5)] = 1.f;
+	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_3)] = 0.5f;
+	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_4)] = 0.7f;
+	m_AnimPer[static_cast<size_t>(CharaAnim::LeftHand_5)] = 0.9f;
 
 	//アニメアップデート
 	for (size_t loop = 0; loop < static_cast<size_t>(CharaAnim::Max); ++loop) {

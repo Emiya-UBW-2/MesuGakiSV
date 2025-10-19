@@ -187,7 +187,14 @@ protected:
 			[this]() {
 				auto* Localize = Util::LocalizePool::Instance();
 				auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
-				if (!this->m_IsPauseActive) {
+				auto* KeyMngr = Util::KeyParam::Instance();
+				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::E)) {
+					KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
+
+					KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::W), "");
+					KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::S), Localize->Get(332));
+				}
+				else if (!this->m_IsPauseActive) {
 					KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
 
 					KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::W), "");
@@ -246,6 +253,7 @@ protected:
 			return;
 		}
 		if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
+			KeyGuideParts->SetGuideFlip();
 			if ((this->m_EquipUITimer >= 10.f / 60.f) || (this->m_Character->GetEquip() == InvalidID)) {
 				this->m_Character->SetEquip(m_EquipID);
 			}
@@ -255,6 +263,7 @@ protected:
 		}
 		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::E)) {
 			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::E)) {
+				KeyGuideParts->SetGuideFlip();
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
 			}
 			this->m_EquipUITimer = std::clamp(this->m_EquipUITimer + 1.f / 60.f, 0.f, 10.f / 60.f);
