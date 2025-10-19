@@ -147,18 +147,21 @@ public:
 	bool GetIsEquip() const noexcept { return m_IsEquip; }
 	bool GetIsReload() const noexcept { return m_IsGunLoad; }
 	void SetIsEquip(bool value) {
+		bool IsChange = this->m_IsEquip != value;
 		this->m_IsEquip = value;
-		if (this->m_IsEquip) {
-			this->m_EquipPhase = 0;
-			this->m_GunPer = 0.f;
-			this->m_Per = 0.f;
-			this->m_PullPer = 0.f;
-		}
-		else {
-			this->m_EquipPhase = 2;
-			this->m_GunPer = 1.f;
-			this->m_Per = 0.f;
-			this->m_PullPer = 0.f;
+		if (IsChange) {
+			if (this->m_IsEquip) {
+				this->m_EquipPhase = 0;
+				this->m_GunPer = 0.f;
+				this->m_Per = 0.f;
+				this->m_PullPer = 0.f;
+			}
+			else {
+				this->m_EquipPhase = 2;
+				this->m_GunPer = 1.f;
+				this->m_Per = 0.f;
+				this->m_PullPer = 0.f;
+			}
 		}
 	}
 	bool GetCanReload() const noexcept { return this->m_IsEquip && !m_IsGunLoad; }
@@ -299,6 +302,8 @@ class Character :public BaseObject {
 	float				m_YradAddR2{};
 	float				m_XradAddR2{};
 	char		paddin4[4]{};
+	int					m_Equip{ InvalidID };
+	int					m_PrevEquip{ InvalidID };
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -388,6 +393,9 @@ public:
 	void SetMainGunUniqueID(int value) noexcept {
 		m_Maingun.m_UniqueID = value;
 	}
+
+	int GetEquip(void) const noexcept { return m_Equip; }
+	void SetEquip(int value) noexcept { m_Equip = value; }
 public:
 	void Load_Sub(void) noexcept override {
 		heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);

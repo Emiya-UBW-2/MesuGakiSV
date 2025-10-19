@@ -376,16 +376,26 @@ void Character::Update_Sub(void) noexcept {
 			}
 		}
 	}
-
-
-	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::E)) {
+	if (m_PrevEquip != m_Equip) {
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
-		m_Handgun.SetIsEquip(!m_Handgun.GetIsEquip());
+		switch (m_Equip) {
+		case InvalidID:
+			m_Handgun.SetIsEquip(false);
+			m_Maingun.SetIsEquip(false);
+			break;
+		case 0:
+			m_Handgun.SetIsEquip(false);
+			m_Maingun.SetIsEquip(true);
+			break;
+		case 1:
+			m_Handgun.SetIsEquip(true);
+			m_Maingun.SetIsEquip(false);
+			break;
+		default:
+			break;
+		}
 	}
-	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Q)) {
-		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
-		m_Maingun.SetIsEquip(!m_Maingun.GetIsEquip());
-	}
+	m_PrevEquip = m_Equip;
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Reload)) {
 		if (m_Handgun.GetCanReload()) {
 			m_Handgun.ReloadStart();
@@ -598,7 +608,7 @@ void Character::Update_Sub(void) noexcept {
 			{
 				Util::Matrix4x4 Mat = RightMat;
 				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-				if (m_Handgun.m_EquipPhase <= 1) {
+				if (m_Handgun.m_EquipPhase <= 1 && !m_Handgun.GetIsEquip()) {
 					Mat = Util::Lerp(GetHolsterMat(), GetHolsterPullMat(), m_Handgun.m_GunPer);
 				}
 				gun->SetMatrix(Mat);
@@ -609,7 +619,7 @@ void Character::Update_Sub(void) noexcept {
 			{
 				Util::Matrix4x4 Mat = RightMat;
 				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-				if (m_Maingun.m_EquipPhase <= 1) {
+				if (m_Maingun.m_EquipPhase <= 1 && !m_Maingun.GetIsEquip()) {
 					Mat = Util::Lerp(GetSlingMat(), GetSlingPullMat(), m_Maingun.m_GunPer);
 				}
 				gun->SetMatrix(Mat);

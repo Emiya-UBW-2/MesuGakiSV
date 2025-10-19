@@ -14,6 +14,36 @@
 #include "../MainScene/Character.hpp"
 #include "../MainScene/Gun.hpp"
 
+class EquipUI {
+	const Draw::GraphHandle*	m_Graph{};
+public:
+	//コンストラクタ
+	EquipUI(void) noexcept {}
+	EquipUI(const EquipUI& o) noexcept { *this = o; }
+	EquipUI(EquipUI&& o) noexcept { *this = o; }
+	EquipUI& operator=(const EquipUI& o) noexcept {
+		this->m_Graph = o.m_Graph;
+		return *this;
+	}
+	EquipUI& operator=(EquipUI&& o) noexcept {
+		this->m_Graph = o.m_Graph;
+		return *this;
+	}
+	//デストラクタ
+	~EquipUI(void) noexcept {}
+public:
+	void Init(const Draw::GraphHandle* pGraph) noexcept {
+		m_Graph = pGraph;
+	}
+	void Draw(int xpos, int ypos) noexcept {
+		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(0, 0, 0), true);
+		DxLib::SetDrawBright(34, 177, 76);
+		this->m_Graph->DrawExtendGraph(xpos, ypos, xpos + 256, ypos + 128, true);
+		DxLib::SetDrawBright(255, 255, 255);
+		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(34, 177, 76), false, 3);
+	}
+};
+
 class MainScene : public Util::SceneBase {
 	OptionWindow	m_OptionWindow;
 	PauseUI			m_PauseUI;
@@ -37,9 +67,15 @@ class MainScene : public Util::SceneBase {
 
 	float			m_ShotFov{ 0.f };
 
+	Sound::SoundUniqueID cursorID{ InvalidID };
 	Sound::SoundUniqueID OKID{ InvalidID };
 	Sound::SoundUniqueID EnviID{ InvalidID };
 	char		padding2[4]{};
+	std::vector<EquipUI>	m_EquipUI;
+	float					m_EquipUITimer{};
+	float					m_EquipUIActivePer{};
+	int						m_EquipID{ 0 };
+	float					m_EquipPer{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -89,8 +125,14 @@ protected:
 		m_Exit = false;
 		m_Fade = 1.f;
 
+		cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
 		OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
 		EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
+
+		this->m_EquipUI.emplace_back();
+		this->m_EquipUI.back().Init(this->m_MainGun->GetPicPtr());
+		this->m_EquipUI.emplace_back();
+		this->m_EquipUI.back().Init(this->m_HandGun->GetPicPtr());
 
 		Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.7f, 0.3f).normalized();
 
@@ -137,8 +179,10 @@ protected:
 	}
 	void Update_Sub(void) noexcept override {
 		auto* KeyMngr = Util::KeyParam::Instance();
+		auto* CameraParts = Camera::Camera3D::Instance();
 		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 		auto* PostPassParts = Draw::PostPassEffect::Instance();
+
 		KeyGuideParts->ChangeGuide(
 			[this]() {
 				auto* Localize = Util::LocalizePool::Instance();
@@ -173,6 +217,10 @@ protected:
 				}
 			}
 		);
+		//
+		CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45),
+			CameraParts->GetCamera().GetCamFov() - m_ShotFov * Util::deg2rad(5),
+			m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
 		// 影をセット
 		PostPassParts->SetShadowFarChange();
 		//ポーズメニュー
@@ -196,6 +244,43 @@ protected:
 		if (this->m_IsPauseActive) {
 			DxLib::SetMouseDispFlag(true);
 			return;
+		}
+		if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
+			if ((this->m_EquipUITimer >= 10.f / 60.f) || (this->m_Character->GetEquip() == InvalidID)) {
+				this->m_Character->SetEquip(m_EquipID);
+			}
+			else {
+				this->m_Character->SetEquip(InvalidID);
+			}
+		}
+		if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::E)) {
+			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::E)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+			}
+			this->m_EquipUITimer = std::clamp(this->m_EquipUITimer + 1.f / 60.f, 0.f, 10.f / 60.f);
+			if (this->m_EquipUITimer >= 10.f / 60.f) {
+				m_EquipUIActivePer = std::clamp(m_EquipUIActivePer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+				m_EquipPer = Util::Lerp(m_EquipPer, 0.f, 1.f - 0.9f);
+				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::W)) {
+					--m_EquipID;
+					if (m_EquipID < 0) { m_EquipID = static_cast<int>(this->m_EquipUI.size()) - 1; }
+					m_EquipPer -= 1.f;
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+				}
+				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::S)) {
+					++m_EquipID;
+					if (m_EquipID > static_cast<int>(this->m_EquipUI.size()) - 1) { m_EquipID = 0; }
+					m_EquipPer += 1.f;
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+				}
+				DxLib::SetMouseDispFlag(true);
+				return;
+			}
+		}
+		else {
+			this->m_EquipUITimer = 0;
+			m_EquipUIActivePer = std::clamp(m_EquipUIActivePer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+			m_EquipPer = 0.f;
 		}
 		ObjectManager::Instance()->UpdateObject();
 		//更新
@@ -263,7 +348,6 @@ protected:
 		}
 		//*/
 
-		auto* CameraParts = Camera::Camera3D::Instance();
 		CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 
 		if (this->m_Character->IsShotSwitch()) {
@@ -277,9 +361,6 @@ protected:
 
 		DxLib::SetMouseDispFlag(!this->m_Character->IsFPSView());
 
-		CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45),
-			CameraParts->GetCamera().GetCamFov() - m_ShotFov * Util::deg2rad(5),
-			m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
 		this->m_Character->SetIsActive(!m_Exit);
 
 		BackGround::Instance()->Update();
@@ -355,6 +436,7 @@ protected:
 		ObjectManager::Instance()->Draw_Shadow();
 	}
 	void UIDraw_Sub(void) noexcept override {
+		auto* DrawerMngr = Draw::MainDraw::Instance();
 		{
 			int count = 0;
 			{
@@ -408,14 +490,35 @@ protected:
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 		}
-		{
-			this->m_MainGun->GetPicPtr()->DrawExtendGraph(100, 100, 100 + 256, 100 + 128, true);
-			this->m_HandGun->GetPicPtr()->DrawExtendGraph(100, 300, 100 + 256, 300 + 128, true);
+		if ((this->m_Character->GetEquip() != InvalidID) || (m_EquipUIActivePer > 0.f)) {
+			{
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(64.f * m_EquipUIActivePer), 0, 255));
+				DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+			}
+
+			int xpos = DrawerMngr->GetDispWidth() - 256 - 64;
+			int ypos = DrawerMngr->GetDispHeight() - 128 - 64;
+			for (int loop = 1; loop <= 3; ++loop) {
+				int ID = (loop + 4 + m_EquipID) % static_cast<int>(this->m_EquipUI.size());
+				int Y = ypos + static_cast<int>(static_cast<float>(128 + 16) * m_EquipUIActivePer) * loop + static_cast<int>(static_cast<float>(128 + 16) * m_EquipPer);
+				auto& d = this->m_EquipUI.at(static_cast<size_t>(ID));
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255 - (std::abs(Y - ypos))), 0, 255));
+				d.Draw(xpos, Y);
+			}
+			for (int loop = -3; loop <= 0; ++loop) {
+				int ID = (loop + 4 + m_EquipID) % static_cast<int>(this->m_EquipUI.size());
+				int Y = ypos + static_cast<int>(static_cast<float>(128 + 16) * m_EquipUIActivePer) * loop + static_cast<int>(static_cast<float>(128 + 16) * m_EquipPer);
+				auto& d = this->m_EquipUI.at(static_cast<size_t>(ID));
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255 - (std::abs(Y - ypos))), 0, 255));
+				d.Draw(xpos, Y);
+			}
+			DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(255, 255, 0), false, 3);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
 		this->m_PauseUI.Draw();
 		this->m_OptionWindow.Draw();
 		{
-			auto* DrawerMngr = Draw::MainDraw::Instance();
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m_Fade), 0, 255));
 			DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
