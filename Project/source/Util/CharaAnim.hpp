@@ -120,7 +120,7 @@ namespace Util {
 			m_Speed = 1.f;
 		}
 		void			Update(void) noexcept {
-			m_Time += 30.f / 60.f * m_Speed;
+			m_Time += 30.f * DeltaTime * m_Speed;
 			if (m_Time >= m_AnimTime) {
 				m_Time -= m_AnimTime;
 			}
@@ -136,8 +136,6 @@ namespace Util {
 		friend class SingletonBase<HandAnimPool>;
 	private:
 		std::vector<HandAnimData>	m_Anim{};
-		int							m_UniqueID{};
-		char		padding[4]{};
 	private:
 		HandAnimPool(void) noexcept { Init(); }
 		HandAnimPool(const HandAnimPool&) = delete;

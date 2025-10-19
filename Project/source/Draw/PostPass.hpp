@@ -434,10 +434,10 @@ namespace Draw {
 				this->m_UnUseFrame = 0;
 				ResetUseCount();
 			}
-			PostPassScreenBuffer(const PostPassScreenBuffer& o) = delete;
-			PostPassScreenBuffer(PostPassScreenBuffer&& o) = delete;
-			PostPassScreenBuffer& operator=(const PostPassScreenBuffer& o) = delete;
-			PostPassScreenBuffer& operator=(PostPassScreenBuffer&& o) = delete;
+			PostPassScreenBuffer(const PostPassScreenBuffer&) = delete;
+			PostPassScreenBuffer(PostPassScreenBuffer&&) = delete;
+			PostPassScreenBuffer& operator=(const PostPassScreenBuffer&) = delete;
+			PostPassScreenBuffer& operator=(PostPassScreenBuffer&&) = delete;
 			~PostPassScreenBuffer(void) noexcept {
 				for (auto& s : this->m_Screen) {
 					s.Dispose();
@@ -641,7 +641,7 @@ namespace Draw {
 		private:
 			void SetupCam(Util::VECTOR3D Center, float scale) const noexcept {
 				DxLib::ClearDrawScreen();
-				DxLib::SetupCamera_Ortho(30.f * scale);		// カメラのタイプを正射影タイプにセット、描画範囲も指定
+				DxLib::SetupCamera_Ortho(30.f * scale);						// カメラのタイプを正射影タイプにセット、描画範囲も指定
 				DxLib::SetCameraNearFar(0.05f * scale, 60.f * scale);		// 描画する奥行き範囲をセット
 				// カメラの位置と注視点はステージ全体が見渡せる位置
 				auto Vec = this->m_ShadowVec;
@@ -797,28 +797,22 @@ namespace Draw {
 				this->m_Zoom = 1.f;
 			}
 		};
-		struct GodRayParam {
+		class GodRayParam {
 			float						m_GodRayPer{ 0.5f };
 			float						m_GodRayPerByPostPass{ 1.f };
 		public:
-			void			Reset(void) noexcept {
-			}
 			auto			GetGodRayPerRet(void) const noexcept { return this->m_GodRayPer * this->m_GodRayPerByPostPass; }
 			auto			IsActive(void) const noexcept { return this->m_GodRayPer > 0.f; }
 		public:
 			void			SetGodRayPer(float value) noexcept { this->m_GodRayPer = value; }
 			void			SetGodRayPerByPostPass(float value) noexcept {
-				this->m_GodRayPerByPostPass = Util::Lerp(this->m_GodRayPerByPostPass, value, 1.f - 0.995f);
+				Util::Easing(&this->m_GodRayPerByPostPass, value, 0.995f);
 			}
 		};
 		struct ColorParam {
 			int							m_InColorPerMin = 20;
 			int							m_InColorPerMax = 255;
 			float						m_InColorGamma = 1.1f;
-		public:
-			void			Reset(void) noexcept {
-			}
-		public:
 		};
 	private:
 		std::array<std::unique_ptr<PostPassBase>, 16>	m_PostPass;

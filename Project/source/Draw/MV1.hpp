@@ -13,11 +13,15 @@ namespace Draw {
 				const MV1* m_pBaseModel{};
 			public:
 				MV1AnimeHandle(void) noexcept {}
-				MV1AnimeHandle(const MV1AnimeHandle& o) noexcept { *this = o; }
-				MV1AnimeHandle(MV1AnimeHandle&& o) noexcept { *this = o; }
-				MV1AnimeHandle& operator=(const MV1AnimeHandle& o) noexcept {
+				MV1AnimeHandle(const MV1AnimeHandle& o) noexcept {
+					this->m_pBaseModel = o.m_pBaseModel;
+				}
+				MV1AnimeHandle(MV1AnimeHandle&& o) noexcept {
 					this->m_pBaseModel = o.m_pBaseModel;
 					Util::DXHandle::SetHandleDirect(o.get());
+				}
+				MV1AnimeHandle& operator=(const MV1AnimeHandle& o) noexcept {
+					this->m_pBaseModel = o.m_pBaseModel;
 					return *this;
 				}
 				MV1AnimeHandle& operator=(MV1AnimeHandle&& o) noexcept {
@@ -56,9 +60,8 @@ namespace Draw {
 			char		padding[4]{};
 		public:
 			AnimControler(void) noexcept {}
-			AnimControler(const AnimControler& o) noexcept { *this = o; }
-			AnimControler(AnimControler&& o) noexcept { *this = o; }
-			AnimControler& operator=(const AnimControler& o) noexcept {
+			AnimControler(const AnimControler&) = delete;
+			AnimControler(AnimControler&& o) noexcept {
 				this->m_handle = o.m_handle;
 				this->m_per = o.m_per;
 				this->m_time = o.m_time;
@@ -66,8 +69,8 @@ namespace Draw {
 
 				this->m_per_prev = o.m_per_prev;
 				this->m_time_prev = o.m_time_prev;
-				return *this;
 			}
+			AnimControler& operator=(const AnimControler&) = delete;
 			AnimControler& operator=(AnimControler&& o) noexcept {
 				this->m_handle = o.m_handle;
 				this->m_per = o.m_per;
@@ -99,7 +102,7 @@ namespace Draw {
 				this->m_AllTime = this->m_handle.GetTotalTime();
 			}
 			void			Update(bool loop, float speed) noexcept {
-				this->m_time += 30.f / 60.f * speed;
+				this->m_time += speed * 30.f * DeltaTime;
 				if (loop) {
 					if (speed >= 0.f) {
 						if (this->m_time >= GetTotalTime()) {

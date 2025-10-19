@@ -533,8 +533,9 @@ namespace Draw {
 			//
 			for (auto& anim : a.m_AnimParam) {
 				if (anim.m_StartFrame <= this->m_Frame && this->m_Frame <= anim.m_EndFrame) {
-					float Per = static_cast<float>(this->m_Frame - anim.m_StartFrame) / static_cast<float>(anim.m_EndFrame - anim.m_StartFrame);
-					this->m_PartsParam.at(anim.m_TargetID).CalcAnim(anim, (anim.m_StartFrame == this->m_Frame), Per);
+					this->m_PartsParam.at(anim.m_TargetID).CalcAnim(anim, anim.m_StartFrame == this->m_Frame,
+						Util::GetPer01(static_cast<float>(anim.m_StartFrame), static_cast<float>(anim.m_EndFrame), static_cast<float>(this->m_Frame))
+					);
 				}
 			}
 		}

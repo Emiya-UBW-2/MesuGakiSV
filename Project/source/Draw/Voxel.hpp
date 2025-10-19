@@ -28,7 +28,8 @@ namespace BG {
 	// 算術補助
 	namespace Algorithm {
 		// 三次元整数座標系
-		struct Vector3Int {
+		class Vector3Int {
+		public:
 			int x{};
 			int y{};
 			int z{};

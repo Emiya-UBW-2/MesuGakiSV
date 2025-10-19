@@ -3,47 +3,47 @@
 #include "Gun.hpp"
 
 void GunParam::Update() noexcept {
+	auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(GetUniqueID()));
 	if (this->m_IsEquip) {
 		switch (this->m_EquipPhase) {
 		case 0:
-			this->m_Per = std::clamp(this->m_Per + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_Per = std::clamp(this->m_Per + DeltaTime / 0.1f, 0.f, 1.f);
 			if (this->m_Per >= 1.f) {
 				this->m_EquipPhase = 1;
 			}
 			break;
 		case 1:
-			this->m_GunPer = std::clamp(this->m_GunPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
-			this->m_Per = std::clamp(this->m_Per - 1.f / 60.f / 0.1f, 0.f, 1.f);
-			this->m_PullPer = std::clamp(this->m_PullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_GunPer = std::clamp(this->m_GunPer + DeltaTime / 0.1f, 0.f, 1.f);
+			this->m_Per = std::clamp(this->m_Per - DeltaTime / 0.1f, 0.f, 1.f);
+			this->m_PullPer = std::clamp(this->m_PullPer + DeltaTime / 0.1f, 0.f, 1.f);
 			if (this->m_PullPer >= 1.f) {
 				this->m_EquipPhase = 2;
 			}
 			break;
 		case 2:
 			this->m_Per = 0.f;
-			this->m_PullPer = std::clamp(this->m_PullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_PullPer = std::clamp(this->m_PullPer - DeltaTime / 0.1f, 0.f, 1.f);
 			break;
 		default:
 			break;
 		}
 		if (m_IsGunLoad) {
-			m_GunLoadTimer = std::clamp(m_GunLoadTimer + 1.f / 60.f, 0.f, m_GunLoadTimerMax);
+			m_GunLoadTimer = std::clamp(m_GunLoadTimer + DeltaTime, 0.f, m_GunLoadTimerMax);
 			if (0.f <= GetReloadPer() && GetReloadPer() <= 0.1f) {
-				m_GunLoadHandPer = std::clamp((GetReloadPer() - 0.f) / (0.1f - 0.f), 0.f, 1.f);
+				m_GunLoadHandPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.f, 0.1f, GetReloadPer()));
 			}
 			if (0.1f <= GetReloadPer() && GetReloadPer() <= 0.3f) {
-				m_GunLoadPer = std::clamp((GetReloadPer() - 0.1f) / (0.3f - 0.1f), 0.f, 1.f);
+				m_GunLoadPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.1f, 0.3f, GetReloadPer()));
 			}
 			if (0.6f <= GetReloadPer() && GetReloadPer() <= 0.85f) {
-				m_GunLoadPer = 1.f - std::clamp((GetReloadPer() - 0.6f) / (0.85f - 0.6f), 0.f, 1.f);
+				m_GunLoadPer = Util::Lerp(1.f, 0.f, Util::GetPer01(0.6f, 0.85f, GetReloadPer()));
 			}
 			if (0.9f <= GetReloadPer() && GetReloadPer() <= 1.f) {
-				m_GunLoadHandPer = 1.f - std::clamp((GetReloadPer() - 0.9f) / (1.f - 0.9f), 0.f, 1.f);
+				m_GunLoadHandPer = Util::Lerp(1.f, 0.f, Util::GetPer01(0.9f, 1.f, GetReloadPer()));
 			}
 			if (GetReloadPer() == 1.f) {
 				m_IsGunLoad = false;
 				//コッキングが必要な時はコッキングする
-				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_UniqueID));
 				if (!gun->CanShot()) {
 					m_IsCocking = true;
 				}
@@ -55,7 +55,7 @@ void GunParam::Update() noexcept {
 			m_GunLoadHandPer = 0.f;
 		}
 		if (m_IsCocking) {
-			m_CockingTimer = std::clamp(m_CockingTimer + 1.f / 60.f, 0.f, m_CockingTimerMax);
+			m_CockingTimer = std::clamp(m_CockingTimer + DeltaTime, 0.f, m_CockingTimerMax);
 			if (GetCockingPer() == 1.f) {
 				m_IsCocking = false;
 			}
@@ -63,29 +63,27 @@ void GunParam::Update() noexcept {
 		else {
 			m_CockingTimer = 0.f;
 		}
-		m_GunPullPer = Util::Lerp(m_GunPullPer,
-			m_IsCocking ? 1.f : 0.f,
-			1.f - 0.9f);
+		Util::Easing(&m_GunPullPer, m_IsCocking ? 1.f : 0.f, 0.9f);
 	}
 	else {
 		switch (this->m_EquipPhase) {
 		case 2:
-			this->m_PullPer = std::clamp(this->m_PullPer + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_PullPer = std::clamp(this->m_PullPer + DeltaTime / 0.1f, 0.f, 1.f);
 			if (this->m_PullPer >= 1.f) {
 				this->m_EquipPhase = 1;
 			}
 			break;
 		case 1:
-			this->m_GunPer = std::clamp(this->m_GunPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-			this->m_PullPer = std::clamp(this->m_PullPer - 1.f / 60.f / 0.1f, 0.f, 1.f);
-			this->m_Per = std::clamp(this->m_Per + 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_GunPer = std::clamp(this->m_GunPer - DeltaTime / 0.1f, 0.f, 1.f);
+			this->m_PullPer = std::clamp(this->m_PullPer - DeltaTime / 0.1f, 0.f, 1.f);
+			this->m_Per = std::clamp(this->m_Per + DeltaTime / 0.1f, 0.f, 1.f);
 			if (this->m_Per >= 1.f) {
 				this->m_EquipPhase = 0;
 			}
 			break;
 		case 0:
 			this->m_PullPer = 0.f;
-			this->m_Per = std::clamp(this->m_Per - 1.f / 60.f / 0.1f, 0.f, 1.f);
+			this->m_Per = std::clamp(this->m_Per - DeltaTime / 0.1f, 0.f, 1.f);
 			break;
 		default:
 			break;
@@ -93,6 +91,8 @@ void GunParam::Update() noexcept {
 		m_GunLoadPer = 0.f;
 		m_GunLoadHandPer = 0.f;
 	}
+	gun->SetMagPer(m_GunLoadPer, GetReloadPer());
+	gun->SetCockingPer(GetCockingPer());
 }
 
 const Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
@@ -105,17 +105,17 @@ const Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
 					std::cosf(m_WalkRad),
 					std::fabsf(std::sinf(m_WalkRad)) * -0.25f,
 					0.f
-				) * (MovePer * (0.03f * Scale3DRate)),
+				) * (m_MovePer * (0.03f * Scale3DRate)),
 				Mat.rotation()
 			) +
 			Mat.pos());
 	{
-		auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), m_Handgun.m_GunADSPer);
+		auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.GetUniqueID()));
+		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), m_Handgun.GetADSPer());
 	}
 	{
-		auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), m_Maingun.m_GunADSPer);
+		auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.GetUniqueID()));
+		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), m_Maingun.GetADSPer());
 	}
 	return Mat;
 }
@@ -139,7 +139,7 @@ void Character::Update_Sub(void) noexcept {
 	if (m_IsActive) {
 		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
 			if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Squat) {
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 			}
 			if (m_CharaStyle != CharaStyle::Squat) {
 				m_CharaStyle = CharaStyle::Squat;
@@ -151,7 +151,7 @@ void Character::Update_Sub(void) noexcept {
 		else {
 			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Run)) {
 				if (m_CharaStyle == CharaStyle::Squat) {
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 				}
 				m_CharaStyle = CharaStyle::Run;
 			}
@@ -173,7 +173,7 @@ void Character::Update_Sub(void) noexcept {
 			SetArmAnim(m_HaveRifleAnimIndex);
 		}
 		else {
-			if (MovePer > 0.5f) {
+			if (m_MovePer > 0.5f) {
 				if (m_CharaStyle == CharaStyle::Run) {
 					SetArmAnim(m_RunAnimIndex);
 				}
@@ -199,16 +199,16 @@ void Character::Update_Sub(void) noexcept {
 				if ((9.0f / 35.f * 16.f < Time && Time < 10.0f / 35.f * 16.f)) {
 					if (this->m_FootSoundID != 0) {
 						this->m_FootSoundID = 0;
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(255);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(255);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 					}
 				}
 				//R
 				if ((27.0f / 35.f * 16.f < Time && Time < 28.0f / 35.f * 16.f)) {
 					if (this->m_FootSoundID != 1) {
 						this->m_FootSoundID = 1;
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(255);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(255);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 					}
 				}
 			}
@@ -222,16 +222,16 @@ void Character::Update_Sub(void) noexcept {
 				if ((9.0f < Time && Time < 10.0f)) {
 					if (this->m_FootSoundID != 2) {
 						this->m_FootSoundID = 2;
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(92);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(92);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 					}
 				}
 				//R
 				if ((27.0f < Time && Time < 28.0f)) {
 					if (this->m_FootSoundID != 3) {
 						this->m_FootSoundID = 3;
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(92);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(92);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 					}
 				}
 			}
@@ -245,16 +245,16 @@ void Character::Update_Sub(void) noexcept {
 				if ((9.0f < Time && Time < 10.0f)) {
 					if (this->m_FootSoundID != 4) {
 						this->m_FootSoundID = 4;
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(192);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(192);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 					}
 				}
 				//R
 				if ((27.0f < Time && Time < 28.0f)) {
 					if (this->m_FootSoundID != 5) {
 						this->m_FootSoundID = 5;
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->SetLocalVolume(192);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(192);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 					}
 				}
 			}
@@ -286,28 +286,17 @@ void Character::Update_Sub(void) noexcept {
 	}
 	m_PrevIsFPSView = IsFPSView();
 
-	float				PrevYradAdd = m_YradAdd;
-	float				PrevXradAdd = m_XradAdd;
+	float				PrevYradAdd = m_RadAdd.y;
+	float				PrevXradAdd = m_RadAdd.x;
 	if (IsFPSView()) {
-		m_YradAdd = Util::deg2rad(static_cast<float>(LookX) / 30.f);
-		m_XradAdd = Util::deg2rad(static_cast<float>(LookY) / 30.f);
+		m_RadAdd.y = Util::deg2rad(static_cast<float>(LookX) / 30.f);
+		m_RadAdd.x = Util::deg2rad(static_cast<float>(LookY) / 30.f);
 
-		Yrad += m_YradAdd;
-		if (Yrad > 0.f) {
-			while (true) {
-				if (Yrad < DX_PI_F * 2.f) { break; }
-				Yrad -= DX_PI_F * 2.f;
-			}
-		}
-		if (Yrad < 0.f) {
-			while (true) {
-				if (Yrad > -DX_PI_F * 2.f) { break; }
-				Yrad += DX_PI_F * 2.f;
-			}
-		}
+		m_Rad.y += m_RadAdd.y;
+		m_Rad.y = Util::AngleRange360(m_Rad.y);
 
-		Xrad = std::clamp(Xrad + m_XradAdd, Util::deg2rad(-80), Util::deg2rad(80));
-		VecR = Util::VECTOR2D::zero();
+		m_Rad.x = std::clamp(m_Rad.x + m_RadAdd.x, Util::deg2rad(-80), Util::deg2rad(80));
+		m_VecR = Util::VECTOR2D::zero();
 	}
 	else {
 		Camera::Camera3D::Instance()->StopCamShake();
@@ -327,18 +316,18 @@ void Character::Update_Sub(void) noexcept {
 			}
 		}
 		//歩くより早く移動する場合
-		if (Speed > (3.f * Scale3DRate / 60.f)) {
-			VecR = Util::Lerp(VecR, Vec, 1.f - 0.975f);
+		if (m_Speed > (3.f * Scale3DRate * DeltaTime)) {
+			Util::Easing(&m_VecR, Vec, 0.975f);
 		}
 		else {
-			VecR = Util::Lerp(VecR, Vec, 1.f - 0.9f);
+			Util::Easing(&m_VecR, Vec, 0.9f);
 		}
 
-		m_YradAdd = 0.f;
-		m_XradAdd = 0.f;
+		m_RadAdd.y = 0.f;
+		m_RadAdd.x = 0.f;
 
-		if (VecR.sqrMagnitude() > 0.f) {
-			m_YradDif = std::atan2f(-VecR.x, -VecR.y) - Yrad;
+		if (m_VecR.sqrMagnitude() > 0.f) {
+			m_YradDif = std::atan2f(-m_VecR.x, -m_VecR.y) - m_Rad.y;
 			if (m_YradDif > 0.f) {
 				while (true) {
 					if (m_YradDif < DX_PI_F) { break; }
@@ -369,13 +358,13 @@ void Character::Update_Sub(void) noexcept {
 				default:
 					break;
 				}
-				m_YradAdd = Per * Util::deg2rad(720.f) * Power / 60.f;
+				m_RadAdd.y = Per * Power * Util::deg2rad(720.f) * DeltaTime;
 			}
 			{
 				float Power = 1.f;
 				switch (m_CharaStyle) {
 				case CharaStyle::Run:
-					if (Speed > (3.f * Scale3DRate / 60.f)) {
+					if (m_Speed > (3.f * Scale3DRate * DeltaTime)) {
 						Power = 1.f;
 					}
 					else {
@@ -392,75 +381,61 @@ void Character::Update_Sub(void) noexcept {
 				default:
 					break;
 				}
-				Zrad = Util::Lerp(Zrad, m_YradAdd * Power, 1.f - 0.9f);
+				Util::Easing(&m_Rad.z, m_RadAdd.y * Power, 0.9f);
 			}
 		}
 
-		Yrad += m_YradAdd;
-		if (Yrad > 0.f) {
-			while (true) {
-				if (Yrad < DX_PI_F * 2.f) { break; }
-				Yrad -= DX_PI_F * 2.f;
-			}
-		}
-		if (Yrad < 0.f) {
-			while (true) {
-				if (Yrad > -DX_PI_F * 2.f) { break; }
-				Yrad += DX_PI_F * 2.f;
-			}
-		}
-		Xrad = Util::Lerp(Xrad, 0.f, 1.f - 0.9f);
+		m_Rad.y += m_RadAdd.y;
+		m_Rad.y = Util::AngleRange360(m_Rad.y);
+
+		Util::Easing(&m_Rad.x, 0.f, 0.9f);
 	}
 
-	m_YradAddR = Util::Lerp(m_YradAddR, std::clamp(m_YradAdd - PrevYradAdd, -1.f, 1.f) * 30.f, 1.f - 0.95f);
-	m_XradAddR = Util::Lerp(m_XradAddR, std::clamp(m_XradAdd - PrevXradAdd, -1.f, 1.f) * 30.f, 1.f - 0.95f);
+	Util::Easing(&m_RadAddR.y, std::clamp(m_RadAdd.y - PrevYradAdd, -1.f, 1.f) * 30.f, 0.95f);
+	Util::Easing(&m_RadAddR.x, std::clamp(m_RadAdd.x - PrevXradAdd, -1.f, 1.f) * 30.f, 0.95f);
 
-	m_YradAddR2 = Util::Lerp(m_YradAddR2, m_YradAddR, 1.f - 0.95f);
-	m_XradAddR2 = Util::Lerp(m_XradAddR2, m_XradAddR, 1.f - 0.95f);
+	Util::Easing(&m_RadAddR2.y, m_RadAddR.y, 0.95f);
+	Util::Easing(&m_RadAddR2.x, m_RadAddR.x, 0.95f);
 
 	bool IsAim = KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim);
-	if (m_CharaStyle == CharaStyle::Run) {
-		IsAim = false;
-	}
 
 	if (IsFPSView()) {
-		m_Handgun.m_GunReadyPer = Util::Lerp(m_Handgun.m_GunReadyPer,
+		Util::Easing(&m_Handgun.m_GunReadyPer,
 			!m_Handgun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
-			1.f - 0.9f);
-		m_Handgun.m_GunADSPer = Util::Lerp(m_Handgun.m_GunADSPer,
-			!m_Handgun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim ? 1.f : 0.f,
-			1.f - 0.9f);
+			0.9f);
 
-		m_Maingun.m_GunReadyPer = Util::Lerp(m_Maingun.m_GunReadyPer,
-			!m_Maingun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
-			1.f - 0.9f);
-		m_Maingun.m_GunADSPer = Util::Lerp(m_Maingun.m_GunADSPer,
-			!m_Maingun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim ? 1.f : 0.f,
-			1.f - 0.9f);
+		Util::Easing(&m_Maingun.m_GunReadyPer,
+			!m_Maingun.GetIsReload() && !m_Maingun.GetIsCocking() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) ? 1.f : 0.f,
+			0.9f);
 	}
 	else {
-		m_Handgun.m_GunReadyPer = Util::Lerp(m_Handgun.m_GunReadyPer,
-			(m_Handgun.GetIsEquip() && IsAim) ? 1.f : 0.f,
-			1.f - 0.9f);
-		m_Handgun.m_GunADSPer = 0.f;
+		Util::Easing(&m_Handgun.m_GunReadyPer,
+			(m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim) ? 1.f : 0.f,
+			0.9f);
 
-		m_Maingun.m_GunReadyPer = Util::Lerp(m_Maingun.m_GunReadyPer,
-			(m_Maingun.GetIsEquip() && IsAim) ? 1.f : 0.f,
-			1.f - 0.9f);
-		m_Maingun.m_GunADSPer = 0.f;
+		Util::Easing(&m_Maingun.m_GunReadyPer,
+			(m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsAim) ? 1.f : 0.f,
+			0.9f);
 	}
+
+	Util::Easing(&m_Handgun.m_GunADSPer,
+		!m_Handgun.GetIsReload() && !m_Handgun.GetIsCocking() && m_Handgun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsFPSView() && IsAim ? 1.f : 0.f,
+		0.9f);
+	Util::Easing(&m_Maingun.m_GunADSPer,
+		!m_Maingun.GetIsReload() && !m_Maingun.GetIsCocking() && m_Maingun.GetIsEquip() && (m_CharaStyle != CharaStyle::Run) && IsFPSView() && IsAim ? 1.f : 0.f,
+		0.9f);
 	//
 	bool IsReload = KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Reload);
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack)) {
-		if (m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) {
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-			if (gun->CanAmmoNum() == 0 && m_Handgun.CanShot()) {
+		if (m_Handgun.GetIsReady()) {
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.GetUniqueID()));
+			if (gun->GetAmmoNum() == 0 && m_Handgun.CanShot()) {
 				IsReload = true;
 			}
 		}
-		if (m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) {
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-			if (gun->CanAmmoNum() == 0 && m_Maingun.CanShot()) {
+		if (m_Maingun.GetIsReady()) {
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.GetUniqueID()));
+			if (gun->GetAmmoNum() == 0 && m_Maingun.CanShot()) {
 				IsReload = true;
 			}
 		}
@@ -468,16 +443,16 @@ void Character::Update_Sub(void) noexcept {
 	//
 	m_ShotSwitch = false;
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack)) {
-		if (m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) {
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+		if (m_Handgun.GetIsReady()) {
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.GetUniqueID()));
 			if (gun->CanShot() && m_Handgun.CanShot()) {
 				gun->ShotStart();
 				m_ShotSwitch = true;
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
 			}
 		}
-		if (m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) {
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+		if (m_Maingun.GetIsReady()) {
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.GetUniqueID()));
 			if (gun->CanShot() && m_Maingun.CanShot()) {
 				gun->ShotStart();
 				m_ShotSwitch = true;
@@ -486,18 +461,19 @@ void Character::Update_Sub(void) noexcept {
 		}
 	}
 	{
+		bool IsShot = KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack);
 		{
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-			gun->SetTrigger((m_Handgun.GetIsEquip() && m_Handgun.m_GunReadyPer > 0.95f) && !m_Handgun.GetIsReload() && !m_Handgun.GetIsCocking() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.GetUniqueID()));
+			gun->SetTrigger(m_Handgun.GetIsReady() && !m_Handgun.GetIsReload() && !m_Handgun.GetIsCocking() && IsShot);
 		}
 		{
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-			gun->SetTrigger((m_Maingun.GetIsEquip() && m_Maingun.m_GunReadyPer > 0.95f) && !m_Maingun.GetIsReload() && !m_Maingun.GetIsCocking() && KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack));
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.GetUniqueID()));
+			gun->SetTrigger(m_Maingun.GetIsReady() && !m_Maingun.GetIsReload() && !m_Maingun.GetIsCocking() && IsShot);
 		}
 	}
 
 	if (m_PrevEquip != m_Equip) {
-		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 		switch (m_Equip) {
 		case InvalidID:
 			m_Handgun.SetIsEquip(false);
@@ -518,13 +494,13 @@ void Character::Update_Sub(void) noexcept {
 	m_PrevEquip = m_Equip;
 	if (IsReload) {
 		{
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.GetUniqueID()));
 			if (m_Handgun.GetCanReload() && gun->CanReload()) {
 				m_Handgun.ReloadStart();
 			}
 		}
 		{
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.GetUniqueID()));
 			if (m_Maingun.GetCanReload() && gun->CanReload()) {
 				m_Maingun.ReloadStart();
 			}
@@ -535,7 +511,7 @@ void Character::Update_Sub(void) noexcept {
 	m_Maingun.Update();
 
 	// 進行方向に前進
-	Speed = Util::Lerp(Speed, ((MoveKey != 0) || !m_IsActive) ? GetSpeedMax() : 0.f, 1.f - 0.9f);
+	Util::Easing(&m_Speed, ((MoveKey != 0) || !m_IsActive) ? GetSpeedMax() : 0.f, 0.9f);
 
 	// 移動ベクトルを加算した仮座標を作成
 	Util::VECTOR3D PosBuffer;
@@ -558,56 +534,56 @@ void Character::Update_Sub(void) noexcept {
 		if (Vec.sqrMagnitude() > 0.f) {
 			Vec = Vec.normalized();
 		}
-		PosBuffer = MyPosTarget + Util::Matrix4x4::Vtrans(Vec * -Speed, MyMat.rotation());
+		PosBuffer = m_MyPosTarget + Util::Matrix4x4::Vtrans(Vec * -m_Speed, MyMat.rotation());
 	}
 	else {
-		PosBuffer = MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -Speed, MyMat.rotation());
+		PosBuffer = m_MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -m_Speed, MyMat.rotation());
 	}
 	// 壁判定
 	std::vector<const Draw::MV1*> addonColObj;
-	BackGround::Instance()->CheckWall(MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
+	BackGround::Instance()->CheckWall(m_MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
 	// 地面判定
 	PosBuffer.y = PosBuffer.y - 0.1f * Scale3DRate;
 	if (!BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &PosBuffer)) {
 		// ヒットしていない際は落下させる
-		m_YVec -= (9.8f * Scale3DRate) / (60.f * 60.f);
-		PosBuffer.y += m_YVec;
+		m_Vector.y -= GravAccel;
+		PosBuffer.y += m_Vector.y;
 	}
 	else {
-		m_YVec = 0.f;
+		m_Vector.y = 0.f;
 	}
 	// 仮座標を反映
-	Speed = std::clamp((MyPosTarget - PosBuffer).magnitude(), 0.f, Speed);
-	MyPosTarget = PosBuffer;
+	m_Speed = std::clamp((m_MyPosTarget - PosBuffer).magnitude(), 0.f, m_Speed);
+	m_MyPosTarget = PosBuffer;
 	Util::VECTOR3D MyPos = MyMat.pos();
-	MyPos = Util::Lerp(MyPos, MyPosTarget, 1.f - 0.9f);
+	Util::Easing(&MyPos, m_MyPosTarget, 0.9f);
 
 	SetMatrix(
-		Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), Zrad) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Yrad) * Util::Matrix4x4::Mtrans(MyPos)
+		Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), m_Rad.z) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), m_Rad.y) * Util::Matrix4x4::Mtrans(MyPos)
 	);
 
 	//移動割合
-	MovePer = Util::Lerp(MovePer, GetSpeed() / GetSpeedMax(), 1.f - 0.9f);
+	Util::Easing(&m_MovePer, GetSpeed() / GetSpeedMax(), 0.9f);
 
-	if (MovePer > 0.01f) {
-		m_WalkRad += Util::deg2rad(360) / 60.f;
+	if (m_MovePer > 0.01f) {
+		m_WalkRad += Util::deg2rad(360) * DeltaTime;
 	}
 	else {
 		m_WalkRad = 0.f;
 	}
 
 	for (size_t loop = 0; loop < static_cast<size_t>(CharaStyle::Max); ++loop) {
-		m_StylePer.at(loop) = std::clamp(m_StylePer.at(loop) + ((m_CharaStyle == static_cast<CharaStyle>(loop)) ? 1.f : -1.f) / 60.f / 0.3f, 0.f, 1.f);
+		m_StylePer.at(loop) = std::clamp(m_StylePer.at(loop) + ((m_CharaStyle == static_cast<CharaStyle>(loop)) ? DeltaTime / 0.3f : -DeltaTime / 0.3f), 0.f, 1.f);
 	}
 
 	//停止
-	m_AnimPer[static_cast<size_t>(CharaAnim::Squat)] = (1.f - MovePer) * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
-	m_AnimPer[static_cast<size_t>(CharaAnim::Stand)] = (1.f - MovePer) * std::max(m_StylePer.at(static_cast<size_t>(CharaStyle::Stand)), m_StylePer.at(static_cast<size_t>(CharaStyle::Run)));
-	m_AnimPer[static_cast<size_t>(CharaAnim::Stay)] = (1.f - std::max(m_Handgun.m_GunReadyPer, m_Maingun.m_GunReadyPer));
+	m_AnimPer[static_cast<size_t>(CharaAnim::Squat)] = (1.f - m_MovePer) * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
+	m_AnimPer[static_cast<size_t>(CharaAnim::Stand)] = (1.f - m_MovePer) * std::max(m_StylePer.at(static_cast<size_t>(CharaStyle::Stand)), m_StylePer.at(static_cast<size_t>(CharaStyle::Run)));
+	m_AnimPer[static_cast<size_t>(CharaAnim::Stay)] = (1.f - std::max(m_Handgun.GetReadyPer(), m_Maingun.GetReadyPer()));
 	//移動
-	m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
-	m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Stand));
-	m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Run));
+	m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = m_MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
+	m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = m_MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Stand));
+	m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = m_MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Run));
 	//回転
 	{
 		float Per = 0.f;
@@ -619,8 +595,8 @@ void Character::Update_Sub(void) noexcept {
 				Per = m_YradDif / Util::deg2rad(90);
 			}
 		}
-		m_SwitchPer = Util::Lerp(m_SwitchPer, (Per >= -0.5f) ? 1.f : 0.f, 1.f - 0.9f);
-		m_AnimPer[static_cast<size_t>(CharaAnim::Flip)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::Flip)], std::clamp(Per, -1.f, 1.f), 1.f - 0.9f);
+		Util::Easing(&m_SwitchPer, (Per >= -0.5f) ? 1.f : 0.f, 0.9f);
+		Util::Easing(&m_AnimPer[static_cast<size_t>(CharaAnim::Flip)], std::clamp(Per, -1.f, 1.f), 0.9f);
 	}
 	//
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_1)] = 1.f;
@@ -632,7 +608,7 @@ void Character::Update_Sub(void) noexcept {
 		if (GetIsReloading()) {
 			Per = 0.0f;
 		}
-		m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)] = Util::Lerp(m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)], Per, 1.f - 0.8f);
+		Util::Easing(&m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_2)], Per, 0.8f);
 	}
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_3)] = 1.f;
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_4)] = 1.f;
@@ -658,8 +634,8 @@ void Character::Update_Sub(void) noexcept {
 	Util::Matrix4x4 HandBaseMat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
 
 	HandBaseMat =
-		Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), -m_YradAddR2) *
-		Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), m_XradAddR2) *
+		Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), -m_RadAddR2.y) *
+		Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), m_RadAddR2.x) *
 		HandBaseMat.rotation() *
 		Util::Matrix4x4::Mtrans(HandBaseMat.pos());
 
@@ -667,18 +643,18 @@ void Character::Update_Sub(void) noexcept {
 		ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper));
 		ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper2));
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper),
-			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 60.f / 100.f) *
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_Rad.x * 0.6f) *
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper))
 		);
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2),
-			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -Xrad * 40.f / 100.f) *
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_Rad.x * 0.4f) *
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2))
 		);
 	}
 	{
 		Util::HandAnimPool::Instance()->Update();
 		if (m_AnimMoving) {
-			m_AnimChangePer = std::clamp(m_AnimChangePer + 1.f / 60.f / 0.25f, 0.f, 1.f);
+			m_AnimChangePer = std::clamp(m_AnimChangePer + DeltaTime / 0.25f, 0.f, 1.f);
 			if (m_AnimChangePer >= 1.f) {
 				m_AnimMoving = false;
 				m_Prev = m_Now;
@@ -691,7 +667,7 @@ void Character::Update_Sub(void) noexcept {
 
 		Util::VRAnim Answer;
 		{
-			auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
+			auto& gun = (*ObjectManager::Instance()->GetObj(m_Handgun.GetUniqueID()));
 			auto EyePos =
 				Util::Lerp(
 					gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePosRight)),
@@ -702,10 +678,10 @@ void Character::Update_Sub(void) noexcept {
 			AimAnim.m_RightHandPos = EyePos.pos() * -1.f;
 			AimAnim.m_RightRot = Util::Matrix3x3::Get33DX(EyePos);
 
-			Answer = Util::VRAnim::LerpAnim(m_VRAnim, AimAnim, m_Handgun.m_GunReadyPer);
+			Answer = Util::VRAnim::LerpAnim(m_VRAnim, AimAnim, m_Handgun.GetReadyPer());
 		}
 		{
-			auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
+			auto& gun = (*ObjectManager::Instance()->GetObj(m_Maingun.GetUniqueID()));
 			auto EyePos =
 				Util::Lerp(
 					gun->GetFrameBaseLocalMat(static_cast<int>(GunFrame::EyePosRight)),
@@ -716,13 +692,13 @@ void Character::Update_Sub(void) noexcept {
 			AimAnim.m_RightHandPos = EyePos.pos() * -1.f;
 			AimAnim.m_RightRot = Util::Matrix3x3::Get33DX(EyePos);
 
-			Answer = Util::VRAnim::LerpAnim(Answer, AimAnim, m_Maingun.m_GunReadyPer);
+			Answer = Util::VRAnim::LerpAnim(Answer, AimAnim, m_Maingun.GetReadyPer());
 		}
 		{
 			Util::Matrix4x4 Mat = Answer.m_RightRot.Get44DX() * HandBaseMat.rotation() *
 				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Answer.m_RightHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
-			Mat = Util::Lerp(Util::Lerp(Mat, GetHolsterMat(), m_Handgun.m_Per), GetHolsterPullMat(), m_Handgun.m_PullPer);
-			Mat = Util::Lerp(Util::Lerp(Mat, GetSlingMat(), m_Maingun.m_Per), GetSlingPullMat(), m_Maingun.m_PullPer);
+			Mat = Util::Lerp(Util::Lerp(Mat, GetHolsterMat(), m_Handgun.GetPer()), GetHolsterPullMat(), m_Handgun.GetPullPer());
+			Mat = Util::Lerp(Util::Lerp(Mat, GetSlingMat(), m_Maingun.GetPer()), GetSlingPullMat(), m_Maingun.GetPullPer());
 
 			Draw::IK_RightArm(
 				&ModelID,
@@ -742,27 +718,21 @@ void Character::Update_Sub(void) noexcept {
 				GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::RightHandJoint));
 			{
 				Util::Matrix4x4 Mat = RightMat;
-				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-				if (m_Handgun.m_EquipPhase <= 1 && !m_Handgun.GetIsEquip()) {
-					Mat = Util::Lerp(GetHolsterMat(), GetHolsterPullMat(), m_Handgun.m_GunPer);
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.GetUniqueID()));
+				if (m_Handgun.GetInHolster()) {
+					Mat = Util::Lerp(GetHolsterMat(), GetHolsterPullMat(), m_Handgun.GetGunPer());
 				}
 				gun->SetMatrix(Mat);
 				gun->SetMagLoadMat(GetMagPouchMat());
-				gun->SetMagLoad(m_Handgun.m_GunLoadPer);
-				gun->SetMagPer(m_Handgun.GetReloadPer());
-				gun->SetCockingPer(m_Handgun.GetCockingPer());
 			}
 			{
 				Util::Matrix4x4 Mat = RightMat;
-				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-				if (m_Maingun.m_EquipPhase <= 1 && !m_Maingun.GetIsEquip()) {
-					Mat = Util::Lerp(GetSlingMat(), GetSlingPullMat(), m_Maingun.m_GunPer);
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.GetUniqueID()));
+				if (m_Maingun.GetInHolster()) {
+					Mat = Util::Lerp(GetSlingMat(), GetSlingPullMat(), m_Maingun.GetGunPer());
 				}
 				gun->SetMatrix(Mat);
 				gun->SetMagLoadMat(GetMagPouchMat());
-				gun->SetMagLoad(m_Maingun.m_GunLoadPer);
-				gun->SetMagPer(m_Maingun.GetReloadPer());
-				gun->SetCockingPer(m_Maingun.GetCockingPer());
 			}
 		}
 
@@ -770,16 +740,16 @@ void Character::Update_Sub(void) noexcept {
 			Util::Matrix4x4 LeftHandMat = m_VRAnim.m_LeftRot.Get44DX() * HandBaseMat.rotation() *
 				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(m_VRAnim.m_LeftHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
 			{
-				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.m_UniqueID));
-				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetBaseLeftHandMat(), m_Handgun.m_GunReadyPer);
-				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetMagLeftHandMat(), m_Handgun.m_GunLoadHandPer);
-				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetPullLeftHandMat(), m_Handgun.m_GunPullPer);
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Handgun.GetUniqueID()));
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetBaseLeftHandMat(), m_Handgun.GetReadyPer());
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetMagLeftHandMat(), m_Handgun.GetLoadHandPer());
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetPullLeftHandMat(), m_Handgun.GetGunPullPer());
 			}
 			{
-				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.m_UniqueID));
-				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetBaseLeftHandMat(), m_Maingun.m_GunReadyPer);
-				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetMagLeftHandMat(), m_Maingun.m_GunLoadHandPer);
-				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetPullLeftHandMat(), m_Maingun.m_GunPullPer);
+				auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(m_Maingun.GetUniqueID()));
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetBaseLeftHandMat(), m_Maingun.GetReadyPer());
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetMagLeftHandMat(), m_Maingun.GetLoadHandPer());
+				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetPullLeftHandMat(), m_Maingun.GetGunPullPer());
 			}
 
 			Draw::IK_LeftArm(

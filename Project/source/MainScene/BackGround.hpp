@@ -310,26 +310,37 @@ class BackGround : public Util::SingletonBase<BackGround> {
 private:
 	friend class Util::SingletonBase<BackGround>;
 private:
-	struct mapGraph {
-		Draw::GraphHandle	m_Map{};
+	class mapGraph {
+		const Draw::GraphHandle*	m_Map{};
 		int					m_ID{};
+	public:
 		float				m_Per{};
 	public:
+		const auto& GetMap() const noexcept { return m_Map; }
+		auto GetID() const noexcept { return m_ID; }
+		auto GetPer() const noexcept { return m_Per; }
+	public:
 		mapGraph(void) noexcept {}
-		mapGraph(const mapGraph& o) = delete;
+		mapGraph(const mapGraph&) = delete;
 		mapGraph(mapGraph&& o) noexcept {
-			this->m_Map = (Draw::GraphHandle&&)o.m_Map;
+			this->m_Map = o.m_Map;
 			this->m_ID = o.m_ID;
 			this->m_Per = o.m_Per;
 		}
-		mapGraph& operator=(const mapGraph& o) = delete;
+		mapGraph& operator=(const mapGraph&) = delete;
 		mapGraph& operator=(mapGraph&& o) noexcept {
-			this->m_Map = (Draw::GraphHandle&&)o.m_Map;
+			this->m_Map = o.m_Map;
 			this->m_ID = o.m_ID;
 			this->m_Per = o.m_Per;
 			return *this;
 		}
 		virtual ~mapGraph(void) noexcept {}
+	public:
+		void Init(std::basic_string_view<TCHAR> FileName, int ID) noexcept {
+			this->m_Map = Draw::GraphPool::Instance()->Get(FileName)->Get();
+			this->m_ID = ID;
+			this->m_Per = 0.f;
+		}
 	};
 	struct MapInfo {
 		InfoType					m_InfoType{ InfoType::None };
@@ -351,13 +362,13 @@ private:
 	BackGround& operator=(BackGround&&) = delete;
 	virtual ~BackGround(void) noexcept { Dispose(); }
 public:
-	const BG::Algorithm::Vector3Int	GetVoxelPoint(const Util::VECTOR3D& StartPos) const noexcept {
+	auto			GetVoxelPoint(const Util::VECTOR3D& StartPos) const noexcept {
 		BG::Algorithm::Vector3Int Pos = Voxel.GetReferenceCells().GetVoxelPoint(StartPos);
 		Pos.x -= Voxel.GetReferenceCells().All / 2;
 		Pos.z -= Voxel.GetReferenceCells().All / 2;
 		return Pos;
 	}
-	const Util::VECTOR3D	GetWorldPos(const BG::Algorithm::Vector3Int& StartPos) const noexcept {
+	auto			GetWorldPos(const BG::Algorithm::Vector3Int& StartPos) const noexcept {
 		BG::Algorithm::Vector3Int Pos = StartPos;
 		//Pos.x += Voxel.GetReferenceCells().All / 2;
 		//Pos.z += Voxel.GetReferenceCells().All / 2;
@@ -369,10 +380,10 @@ public:
 	bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept {
 		return Voxel.CheckWall(StartPos, EndPos, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
 	}
-	std::vector<mapGraph>& GetMapGraph(void) noexcept { return m_map; }
-	const std::vector<MapInfo>& GetMapInfo(void) const noexcept { return m_MapInfo; }
+	auto&			GetMapGraph(void) noexcept { return m_map; }
+	const auto&		GetMapInfo(void) const noexcept { return m_MapInfo; }
 	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { Voxel.SettingChange(DrawLOD, ShadowLOD); }
-	const auto& GetWayPoint(void) const noexcept { return this->m_WayPoint; }
+	const auto&		GetWayPoint(void) const noexcept { return this->m_WayPoint; }
 public:
 	void Load(const char* MapName) noexcept {
 		m_MapName = MapName;
@@ -384,9 +395,7 @@ public:
 			Path += ".png";
 			if (Util::IsFileExist(Path.c_str())) {
 				m_map.emplace_back();
-				m_map.back().m_Map.Load(Path);
-				m_map.back().m_ID = loop;
-				m_map.back().m_Per = 0.f;
+				m_map.back().Init(Path, loop);
 			}
 		}
 	}
@@ -521,9 +530,6 @@ public:
 		Voxel.Dispose_Load();
 		this->m_WayPoint.reset();
 		SkyBoxID.Dispose();
-		for (auto& m : m_map) {
-			m.m_Map.Dispose();
-		}
 		m_map.clear();
 		m_MapInfo.clear();
 	}
@@ -536,8 +542,7 @@ public:
 	void SetShadowDrawRigid(void) const noexcept {
 		Voxel.DrawByShader();
 	}
-	void SetShadowDraw(void) const noexcept {
-	}
+	void SetShadowDraw(void) const noexcept {}
 	void Draw(void) const noexcept {
 		Voxel.Draw();
 		/*
@@ -576,7 +581,5 @@ public:
 	void ShadowDrawFar(void) const noexcept {
 		Voxel.DrawShadow();
 	}
-	void ShadowDraw(void) const noexcept {
-	}
-
+	void ShadowDraw(void) const noexcept {}
 };

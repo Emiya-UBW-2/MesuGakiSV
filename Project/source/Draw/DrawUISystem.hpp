@@ -50,7 +50,8 @@ namespace Draw {
 		"DisActive",
 	};
 
-	struct Param2D {
+	class Param2D {
+	public:
 		Util::VECTOR2D	OfsNoRad{ Util::VECTOR2D::vget(0.f, 0.f) };
 		Util::VECTOR2D	Ofs{};
 		Util::VECTOR2D	Size{};
@@ -59,6 +60,31 @@ namespace Draw {
 		float			Rad{ Util::deg2rad(0.f) };
 		char			padding[4]{};
 		Util::ColorRGBA	Color{ Util::ColorRGBA(255, 255, 255, 255) };
+	public:
+		Param2D(void) noexcept {}
+		Param2D(const Param2D& o) noexcept { *this = o; }
+		Param2D(Param2D&& o) noexcept { *this = o; }
+		Param2D& operator=(const Param2D& o) noexcept {
+			this->OfsNoRad = o.OfsNoRad;
+			this->Ofs = o.Ofs;
+			this->Size = o.Size;
+			this->Scale = o.Scale;
+			this->Center = o.Center;
+			this->Rad = o.Rad;
+			this->Color = o.Color;
+			return *this;
+		}
+		Param2D& operator=(Param2D&& o) noexcept {
+			this->OfsNoRad = o.OfsNoRad;
+			this->Ofs = o.Ofs;
+			this->Size = o.Size;
+			this->Scale = o.Scale;
+			this->Center = o.Center;
+			this->Rad = o.Rad;
+			this->Color = o.Color;
+			return *this;
+		}
+		virtual ~Param2D(void) noexcept {}
 	};
 
 	class DrawUISystem;
@@ -140,16 +166,15 @@ namespace Draw {
 			this->m_PartsParam.reserve(128);
 			this->m_AnimData.reserve(128);
 		}
-		DrawModule(const DrawModule& o) noexcept { *this = o; }
-		DrawModule(DrawModule&& o) noexcept { *this = o; }
-		DrawModule& operator=(const DrawModule& o) noexcept {
+		DrawModule(const DrawModule&) = delete;
+		DrawModule(DrawModule&& o) noexcept {
 			this->m_PartsParam = o.m_PartsParam;
 			this->m_AnimData = o.m_AnimData;
 			this->m_AnimDataLastSelect = o.m_AnimDataLastSelect;
 			this->m_Frame = o.m_Frame;
 			this->m_IsSelect = o.m_IsSelect;
-			return *this;
 		}
+		DrawModule& operator=(const DrawModule&) = delete;
 		DrawModule& operator=(DrawModule&& o) noexcept {
 			this->m_PartsParam = o.m_PartsParam;
 			this->m_AnimData = o.m_AnimData;

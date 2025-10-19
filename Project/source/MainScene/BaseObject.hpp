@@ -130,20 +130,16 @@ public:
 	BaseObject& operator=(BaseObject&&) = delete;
 	virtual ~BaseObject(void) noexcept {}
 public:
-	const Util::Matrix4x4& GetMat(void) const noexcept { return MyMat; }
-	int GetObjectID(void) const noexcept { return m_UniqueID; }
-	const auto& GetIsDelete(void) const noexcept { return this->m_IsDelete; }
-
-	const auto& GetFilePath(void) const noexcept { return this->m_Path; }
-	void SetFilePath(std::string_view value) noexcept {
-		this->m_Path = value;
-	}
-
-	void SetMatrix(const Util::Matrix4x4& mat) noexcept {
+	const auto&			GetMat(void) const noexcept { return MyMat; }
+	int					GetObjectID(void) const noexcept { return m_UniqueID; }
+	const auto&			GetIsDelete(void) const noexcept { return this->m_IsDelete; }
+	const auto&			GetFilePath(void) const noexcept { return this->m_Path; }
+	void				SetFilePath(std::string_view value) noexcept { this->m_Path = value; }
+	void				SetMatrix(const Util::Matrix4x4& mat) noexcept {
 		MyMat = mat;
 		ModelID.SetMatrix(MyMat);
 	}
-	void SetObjectID(int ID) noexcept { m_UniqueID = ID; }
+	void				SetObjectID(int ID) noexcept { m_UniqueID = ID; }
 	void				SetDelete(void) noexcept { this->m_IsDelete = true; }
 public:
 	virtual int	GetFrameNum(void) noexcept = 0;// { return 0; }

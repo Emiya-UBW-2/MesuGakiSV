@@ -94,8 +94,7 @@ namespace Util {
 	private:
 		friend class SingletonBase<OptionParam>;
 	private:
-		struct Param {
-		private:
+		class Param {
 			EnumOptionSelectType		m_SelectType{};
 			int							m_Value{};
 			int							m_ValueMin{};

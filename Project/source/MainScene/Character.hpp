@@ -120,7 +120,8 @@ static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
 	"magpouchZ",
 };
 
-struct GunParam {
+class GunParam {
+public:
 	int					m_UniqueID{};
 	float				m_GunPer{};
 	float				m_Per{};
@@ -149,10 +150,22 @@ public:
 	GunParam& operator=(GunParam&&) = delete;
 	virtual ~GunParam(void) noexcept {}
 public:
+	auto GetPer() const noexcept { return m_Per; }
+	auto GetPullPer() const noexcept { return m_PullPer; }
+	auto GetGunPer() const noexcept { return m_GunPer; }
+	auto GetGunPullPer() const noexcept { return m_GunPullPer; }
+	auto GetReadyPer() const noexcept { return m_GunReadyPer; }
+	auto GetADSPer() const noexcept { return m_GunADSPer; }
+	auto GetLoadHandPer() const noexcept { return m_GunLoadHandPer; }
+	auto GetUniqueID() const noexcept { return m_UniqueID; }
 	bool CanShot() const noexcept { return m_IsEquip && !m_IsGunLoad; }
 	bool GetIsEquip() const noexcept { return m_IsEquip; }
 	bool GetIsReload() const noexcept { return m_IsGunLoad; }
 	bool GetIsCocking() const noexcept { return m_IsCocking; }
+	bool GetInHolster() const noexcept { return m_EquipPhase <= 1 && !GetIsEquip(); }
+
+	bool GetIsReady() const noexcept { return GetIsEquip() && GetReadyPer() > 0.95f; }
+	
 	void SetIsEquip(bool value) {
 		bool IsChange = this->m_IsEquip != value;
 		this->m_IsEquip = value;
@@ -182,62 +195,49 @@ public:
 };
 
 class Character :public BaseObject {
-	Util::VECTOR3D MyPosTarget = Util::VECTOR3D::zero();
-	float Xrad = 0.f;
-	float Yrad = 0.f;
-	float Zrad = 0.f;
-	float Speed = 0.f;
-	float MovePer = 0.f;
-	Util::VECTOR2D VecR = Util::VECTOR2D::zero();
-	float													m_YVec{};
+	Util::VECTOR3D		m_MyPosTarget = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_Rad = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_RadAdd = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_RadAddR = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_RadAddR2 = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_Vector = Util::VECTOR3D::zero();
+	Util::VECTOR2D		m_VecR = Util::VECTOR2D::zero();
 	std::array<float, static_cast<int>(CharaAnim::Max)>		m_AnimPer{};
 	std::array<float, static_cast<int>(CharaStyle::Max)>	m_StylePer{};
 	CharaStyle												m_CharaStyle{ CharaStyle::Stand };
 	Util::VECTOR3D											m_AimPoint;
+	float				m_Speed = 0.f;
+	float				m_MovePer = 0.f;
 	float				m_YradDif{};
+	float				m_AnimChangePer{};
+	float				m_SwitchPer{};
+	float				m_WalkRad{};
 	uint8_t				m_MoveKey{};
 	bool				m_PrevIsFPSView{};
-	char		padding[2]{};
-	Sound::SoundUniqueID heartID{ InvalidID };
-	Sound::SoundUniqueID runfootID{ InvalidID };
-	Sound::SoundUniqueID standupID{ InvalidID };
-	int					m_FootSoundID{};
 	bool				m_IsFPS{};
 	bool				m_IsActive{};
-	char		padding2[2]{};
+	bool				m_AnimMoving{ false };
+	bool				m_ShotSwitch{ false };
+	char		padding[2]{};
+
+	Sound::SoundUniqueID m_heartID{ InvalidID };
+	Sound::SoundUniqueID m_runfootID{ InvalidID };
+	Sound::SoundUniqueID m_standupID{ InvalidID };
+	int					m_FootSoundID{};
 	int					m_StandAnimIndex{};
 	int					m_WalkAnimIndex{};
 	int					m_RunAnimIndex{};
 	int					m_HaveHandgunAnimIndex{};
 	int					m_HaveRifleAnimIndex{};
-
 	int					m_ReloadHandgunAnimIndex{};
 	int					m_ReloadRifleAnimIndex{};
-
-
 	int					m_Prev{};
 	int					m_Now{};
-	float				m_AnimChangePer{};
-	float				m_SwitchPer{};
-	bool				m_AnimMoving{ false };
-	bool				m_ShotSwitch{ false };
-	char		padding3[2]{};
-
-	GunParam			m_Handgun{};
-	GunParam			m_Maingun{};
-
-	float				m_WalkRad{};
-	float				m_YradAdd{};
-	float				m_XradAdd{};
-
-	float				m_YradAddR{};
-	float				m_XradAddR{};
-
-	float				m_YradAddR2{};
-	float				m_XradAddR2{};
-	char		paddin4[4]{};
 	int					m_Equip{ InvalidID };
 	int					m_PrevEquip{ InvalidID };
+	char		padding2[4]{};
+	GunParam			m_Handgun{};
+	GunParam			m_Maingun{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -288,28 +288,28 @@ public:
 		auto* KeyMngr = Util::KeyParam::Instance();
 		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) && !IsFPSView();
 	}
-	float GetSpeed(void) const noexcept { return Speed; }
+	float GetSpeed(void) const noexcept { return m_Speed; }
 	float GetSpeedMax(void) const noexcept {
 		switch (m_CharaStyle) {
 		case CharaStyle::Run:
-			return 4.5f * Scale3DRate / 60.f;
+			return 4.5f * Scale3DRate * DeltaTime;
 			break;
 		case CharaStyle::Squat:
-			return 1.0f * Scale3DRate / 60.f;
+			return 1.0f * Scale3DRate * DeltaTime;
 			break;
 		case CharaStyle::Stand:
 		case CharaStyle::Max:
 		default:
-			return 2.5f * Scale3DRate / 60.f;
+			return 2.5f * Scale3DRate * DeltaTime;
 			break;
 		}
 	}
 	void SetPos(Util::VECTOR3D MyPos) noexcept {
-		MyPosTarget = MyPos - Util::VECTOR3D::up() * Scale3DRate;
-		if (!BackGround::Instance()->CheckLine(MyPos + Util::VECTOR3D::up() * Scale3DRate, &MyPosTarget)) {
-			MyPosTarget = MyPos;
+		m_MyPosTarget = MyPos - Util::VECTOR3D::up() * Scale3DRate;
+		if (!BackGround::Instance()->CheckLine(MyPos + Util::VECTOR3D::up() * Scale3DRate, &m_MyPosTarget)) {
+			m_MyPosTarget = MyPos;
 		}
-		MyMat = Util::Matrix4x4::Mtrans(MyPosTarget);
+		MyMat = Util::Matrix4x4::Mtrans(m_MyPosTarget);
 	}
 	void SetArmAnim(int Index) noexcept {
 		m_Now = Index;
@@ -334,13 +334,13 @@ public:
 	void SetEquip(int value) noexcept { m_Equip = value; }
 public:
 	void Load_Sub(void) noexcept override {
-		heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
-		runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
-		standupID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/standup.wav", true);
+		m_heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
+		m_runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
+		m_standupID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/standup.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 	}
 	void Init_Sub(void) noexcept override {
-		Speed = 0.f;
+		m_Speed = 0.f;
 
 		m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.txt");
 		m_WalkAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Walk.txt");

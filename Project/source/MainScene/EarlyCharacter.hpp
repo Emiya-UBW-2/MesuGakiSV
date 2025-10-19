@@ -249,26 +249,22 @@ namespace AIs {
 	};
 }
 class EarlyCharacter :public BaseObject {
-	Util::VECTOR3D MyTarget = Util::VECTOR3D::zero();
-
-	Util::VECTOR3D MyPosTarget = Util::VECTOR3D::zero();
-	float Xrad = 0.f;
-	float Yrad = 0.f;
-	float Zrad = 0.f;
-	float Speed = 0.f;
-	float MovePer = 0.f;
-	Util::VECTOR2D VecR = Util::VECTOR2D::zero();
-	float													m_YVec{};
-	std::array<float, static_cast<int>(EarlyCharaAnim::Max)>		m_AnimPer{};
+	Util::VECTOR3D		m_MyTarget = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_MyPosTarget = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_Rad = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_Vector = Util::VECTOR3D::zero();
+	Util::VECTOR2D		m_VecR = Util::VECTOR2D::zero();
+	float				m_Speed = 0.f;
+	float				m_MovePer = 0.f;
 	float				m_YradDif{};
-	uint8_t				m_MoveKey{};
-	char		padding[3]{};
-	Sound::SoundUniqueID runfootID{ InvalidID };
+	float				m_PathUpdateTimer{ 0.f };
+	std::array<float, static_cast<int>(EarlyCharaAnim::Max)>		m_AnimPer{};
+	Sound::SoundUniqueID	m_runfootID{ InvalidID };
 	int					m_FootSoundID{};
-	int										TargetPathPlanningIndex{ 0 };		// 次の中間地点となる経路上のポリゴンの経路探索情報が格納されているメモリアドレスを格納する変数
-	AIs::PathChecker								m_PathChecker;
-	float									m_PathUpdateTimer{ 0.f };
-	char		padding2[4]{};
+	int					m_TargetPathPlanningIndex{ 0 };		// 次の中間地点となる経路上のポリゴンの経路探索情報が格納されているメモリアドレスを格納する変数
+	AIs::PathChecker	m_PathChecker;
+	uint8_t				m_MoveKey{};
+	char		padding[7]{};
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -281,27 +277,27 @@ private:
 	const char*		GetFrameStr(int id) noexcept override { return EarlyCharaFrameName[id]; }
 public:
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
-	float GetSpeed(void) const noexcept { return Speed; }
+	float GetSpeed(void) const noexcept { return m_Speed; }
 	float GetSpeedMax(void) const noexcept {
-		return 2.f * Scale3DRate / 60.f;
+		return 2.f * Scale3DRate * DeltaTime;
 	}
 	void SetPos(Util::VECTOR3D MyPos) noexcept {
-		MyPosTarget = MyPos - Util::VECTOR3D::up() * Scale3DRate;
-		if (!BackGround::Instance()->CheckLine(MyPos + Util::VECTOR3D::up() * Scale3DRate, &MyPosTarget)) {
-			MyPosTarget = MyPos;
+		m_MyPosTarget = MyPos - Util::VECTOR3D::up() * Scale3DRate;
+		if (!BackGround::Instance()->CheckLine(MyPos + Util::VECTOR3D::up() * Scale3DRate, &m_MyPosTarget)) {
+			m_MyPosTarget = MyPos;
 		}
-		MyMat = Util::Matrix4x4::Mtrans(MyPosTarget);
+		MyMat = Util::Matrix4x4::Mtrans(m_MyPosTarget);
 	}
 
 	void		ChangePoint() noexcept {
 		auto* BackGroundParts = BackGround::Instance();
-		Util::VECTOR3D MyPos = MyPosTarget;
+		Util::VECTOR3D MyPos = m_MyPosTarget;
 
-		this->TargetPathPlanningIndex = -1;
+		this->m_TargetPathPlanningIndex = -1;
 		for (int i = 0; i < 10; i++) {
 			this->m_PathChecker.Dispose();
-			if (m_PathChecker.Init(MyPos, MyTarget)) {	// 指定の２点の経路情報を探索する
-				this->TargetPathPlanningIndex = m_PathChecker.GetStartUnit()->GetPolyIndex();	// 移動開始時点の移動中間地点の経路探索情報もスタート地点にあるポリゴンの情報
+			if (m_PathChecker.Init(MyPos, m_MyTarget)) {	// 指定の２点の経路情報を探索する
+				this->m_TargetPathPlanningIndex = m_PathChecker.GetStartUnit()->GetPolyIndex();	// 移動開始時点の移動中間地点の経路探索情報もスタート地点にあるポリゴンの情報
 				break;
 			}
 			else {
@@ -311,15 +307,15 @@ public:
 	}
 
 	void		SetTarget(const Util::VECTOR3D& pos) noexcept {
-		MyTarget = pos;
+		m_MyTarget = pos;
 	}
 public:
 	void Load_Sub(void) noexcept override {
-		runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
+		m_runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 	}
 	void Init_Sub(void) noexcept override {
-		Speed = 0.f;
+		m_Speed = 0.f;
 		this->m_PathUpdateTimer = 1.f;
 	}
 	void Update_Sub(void) noexcept override;
@@ -332,9 +328,9 @@ public:
 		ModelID.DrawModel();
 
 		return;
-		auto Pos = (MyPosTarget + Util::VECTOR3D::up() * (1.f * Scale3DRate));
+		auto Pos = (m_MyPosTarget + Util::VECTOR3D::up() * (1.f * Scale3DRate));
 
-		int X = this->TargetPathPlanningIndex;
+		int X = this->m_TargetPathPlanningIndex;
 		Util::VECTOR3D Vec3D = m_PathChecker.GetNextPoint(Pos, &X);
 
 		DxLib::DrawLine3D(Vec3D.get(), Pos.get(), DxLib::GetColor(255, 0, 0));

@@ -735,6 +735,33 @@ namespace Util {
 			Lerp(A.yvec(), B.yvec(), Per).normalized(),
 			Lerp(A.zvec(), B.zvec(), Per).normalized());
 	}
+
+	template <class T>
+	inline void Easing(T* A, const T& B, float Per) noexcept {
+		*A = Util::Lerp(*A, B, 1.f - Per);
+	}
+
+	inline float GetPer01(float Min, float Max, float Per) noexcept {
+		return std::clamp((Per - Min) / (Max - Min), 0.f, 1.f);
+	}
+	
+	// 0~2Piに収める
+	inline float AngleRange360(float value) noexcept {
+		if (value > 0.f) {
+			while (true) {
+				if (value < DX_PI_F * 2.f) { break; }
+				value -= DX_PI_F * 2.f;
+			}
+		}
+		if (value < 0.f) {
+			while (true) {
+				if (value > -DX_PI_F * 2.f) { break; }
+				value += DX_PI_F * 2.f;
+			}
+		}
+		return value;
+	}
+
 	// --------------------------------------------------------------------------------------------------
 	// 角度変換
 	// --------------------------------------------------------------------------------------------------

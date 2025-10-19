@@ -77,12 +77,12 @@ namespace Draw {
 	class GraphHandle : public Util::DXHandle {
 	public:
 		GraphHandle(void) noexcept {}
-		GraphHandle(const GraphHandle& o) = delete;
+		GraphHandle(const GraphHandle&) = delete;
 		GraphHandle(GraphHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
 			o.SetHandleDirect(InvalidID);
 		}
-		GraphHandle& operator=(const GraphHandle& o) = delete;
+		GraphHandle& operator=(const GraphHandle&) = delete;
 		GraphHandle& operator=(GraphHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
 			o.SetHandleDirect(InvalidID);
@@ -192,12 +192,12 @@ namespace Draw {
 	class ScreenHandle :public GraphHandle {
 	public:
 		ScreenHandle(void) noexcept {}
-		ScreenHandle(const ScreenHandle& o) = delete;
+		ScreenHandle(const ScreenHandle&) = delete;
 		ScreenHandle(ScreenHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
 			o.SetHandleDirect(InvalidID);
 		}
-		ScreenHandle& operator=(const ScreenHandle& o) = delete;
+		ScreenHandle& operator=(const ScreenHandle&) = delete;
 		ScreenHandle& operator=(ScreenHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
 			o.SetHandleDirect(InvalidID);
@@ -240,12 +240,12 @@ namespace Draw {
 	class SoftImageHandle : public Util::DXHandle {
 	public:
 		SoftImageHandle(void) noexcept {}
-		SoftImageHandle(const SoftImageHandle& o) = delete;
+		SoftImageHandle(const SoftImageHandle&) = delete;
 		SoftImageHandle(SoftImageHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
 			o.SetHandleDirect(InvalidID);
 		}
-		SoftImageHandle& operator=(const SoftImageHandle& o) = delete;
+		SoftImageHandle& operator=(const SoftImageHandle&) = delete;
 		SoftImageHandle& operator=(SoftImageHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
 			o.SetHandleDirect(InvalidID);

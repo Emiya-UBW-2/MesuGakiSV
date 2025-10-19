@@ -61,8 +61,8 @@ namespace Util {
 	// --------------------------------------------------------------------------------------------------
 	// RGBA
 	// --------------------------------------------------------------------------------------------------
-	struct ColorRGBA {
-		uint32_t				color{};
+	class ColorRGBA {
+		uint32_t		color{};
 		char		padding[4]{};
 	public:
 		ColorRGBA(int R, int G, int B, int A) noexcept {
@@ -75,6 +75,7 @@ namespace Util {
 		}
 		ColorRGBA(ColorRGBA&& o) noexcept {
 			this->color = o.color;
+			o.color = 0;
 		}
 		ColorRGBA& operator=(const ColorRGBA& o) noexcept {
 			this->color = o.color;
@@ -82,6 +83,7 @@ namespace Util {
 		}
 		ColorRGBA& operator=(ColorRGBA&& o) noexcept {
 			this->color = o.color;
+			o.color = 0;
 			return *this;
 		}
 		virtual ~ColorRGBA(void) noexcept {}
@@ -201,7 +203,10 @@ namespace Util {
 	public:
 		constexpr DXHandle(void) noexcept : m_handle(InvalidID) {}
 		DXHandle(const DXHandle&) = delete;
-		DXHandle(DXHandle&& o) noexcept : m_handle(o.get()) { o.SetHandleDirect(InvalidID); }
+		DXHandle(DXHandle&& o) noexcept {
+			SetHandleDirect(o.get());
+			o.SetHandleDirect(InvalidID);
+		}
 		DXHandle& operator=(const DXHandle&) = delete;
 		DXHandle& operator=(DXHandle&& o) noexcept {
 			SetHandleDirect(o.get());

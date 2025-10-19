@@ -28,12 +28,12 @@ namespace Sound {
 	class SoundHandle : public Util::DXHandle {
 	public:
 		SoundHandle(void) noexcept {}
-		SoundHandle(const SoundHandle& o) = delete;
+		SoundHandle(const SoundHandle&) = delete;
 		SoundHandle(SoundHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
 			o.SetHandleDirect(InvalidID);
 		}
-		SoundHandle& operator=(const SoundHandle& o) = delete;
+		SoundHandle& operator=(const SoundHandle&) = delete;
 		SoundHandle& operator=(SoundHandle&& o) noexcept {
 			Util::DXHandle::SetHandleDirect(o.get());
 			o.SetHandleDirect(InvalidID);
