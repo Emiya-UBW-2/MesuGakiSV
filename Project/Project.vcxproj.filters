@@ -111,7 +111,7 @@
       <Filter>ソース ファイル\MainScene</Filter>
     </ClCompile>
     <ClCompile Include="source\MainScene\EarlyCharacter.cpp">
-      <Filter>ソース ファイル\Util</Filter>
+      <Filter>ソース ファイル\MainScene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -206,7 +206,7 @@
       <Filter>ソース ファイル\MainScene</Filter>
     </ClInclude>
     <ClInclude Include="source\MainScene\EarlyCharacter.hpp">
-      <Filter>ソース ファイル\Util</Filter>
+      <Filter>ソース ファイル\MainScene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

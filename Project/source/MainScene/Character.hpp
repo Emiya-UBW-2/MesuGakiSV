@@ -22,6 +22,7 @@ enum class CharaStyle {
 	Stand,//立ち
 	Run,//走り
 	Squat,//しゃがみ
+	Prone,//伏せ
 	Max,
 };
 enum class CharaAnim {
@@ -41,8 +42,16 @@ enum class CharaAnim {
 	LeftHand_4,//左薬指
 	LeftHand_5,//左子指
 
-	Flip,//左に向く
+	FlipLeft,//左に向く
 	Stay,//待機
+
+	Prone,//伏せ
+	ProneWalk,//伏せ移動
+
+	FlipRight,//右に向く
+
+	ProneAim,//伏せエイム
+
 	Max,
 };
 
@@ -235,7 +244,7 @@ class Character :public BaseObject {
 	int					m_Now{};
 	int					m_Equip{ InvalidID };
 	int					m_PrevEquip{ InvalidID };
-	char		padding2[4]{};
+	//char		padding2[4]{};
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
 public:
@@ -296,6 +305,9 @@ public:
 			break;
 		case CharaStyle::Squat:
 			return 1.0f * Scale3DRate * DeltaTime;
+			break;
+		case CharaStyle::Prone:
+			return 0.5f * Scale3DRate * DeltaTime;
 			break;
 		case CharaStyle::Stand:
 		case CharaStyle::Max:

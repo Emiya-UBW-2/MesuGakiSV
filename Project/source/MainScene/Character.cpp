@@ -137,7 +137,18 @@ void Character::Update_Sub(void) noexcept {
 	}
 	//
 	if (m_IsActive) {
-		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
+		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Prone)) {
+			if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Prone) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+			}
+			if (m_CharaStyle != CharaStyle::Prone) {
+				m_CharaStyle = CharaStyle::Prone;
+			}
+			else {
+				m_CharaStyle = CharaStyle::Stand;
+			}
+		}
+		else if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
 			if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Squat) {
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 			}
@@ -150,6 +161,9 @@ void Character::Update_Sub(void) noexcept {
 		}
 		else {
 			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Run)) {
+				if (m_CharaStyle == CharaStyle::Prone) {
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				}
 				if (m_CharaStyle == CharaStyle::Squat) {
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
 				}
@@ -259,6 +273,8 @@ void Character::Update_Sub(void) noexcept {
 				}
 			}
 			break;
+		case CharaStyle::Prone:
+			break;
 		case CharaStyle::Max:
 		default:
 			break;
@@ -354,6 +370,9 @@ void Character::Update_Sub(void) noexcept {
 				case CharaStyle::Stand:
 					Power = 1.f;
 					break;
+				case CharaStyle::Prone:
+					Power = 0.1f;
+					break;
 				case CharaStyle::Max:
 				default:
 					break;
@@ -376,6 +395,9 @@ void Character::Update_Sub(void) noexcept {
 					break;
 				case CharaStyle::Stand:
 					Power = 0.25f;
+					break;
+				case CharaStyle::Prone:
+					Power = 0.1f;
 					break;
 				case CharaStyle::Max:
 				default:
@@ -510,6 +532,20 @@ void Character::Update_Sub(void) noexcept {
 	m_Handgun.Update();
 	m_Maingun.Update();
 
+	bool NeedAim = false;
+	{
+		{
+			NeedAim |= m_Handgun.GetReadyPer() > 0.5f;
+			NeedAim |= m_Handgun.GetLoadHandPer() > 0.5f;
+			NeedAim |= m_Handgun.GetGunPullPer() > 0.5f;
+		}
+		{
+			NeedAim |= m_Maingun.GetReadyPer() > 0.5f;
+			NeedAim |= m_Maingun.GetLoadHandPer() > 0.5f;
+			NeedAim |= m_Maingun.GetGunPullPer() > 0.5f;
+		}
+	}
+
 	// 進行方向に前進
 	Util::Easing(&m_Speed, ((MoveKey != 0) || !m_IsActive) ? GetSpeedMax() : 0.f, 0.9f);
 
@@ -577,10 +613,21 @@ void Character::Update_Sub(void) noexcept {
 	}
 
 	//停止
+	if (NeedAim) {
+		m_AnimPer[static_cast<size_t>(CharaAnim::ProneAim)] = (1.f - m_MovePer) * m_StylePer.at(static_cast<size_t>(CharaStyle::Prone));
+		m_AnimPer[static_cast<size_t>(CharaAnim::Prone)] = 0.f;
+	}
+	else {
+		m_AnimPer[static_cast<size_t>(CharaAnim::ProneAim)] = 0.f;
+		m_AnimPer[static_cast<size_t>(CharaAnim::Prone)] = (1.f - m_MovePer) * m_StylePer.at(static_cast<size_t>(CharaStyle::Prone));
+	}
+
+
 	m_AnimPer[static_cast<size_t>(CharaAnim::Squat)] = (1.f - m_MovePer) * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
 	m_AnimPer[static_cast<size_t>(CharaAnim::Stand)] = (1.f - m_MovePer) * std::max(m_StylePer.at(static_cast<size_t>(CharaStyle::Stand)), m_StylePer.at(static_cast<size_t>(CharaStyle::Run)));
 	m_AnimPer[static_cast<size_t>(CharaAnim::Stay)] = (1.f - std::max(m_Handgun.GetReadyPer(), m_Maingun.GetReadyPer()));
 	//移動
+	m_AnimPer[static_cast<size_t>(CharaAnim::ProneWalk)] = m_MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Prone));
 	m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = m_MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
 	m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = m_MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Stand));
 	m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = m_MovePer * m_StylePer.at(static_cast<size_t>(CharaStyle::Run));
@@ -595,8 +642,11 @@ void Character::Update_Sub(void) noexcept {
 				Per = m_YradDif / Util::deg2rad(90);
 			}
 		}
+		Per *= (1.f - m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)));
+
 		Util::Easing(&m_SwitchPer, (Per >= -0.5f) ? 1.f : 0.f, 0.9f);
-		Util::Easing(&m_AnimPer[static_cast<size_t>(CharaAnim::Flip)], std::clamp(Per, -1.f, 1.f), 0.9f);
+		Util::Easing(&m_AnimPer[static_cast<size_t>(CharaAnim::FlipLeft)], std::clamp(Per, 0.f, 1.f), 0.9f);
+		Util::Easing(&m_AnimPer[static_cast<size_t>(CharaAnim::FlipRight)], std::clamp(Per, -1.f, 0.f) * -1.f, 0.9f);
 	}
 	//
 	m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_1)] = 1.f;
@@ -629,6 +679,7 @@ void Character::Update_Sub(void) noexcept {
 	SetAnim(static_cast<int>(CharaAnim::Run)).Update(true, GetSpeed() * 0.75f);
 	SetAnim(static_cast<int>(CharaAnim::Squat)).Update(true, GetSpeed() * 2.75f);
 	SetAnim(static_cast<int>(CharaAnim::SquatWalk)).Update(true, GetSpeed() * 2.75f);
+	SetAnim(static_cast<int>(CharaAnim::ProneWalk)).Update(true, GetSpeed() * 8.f);
 	ModelID.FlipAnimAll();
 
 	Util::Matrix4x4 HandBaseMat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
@@ -695,21 +746,29 @@ void Character::Update_Sub(void) noexcept {
 			Answer = Util::VRAnim::LerpAnim(Answer, AimAnim, m_Maingun.GetReadyPer());
 		}
 		{
-			Util::Matrix4x4 Mat = Answer.m_RightRot.Get44DX() * HandBaseMat.rotation() *
+			Util::Matrix4x4 RightHandMat = Answer.m_RightRot.Get44DX() * HandBaseMat.rotation() *
 				Util::Matrix4x4::Mtrans(Util::Matrix4x4::Vtrans(Answer.m_RightHandPos, HandBaseMat.rotation()) + HandBaseMat.pos());
-			Mat = Util::Lerp(Util::Lerp(Mat, GetHolsterMat(), m_Handgun.GetPer()), GetHolsterPullMat(), m_Handgun.GetPullPer());
-			Mat = Util::Lerp(Util::Lerp(Mat, GetSlingMat(), m_Maingun.GetPer()), GetSlingPullMat(), m_Maingun.GetPullPer());
 
-			Draw::IK_RightArm(
-				&ModelID,
-				GetFrame(static_cast<int>(CharaFrame::RightArm)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm)),
-				GetFrame(static_cast<int>(CharaFrame::RightArm2)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm2)),
-				GetFrame(static_cast<int>(CharaFrame::RightWrist)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightWrist)),
-				Mat
-			);
+			RightHandMat = Util::Lerp(Util::Lerp(RightHandMat, GetHolsterMat(), m_Handgun.GetPer()), GetHolsterPullMat(), m_Handgun.GetPullPer());
+			RightHandMat = Util::Lerp(Util::Lerp(RightHandMat, GetSlingMat(), m_Maingun.GetPer()), GetSlingPullMat(), m_Maingun.GetPullPer());
+
+			if (m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)) > 0.5f && !NeedAim) {
+				ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::RightArm)));
+				ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::RightArm2)));
+				ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::RightWrist)));
+			}
+			else {
+				Draw::IK_RightArm(
+					&ModelID,
+					GetFrame(static_cast<int>(CharaFrame::RightArm)),
+					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm)),
+					GetFrame(static_cast<int>(CharaFrame::RightArm2)),
+					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightArm2)),
+					GetFrame(static_cast<int>(CharaFrame::RightWrist)),
+					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::RightWrist)),
+					RightHandMat
+				);
+			}
 		}
 
 		{
@@ -752,16 +811,23 @@ void Character::Update_Sub(void) noexcept {
 				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetPullLeftHandMat(), m_Maingun.GetGunPullPer());
 			}
 
-			Draw::IK_LeftArm(
-				&ModelID,
-				GetFrame(static_cast<int>(CharaFrame::LeftArm)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm)),
-				GetFrame(static_cast<int>(CharaFrame::LeftArm2)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm2)),
-				GetFrame(static_cast<int>(CharaFrame::LeftWrist)),
-				GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftWrist)),
-				LeftHandMat
-			);
+			if (m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)) > 0.5f && !NeedAim) {
+				ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::LeftArm)));
+				ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::LeftArm2)));
+				ModelID.ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::LeftWrist)));
+			}
+			else {
+				Draw::IK_LeftArm(
+					&ModelID,
+					GetFrame(static_cast<int>(CharaFrame::LeftArm)),
+					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm)),
+					GetFrame(static_cast<int>(CharaFrame::LeftArm2)),
+					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftArm2)),
+					GetFrame(static_cast<int>(CharaFrame::LeftWrist)),
+					GetFrameBaseLocalMat(static_cast<int>(CharaFrame::LeftWrist)),
+					LeftHandMat
+				);
+			}
 		}
 	}
 }
