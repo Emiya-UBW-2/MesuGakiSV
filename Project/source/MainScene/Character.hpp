@@ -217,10 +217,13 @@ class Character :public BaseObject {
 	Util::VECTOR3D											m_AimPoint;
 	float				m_Speed = 0.f;
 	float				m_MovePer = 0.f;
+	float				m_YradR{};
 	float				m_YradDif{};
 	float				m_AnimChangePer{};
 	float				m_SwitchPer{};
 	float				m_WalkRad{};
+	float				m_YradProne{};
+	float				m_RadLimit{};
 	uint8_t				m_MoveKey{};
 	bool				m_PrevIsFPSView{};
 	bool				m_IsFPS{};

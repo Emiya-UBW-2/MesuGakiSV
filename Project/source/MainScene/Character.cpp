@@ -138,14 +138,17 @@ void Character::Update_Sub(void) noexcept {
 	//
 	if (m_IsActive) {
 		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Prone)) {
-			if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Prone) {
+			if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Squat || m_CharaStyle == CharaStyle::Prone) {
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
-			}
-			if (m_CharaStyle != CharaStyle::Prone) {
-				m_CharaStyle = CharaStyle::Prone;
-			}
-			else {
-				m_CharaStyle = CharaStyle::Stand;
+				if (m_CharaStyle == CharaStyle::Stand) {
+					m_CharaStyle = CharaStyle::Squat;
+				}
+				else if (m_CharaStyle == CharaStyle::Squat) {
+					m_CharaStyle = CharaStyle::Prone;
+				}
+				else {
+					m_CharaStyle = CharaStyle::Squat;
+				}
 			}
 		}
 		else if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
@@ -160,17 +163,22 @@ void Character::Update_Sub(void) noexcept {
 			}
 		}
 		else {
-			if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Run)) {
+			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Run)) {
 				if (m_CharaStyle == CharaStyle::Prone) {
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+					m_CharaStyle = CharaStyle::Squat;
 				}
-				if (m_CharaStyle == CharaStyle::Squat) {
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				else {
+					if (m_CharaStyle == CharaStyle::Squat) {
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+					}
+					m_CharaStyle = CharaStyle::Run;
 				}
-				m_CharaStyle = CharaStyle::Run;
 			}
 			if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::Run)) {
-				m_CharaStyle = CharaStyle::Stand;
+				if (m_CharaStyle != CharaStyle::Squat) {
+					m_CharaStyle = CharaStyle::Stand;
+				}
 			}
 		}
 
@@ -304,14 +312,49 @@ void Character::Update_Sub(void) noexcept {
 
 	float				PrevYradAdd = m_RadAdd.y;
 	float				PrevXradAdd = m_RadAdd.x;
+
+	float RadLimit = Util::deg2rad(80);
+	if (m_CharaStyle == CharaStyle::Prone) {
+		RadLimit = Util::deg2rad(10);
+	}
+	Util::Easing(&m_RadLimit, RadLimit, 0.9f);
+
 	if (IsFPSView()) {
 		m_RadAdd.y = Util::deg2rad(static_cast<float>(LookX) / 30.f);
 		m_RadAdd.x = Util::deg2rad(static_cast<float>(LookY) / 30.f);
 
-		m_Rad.y += m_RadAdd.y;
-		m_Rad.y = Util::AngleRange360(m_Rad.y);
+		m_YradR += m_RadAdd.y;
+		m_YradR = Util::AngleRange360(m_YradR);
 
-		m_Rad.x = std::clamp(m_Rad.x + m_RadAdd.x, Util::deg2rad(-80), Util::deg2rad(80));
+		if (m_CharaStyle == CharaStyle::Prone) {
+			float YradDif = m_YradR - m_Rad.y;
+			if (YradDif > 0.f) {
+				while (true) {
+					if (YradDif < DX_PI_F) { break; }
+					YradDif -= DX_PI_F * 2.f;
+				}
+			}
+			if (YradDif < 0.f) {
+				while (true) {
+					if (YradDif > -DX_PI_F) { break; }
+					YradDif += DX_PI_F * 2.f;
+				}
+			}
+			float Per = std::clamp(YradDif / Util::deg2rad(15.f), -1.f, 1.f);
+
+			if (std::fabsf(Per) > 0.01f) {
+				float Power = 0.3f;
+				m_Rad.y += Per * Power * Util::deg2rad(720.f) * DeltaTime;
+			}
+			else {
+				m_Rad.y = m_YradR;
+			}
+		}
+		else {
+			m_Rad.y = m_YradR;
+		}
+
+		m_Rad.x = std::clamp(m_Rad.x + m_RadAdd.x, -m_RadLimit, m_RadLimit);
 		m_VecR = Util::VECTOR2D::zero();
 	}
 	else {
@@ -420,6 +463,9 @@ void Character::Update_Sub(void) noexcept {
 	Util::Easing(&m_RadAddR2.x, m_RadAddR.x, 0.95f);
 
 	bool IsAim = KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim);
+	if (m_AnimPer[static_cast<size_t>(CharaAnim::ProneWalk)] > 0.05f) {
+		IsAim = false;
+	}
 
 	if (IsFPSView()) {
 		Util::Easing(&m_Handgun.m_GunReadyPer,
@@ -544,6 +590,9 @@ void Character::Update_Sub(void) noexcept {
 			NeedAim |= m_Maingun.GetLoadHandPer() > 0.5f;
 			NeedAim |= m_Maingun.GetGunPullPer() > 0.5f;
 		}
+		if (m_AnimPer[static_cast<size_t>(CharaAnim::ProneWalk)] > 0.5f) {
+			NeedAim = false;
+		}
 	}
 
 	// 進行方向に前進
@@ -578,6 +627,14 @@ void Character::Update_Sub(void) noexcept {
 	// 壁判定
 	std::vector<const Draw::MV1*> addonColObj;
 	BackGround::Instance()->CheckWall(m_MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
+	if (m_CharaStyle == CharaStyle::Prone) {
+		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos();
+
+		Util::VECTOR3D StartPos = m_MyPosTarget + PosAdd;
+		Util::VECTOR3D EndPos = PosBuffer + PosAdd;
+		BackGround::Instance()->CheckWall(StartPos, &EndPos, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
+		PosBuffer = EndPos - PosAdd;
+	}
 	// 地面判定
 	PosBuffer.y = PosBuffer.y - 0.1f * Scale3DRate;
 	if (!BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &PosBuffer)) {
@@ -693,12 +750,31 @@ void Character::Update_Sub(void) noexcept {
 	{
 		ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper));
 		ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper2));
+
+		float Per = 0.f;
+		if (!IsFPSView()) {
+			if (IsFreeView() && (m_CharaStyle != CharaStyle::Run) && !GetIsReloading()) {
+				Per = Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
+			}
+			else {
+				Per = m_YradDif / Util::deg2rad(90);
+			}
+		}
+		if (NeedAim) {
+			Per = 0.f;
+		}
+		Per *= m_StylePer.at(static_cast<size_t>(CharaStyle::Prone));
+		float Rad = Util::deg2rad(90) * std::clamp(Per, -0.3f, 0.3f);
+		Util::Easing(&m_YradProne, Rad, 0.9f);
+
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper),
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_Rad.x * 0.6f) *
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), m_YradProne * 0.6f) *
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper))
 		);
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2),
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_Rad.x * 0.4f) *
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), m_YradProne * 0.4f) *
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2))
 		);
 	}
