@@ -210,6 +210,8 @@ class Character :public BaseObject {
 	Util::VECTOR3D		m_RadAddR = Util::VECTOR3D::zero();
 	Util::VECTOR3D		m_RadAddR2 = Util::VECTOR3D::zero();
 	Util::VECTOR3D		m_Vector = Util::VECTOR3D::zero();
+	Util::VECTOR3D		m_Normal = Util::VECTOR3D::up();
+	Util::VECTOR3D		m_NormalR = Util::VECTOR3D::up();
 	Util::VECTOR2D		m_VecR = Util::VECTOR2D::zero();
 	std::array<float, static_cast<int>(CharaAnim::Max)>		m_AnimPer{};
 	std::array<float, static_cast<int>(CharaStyle::Max)>	m_StylePer{};
@@ -250,6 +252,8 @@ class Character :public BaseObject {
 	//char		padding2[4]{};
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
+
+	Util::Matrix4x4		MyMat2;
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -325,6 +329,7 @@ public:
 			m_MyPosTarget = MyPos;
 		}
 		MyMat = Util::Matrix4x4::Mtrans(m_MyPosTarget);
+		MyMat2 = MyMat;
 	}
 	void SetArmAnim(int Index) noexcept {
 		m_Now = Index;
@@ -352,7 +357,7 @@ public:
 		m_heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
 		m_runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
 		m_standupID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/standup.wav", true);
-		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 	}
 	void Init_Sub(void) noexcept override {
 		m_Speed = 0.f;
@@ -384,7 +389,7 @@ public:
 				auto* DrawerMngr = Draw::MainDraw::Instance();
 				Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
 				Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
-				Util::VECTOR3D Now = MyMat.pos();
+				Util::VECTOR3D Now = GetMat().pos();
 				m_AimPoint = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
 			}
 		}

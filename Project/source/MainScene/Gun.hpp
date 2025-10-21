@@ -397,7 +397,7 @@ public:
 		if (ReloadPer >= 0.1f) {
 			if (!m_IsMagUnloadSound) {
 				m_IsMagUnloadSound = true;
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, UnLoadMagID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, UnLoadMagID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
 				m_AmmoNum = 0;
 			}
@@ -405,7 +405,7 @@ public:
 		if (ReloadPer >= 0.8f) {
 			if (!m_IsMagLoadSound) {
 				m_IsMagLoadSound = true;
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, LoadMagID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, LoadMagID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
 				m_AmmoNum = m_AmmoTotal;
 			}
@@ -566,7 +566,7 @@ public:
 			m_AnimPer[static_cast<int>(GunAnim::Shot)] = 1.f;
 			SetAnim(static_cast<int>(GunAnim::Shot)).SetTime(0.f);
 
-			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, ShotID)->Play3D(MyMat.pos(), 50.f * Scale3DRate);
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, ShotID)->Play3D(GetMat().pos(), 50.f * Scale3DRate);
 
 			m_ShotEffect.at(static_cast<size_t>(m_ShotEffectID))->Set(GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle)));
 			++m_ShotEffectID %= static_cast<int>(m_ShotEffect.size());
@@ -589,7 +589,7 @@ public:
 		if (value >= 0.5f) {
 			if (!m_IsSlideCloseSound) {
 				m_IsSlideCloseSound = true;
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, SlideCloseID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, SlideCloseID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
 				if (m_Magazine->SubAmmo()) {
 					m_ChamberIn = true;
@@ -603,7 +603,7 @@ public:
 		SlideCloseID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/1.wav", true);
 		ShotID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/2.wav", true);
 		ShotSPID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/5.wav", true);
-		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 
 		m_Pic = Draw::GraphPool::Instance()->Get(this->GetFilePath() + "pic.png")->Get();
 

@@ -139,7 +139,7 @@ void Character::Update_Sub(void) noexcept {
 	if (m_IsActive) {
 		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Prone)) {
 			if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Squat || m_CharaStyle == CharaStyle::Prone) {
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				if (m_CharaStyle == CharaStyle::Stand) {
 					m_CharaStyle = CharaStyle::Squat;
 				}
@@ -153,7 +153,7 @@ void Character::Update_Sub(void) noexcept {
 		}
 		else if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
 			if (m_CharaStyle == CharaStyle::Stand || m_CharaStyle == CharaStyle::Squat) {
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 			}
 			if (m_CharaStyle != CharaStyle::Squat) {
 				m_CharaStyle = CharaStyle::Squat;
@@ -165,12 +165,12 @@ void Character::Update_Sub(void) noexcept {
 		else {
 			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Run)) {
 				if (m_CharaStyle == CharaStyle::Prone) {
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					m_CharaStyle = CharaStyle::Squat;
 				}
 				else {
 					if (m_CharaStyle == CharaStyle::Squat) {
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					}
 					m_CharaStyle = CharaStyle::Run;
 				}
@@ -222,7 +222,7 @@ void Character::Update_Sub(void) noexcept {
 					if (this->m_FootSoundID != 0) {
 						this->m_FootSoundID = 0;
 						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(255);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					}
 				}
 				//R
@@ -230,7 +230,7 @@ void Character::Update_Sub(void) noexcept {
 					if (this->m_FootSoundID != 1) {
 						this->m_FootSoundID = 1;
 						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(255);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					}
 				}
 			}
@@ -245,7 +245,7 @@ void Character::Update_Sub(void) noexcept {
 					if (this->m_FootSoundID != 2) {
 						this->m_FootSoundID = 2;
 						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(92);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					}
 				}
 				//R
@@ -253,7 +253,7 @@ void Character::Update_Sub(void) noexcept {
 					if (this->m_FootSoundID != 3) {
 						this->m_FootSoundID = 3;
 						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(92);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					}
 				}
 			}
@@ -268,7 +268,7 @@ void Character::Update_Sub(void) noexcept {
 					if (this->m_FootSoundID != 4) {
 						this->m_FootSoundID = 4;
 						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(192);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					}
 				}
 				//R
@@ -276,7 +276,7 @@ void Character::Update_Sub(void) noexcept {
 					if (this->m_FootSoundID != 5) {
 						this->m_FootSoundID = 5;
 						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(192);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					}
 				}
 			}
@@ -541,7 +541,7 @@ void Character::Update_Sub(void) noexcept {
 	}
 
 	if (m_PrevEquip != m_Equip) {
-		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+		Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_standupID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 		switch (m_Equip) {
 		case InvalidID:
 			m_Handgun.SetIsEquip(false);
@@ -619,16 +619,17 @@ void Character::Update_Sub(void) noexcept {
 		if (Vec.sqrMagnitude() > 0.f) {
 			Vec = Vec.normalized();
 		}
-		PosBuffer = m_MyPosTarget + Util::Matrix4x4::Vtrans(Vec * -m_Speed, MyMat.rotation());
+		PosBuffer = m_MyPosTarget + Util::Matrix4x4::Vtrans(Vec * -m_Speed, MyMat2.rotation());
 	}
 	else {
-		PosBuffer = m_MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -m_Speed, MyMat.rotation());
+		PosBuffer = m_MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -m_Speed, MyMat2.rotation());
 	}
 	// 壁判定
 	std::vector<const Draw::MV1*> addonColObj;
 	BackGround::Instance()->CheckWall(m_MyPosTarget, &PosBuffer, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate, addonColObj);// 現在地から仮座標に進んだ場合
 	if (m_CharaStyle == CharaStyle::Prone) {
-		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos();
+		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos(); PosAdd.y = 0.f;
+		PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
 
 		Util::VECTOR3D StartPos = m_MyPosTarget + PosAdd;
 		Util::VECTOR3D EndPos = PosBuffer + PosAdd;
@@ -636,33 +637,61 @@ void Character::Update_Sub(void) noexcept {
 		PosBuffer = EndPos - PosAdd;
 	}
 	// 地面判定
-	bool IsFall = false;
-	{
-		Util::VECTOR3D EndPos = PosBuffer;
-		EndPos.y = EndPos.y - 0.1f * Scale3DRate;
-		if (BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &PosBuffer)) {
-			EndPos.y = EndPos.y + 0.1f * Scale3DRate;
-			PosBuffer = EndPos;
-		}
-		else {
-			IsFall = true;
-		}
-	}
+	bool IsFall = true;
 	if (m_CharaStyle == CharaStyle::Prone) {
 		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos(); PosAdd.y = 0.f;
-		Util::VECTOR3D EndPos = PosBuffer + PosAdd;
-		EndPos.y = EndPos.y - 0.1f * Scale3DRate;
-		if (BackGround::Instance()->CheckLine(EndPos + Util::VECTOR3D::up() * Scale3DRate, &EndPos)) {
-			EndPos.y = EndPos.y + 0.1f * Scale3DRate;
-			PosBuffer = EndPos - PosAdd;
+		PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
+		{
+			Util::VECTOR3D EndPos = PosBuffer + PosAdd - Util::VECTOR3D::up() * Scale3DRate;
+			if (BackGround::Instance()->CheckLine(PosBuffer + PosAdd + Util::VECTOR3D::up() * Scale3DRate, &EndPos)) {
+				PosBuffer = EndPos - PosAdd;
+
+				Util::VECTOR3D Pos2 = PosBuffer - Util::VECTOR3D::up() * Scale3DRate;
+				if (BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &Pos2)) {
+					Util::VECTOR3D Vec = (EndPos - Pos2).normalized();
+					m_Normal = Util::VECTOR3D::Cross(Util::VECTOR3D::Cross(PosAdd, Vec), Vec).normalized();
+					if (m_Normal.y <= 0.f) {
+						m_Normal = Util::VECTOR3D::up();
+					}
+				}
+				IsFall = false;
+			}
 		}
-		else {
-			IsFall = true;
+		{
+			Util::VECTOR3D EndPos = PosBuffer - Util::VECTOR3D::up() * 0.1f * Scale3DRate;
+			if (BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &EndPos)) {
+				EndPos += Util::VECTOR3D::up() * 0.1f * Scale3DRate;
+				PosBuffer = EndPos;
+
+				if (IsFall) {
+					Util::VECTOR3D Pos2 = PosBuffer - PosAdd - Util::VECTOR3D::up() * Scale3DRate;
+					if (BackGround::Instance()->CheckLine(PosBuffer - PosAdd + Util::VECTOR3D::up() * Scale3DRate, &Pos2)) {
+						Pos2 = Pos2 + PosAdd;
+
+						Util::VECTOR3D Vec = (EndPos - Pos2).normalized() * -1.f;
+						m_Normal = Util::VECTOR3D::Cross(Util::VECTOR3D::Cross(PosAdd, Vec), Vec).normalized();
+						if (m_Normal.y <= 0.f) {
+							m_Normal = Util::VECTOR3D::up();
+						}
+					}
+				}
+				IsFall = false;
+			}
 		}
 	}
+	else {
+		m_Normal = Util::VECTOR3D::up();
+		Util::VECTOR3D EndPos = PosBuffer - Util::VECTOR3D::up() * 0.1f * Scale3DRate;
+		if (BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &EndPos)) {
+			EndPos += Util::VECTOR3D::up() * 0.1f * Scale3DRate;
+			PosBuffer = EndPos;
+			IsFall = false;
+		}
+	}
+	Util::Easing(&m_NormalR, m_Normal, 0.9f);
 	if (IsFall) {
 		// ヒットしていない際は落下させる
-		m_Vector.y -= GravAccel;
+		m_Vector.y -= GravAccel * 4.f;
 		PosBuffer.y += m_Vector.y;
 	}
 	else {
@@ -672,11 +701,15 @@ void Character::Update_Sub(void) noexcept {
 	// 仮座標を反映
 	m_Speed = std::clamp((m_MyPosTarget - PosBuffer).magnitude(), 0.f, m_Speed);
 	m_MyPosTarget = PosBuffer;
-	Util::VECTOR3D MyPos = MyMat.pos();
+	Util::VECTOR3D MyPos = GetMat().pos();
 	Util::Easing(&MyPos, m_MyPosTarget, 0.9f);
 
+	MyMat2 = Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), m_Rad.z) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), m_Rad.y) *
+		Util::Matrix4x4::Mtrans(MyPos);
 	SetMatrix(
-		Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), m_Rad.z) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), m_Rad.y) * Util::Matrix4x4::Mtrans(MyPos)
+		Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), m_Rad.z) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), m_Rad.y) *
+		Util::Matrix4x4::RotVec2(Util::VECTOR3D::up(), m_NormalR.normalized())*
+		Util::Matrix4x4::Mtrans(MyPos)
 	);
 
 	//移動割合
@@ -717,7 +750,7 @@ void Character::Update_Sub(void) noexcept {
 		float Per = 0.f;
 		if (!IsFPSView()) {
 			if (IsFreeView() && (m_CharaStyle != CharaStyle::Run) && !GetIsReloading()) {
-				Per = -Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
+				Per = -Util::VECTOR3D::SignedAngle(GetMat().zvec() * -1.f, m_AimPoint - GetMat().pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
 			}
 			else {
 				Per = m_YradDif / Util::deg2rad(90);
@@ -778,7 +811,7 @@ void Character::Update_Sub(void) noexcept {
 		float Per = 0.f;
 		if (!IsFPSView()) {
 			if (IsFreeView() && (m_CharaStyle != CharaStyle::Run) && !GetIsReloading()) {
-				Per = Util::VECTOR3D::SignedAngle(MyMat.zvec() * -1.f, m_AimPoint - MyMat.pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
+				Per = Util::VECTOR3D::SignedAngle(GetMat().zvec() * -1.f, m_AimPoint - GetMat().pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
 			}
 			else {
 				Per = m_YradDif / Util::deg2rad(90);

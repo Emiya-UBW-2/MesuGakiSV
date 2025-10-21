@@ -312,7 +312,7 @@ public:
 public:
 	void Load_Sub(void) noexcept override {
 		m_runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
-		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 	}
 	void Init_Sub(void) noexcept override {
 		m_Speed = 0.f;

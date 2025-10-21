@@ -25,7 +25,7 @@ void EarlyCharacter::Update_Sub(void) noexcept {
 				if (this->m_FootSoundID != 4) {
 					this->m_FootSoundID = 4;
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(192);
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				}
 			}
 			//R
@@ -33,7 +33,7 @@ void EarlyCharacter::Update_Sub(void) noexcept {
 				if (this->m_FootSoundID != 5) {
 					this->m_FootSoundID = 5;
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->SetLocalVolume(192);
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(MyMat.pos(), 10.f * Scale3DRate);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_runfootID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				}
 			}
 		}
@@ -108,7 +108,7 @@ void EarlyCharacter::Update_Sub(void) noexcept {
 	// 移動ベクトルを加算した仮座標を作成
 	Util::VECTOR3D PosBuffer;
 	{
-		PosBuffer = m_MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -m_Speed, MyMat.rotation());
+		PosBuffer = m_MyPosTarget + Util::Matrix4x4::Vtrans(Util::VECTOR3D::forward() * -m_Speed, GetMat().rotation());
 	}
 	// 壁判定
 	std::vector<const Draw::MV1*> addonColObj;
@@ -126,7 +126,7 @@ void EarlyCharacter::Update_Sub(void) noexcept {
 	// 仮座標を反映
 	m_Speed = std::clamp((m_MyPosTarget - PosBuffer).magnitude(), 0.f, m_Speed);
 	m_MyPosTarget = PosBuffer;
-	Util::VECTOR3D MyPos = MyMat.pos();
+	Util::VECTOR3D MyPos = GetMat().pos();
 	Util::Easing(&MyPos, m_MyPosTarget, 0.9f);
 
 	SetMatrix(
