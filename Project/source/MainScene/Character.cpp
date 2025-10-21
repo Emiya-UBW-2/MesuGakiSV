@@ -636,8 +636,31 @@ void Character::Update_Sub(void) noexcept {
 		PosBuffer = EndPos - PosAdd;
 	}
 	// 地面判定
-	PosBuffer.y = PosBuffer.y - 0.1f * Scale3DRate;
-	if (!BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &PosBuffer)) {
+	bool IsFall = false;
+	{
+		Util::VECTOR3D EndPos = PosBuffer;
+		EndPos.y = EndPos.y - 0.1f * Scale3DRate;
+		if (BackGround::Instance()->CheckLine(PosBuffer + Util::VECTOR3D::up() * Scale3DRate, &PosBuffer)) {
+			EndPos.y = EndPos.y + 0.1f * Scale3DRate;
+			PosBuffer = EndPos;
+		}
+		else {
+			IsFall = true;
+		}
+	}
+	if (m_CharaStyle == CharaStyle::Prone) {
+		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos(); PosAdd.y = 0.f;
+		Util::VECTOR3D EndPos = PosBuffer + PosAdd;
+		EndPos.y = EndPos.y - 0.1f * Scale3DRate;
+		if (BackGround::Instance()->CheckLine(EndPos + Util::VECTOR3D::up() * Scale3DRate, &EndPos)) {
+			EndPos.y = EndPos.y + 0.1f * Scale3DRate;
+			PosBuffer = EndPos - PosAdd;
+		}
+		else {
+			IsFall = true;
+		}
+	}
+	if (IsFall) {
 		// ヒットしていない際は落下させる
 		m_Vector.y -= GravAccel;
 		PosBuffer.y += m_Vector.y;
@@ -645,6 +668,7 @@ void Character::Update_Sub(void) noexcept {
 	else {
 		m_Vector.y = 0.f;
 	}
+
 	// 仮座標を反映
 	m_Speed = std::clamp((m_MyPosTarget - PosBuffer).magnitude(), 0.f, m_Speed);
 	m_MyPosTarget = PosBuffer;
