@@ -419,6 +419,10 @@ namespace Util {
 		//*/
 	}
 
+	// 直線と点の一番近い点
+	static float GetMinLenSegmentToPoint(const Util::VECTOR3D& startpos, const Util::VECTOR3D& endpos, const Util::VECTOR3D& tgt) noexcept {
+		return Segment_Point_MinLength(startpos.get(), endpos.get(), tgt.get());
+	}
 	// 直線と直線の一番近い距離
 	static float GetMinLenSegmentToSegment(const Util::VECTOR3D& startpos, const Util::VECTOR3D& endpos, const Util::VECTOR3D& tgtstartpos, const Util::VECTOR3D& tgtendpos) noexcept {
 		return Segment_Segment_MinLength(startpos.get(), endpos.get(), tgtstartpos.get(), tgtendpos.get());

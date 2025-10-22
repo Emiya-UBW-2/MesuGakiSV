@@ -306,10 +306,8 @@ public:
 			SetAmmo(Target);
 			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitGroundID)->Play3D(Target, 10.f * Scale3DRate);
 		}
-		SEGMENT_SEGMENT_RESULT Result;
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
-			Util::GetSegmenttoSegment(c->GetMat().pos(), c->GetMat().pos()+ Util::VECTOR3D::up()*(1.5f*Scale3DRate), GetMat().pos(),Target, &Result);
-			if (Result.SegA_SegB_MinDist_Square <= (0.5f * Scale3DRate) * (0.5f * Scale3DRate)) {
+			if (c->CheckHit(GetMat().pos(), &Target)) {
 				c->SetDownTop();
 				if (this->Timer != 0.f) {
 					SetAmmo(Target);

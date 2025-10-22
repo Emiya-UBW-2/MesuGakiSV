@@ -18,6 +18,114 @@
 
 #include "BaseObject.hpp"
 
+#include "Character.hpp"
+
+//ヒットボックス表示
+#define DRAW_HITBOX (false)
+
+namespace Charas {
+	//キャラのうち特定機能だけ抜き出したもの
+	//
+	enum class HitType {
+		Head,
+		Body,
+		Arm,
+		Leg,
+		//ヒール限定
+		Armor,
+		Helmet,
+	};
+	//
+	class HitBox {
+		Util::VECTOR3D	m_pos;
+		float		m_radius{ 0.0f };
+		HitType		m_HitType{ HitType::Body };
+	public:
+		const auto& GetColType(void) const noexcept { return this->m_HitType; }
+		const auto& GetPos(void) const noexcept { return this->m_pos; }
+	public:
+		void	Update(const Util::VECTOR3D& pos, float radius, HitType pHitType) {
+			this->m_pos = pos;
+			this->m_radius = radius;
+			this->m_HitType = pHitType;
+		}
+#if DRAW_HITBOX
+		void	Draw(void) const noexcept {
+			unsigned int color{};
+			switch (this->m_HitType) {
+			case HitType::Head:
+				color = ColorPalette::Red;
+				break;
+			case HitType::Body:
+				color = ColorPalette::Green;
+				break;
+			case HitType::Arm:
+				color = ColorPalette::Blue;
+				break;
+			case HitType::Leg:
+				color = ColorPalette::Blue;
+				break;
+			default:
+				break;
+			}
+			DrawSphere3D(this->m_pos.get(), this->m_radius, 6, color, color, true);
+		}
+#endif
+		bool	Colcheck(const Util::VECTOR3D& StartPos, Util::VECTOR3D* pEndPos) const noexcept {
+			VECTOR pos1 = StartPos.get();
+			VECTOR pos2 = pEndPos->get();
+			VECTOR posA = this->m_pos.get();
+			SEGMENT_POINT_RESULT Res;
+			Segment_Point_Analyse(&pos1, &pos2, &posA, &Res);
+			if (Res.Seg_Point_MinDist_Square <= this->m_radius * this->m_radius) {
+				*pEndPos = Res.Seg_MinDist_Pos;
+				return true;
+			}
+			return false;
+		}
+	};
+	class HitBoxControl {
+	private:
+		std::vector<HitBox>									m_HitBox;
+	public:
+		const HitBox* GetLineHit(const Util::VECTOR3D& StartPos, Util::VECTOR3D* pEndPos) const noexcept {
+			for (auto& hitbox : this->m_HitBox) {
+				if (hitbox.Colcheck(StartPos, pEndPos)) {
+					return &hitbox;
+				}
+			}
+			return nullptr;
+		}
+	public:
+		void		CheckLineHitNearest(const Util::VECTOR3D& StartPos, Util::VECTOR3D* pEndPos) const noexcept {
+			for (auto& hitbox : this->m_HitBox) {
+				hitbox.Colcheck(StartPos, pEndPos);
+			}
+		}
+		const auto& GetHitBoxPointList() const { return this->m_HitBox; }
+	public:
+		HitBoxControl(void) noexcept {}
+		virtual ~HitBoxControl(void) noexcept {}
+	public:
+		void Init(void) noexcept {
+			this->m_HitBox.resize(27);
+		}
+		void Update(const BaseObject* ptr, float SizeRate) noexcept;
+#if DRAW_HITBOX
+		void Draw(void) const noexcept {
+			SetUseLighting(false);
+			//SetUseZBuffer3D(false);
+
+			for (auto& hitbox : this->m_HitBox) {
+				hitbox.Draw();
+			}
+
+			//SetUseZBuffer3D(true);
+			SetUseLighting(true);
+		}
+#endif
+	};
+}
 enum class EarlyCharaAnim {
 	Stand,//立ち
 	Walk,//歩き
@@ -28,22 +136,6 @@ enum class EarlyCharaAnim {
 	WakeTop,//仰向きから立つ
 
 	Max,
-};
-
-enum class EarlyCharaFrame {
-	Center,
-	Upper,
-	Upper2,
-	Head,
-	Eye,
-	Max,
-};
-static const char* EarlyCharaFrameName[static_cast<int>(EarlyCharaFrame::Max)] = {
-	"センター",
-	"上半身",
-	"上半身2",
-	"頭",
-	"両目",
 };
 
 namespace AIs {
@@ -253,6 +345,7 @@ namespace AIs {
 	};
 }
 class EarlyCharacter :public BaseObject {
+	Charas::HitBoxControl	m_HitBoxControl;
 	Util::VECTOR3D		m_MyTarget = Util::VECTOR3D::zero();
 	Util::VECTOR3D		m_MyPosTarget = Util::VECTOR3D::zero();
 	Util::VECTOR3D		m_Rad = Util::VECTOR3D::zero();
@@ -280,9 +373,12 @@ public:
 	EarlyCharacter& operator=(EarlyCharacter&&) = delete;
 	virtual ~EarlyCharacter(void) noexcept {}
 private:
-	int				GetFrameNum(void) noexcept override { return static_cast<int>(EarlyCharaFrame::Max); }
-	const char*		GetFrameStr(int id) noexcept override { return EarlyCharaFrameName[id]; }
+	int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
+	const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
 public:
+	auto			GetFrameWorldMat(CharaFrame frame) const noexcept { return ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(frame))); }
+	const auto&		GetHitBoxList(void) const noexcept { return this->m_HitBoxControl.GetHitBoxPointList(); }
+
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
 	float GetSpeed(void) const noexcept { return m_Speed; }
 	float GetSpeedMax(void) const noexcept {
@@ -329,12 +425,20 @@ public:
 		}
 		this->m_WakeTop = true;
 	}
+
+	const Charas::HitBox*		CheckHit(const Util::VECTOR3D& StartPos, Util::VECTOR3D* pEndPos) noexcept {
+		//if (!IsAlive()) { return nullptr; }
+		if (!(Util::GetMinLenSegmentToPoint(StartPos, *pEndPos, GetMat().pos()) <= 2.0f * Scale3DRate)) { return nullptr; }
+		return this->m_HitBoxControl.GetLineHit(StartPos, pEndPos);
+	}
+
 public:
 	void Load_Sub(void) noexcept override {
 		m_runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 	}
 	void Init_Sub(void) noexcept override {
+		this->m_HitBoxControl.Init();
 		this->m_Speed = 0.f;
 		this->m_PathUpdateTimer = 1.f;
 		this->m_DownTop = false;
@@ -348,6 +452,10 @@ public:
 	void CheckDraw_Sub(void) noexcept override {
 	}
 	void Draw_Sub(void) const noexcept override {
+		//hitbox描画
+#if DRAW_HITBOX
+		this->m_HitBoxControl.Draw();
+#endif
 		ModelID.DrawModel();
 
 		return;
