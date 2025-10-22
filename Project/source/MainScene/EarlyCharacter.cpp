@@ -102,6 +102,9 @@ void EarlyCharacter::Update_Sub(void) noexcept {
 
 		Util::Easing(&m_Rad.x, 0.f, 0.9f);
 	}
+
+	IsMove = false;
+
 	// 進行方向に前進
 	Util::Easing(&m_Speed, IsMove ? GetSpeedMax() : 0.f, 0.9f);
 
@@ -136,11 +139,44 @@ void EarlyCharacter::Update_Sub(void) noexcept {
 	//移動割合
 	Util::Easing(&m_MovePer, GetSpeed() / GetSpeedMax(), 0.9f);
 
-	m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Upper)] = 1.f;
-	//停止
-	m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Stand)] = (1.f - m_MovePer);
-	//移動
-	m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = m_MovePer;
+	auto Prev = this->m_DownTimer;
+	this->m_DownTimer = std::max(this->m_DownTimer - 1.f / 60.f, 0.f);
+	if (Prev != 0.f && this->m_DownTimer == 0.f) {
+		this->m_DownTop = false;
+		SetWakeTop();
+	}
+
+	if (this->m_DownTop) {
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 0.f;
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 1.f;
+		SetAnim(static_cast<int>(EarlyCharaAnim::DownTop)).Update(false, 1.f);
+
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Upper)] = 0.f;
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Stand)] = 0.f;
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = 0.f;
+	}
+	else if (this->m_WakeTop) {
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 0.f;
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 1.f;
+		SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).Update(false, 1.f);
+		if (SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).GetTimePer() >= 1.f) {
+			this->m_WakeTop = false;
+		}
+
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Upper)] = 0.f;
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Stand)] = 0.f;
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = 0.f;
+	}
+	else {
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 0.f;
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 0.f;
+
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Upper)] = 1.f;
+		//停止
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Stand)] = (1.f - m_MovePer);
+		//移動
+		m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = m_MovePer;
+	}
 
 	//アニメアップデート
 	for (size_t loop = 0; loop < static_cast<size_t>(EarlyCharaAnim::Max); ++loop) {

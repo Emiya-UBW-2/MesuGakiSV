@@ -113,6 +113,9 @@
     <ClCompile Include="source\MainScene\EarlyCharacter.cpp">
       <Filter>ソース ファイル\MainScene</Filter>
     </ClCompile>
+    <ClCompile Include="source\MainScene\PlayerManager.cpp">
+      <Filter>ソース ファイル\MainScene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\File\json.hpp">
@@ -206,6 +209,9 @@
       <Filter>ソース ファイル\MainScene</Filter>
     </ClInclude>
     <ClInclude Include="source\MainScene\EarlyCharacter.hpp">
+      <Filter>ソース ファイル\MainScene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\MainScene\PlayerManager.hpp">
       <Filter>ソース ファイル\MainScene</Filter>
     </ClInclude>
   </ItemGroup>

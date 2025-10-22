@@ -9,7 +9,11 @@
 
 #include "BaseObject.hpp"
 #include "BackGround.hpp"
+
+#include "../Util/Util.hpp"
 #include "../Util/Sound.hpp"
+
+#include "../MainScene/PlayerManager.hpp"
 
 class Case : public BaseObject {
 public:
@@ -268,6 +272,18 @@ public:
 		this->Timer = 1.f;
 		this->DrawTimer = this->Timer + 1.f;
 	}
+private:
+	void SetAmmo(const Util::VECTOR3D& pos) noexcept {
+		this->Vector = pos - GetMat().pos();
+		this->Timer = 0.f;
+		this->DrawTimer = this->Timer + 1.f;
+		for (auto& ae : m_AmmoEffectPer) {
+			ae->Set(
+				pos,
+				this->Vector.normalized() * -1.f
+			);
+		}
+	}
 public:
 	void Load_Sub(void) noexcept override {
 		HitGroundID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitGround.wav", true);
@@ -287,18 +303,20 @@ public:
 		this->Vector.y += this->YVecAdd;
 		Util::VECTOR3D Target = GetMat().pos() + this->Vector;
 		if (BackGround::Instance()->CheckLine(GetMat().pos(), &Target)) {
-			this->Vector = Target - GetMat().pos();
-			this->Timer = 0.f;
-			this->DrawTimer = this->Timer + 1.f;
-			for (auto& ae : m_AmmoEffectPer) {
-				ae->Set(
-					Target,
-					this->Vector.normalized() * -1.f
-				);
-			}
+			SetAmmo(Target);
 			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitGroundID)->Play3D(Target, 10.f * Scale3DRate);
 		}
-
+		SEGMENT_SEGMENT_RESULT Result;
+		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
+			Util::GetSegmenttoSegment(c->GetMat().pos(), c->GetMat().pos()+ Util::VECTOR3D::up()*(1.5f*Scale3DRate), GetMat().pos(),Target, &Result);
+			if (Result.SegA_SegB_MinDist_Square <= (0.5f * Scale3DRate) * (0.5f * Scale3DRate)) {
+				c->SetDownTop();
+				if (this->Timer != 0.f) {
+					SetAmmo(Target);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitGroundID)->Play3D(Target, 10.f * Scale3DRate);
+				}
+			}
+		}
 		SetMatrix(GetMat().rotation() *
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::Cross(this->Vector, GetMat().zvec()).normalized(), Util::deg2rad(1800.f) * DeltaTime) *
 			Util::Matrix4x4::Mtrans(Target));

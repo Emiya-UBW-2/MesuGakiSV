@@ -13,6 +13,8 @@
 #include "../MainScene/Character.hpp"
 #include "../MainScene/Gun.hpp"
 
+#include "../MainScene/PlayerManager.hpp"
+
 class EquipUI {
 	const std::shared_ptr<Gun>*	m_Gun{};
 public:
@@ -65,7 +67,6 @@ class MainScene : public Util::SceneBase {
 	bool			m_IsPauseActive{ false };
 	bool			m_IsChangeEquip{ false };
 	char		padding[4]{};
-	std::shared_ptr<EarlyCharacter>		m_EarlyCharacter{};
 	std::shared_ptr<Character>		m_Character{};
 	std::shared_ptr<Gun>			m_HandGun{};
 	std::shared_ptr<Gun>			m_MainGun{};

@@ -41,11 +41,6 @@ static const char* InfoTypeStr[static_cast<int>(InfoType::Max)] = {
 	"WayPoint2",
 };
 
-// 直線と直線の一番近い距離
-static float GetMinLenSegmentToSegment(const Util::VECTOR3D& startpos, const Util::VECTOR3D& endpos, const Util::VECTOR3D& tgtstartpos, const Util::VECTOR3D& tgtendpos) noexcept {
-	return Segment_Segment_MinLength(startpos.get(), endpos.get(), tgtstartpos.get(), tgtendpos.get());
-}
-
 class WayPointClass {
 public:
 	class Builds {
@@ -199,7 +194,7 @@ public:
 					PolyPos2.z += ((static_cast<float>(Rate) / 2.f) * ((K2 == 1 || K2 == 2) ? 1.f : -1.f));
 					// ポリゴンの頂点番号0と1の辺に隣接するポリゴンが存在する場合で、
 					// 且つ辺の線分と移動開始点、終了点で形成する線分が接していたら if 文が真になる
-					if (LinkIndex != -1 && GetMinLenSegmentToSegment(StartPos, TargetPos, PolyPos, PolyPos2) < 0.01f) {
+					if (LinkIndex != -1 && Util::GetMinLenSegmentToSegment(StartPos, TargetPos, PolyPos, PolyPos2) < 0.01f) {
 						// もし辺と接しているポリゴンが目標座標上に存在するポリゴンだったら 開始座標から目標座標上まで途切れなくポリゴンが存在するということなので true を返す
 						if (LinkIndex == TargetPoly) { return true; }
 

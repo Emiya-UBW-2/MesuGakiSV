@@ -23,6 +23,10 @@ enum class EarlyCharaAnim {
 	Walk,//歩き
 
 	Upper,//左に向く
+
+	DownTop,//仰向きに倒れる
+	WakeTop,//仰向きから立つ
+
 	Max,
 };
 
@@ -264,7 +268,10 @@ class EarlyCharacter :public BaseObject {
 	int					m_TargetPathPlanningIndex{ 0 };		// 次の中間地点となる経路上のポリゴンの経路探索情報が格納されているメモリアドレスを格納する変数
 	AIs::PathChecker	m_PathChecker;
 	uint8_t				m_MoveKey{};
-	char		padding[7]{};
+	bool				m_DownTop{};
+	bool				m_WakeTop{};
+	char		padding[1]{};
+	float				m_DownTimer{ 0.f };
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -309,14 +316,30 @@ public:
 	void		SetTarget(const Util::VECTOR3D& pos) noexcept {
 		m_MyTarget = pos;
 	}
+	void		SetDownTop() noexcept {
+		if (!this->m_DownTop) {
+			SetAnim(static_cast<int>(EarlyCharaAnim::DownTop)).SetTime(0.f);
+			this->m_DownTimer = 3.f;
+		}
+		this->m_DownTop = true;
+	}
+	void		SetWakeTop() noexcept {
+		if (!this->m_WakeTop) {
+			SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).SetTime(0.f);
+		}
+		this->m_WakeTop = true;
+	}
 public:
 	void Load_Sub(void) noexcept override {
 		m_runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 	}
 	void Init_Sub(void) noexcept override {
-		m_Speed = 0.f;
+		this->m_Speed = 0.f;
 		this->m_PathUpdateTimer = 1.f;
+		this->m_DownTop = false;
+		this->m_WakeTop = false;
+		this->m_DownTimer = 0.f;
 	}
 	void Update_Sub(void) noexcept override;
 	void SetShadowDraw_Sub(void) const noexcept override {

@@ -4,9 +4,11 @@
 
 void MainScene::Load_Sub(void) noexcept {
 	ObjectManager::Create();
+	PlayerManager::Create();
 	BackGround::Create();
 	BackGround::Instance()->Load(m_MapName.c_str());
-	ObjectManager::Instance()->LoadModel("data/Early/");
+
+	PlayerManager::Instance()->Load();
 	ObjectManager::Instance()->LoadModel("data/Soldier/");
 	ObjectManager::Instance()->LoadModel("data/Px4/");
 	ObjectManager::Instance()->LoadModel("data/Cx4/");
@@ -14,8 +16,7 @@ void MainScene::Load_Sub(void) noexcept {
 void MainScene::Init_Sub(void) noexcept {
 	BackGround::Instance()->Init();
 
-	this->m_EarlyCharacter = std::make_shared<EarlyCharacter>();
-	ObjectManager::Instance()->InitObject(this->m_EarlyCharacter, this->m_EarlyCharacter, "data/Early/");
+	PlayerManager::Instance()->Init();
 
 	this->m_Character = std::make_shared<Character>();
 	ObjectManager::Instance()->InitObject(this->m_Character, this->m_Character, "data/Soldier/");
@@ -34,12 +35,6 @@ void MainScene::Init_Sub(void) noexcept {
 		}
 	}
 
-	for (auto& m : BackGround::Instance()->GetMapInfo()) {
-		if (m.m_InfoType == InfoType::WayPoint) {
-			this->m_EarlyCharacter->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
-			break;
-		}
-	}
 	m_Exit = false;
 	m_Fade = 1.f;
 
@@ -300,7 +295,7 @@ void MainScene::Update_Sub(void) noexcept {
 		Util::Easing(&m_ShotFov, 0.f, 0.9f);
 	}
 
-	this->m_EarlyCharacter->SetTarget(this->m_Character->GetEyeMat().pos());
+	PlayerManager::Instance()->SetTarget(this->m_Character->GetEyeMat().pos());
 
 	DxLib::SetMouseDispFlag(!this->m_Character->IsFPSView());
 
@@ -416,8 +411,8 @@ void MainScene::UIDraw_Sub(void) noexcept {
 							3, ColorPalette::Blue, TRUE);
 					}
 				}
-				{
-					BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(this->m_EarlyCharacter->GetMat().pos());
+				for (auto& c : PlayerManager::Instance()->GetCharacter()) {
+					BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(c->GetMat().pos());
 					if (m.GetID() <= Pos.y) {
 						DxLib::SetDrawBright(255, 255, 255);
 						DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
@@ -470,7 +465,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 void MainScene::Dispose_Sub(void) noexcept {
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->StopAll();
 	BackGround::Release();
-	this->m_EarlyCharacter.reset();
+	PlayerManager::Release();
 	this->m_Character.reset();
 	this->m_MainGun.reset();
 	this->m_HandGun.reset();

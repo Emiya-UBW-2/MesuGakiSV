@@ -249,7 +249,7 @@ class Character :public BaseObject {
 	int					m_Now{};
 	int					m_Equip{ InvalidID };
 	int					m_PrevEquip{ InvalidID };
-	//char		padding2[4]{};
+	char		padding2[4]{};
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
 
