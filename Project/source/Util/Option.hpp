@@ -103,13 +103,13 @@ namespace Util {
 			std::string					m_Type{};
 			std::vector<std::string>	m_ValueList{};
 		public:
-			std::string GetType() const noexcept { return this->m_Type; }
+			std::string GetType(void) const noexcept { return this->m_Type; }
 
-			int GetSelectMax() const noexcept { return this->m_ValueMax; }
-			int GetSelectMin() const noexcept { return this->m_ValueMin; }
-			int GetSelect() const noexcept { return this->m_Value; }
+			int GetSelectMax(void) const noexcept { return this->m_ValueMax; }
+			int GetSelectMin(void) const noexcept { return this->m_ValueMin; }
+			int GetSelect(void) const noexcept { return this->m_Value; }
 
-			std::string GetValueNow() const noexcept {
+			std::string GetValueNow(void) const noexcept {
 				switch (this->m_SelectType) {
 				case EnumOptionSelectType::Bool:
 				case EnumOptionSelectType::Select:
@@ -125,7 +125,7 @@ namespace Util {
 				return "";
 			}
 
-			bool IsActive() const noexcept {
+			bool IsActive(void) const noexcept {
 				if (this->m_SelectType == EnumOptionSelectType::Bool) {
 					return GetValueNow() == "True";
 				}
@@ -233,8 +233,8 @@ namespace Util {
 			}
 		};
 
-		std::vector<Param>	m_ParamList;
-		std::array<int, static_cast<int>(OptionType::Max)> m_OptionID;
+		std::vector<Param>									m_ParamList;
+		std::array<int, static_cast<int>(OptionType::Max)>	m_OptionID;
 		char		padding[4]{};
 	private:
 		//コンストラクタ

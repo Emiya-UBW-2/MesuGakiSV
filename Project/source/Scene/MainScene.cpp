@@ -6,7 +6,7 @@ void MainScene::Load_Sub(void) noexcept {
 	ObjectManager::Create();
 	PlayerManager::Create();
 	BackGround::Create();
-	BackGround::Instance()->Load(m_MapName.c_str());
+	BackGround::Instance()->Load(this->m_MapName.c_str());
 
 	PlayerManager::Instance()->Load();
 	ObjectManager::Instance()->LoadModel("data/Soldier/");
@@ -30,13 +30,13 @@ void MainScene::Init_Sub(void) noexcept {
 	this->m_Character->SetSubGunUniqueID(this->m_HandGun->GetObjectID());
 
 	for (auto& m : BackGround::Instance()->GetMapInfo()) {
-		if (m.m_InfoType == m_EntrancePoint) {
+		if (m.m_InfoType == this->m_EntrancePoint) {
 			this->m_Character->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
 		}
 	}
 
-	m_Exit = false;
-	m_Fade = 1.f;
+	this->m_Exit = false;
+	this->m_Fade = 1.f;
 
 	cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
 	OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
@@ -100,7 +100,7 @@ void MainScene::Update_Sub(void) noexcept {
 		[this]() {
 			auto* Localize = Util::LocalizePool::Instance();
 			auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
-			if (m_IsChangeEquip) {
+			if (this->m_IsChangeEquip) {
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
 
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::W), "");
@@ -138,8 +138,8 @@ void MainScene::Update_Sub(void) noexcept {
 	);
 	//
 	CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45),
-		CameraParts->GetCamera().GetCamFov() - m_ShotFov * Util::deg2rad(5),
-		m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
+		CameraParts->GetCamera().GetCamFov() - this->m_ShotFov * Util::deg2rad(5),
+		this->m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
 	// 影をセット
 	PostPassParts->SetShadowFarChange();
 	//ポーズメニュー
@@ -168,7 +168,7 @@ void MainScene::Update_Sub(void) noexcept {
 		if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
 			KeyGuideParts->SetGuideFlip();
 			if ((this->m_EquipUITimer >= 10.f * DeltaTime) || (this->m_Character->GetEquip() == InvalidID)) {
-				this->m_Character->SetEquip(m_EquipID);
+				this->m_Character->SetEquip(this->m_EquipID);
 			}
 			else {
 				this->m_Character->SetEquip(InvalidID);
@@ -176,7 +176,7 @@ void MainScene::Update_Sub(void) noexcept {
 		}
 		bool IsChangeEquip = KeyMngr->GetBattleKeyPress(Util::EnumBattle::E);
 		if (IsChangeEquip) {
-			if (IsChangeEquip != m_IsChangeEquip) {
+			if (IsChangeEquip != this->m_IsChangeEquip) {
 				KeyGuideParts->SetGuideFlip();
 			}
 			float Prev = this->m_EquipUITimer;
@@ -188,36 +188,36 @@ void MainScene::Update_Sub(void) noexcept {
 				Util::Easing(&m_EquipPer, 0.f, 0.9f);
 				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::W)) {
 					--m_EquipID;
-					if (m_EquipID < 0) { m_EquipID = static_cast<int>(this->m_EquipUI.size()) - 1; }
-					m_EquipPer -= 1.f;
+					if (this->m_EquipID < 0) { this->m_EquipID = static_cast<int>(this->m_EquipUI.size()) - 1; }
+					this->m_EquipPer -= 1.f;
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::S)) {
 					++m_EquipID;
-					if (m_EquipID > static_cast<int>(this->m_EquipUI.size()) - 1) { m_EquipID = 0; }
-					m_EquipPer += 1.f;
+					if (this->m_EquipID > static_cast<int>(this->m_EquipUI.size()) - 1) { this->m_EquipID = 0; }
+					this->m_EquipPer += 1.f;
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 			}
 		}
 		else {
 			this->m_EquipUITimer = 0;
-			m_EquipPer = 0.f;
+			this->m_EquipPer = 0.f;
 		}
-		m_IsChangeEquip = IsChangeEquip;
+		this->m_IsChangeEquip = IsChangeEquip;
 	}
 	else {
 		this->m_EquipUITimer = 0;
-		m_EquipPer = 0.f;
-		m_IsChangeEquip = false;
+		this->m_EquipPer = 0.f;
+		this->m_IsChangeEquip = false;
 	}
 	if (this->m_EquipUITimer >= 10.f * DeltaTime) {
-		m_EquipUIActivePer = std::clamp(m_EquipUIActivePer + DeltaTime / 0.1f, 0.f, 1.f);
+		this->m_EquipUIActivePer = std::clamp(this->m_EquipUIActivePer + DeltaTime / 0.1f, 0.f, 1.f);
 		DxLib::SetMouseDispFlag(true);
 		return;
 	}
 	else {
-		m_EquipUIActivePer = std::clamp(m_EquipUIActivePer - DeltaTime / 0.1f, 0.f, 1.f);
+		this->m_EquipUIActivePer = std::clamp(this->m_EquipUIActivePer - DeltaTime / 0.1f, 0.f, 1.f);
 	}
 
 	ObjectManager::Instance()->UpdateObject();
@@ -229,19 +229,19 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamPosition;
 	Util::VECTOR3D CamTarget;
 
-	m_FPSPer = std::clamp(m_FPSPer + (this->m_Character->IsFPSView() ? 1.f : -1.f) * DeltaTime / 0.25f, 0.f, 1.f);
+	this->m_FPSPer = std::clamp(this->m_FPSPer + (this->m_Character->IsFPSView() ? 1.f : -1.f) * DeltaTime / 0.25f, 0.f, 1.f);
 
 	Util::VECTOR3D CamPosition1;
 	Util::VECTOR3D CamTarget1;
 	Util::VECTOR3D CamPosition2;
 	Util::VECTOR3D CamTarget2;
-	if (m_FPSPer != 0.f) {
+	if (this->m_FPSPer != 0.f) {
 		BackGround::Instance()->SettingChange(3, 1);
 		Util::Matrix4x4 EyeMat = this->m_Character->GetEyeMat();
 		CamPosition1 = EyeMat.pos();
 		CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f * Scale3DRate);
 	}
-	if (m_FPSPer != 1.f) {
+	if (this->m_FPSPer != 1.f) {
 		BackGround::Instance()->SettingChange(1, 0);
 		float Length = (Scale3DRate * 5.f);
 		if (this->m_Character->IsFreeView()) {
@@ -258,16 +258,16 @@ void MainScene::Update_Sub(void) noexcept {
 			Util::VECTOR3D Target = CamPos + CamVec.normalized() * (Scale3DRate * 5.f);
 			Util::VECTOR3D Base = CamPos + CamVec.normalized() * (Scale3DRate * 3.75f);
 			if (BackGround::Instance()->CheckLine(Base, &Target)) {
-				m_CamCheckTimer = 0.f;
-				m_CamCheckLen = std::clamp((Target - Base).magnitude() - 1.5f * Scale3DRate, 1.5f * Scale3DRate, Length);
+				this->m_CamCheckTimer = 0.f;
+				this->m_CamCheckLen = std::clamp((Target - Base).magnitude() - 1.5f * Scale3DRate, 1.5f * Scale3DRate, Length);
 			}
 			else {
-				m_CamCheckTimer = std::min(m_CamCheckTimer + DeltaTime, 0.5f);
-				if (m_CamCheckTimer >= 0.5f) {
-					m_CamCheckLen = CamVec.magnitude();
+				this->m_CamCheckTimer = std::min(this->m_CamCheckTimer + DeltaTime, 0.5f);
+				if (this->m_CamCheckTimer >= 0.5f) {
+					this->m_CamCheckLen = CamVec.magnitude();
 				}
 			}
-			Target = Base + (Target - Base).normalized() * m_CamCheckLen;
+			Target = Base + (Target - Base).normalized() * this->m_CamCheckLen;
 			CamVec = Target - CamPos;
 		}
 		Util::Easing(&this->m_CamVec, CamVec, 0.9f);
@@ -275,8 +275,8 @@ void MainScene::Update_Sub(void) noexcept {
 		CamTarget2 = CamPos;
 	}
 
-	CamPosition = Util::Lerp(CamPosition2, CamPosition1, m_FPSPer);
-	CamTarget = Util::Lerp(CamTarget2, CamTarget1, m_FPSPer);
+	CamPosition = Util::Lerp(CamPosition2, CamPosition1, this->m_FPSPer);
+	CamTarget = Util::Lerp(CamTarget2, CamTarget1, this->m_FPSPer);
 
 	/*
 	{
@@ -289,7 +289,7 @@ void MainScene::Update_Sub(void) noexcept {
 	CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 
 	if (this->m_Character->IsShotSwitch()) {
-		m_ShotFov = 1.f;
+		this->m_ShotFov = 1.f;
 	}
 	else {
 		Util::Easing(&m_ShotFov, 0.f, 0.9f);
@@ -303,7 +303,7 @@ void MainScene::Update_Sub(void) noexcept {
 
 	BackGround::Instance()->Update();
 
-	m_Fade = std::clamp(m_Fade + (m_Exit ? 1.f : -1.f) * DeltaTime, 0.f, 1.f);
+	this->m_Fade = std::clamp(this->m_Fade + (this->m_Exit ? 1.f : -1.f) * DeltaTime, 0.f, 1.f);
 	if (!m_Exit) {
 		for (auto& m : BackGround::Instance()->GetMapInfo()) {
 			if (m.m_InfoType == InfoType::None || m.m_InfoType == InfoType::Max) { continue; }
@@ -314,14 +314,14 @@ void MainScene::Update_Sub(void) noexcept {
 			if (Vec.sqrMagnitude() >= (Len + 0.35f * Scale3DRate) * (Len + 0.35f * Scale3DRate)) { continue; }
 			switch (m.m_InfoType) {
 			case InfoType::Exit1:
-				m_EntrancePoint = InfoType::Entrance1;
-				m_MapName = "Map1";
-				m_Exit = true;
+				this->m_EntrancePoint = InfoType::Entrance1;
+				this->m_MapName = "Map1";
+				this->m_Exit = true;
 				break;
 			case InfoType::Exit2:
-				m_EntrancePoint = InfoType::Entrance2;
-				m_MapName = "Map1";
-				m_Exit = true;
+				this->m_EntrancePoint = InfoType::Entrance2;
+				this->m_MapName = "Map1";
+				this->m_Exit = true;
 				break;
 			case InfoType::Exit3:
 				break;
@@ -338,7 +338,7 @@ void MainScene::Update_Sub(void) noexcept {
 		}
 	}
 	else {
-		if (m_Fade >= 1.f) {
+		if (this->m_Fade >= 1.f) {
 			SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Main)));
 			Util::SceneBase::SetEndScene();
 		}
@@ -428,9 +428,9 @@ void MainScene::UIDraw_Sub(void) noexcept {
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
 	}
-	if ((this->m_Character->GetEquip() != InvalidID) || (m_EquipUIActivePer > 0.f)) {
+	if ((this->m_Character->GetEquip() != InvalidID) || (this->m_EquipUIActivePer > 0.f)) {
 		{
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(64.f * m_EquipUIActivePer), 0, 255));
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(64.f * this->m_EquipUIActivePer), 0, 255));
 			DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
@@ -438,15 +438,15 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		int xpos = DrawerMngr->GetDispWidth() - 256 - 64;
 		int ypos = DrawerMngr->GetDispHeight() - 128 - 64;
 		for (int loop = 1; loop <= 3; ++loop) {
-			int ID = (loop + 4 + m_EquipID) % static_cast<int>(this->m_EquipUI.size());
-			int Y = ypos + static_cast<int>(static_cast<float>(128 + 16) * m_EquipUIActivePer) * loop + static_cast<int>(static_cast<float>(128 + 16) * m_EquipPer);
+			int ID = (loop + 4 + this->m_EquipID) % static_cast<int>(this->m_EquipUI.size());
+			int Y = ypos + static_cast<int>(static_cast<float>(128 + 16) * this->m_EquipUIActivePer) * loop + static_cast<int>(static_cast<float>(128 + 16) * this->m_EquipPer);
 			auto& d = this->m_EquipUI.at(static_cast<size_t>(ID));
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255 - (std::abs(Y - ypos))), 0, 255));
 			d.Draw(xpos, Y);
 		}
 		for (int loop = -3; loop <= 0; ++loop) {
-			int ID = (loop + 4 + m_EquipID) % static_cast<int>(this->m_EquipUI.size());
-			int Y = ypos + static_cast<int>(static_cast<float>(128 + 16) * m_EquipUIActivePer) * loop + static_cast<int>(static_cast<float>(128 + 16) * m_EquipPer);
+			int ID = (loop + 4 + this->m_EquipID) % static_cast<int>(this->m_EquipUI.size());
+			int Y = ypos + static_cast<int>(static_cast<float>(128 + 16) * this->m_EquipUIActivePer) * loop + static_cast<int>(static_cast<float>(128 + 16) * this->m_EquipPer);
 			auto& d = this->m_EquipUI.at(static_cast<size_t>(ID));
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255 - (std::abs(Y - ypos))), 0, 255));
 			d.Draw(xpos, Y);
@@ -457,7 +457,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	this->m_PauseUI.Draw();
 	this->m_OptionWindow.Draw();
 	{
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m_Fade), 0, 255));
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * this->m_Fade), 0, 255));
 		DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}

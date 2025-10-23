@@ -50,9 +50,9 @@ public:
 	bool		IsActive(void) const noexcept { return this->m_DrawUI->Get(this->m_UIBase).IsActive(); }
 	void		SetActive(bool value) noexcept;
 private:
-	void		UpdateColumnStr() noexcept;
-	void		SetTab() noexcept;
-	void		EndTab() noexcept;
+	void		UpdateColumnStr(void) noexcept;
+	void		SetTab(void) noexcept;
+	void		EndTab(void) noexcept;
 public:
 	void		Init(void) noexcept;
 	void		Update(void) noexcept;

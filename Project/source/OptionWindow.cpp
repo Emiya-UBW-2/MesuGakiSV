@@ -24,7 +24,7 @@ void OptionWindow::SetActive(bool value) noexcept {
 	}
 }
 
-void OptionWindow::UpdateColumnStr() noexcept {
+void OptionWindow::UpdateColumnStr(void) noexcept {
 	auto* pOption = Util::OptionParam::Instance();
 	auto* KeyMngr = Util::KeyParam::Instance();
 	switch (this->m_NowSelectTab) {
@@ -101,7 +101,7 @@ void OptionWindow::UpdateColumnStr() noexcept {
 		this->m_DrawUI->Get(param.m_ID).GetParts("String0")->SetString(param.m_Str);
 	}
 }
-void OptionWindow::SetTab() noexcept {
+void OptionWindow::SetTab(void) noexcept {
 	std::string ChildBase = "OptionUI/Child";
 	ChildBase += std::to_string(this->m_NowSelectTab + 1);
 	Draw::Param2D Param;
@@ -129,7 +129,7 @@ void OptionWindow::SetTab() noexcept {
 	UpdateColumnStr();
 	this->m_DrawUI->Get(this->m_TabButton[this->m_NowSelectTab]).SetActive(true);
 }
-void OptionWindow::EndTab() noexcept {
+void OptionWindow::EndTab(void) noexcept {
 	std::string Path = "OptionUI/Child";
 	Path += std::to_string(this->m_NowSelectTab + 1);
 	this->m_DrawUI->DeleteChild(Path.c_str());

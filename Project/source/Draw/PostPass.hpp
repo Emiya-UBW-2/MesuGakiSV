@@ -454,7 +454,7 @@ namespace Draw {
 				++this->m_UsedLocal;
 				return Ret;
 			}
-			bool IsActive() const noexcept {
+			bool IsActive(void) const noexcept {
 				return this->m_UnUseFrame <= 5;//5フレーム以上使われていない
 			}
 			bool Equal(int xsize, int ysize, bool trans, bool isDepth, int ZBufferBitDepth) const noexcept {
@@ -470,7 +470,7 @@ namespace Draw {
 				this->m_UsedLocal = 0;
 			}
 		public:
-			void Update() noexcept {
+			void Update(void) noexcept {
 				if (this->m_Used != 0) {
 					this->m_Used = 0;
 					this->m_UnUseFrame = 0;
@@ -546,9 +546,9 @@ namespace Draw {
 			Draw::ScreenHandle			m_NormalScreen;	// 法線のGバッファ
 			Draw::ScreenHandle			m_DepthScreen;	// 深度のGバッファ
 		public:
-			const auto& GetColorBuffer() const noexcept { return this->m_ColorScreen; }
-			const auto& GetNormalBuffer() const noexcept { return this->m_NormalScreen; }
-			const auto& GetDepthBuffer() const noexcept { return this->m_DepthScreen; }
+			const auto& GetColorBuffer(void) const noexcept { return this->m_ColorScreen; }
+			const auto& GetNormalBuffer(void) const noexcept { return this->m_NormalScreen; }
+			const auto& GetDepthBuffer(void) const noexcept { return this->m_DepthScreen; }
 		public:
 			void		Load(int xsize, int ysize) noexcept {
 				auto Prev = DxLib::GetCreateDrawValidGraphZBufferBitDepth();
@@ -945,8 +945,8 @@ namespace Draw {
 	public:
 		//
 		void		SetAmbientLight(const Util::VECTOR3D& AmbientLightVec) noexcept {
-			m_AmbientLightVec = AmbientLightVec;
-			this->m_ShadowDraw->SetVec(m_AmbientLightVec);
+			this->m_AmbientLightVec = AmbientLightVec;
+			this->m_ShadowDraw->SetVec(this->m_AmbientLightVec);
 		}
 		//
 		void		UpdateShadowActive(void) noexcept {
@@ -956,8 +956,8 @@ namespace Draw {
 		}
 		void		SetShadowFarChange(void) noexcept { this->m_ShadowFarChange = true; }
 		bool		PopShadowFarChange(void) noexcept {
-			if (m_ShadowFarChange) {
-				m_ShadowFarChange = false;
+			if (this->m_ShadowFarChange) {
+				this->m_ShadowFarChange = false;
 				return true;
 			}
 			return false;

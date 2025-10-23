@@ -607,7 +607,7 @@ namespace BG {
 				this->m_CamVec = camVec;
 			}
 			// 登録開始
-			void		StartRegist() noexcept { this->m_Vert32.StartRegist(); }
+			void		StartRegist(void) noexcept { this->m_Vert32.StartRegist(); }
 			// 登録終了
 			void		EndRegist(void) noexcept { this->m_Vert32.EndRegist(); }
 			// 描画先のポインタ
@@ -636,7 +636,7 @@ namespace BG {
 				this->m_Vert32.DrawByShader();
 			}
 			// 終了
-			void		Dispose() noexcept {
+			void		Dispose(void) noexcept {
 				this->m_Vert32.Dispose();
 				this->m_Jobs.Dispose();
 			}
@@ -714,7 +714,7 @@ namespace BG {
 			this->m_MaxDrawLOD = DrawLOD;// 2段目まで表示
 			//*/
 		}
-		inline float	GetDrawFarMax() const noexcept { return static_cast<float>(std::min(std::min(DrawMaxXPlus, DrawMaxZPlus), DrawMaxYPlus)) * CellScale; }
+		inline float	GetDrawFarMax(void) const noexcept { return static_cast<float>(std::min(std::min(DrawMaxXPlus, DrawMaxZPlus), DrawMaxYPlus)) * CellScale; }
 
 		void			SetDrawInfo(const Util::VECTOR3D& CenterPos, const Util::VECTOR3D& CamVec) noexcept {
 			this->m_DrawCenterPos = CenterPos;

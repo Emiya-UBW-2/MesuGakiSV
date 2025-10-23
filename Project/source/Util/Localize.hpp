@@ -16,10 +16,8 @@ namespace Util {
 			char		padding[4]{};
 			std::string	m_Str{};
 		public:
-			LocalizeStr() {
-
-			}
-			LocalizeStr(LocalizeID ID, std::string_view Str) {
+			LocalizeStr(void) noexcept {}
+			LocalizeStr(LocalizeID ID, std::string_view Str) noexcept {
 				this->m_ID = ID;
 				this->m_Str = Str;
 			}

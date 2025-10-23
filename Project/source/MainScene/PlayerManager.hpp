@@ -8,6 +8,7 @@
 #pragma warning(disable:5039)
 
 #include "../Util/Util.hpp"
+#include "Character.hpp"
 #include "EarlyCharacter.hpp"
 
 class PlayerManager : public Util::SingletonBase<PlayerManager> {
@@ -23,7 +24,7 @@ private:
 	PlayerManager& operator=(PlayerManager&&) = delete;
 	virtual ~PlayerManager(void) noexcept { Dispose(); }
 public:
-	void Load() noexcept {
+	void Load(void) noexcept {
 		ObjectManager::Instance()->LoadModel("data/Early/");
 		this->m_Character.resize(5);
 	}
@@ -51,6 +52,6 @@ public:
 		this->m_Character.clear();
 	}
 public:
-	const auto& GetCharacter() const noexcept { return m_Character; }
-	auto& SetCharacter() noexcept { return m_Character; }
+	const auto& GetCharacter(void) const noexcept { return this->m_Character; }
+	auto& SetCharacter(void) noexcept { return this->m_Character; }
 };

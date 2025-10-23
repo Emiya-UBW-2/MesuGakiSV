@@ -59,16 +59,16 @@ public:
 	public:
 		std::array<LinkBuffer, 8>	m_LinkPosBuffer{};
 	public:
-		int	GetIndex() const noexcept { return MyIndex; }
-		int	GetLinkPolyIndex(int ID) const noexcept { return m_LinkPosBuffer[static_cast<size_t>(ID)].ID; }
+		int	GetIndex(void) const noexcept { return MyIndex; }
+		int	GetLinkPolyIndex(int ID) const noexcept { return this->m_LinkPosBuffer[static_cast<size_t>(ID)].ID; }
 		void		SetLinkBuffer(int tris, const Util::VECTOR3D& pos) noexcept {
-			m_LinkPosBuffer[static_cast<size_t>(tris)].isActive = true;
-			m_LinkPosBuffer[static_cast<size_t>(tris)].Pos = pos;
+			this->m_LinkPosBuffer[static_cast<size_t>(tris)].isActive = true;
+			this->m_LinkPosBuffer[static_cast<size_t>(tris)].Pos = pos;
 		}
 	public:
-		const Util::VECTOR3D& GetMinPos(void) const noexcept { return m_MinPos; }
-		const Util::VECTOR3D& GetPos(void) const noexcept { return m_Pos; }
-		const Util::VECTOR3D& GetMaxPos(void) const noexcept { return m_MaxPos; }
+		const Util::VECTOR3D& GetMinPos(void) const noexcept { return this->m_MinPos; }
+		const Util::VECTOR3D& GetPos(void) const noexcept { return this->m_Pos; }
+		const Util::VECTOR3D& GetMaxPos(void) const noexcept { return this->m_MaxPos; }
 	public:
 		void		Set(int index) noexcept {
 			this->MyIndex = index;
@@ -290,7 +290,7 @@ public:
 		++this->m_SeekPoint;
 		return w;
 	}
-	void			Setup() noexcept {
+	void			Setup(void) noexcept {
 		for (auto& w : this->m_WayPoints) {
 			for (auto& L : w.m_LinkPosBuffer) {
 				if (L.isActive) {
@@ -311,9 +311,9 @@ private:
 	public:
 		float				m_Per{};
 	public:
-		const auto& GetMap() const noexcept { return m_Map; }
-		auto GetID() const noexcept { return m_ID; }
-		auto GetPer() const noexcept { return m_Per; }
+		const auto& GetMap(void) const noexcept { return this->m_Map; }
+		auto GetID(void) const noexcept { return this->m_ID; }
+		auto GetPer(void) const noexcept { return this->m_Per; }
 	public:
 		mapGraph(void) noexcept {}
 		mapGraph(const mapGraph&) = delete;
@@ -375,68 +375,68 @@ public:
 	bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept {
 		return Voxel.CheckWall(StartPos, EndPos, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
 	}
-	auto&			GetMapGraph(void) noexcept { return m_map; }
-	const auto&		GetMapInfo(void) const noexcept { return m_MapInfo; }
+	auto&			GetMapGraph(void) noexcept { return this->m_map; }
+	const auto&		GetMapInfo(void) const noexcept { return this->m_MapInfo; }
 	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { Voxel.SettingChange(DrawLOD, ShadowLOD); }
 	const auto&		GetWayPoint(void) const noexcept { return this->m_WayPoint; }
 public:
 	void Load(const char* MapName) noexcept {
-		m_MapName = MapName;
-		Voxel.Load(("data/" + m_MapName + "/tex.png").c_str());							// 事前読み込み
+		this->m_MapName = MapName;
+		Voxel.Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
 		Draw::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
 		for (int loop = 0; loop < Voxel.GetReferenceCells().All; ++loop) {
-			std::string Path = "data/" + m_MapName + "/map";
+			std::string Path = "data/" + this->m_MapName + "/map";
 			Path += std::to_string(loop);
 			Path += ".png";
 			if (Util::IsFileExist(Path.c_str())) {
-				m_map.emplace_back();
-				m_map.back().Init(Path, loop);
+				this->m_map.emplace_back();
+				this->m_map.back().Init(Path, loop);
 			}
 		}
 	}
 	void Init(void) noexcept {
 		Voxel.InitStart();											// 初期化開始時処理
-		Voxel.LoadCellsFile(("data/" + m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
+		Voxel.LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
 		Voxel.InitEnd();											// 初期化終了時処理
 		this->m_WayPoint = std::make_unique<WayPointClass>();
-		m_MapInfo.clear();
-		if (std::filesystem::is_regular_file("data/" + m_MapName + "/Event.txt")) {
-			std::ifstream ifs("data/" + m_MapName + "/Event.txt");
+		this->m_MapInfo.clear();
+		if (std::filesystem::is_regular_file("data/" + this->m_MapName + "/Event.txt")) {
+			std::ifstream ifs("data/" + this->m_MapName + "/Event.txt");
 			while (true) {
 				std::string Buffer;
 				std::getline(ifs, Buffer);
 				std::string LEFT = Buffer.substr(0, Buffer.find("="));
 				std::string RIGHT = Buffer.substr(Buffer.find("=") + 1);
 				if (LEFT == "Type") {
-					m_MapInfo.emplace_back();
+					this->m_MapInfo.emplace_back();
 					for (int loop = 0; loop < static_cast<int>(InfoType::Max); ++loop) {
 						if (RIGHT == InfoTypeStr[static_cast<size_t>(loop)]) {
-							m_MapInfo.back().m_InfoType = static_cast<InfoType>(loop);
+							this->m_MapInfo.back().m_InfoType = static_cast<InfoType>(loop);
 							break;
 						}
 					}
 				}
 				else if (LEFT == "X") {
-					m_MapInfo.back().m_pos.x = std::stoi(RIGHT);
+					this->m_MapInfo.back().m_pos.x = std::stoi(RIGHT);
 				}
 				else if (LEFT == "Y") {
-					m_MapInfo.back().m_pos.y = std::stoi(RIGHT);
+					this->m_MapInfo.back().m_pos.y = std::stoi(RIGHT);
 				}
 				else if (LEFT == "Z") {
-					m_MapInfo.back().m_pos.z = std::stoi(RIGHT);
+					this->m_MapInfo.back().m_pos.z = std::stoi(RIGHT);
 				}
 				if (ifs.eof()) { break; }
 			}
 		}
 		//経路探索
 		{
-			for (size_t p1 = 0; p1 < m_MapInfo.size(); ++p1) {
-				auto& m = m_MapInfo.at(p1);
+			for (size_t p1 = 0; p1 < this->m_MapInfo.size(); ++p1) {
+				auto& m = this->m_MapInfo.at(p1);
 				if (m.m_InfoType != InfoType::WayPoint) { continue; }
 				auto Pos1 = Voxel.GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 				int ID = 0;
-				for (size_t p2 = 0; p2 < m_MapInfo.size(); ++p2) {
-					auto& m2 = m_MapInfo.at(p2);
+				for (size_t p2 = 0; p2 < this->m_MapInfo.size(); ++p2) {
+					auto& m2 = this->m_MapInfo.at(p2);
 					if (p1 == p2) { continue; }
 					if (ID >= 8) { continue; }
 					if (m2.m_InfoType != InfoType::WayPoint) { continue; }
@@ -447,8 +447,8 @@ public:
 						int Len = static_cast<int>(Vec.magnitude()) + 1;
 						for (int loop = 0; loop <= Len; ++loop) {
 							float Per = static_cast<float>(loop) / static_cast<float>(Len);
-							m_MapInfo.emplace_back();
-							m_MapInfo.back().m_InfoType = InfoType::WayPoint2;
+							this->m_MapInfo.emplace_back();
+							this->m_MapInfo.back().m_InfoType = InfoType::WayPoint2;
 
 							auto Pos = Util::Lerp(Pos1, Pos2, Per) - Util::VECTOR3D::up() * (1.f * Scale3DRate);
 							auto Pos3 = Pos - Util::VECTOR3D::up() * (2.f * Scale3DRate);
@@ -456,37 +456,37 @@ public:
 								Pos = Pos3;
 							}
 
-							m_MapInfo.back().m_pos = Voxel.GetReferenceCells().GetVoxelPoint(Pos);
+							this->m_MapInfo.back().m_pos = Voxel.GetReferenceCells().GetVoxelPoint(Pos);
 						}
 						++ID;
 					}
 				}
 			}
-			for (size_t p1 = 0; p1 < m_MapInfo.size(); ++p1) {
-				auto& m = m_MapInfo.at(p1);
+			for (size_t p1 = 0; p1 < this->m_MapInfo.size(); ++p1) {
+				auto& m = this->m_MapInfo.at(p1);
 				if (m.m_InfoType != InfoType::WayPoint2) { continue; }
-				for (size_t p2 = 0; p2 < m_MapInfo.size(); ++p2) {
-					auto& m2 = m_MapInfo.at(p2);
+				for (size_t p2 = 0; p2 < this->m_MapInfo.size(); ++p2) {
+					auto& m2 = this->m_MapInfo.at(p2);
 					if (p1 == p2) { continue; }
 					if (!(m2.m_InfoType == InfoType::WayPoint2)) { continue; }
 					if ((m.m_pos == m2.m_pos) ||
 						(m.m_pos.x == m2.m_pos.x && m.m_pos.y == m2.m_pos.y + 1 && m.m_pos.z == m2.m_pos.z) ||
 						(m.m_pos.x == m2.m_pos.x && m.m_pos.y == m2.m_pos.y + 2 && m.m_pos.z == m2.m_pos.z)
 						) {
-						m_MapInfo.erase(m_MapInfo.begin() + static_cast<int64_t>(p1));
+						this->m_MapInfo.erase(this->m_MapInfo.begin() + static_cast<int64_t>(p1));
 						--p1;
 						break;
 					}
 				}
 			}
 			int count = 0;
-			for (auto& m : m_MapInfo) {
+			for (auto& m : this->m_MapInfo) {
 				if ((m.m_InfoType == InfoType::WayPoint2)) {
 					++count;
 				}
 			}
 			this->m_WayPoint->Init(count);
-			for (auto& m : m_MapInfo) {
+			for (auto& m : this->m_MapInfo) {
 				if (!((m.m_InfoType == InfoType::WayPoint2))) { continue; }
 				auto Pos1 = Voxel.GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 				auto& bu = this->m_WayPoint->AddWayPoint(
@@ -494,7 +494,7 @@ public:
 					Pos1 + Util::VECTOR3D::vget(1.f, 9.f, 1.f) * (0.125f * Scale3DRate)
 				);
 				int ID = 0;
-				for (auto& m2 : m_MapInfo) {
+				for (auto& m2 : this->m_MapInfo) {
 					if (ID >= 8) { continue; }
 					if (&m == &m2) { continue; }
 					if (!((m2.m_InfoType == InfoType::WayPoint2))) { continue; }
@@ -525,8 +525,8 @@ public:
 		Voxel.Dispose_Load();
 		this->m_WayPoint.reset();
 		SkyBoxID.Dispose();
-		m_map.clear();
-		m_MapInfo.clear();
+		this->m_map.clear();
+		this->m_MapInfo.clear();
 	}
 
 	void BGDraw(void) const noexcept {
@@ -542,7 +542,7 @@ public:
 		Voxel.Draw();
 		/*
 		{
-			for (auto& m : m_MapInfo) {
+			for (auto& m : this->m_MapInfo) {
 				unsigned int Color = 0;
 				switch (m.m_InfoType) {
 				case InfoType::Entrance1:

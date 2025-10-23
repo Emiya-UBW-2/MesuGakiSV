@@ -193,8 +193,8 @@ namespace Draw {
 		bool			IsActive(void) const noexcept { return this->m_IsActive; }
 		bool			IsAnimeEnd(void) const noexcept { return this->m_IsAnimeEnd; }
 		bool			IsHitCheck(void) const noexcept { return this->m_IsHitCheck; }
-		std::string		GetBranchName() const noexcept { return this->m_BranchName; }
-		Param2D			GetBasePositionParam() const noexcept { return this->m_BasePositionParam; }
+		std::string		GetBranchName(void) const noexcept { return this->m_BranchName; }
+		Param2D			GetBasePositionParam(void) const noexcept { return this->m_BasePositionParam; }
 		PartsParam* GetParts(std::string_view ChildName) const noexcept {
 			for (auto& parts : this->m_PartsParam) {
 				if (parts.GetName() == ChildName) {
@@ -224,7 +224,7 @@ namespace Draw {
 
 
 	class DrawUISystem {
-		std::vector<DrawModule> m_DrawModule;
+		std::vector<DrawModule>	m_DrawModule;
 		bool					m_IsFirstFrameDraw{};
 		char		padding[7]{};
 	public://コンストラクタ、デストラクタ
@@ -296,7 +296,7 @@ namespace Draw {
 	public:
 		void			Init(std::string_view Path) noexcept {
 			Add(Path, "");
-			m_IsFirstFrameDraw = true;
+			this->m_IsFirstFrameDraw = true;
 		}
 		void			Update(bool IsActiveMouseMove) noexcept {
 			if (this->m_DrawModule.size() == 0) { return; }
@@ -433,8 +433,8 @@ namespace Draw {
 		}
 		void			Draw(void) noexcept {
 			if (this->m_DrawModule.size() == 0) { return; }
-			if (m_IsFirstFrameDraw) {
-				m_IsFirstFrameDraw = false;
+			if (this->m_IsFirstFrameDraw) {
+				this->m_IsFirstFrameDraw = false;
 				return;
 			}
 			this->m_DrawModule.at(0).Draw(this);

@@ -678,7 +678,7 @@ namespace Draw {
 	};
 	class PostPassVignette : public PostPassEffect::PostPassBase {
 	private:
-		Draw::ScreenHandle m_bkScreen;
+		Draw::ScreenHandle	m_bkScreen;
 	public:
 		PostPassVignette(void) noexcept {}
 		PostPassVignette(const PostPassVignette&) = delete;

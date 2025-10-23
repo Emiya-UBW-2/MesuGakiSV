@@ -9,11 +9,8 @@
 
 #include "../OptionWindow.hpp"
 #include "../PauseUI.hpp"
-#include "../MainScene/EarlyCharacter.hpp"
-#include "../MainScene/Character.hpp"
-#include "../MainScene/Gun.hpp"
-
 #include "../MainScene/PlayerManager.hpp"
+#include "../MainScene/Gun.hpp"
 
 class EquipUI {
 	const std::shared_ptr<Gun>*	m_Gun{};
@@ -35,7 +32,7 @@ public:
 	~EquipUI(void) noexcept {}
 public:
 	void Init(const std::shared_ptr<Gun>* pGraph) noexcept {
-		m_Gun = pGraph;
+		this->m_Gun = pGraph;
 	}
 	void Draw(int xpos, int ypos) noexcept {
 		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(0, 0, 0), true);

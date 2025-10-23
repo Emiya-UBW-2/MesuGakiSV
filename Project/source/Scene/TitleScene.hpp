@@ -17,9 +17,9 @@
 #include "../Draw/MainDraw.hpp"
 
 class TitleScene : public Util::SceneBase {
-	OptionWindow m_OptionWindow;
-	TitleUI m_TitleUI;
-	EndUI	m_EndUI;
+	OptionWindow	m_OptionWindow;
+	TitleUI			m_TitleUI;
+	EndUI			m_EndUI;
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
 	TitleScene(const TitleScene&) = delete;

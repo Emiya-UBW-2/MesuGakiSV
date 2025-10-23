@@ -12,18 +12,18 @@
 #pragma warning( pop )
 class TitleUI {
 private:
-	Draw::DrawUISystem* m_DrawUI{ nullptr };
-	int				m_UIBase{ InvalidID };
-	int				m_ButtonID[4] = { InvalidID,InvalidID,InvalidID,InvalidID };
-	bool			m_IsActive{};
+	Draw::DrawUISystem*						m_DrawUI{ nullptr };
+	int										m_UIBase{ InvalidID };
+	int										m_ButtonID[4] = { InvalidID,InvalidID,InvalidID,InvalidID };
+	bool									m_IsActive{};
 	char		padding[3]{};
 	std::array<std::function<void()>, 4>	m_ButtonDo{};
 
-	Sound::SoundUniqueID cancelID{ InvalidID };
-	Sound::SoundUniqueID cursorID{ InvalidID };
-	Sound::SoundUniqueID NGID{ InvalidID };
-	Sound::SoundUniqueID OKID{ InvalidID };
-	int					isSelectSoundPrev{ InvalidID };
+	Sound::SoundUniqueID					m_cancelID{ InvalidID };
+	Sound::SoundUniqueID					m_cursorID{ InvalidID };
+	Sound::SoundUniqueID					m_NGID{ InvalidID };
+	Sound::SoundUniqueID					m_OKID{ InvalidID };
+	int										m_isSelectSoundPrev{ InvalidID };
 	char		padding2[4]{};
 public:
 	TitleUI(void) noexcept {}
@@ -34,16 +34,16 @@ public:
 	virtual ~TitleUI(void) noexcept {}
 public:
 	bool		IsEnd(void) const noexcept { return !this->m_DrawUI->Get(this->m_UIBase).IsActive() && this->m_DrawUI->Get(this->m_UIBase).IsAnimeEnd(); }
-	void		SetEnd() noexcept { this->m_DrawUI->Get(this->m_UIBase).SetActive(false); }
+	void		SetEnd(void) noexcept { this->m_DrawUI->Get(this->m_UIBase).SetActive(false); }
 	bool		IsActive(void) const noexcept { return this->m_IsActive; }
 	void		SetActive(bool value) noexcept { this->m_IsActive = value; }
 	void		SetEvent(int ID, const std::function<void()>& value) noexcept { this->m_ButtonDo[static_cast<size_t>(ID)] = value; }
 public:
 	void		Init(void) noexcept {
-		cancelID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cancel.wav", false);
-		cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
-		NGID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ng.wav", false);
-		OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
+		this->m_cancelID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cancel.wav", false);
+		this->m_cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
+		this->m_NGID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ng.wav", false);
+		this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
 
 		this->m_DrawUI = new Draw::DrawUISystem();
 		this->m_DrawUI->Init("data/UI/Title/TitleUI.json");
@@ -66,15 +66,15 @@ public:
 					break;
 				}
 			}
-			if (IsSelect != InvalidID && (IsSelect != isSelectSoundPrev)) {
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+			if (IsSelect != InvalidID && (IsSelect != this->m_isSelectSoundPrev)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
 			}
-			isSelectSoundPrev = IsSelect;
+			this->m_isSelectSoundPrev = IsSelect;
 
 			if (KeyMngr->GetMenuKeyTrigger(Util::EnumMenu::Diside)) {
 				for (int loop = 0; loop < 4; ++loop) {
 					if (this->m_DrawUI->Get(this->m_ButtonID[loop]).IsSelectButton()) {
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
 					}
 				}
 			}
@@ -101,18 +101,17 @@ public:
 
 class EndUI {
 private:
-	Draw::DrawUISystem* m_DrawUI{ nullptr };
-	int				m_UIBase{ InvalidID };
-	int				m_ButtonID{ InvalidID };
-	int				m_CloseButtonID{ InvalidID };
+	Draw::DrawUISystem*		m_DrawUI{ nullptr };
+	int						m_UIBase{ InvalidID };
+	int						m_ButtonID{ InvalidID };
+	int						m_CloseButtonID{ InvalidID };
 	char		padding[4]{};
 	std::function<void()>	m_ButtonDo{};
-
-	Sound::SoundUniqueID cancelID{ InvalidID };
-	Sound::SoundUniqueID cursorID{ InvalidID };
-	Sound::SoundUniqueID NGID{ InvalidID };
-	Sound::SoundUniqueID OKID{ InvalidID };
-	bool					isSelectSoundPrev{ false };
+	Sound::SoundUniqueID	m_cancelID{ InvalidID };
+	Sound::SoundUniqueID	m_cursorID{ InvalidID };
+	Sound::SoundUniqueID	m_NGID{ InvalidID };
+	Sound::SoundUniqueID	m_OKID{ InvalidID };
+	bool					m_isSelectSoundPrev{ false };
 	char		padding2[7]{};
 public:
 	EndUI(void) noexcept {}
@@ -128,10 +127,10 @@ public:
 	void		SetEvent(const std::function<void()>& value) noexcept { this->m_ButtonDo = value; }
 public:
 	void		Init(void) noexcept {
-		cancelID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cancel.wav", false);
-		cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
-		NGID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ng.wav", false);
-		OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
+		this->m_cancelID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cancel.wav", false);
+		this->m_cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
+		this->m_NGID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ng.wav", false);
+		this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
 
 		this->m_DrawUI = new Draw::DrawUISystem();
 		this->m_DrawUI->Init("data/UI/Title/EndUI.json");
@@ -150,14 +149,14 @@ public:
 			if (this->m_DrawUI->Get(this->m_CloseButtonID).IsSelectButton()) {
 				IsSelect = true;
 			}
-			if (IsSelect && (IsSelect != isSelectSoundPrev)) {
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+			if (IsSelect && (IsSelect != this->m_isSelectSoundPrev)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
 			}
-			isSelectSoundPrev = IsSelect;
+			this->m_isSelectSoundPrev = IsSelect;
 
 			if (KeyMngr->GetMenuKeyTrigger(Util::EnumMenu::Diside)) {
 				if (this->m_DrawUI->Get(this->m_ButtonID).IsSelectButton()) {
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 			}
 			if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Diside)) {

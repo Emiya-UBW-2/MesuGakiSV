@@ -118,7 +118,7 @@ namespace Draw {
 				this->m_WindowHeight = HeightT * GetDPI() / BaseDPI;
 			}
 		}
-		if (m_WindowWidth != 0 && m_WindowHeight != 0) {
+		if (this->m_WindowWidth != 0 && this->m_WindowHeight != 0) {
 			//マウス座標取得
 			DxLib::GetMousePoint(&this->m_MouseX, &this->m_MouseY);
 			this->m_MouseX = (-(this->m_WindowDrawWidth - this->m_WindowWidth) / 2 + this->m_MouseX) * GetDispWidth() / this->m_WindowWidth;

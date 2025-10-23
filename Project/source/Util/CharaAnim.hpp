@@ -35,15 +35,15 @@ namespace Util {
 		float				m_Speed{};
 		char		padding[4]{};
 	public:
-		const std::string& GetPath(void) const noexcept { return m_Path; }
-		const VRAnim& GetAnim(void) const noexcept { return m_VRAnims.at(std::clamp<size_t>(static_cast<size_t>(m_Time), 0, static_cast<size_t>(m_VRAnims.size() - 1))); }
+		const std::string& GetPath(void) const noexcept { return this->m_Path; }
+		const VRAnim& GetAnim(void) const noexcept { return this->m_VRAnims.at(std::clamp<size_t>(static_cast<size_t>(this->m_Time), 0, static_cast<size_t>(this->m_VRAnims.size() - 1))); }
 
-		void			SetSpeed(float Speed) noexcept { m_Speed = Speed; }
-		void			GoTimeStart(void) noexcept { m_Time = 0.f; }
+		void			SetSpeed(float Speed) noexcept { this->m_Speed = Speed; }
+		void			GoTimeStart(void) noexcept { this->m_Time = 0.f; }
 	public:
 		void			Init(const char* Path) noexcept {
-			m_Path = Path;
-			m_VRAnims.resize(static_cast<size_t>(60 * 30));
+			this->m_Path = Path;
+			this->m_VRAnims.resize(static_cast<size_t>(60 * 30));
 			{
 				File::InputFileStream FileStream(Path);
 				int NowSearch = 0;
@@ -72,62 +72,62 @@ namespace Util {
 
 					if (LEFT == "Frame") {
 						NowSearch = std::stoi(RIGHT);
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).ID = std::stoi(RIGHT);
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).ID = std::stoi(RIGHT);
 					}
 					else if (LEFT == "RightRot0") {
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[0][0] = Args[0];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[0][1] = Args[1];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[0][2] = Args[2];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[0][0] = Args[0];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[0][1] = Args[1];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[0][2] = Args[2];
 					}
 					else if (LEFT == "RightRot1") {
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[1][0] = Args[0];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[1][1] = Args[1];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[1][2] = Args[2];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[1][0] = Args[0];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[1][1] = Args[1];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[1][2] = Args[2];
 					}
 					else if (LEFT == "RightRot2") {
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[2][0] = Args[0];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[2][1] = Args[1];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[2][2] = Args[2];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[2][0] = Args[0];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[2][1] = Args[1];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightRot.get().m[2][2] = Args[2];
 					}
 					else if (LEFT == "RightPos") {
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightHandPos.x = Args[0];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightHandPos.y = Args[1];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightHandPos.z = Args[2];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightHandPos.x = Args[0];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightHandPos.y = Args[1];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_RightHandPos.z = Args[2];
 					}
 					else if (LEFT == "LeftRot0") {
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[0][0] = Args[0];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[0][1] = Args[1];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[0][2] = Args[2];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[0][0] = Args[0];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[0][1] = Args[1];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[0][2] = Args[2];
 					}
 					else if (LEFT == "LeftRot1") {
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[1][0] = Args[0];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[1][1] = Args[1];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[1][2] = Args[2];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[1][0] = Args[0];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[1][1] = Args[1];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[1][2] = Args[2];
 					}
 					else if (LEFT == "LeftRot2") {
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[2][0] = Args[0];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[2][1] = Args[1];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[2][2] = Args[2];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[2][0] = Args[0];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[2][1] = Args[1];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftRot.get().m[2][2] = Args[2];
 					}
 					else if (LEFT == "LeftPos") {
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftHandPos.x = Args[0];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftHandPos.y = Args[1];
-						m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftHandPos.z = Args[2];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftHandPos.x = Args[0];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftHandPos.y = Args[1];
+						this->m_VRAnims.at(static_cast<size_t>(NowSearch)).m_LeftHandPos.z = Args[2];
 					}
 				}
-				m_AnimTime = static_cast<float>(NowSearch);
+				this->m_AnimTime = static_cast<float>(NowSearch);
 			}
-			m_Speed = 1.f;
+			this->m_Speed = 1.f;
 		}
 		void			Update(void) noexcept {
-			m_Time += 30.f * DeltaTime * m_Speed;
-			if (m_Time >= m_AnimTime) {
-				m_Time -= m_AnimTime;
+			this->m_Time += 30.f * DeltaTime * this->m_Speed;
+			if (this->m_Time >= this->m_AnimTime) {
+				this->m_Time -= this->m_AnimTime;
 			}
 		}
 		void			Dispose(void) noexcept {
-			m_VRAnims.clear();
-			m_VRAnims.shrink_to_fit();
+			this->m_VRAnims.clear();
+			this->m_VRAnims.shrink_to_fit();
 		}
 	};
 
@@ -145,24 +145,24 @@ namespace Util {
 		virtual ~HandAnimPool(void) noexcept { Dispose(); }
 	public:
 		void	SetAnimSpeed(int index, float Speed) noexcept {
-			m_Anim.at(static_cast<size_t>(index)).SetSpeed(Speed);
+			this->m_Anim.at(static_cast<size_t>(index)).SetSpeed(Speed);
 		}
 		void			GoTimeStart(int index) noexcept {
-			m_Anim.at(static_cast<size_t>(index)).GoTimeStart();
+			this->m_Anim.at(static_cast<size_t>(index)).GoTimeStart();
 		}
 
-		const HandAnimData& GetAnim(int index) const noexcept { return m_Anim.at(static_cast<size_t>(index)); }
+		const HandAnimData& GetAnim(int index) const noexcept { return this->m_Anim.at(static_cast<size_t>(index)); }
 		int				Add(const char* Path) noexcept {
 			auto ID = GetIndex(Path);
 			if (ID != -1) {
 				return ID;
 			}
-			m_Anim.emplace_back();
-			m_Anim.back().Init(Path);
-			return static_cast<int>(m_Anim.size() - 1);
+			this->m_Anim.emplace_back();
+			this->m_Anim.back().Init(Path);
+			return static_cast<int>(this->m_Anim.size() - 1);
 		}
 		int				GetIndex(const char* Path) noexcept {
-			for (auto& a : m_Anim) {
+			for (auto& a : this->m_Anim) {
 				if (a.GetPath() == Path) {
 					return static_cast<int>(&a - &m_Anim.front());
 				}
@@ -171,15 +171,15 @@ namespace Util {
 		}
 	public:
 		void				Init(void) noexcept {
-			m_Anim.reserve(10);
+			this->m_Anim.reserve(10);
 		}
 		void				Update(void) noexcept {
-			for (auto& a : m_Anim) {
+			for (auto& a : this->m_Anim) {
 				a.Update();
 			}
 		}
 		void				Dispose(void) noexcept {
-			for (auto& a : m_Anim) {
+			for (auto& a : this->m_Anim) {
 				a.Dispose();
 			}
 		}

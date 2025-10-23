@@ -23,7 +23,7 @@ namespace Util {
 	template <class T>
 	class SingletonBase {
 	private:
-		static const T* m_Singleton;
+		static const T*	m_Singleton;
 	public:
 		static void Create(void) noexcept {
 			m_Singleton = new T();

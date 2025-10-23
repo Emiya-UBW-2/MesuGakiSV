@@ -20,112 +20,6 @@
 
 #include "Character.hpp"
 
-//ヒットボックス表示
-#define DRAW_HITBOX (false)
-
-namespace Charas {
-	//キャラのうち特定機能だけ抜き出したもの
-	//
-	enum class HitType {
-		Head,
-		Body,
-		Arm,
-		Leg,
-		//ヒール限定
-		Armor,
-		Helmet,
-	};
-	//
-	class HitBox {
-		Util::VECTOR3D	m_pos;
-		float		m_radius{ 0.0f };
-		HitType		m_HitType{ HitType::Body };
-	public:
-		const auto& GetColType(void) const noexcept { return this->m_HitType; }
-		const auto& GetPos(void) const noexcept { return this->m_pos; }
-	public:
-		void	Update(const Util::VECTOR3D& pos, float radius, HitType pHitType) {
-			this->m_pos = pos;
-			this->m_radius = radius;
-			this->m_HitType = pHitType;
-		}
-#if DRAW_HITBOX
-		void	Draw(void) const noexcept {
-			unsigned int color{};
-			switch (this->m_HitType) {
-			case HitType::Head:
-				color = ColorPalette::Red;
-				break;
-			case HitType::Body:
-				color = ColorPalette::Green;
-				break;
-			case HitType::Arm:
-				color = ColorPalette::Blue;
-				break;
-			case HitType::Leg:
-				color = ColorPalette::Blue;
-				break;
-			default:
-				break;
-			}
-			DrawSphere3D(this->m_pos.get(), this->m_radius, 6, color, color, true);
-		}
-#endif
-		bool	Colcheck(const Util::VECTOR3D& StartPos, Util::VECTOR3D* pEndPos) const noexcept {
-			VECTOR pos1 = StartPos.get();
-			VECTOR pos2 = pEndPos->get();
-			VECTOR posA = this->m_pos.get();
-			SEGMENT_POINT_RESULT Res;
-			Segment_Point_Analyse(&pos1, &pos2, &posA, &Res);
-			if (Res.Seg_Point_MinDist_Square <= this->m_radius * this->m_radius) {
-				*pEndPos = Res.Seg_MinDist_Pos;
-				return true;
-			}
-			return false;
-		}
-	};
-	class HitBoxControl {
-	private:
-		std::vector<HitBox>									m_HitBox;
-	public:
-		const HitBox* GetLineHit(const Util::VECTOR3D& StartPos, Util::VECTOR3D* pEndPos) const noexcept {
-			for (auto& hitbox : this->m_HitBox) {
-				if (hitbox.Colcheck(StartPos, pEndPos)) {
-					return &hitbox;
-				}
-			}
-			return nullptr;
-		}
-	public:
-		void		CheckLineHitNearest(const Util::VECTOR3D& StartPos, Util::VECTOR3D* pEndPos) const noexcept {
-			for (auto& hitbox : this->m_HitBox) {
-				hitbox.Colcheck(StartPos, pEndPos);
-			}
-		}
-		const auto& GetHitBoxPointList() const { return this->m_HitBox; }
-	public:
-		HitBoxControl(void) noexcept {}
-		virtual ~HitBoxControl(void) noexcept {}
-	public:
-		void Init(void) noexcept {
-			this->m_HitBox.resize(27);
-		}
-		void Update(const BaseObject* ptr, float SizeRate) noexcept;
-#if DRAW_HITBOX
-		void Draw(void) const noexcept {
-			SetUseLighting(false);
-			//SetUseZBuffer3D(false);
-
-			for (auto& hitbox : this->m_HitBox) {
-				hitbox.Draw();
-			}
-
-			//SetUseZBuffer3D(true);
-			SetUseLighting(true);
-		}
-#endif
-	};
-}
 enum class EarlyCharaAnim {
 	Stand,//立ち
 	Walk,//歩き
@@ -135,6 +29,9 @@ enum class EarlyCharaAnim {
 	DownTop,//仰向きに倒れる
 	WakeTop,//仰向きから立つ
 
+	DownBottom,//仰向きに倒れる
+	WakeBottom,//仰向きから立つ
+
 	Max,
 };
 
@@ -143,31 +40,31 @@ namespace AIs {
 	public:
 		// 経路探索処理用の１ポリゴンの情報
 		class PATHPLANNING_UNIT {
-			int PolyIndex;						// ポリゴン番号
-			float TotalDistance;				// 経路探索でこのポリゴンに到達するまでに通過したポリゴン間の距離の合計
-			PATHPLANNING_UNIT* PrevPolyUnit;		// 経路探索で確定した経路上の一つ前のポリゴン( 当ポリゴンが経路上に無い場合は nullptr )
-			PATHPLANNING_UNIT* NextPolyUnit;		// 経路探索で確定した経路上の一つ先のポリゴン( 当ポリゴンが経路上に無い場合は nullptr )
+			int							m_PolyIndex{};		// ポリゴン番号
+			float						m_TotalDistance{};	// 経路探索でこのポリゴンに到達するまでに通過したポリゴン間の距離の合計
+			PATHPLANNING_UNIT*			m_PrevPolyUnit{};		// 経路探索で確定した経路上の一つ前のポリゴン( 当ポリゴンが経路上に無い場合は nullptr )
+			PATHPLANNING_UNIT*			m_NextPolyUnit{};		// 経路探索で確定した経路上の一つ先のポリゴン( 当ポリゴンが経路上に無い場合は nullptr )
 		public:
-			PATHPLANNING_UNIT* ActiveNextUnit;		// 経路探索処理対象になっている次のポリゴンのメモリアドレスを格納する変数
+			PATHPLANNING_UNIT*			m_ActiveNextUnit{};	// 経路探索処理対象になっている次のポリゴンのメモリアドレスを格納する変数
 		public:
-			const auto& GetPolyIndex() const noexcept { return this->PolyIndex; }
-			const auto& GetNextPolyUnit() const noexcept { return this->NextPolyUnit; }
+			const auto& GetPolyIndex(void) const noexcept { return this->m_PolyIndex; }
+			const auto& GetNextPolyUnit(void) const noexcept { return this->m_NextPolyUnit; }
 		public:
 			bool SetPrevPolyUnit(PATHPLANNING_UNIT* PUnit, int tris) {
 				auto* BackGroundParts = BackGround::Instance();
 				// 隣接するポリゴンが既に経路探索処理が行われていて、且つより距離の長い経路となっている場合は何もしない
-				auto& Unit = BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(PUnit->PolyIndex));
+				auto& Unit = BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(PUnit->m_PolyIndex));
 
-				auto trisdistance = PUnit->TotalDistance +
+				auto trisdistance = PUnit->m_TotalDistance +
 					(BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(Unit.GetLinkPolyIndex(tris))).GetPos() + Unit.GetPos()).magnitude();
 
-				if (this->TotalDistance > trisdistance) {
-					this->TotalDistance = trisdistance;		// 隣接するポリゴンにここに到達するまでの距離を代入する
+				if (this->m_TotalDistance > trisdistance) {
+					this->m_TotalDistance = trisdistance;		// 隣接するポリゴンにここに到達するまでの距離を代入する
 				}
 				else {
-					if (this->PrevPolyUnit) { return false; }
+					if (this->m_PrevPolyUnit) { return false; }
 				}
-				this->PrevPolyUnit = PUnit;			// 隣接するポリゴンに経路情報となる自分のポリゴンの番号を代入する
+				this->m_PrevPolyUnit = PUnit;			// 隣接するポリゴンに経路情報となる自分のポリゴンの番号を代入する
 				return true;
 			}
 			bool SearchThisUnit(PATHPLANNING_UNIT* SearchUnit) {
@@ -176,7 +73,7 @@ namespace AIs {
 				while (true) {
 					if (PUnitSub2 == nullptr) { break; }
 					if (PUnitSub2 == this) { return false; }//既に追加されとる
-					PUnitSub2 = PUnitSub2->ActiveNextUnit;
+					PUnitSub2 = PUnitSub2->m_ActiveNextUnit;
 				}
 				return PUnitSub2 != nullptr;
 			}
@@ -186,102 +83,101 @@ namespace AIs {
 				PATHPLANNING_UNIT* PUnit = pGoal;
 				while (true) {
 					auto* PrevPUnitIndex = PUnit;
-					PUnit = PUnit->PrevPolyUnit;
-					PUnit->NextPolyUnit = PrevPUnitIndex;
+					PUnit = PUnit->m_PrevPolyUnit;
+					PUnit->m_NextPolyUnit = PrevPUnitIndex;
 					if (PUnit == pStart) { break; }
 				}
 			}
 		public:
 			void Init(int index) {
-				this->PolyIndex = index;
-				this->TotalDistance = 0.0f;
-				this->PrevPolyUnit = nullptr;
-				this->NextPolyUnit = nullptr;
-				this->ActiveNextUnit = nullptr;
+				this->m_PolyIndex = index;
+				this->m_TotalDistance = 0.0f;
+				this->m_PrevPolyUnit = nullptr;
+				this->m_NextPolyUnit = nullptr;
+				this->m_ActiveNextUnit = nullptr;
 			}
 		};
 	private:
-		Util::VECTOR3D GoalPosition;					// 目標位置
+		Util::VECTOR3D					m_GoalPosition;					// 目標位置
 		char		padding[4]{};
-		std::vector<PATHPLANNING_UNIT>UnitArray;	// 経路探索処理で使用する全ポリゴンの情報配列が格納されたメモリ領域の先頭メモリアドレスを格納する変数
-		PATHPLANNING_UNIT* StartUnit{ nullptr };			// 経路のスタート地点にあるポリゴン情報へのメモリアドレスを格納する変数
-		PATHPLANNING_UNIT* GoalUnit{ nullptr };				// 経路のゴール地点にあるポリゴン情報へのメモリアドレスを格納する変数
+		std::vector<PATHPLANNING_UNIT>	m_UnitArray;					// 経路探索処理で使用する全ポリゴンの情報配列が格納されたメモリ領域の先頭メモリアドレスを格納する変数
+		PATHPLANNING_UNIT*				m_StartUnit{ nullptr };			// 経路のスタート地点にあるポリゴン情報へのメモリアドレスを格納する変数
+		PATHPLANNING_UNIT*				m_GoalUnit{ nullptr };			// 経路のゴール地点にあるポリゴン情報へのメモリアドレスを格納する変数
 	public:
-		const auto& GetStartUnit() const noexcept { return this->StartUnit; }
+		const auto& GetStartUnit(void) const noexcept { return this->m_StartUnit; }
 	public:
 		Util::VECTOR3D GetNextPoint(const Util::VECTOR3D& NowPosition, int* TargetPathPlanningIndex) const {
-			{
-				auto* BackGroundParts = BackGround::Instance();
-				auto Goal = this->GoalPosition;
-				if (!BackGroundParts->CheckLine(NowPosition, &Goal)) {
-					// 方向は目標座標
-					return this->GoalPosition;
-				}
-				int NowIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds(NowPosition);
-				if (!((*TargetPathPlanningIndex != -1) && (this->GoalUnit))) {
-					return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(BackGroundParts->GetWayPoint()->GetNearestBuilds2(NowPosition))).GetPos();
-				}
-				if (NowIndex != this->GoalUnit->GetPolyIndex()) {																	// 現在乗っているポリゴンがゴール地点にあるポリゴンの場合は処理を分岐
-					if (NowIndex == *TargetPathPlanningIndex) {													// 現在乗っているポリゴンが移動中間地点のポリゴンの場合は次の中間地点を決定する処理を行う
-						auto NextIndex = this->UnitArray.at(static_cast<size_t>(*TargetPathPlanningIndex)).GetNextPolyUnit()->GetPolyIndex();
-						(*TargetPathPlanningIndex) = NextIndex;													// チェック対象を経路上の更に一つ先のポリゴンに変更する
-					}
-					// 移動方向を決定する、移動方向は現在の座標から中間地点のポリゴンの中心座標に向かう方向
-					return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(*TargetPathPlanningIndex)).GetPos();
-				}
-				else {
-					// 方向は目標座標
-					return this->GoalPosition;
-				}
-			}
-
-
-
 			auto* BackGroundParts = BackGround::Instance();
+			auto Goal = this->m_GoalPosition;
+			if (!BackGroundParts->CheckLine(NowPosition, &Goal)) {
+				// 方向は目標座標
+				return this->m_GoalPosition;
+			}
 			int NowIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds(NowPosition);
-			if (!((*TargetPathPlanningIndex != -1) && (this->GoalUnit))) {
+			if (!((*TargetPathPlanningIndex != -1) && (this->m_GoalUnit))) {
 				return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(BackGroundParts->GetWayPoint()->GetNearestBuilds2(NowPosition))).GetPos();
 			}
-			if (NowIndex != this->GoalUnit->GetPolyIndex()) {																	// 現在乗っているポリゴンがゴール地点にあるポリゴンの場合は処理を分岐
+			if (NowIndex != this->m_GoalUnit->GetPolyIndex()) {																	// 現在乗っているポリゴンがゴール地点にあるポリゴンの場合は処理を分岐
 				if (NowIndex == *TargetPathPlanningIndex) {													// 現在乗っているポリゴンが移動中間地点のポリゴンの場合は次の中間地点を決定する処理を行う
-					const float COLLWIDTH = 0.001f * Scale3DRate;												// 当たり判定のサイズ
-					while (true) {																				// 次の中間地点が決定するまでループし続ける
-						if (!this->UnitArray.at(static_cast<size_t>(*TargetPathPlanningIndex)).GetNextPolyUnit()) { break; }
-						auto NextIndex = this->UnitArray.at(static_cast<size_t>(*TargetPathPlanningIndex)).GetNextPolyUnit()->GetPolyIndex();
-						if (!BackGroundParts->GetWayPoint()->CheckPolyMoveWidth(NowPosition, NextIndex, COLLWIDTH)) { break; }		// 経路上の次のポリゴンの中心座標に直線的に移動できない場合はループから抜ける
-						(*TargetPathPlanningIndex) = NextIndex;													// チェック対象を経路上の更に一つ先のポリゴンに変更する
-						if ((*TargetPathPlanningIndex) == this->GoalUnit->GetPolyIndex()) { break; }				// もしゴール地点のポリゴンだったらループを抜ける
-					}
+					auto NextIndex = this->m_UnitArray.at(static_cast<size_t>(*TargetPathPlanningIndex)).GetNextPolyUnit()->GetPolyIndex();
+					(*TargetPathPlanningIndex) = NextIndex;													// チェック対象を経路上の更に一つ先のポリゴンに変更する
 				}
 				// 移動方向を決定する、移動方向は現在の座標から中間地点のポリゴンの中心座標に向かう方向
 				return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(*TargetPathPlanningIndex)).GetPos();
 			}
 			else {
 				// 方向は目標座標
-				return this->GoalPosition;
+				return this->m_GoalPosition;
 			}
+			/*
+			{
+				auto* BackGroundParts = BackGround::Instance();
+				int NowIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds(NowPosition);
+				if (!((*TargetPathPlanningIndex != -1) && (this->m_GoalUnit))) {
+					return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(BackGroundParts->GetWayPoint()->GetNearestBuilds2(NowPosition))).GetPos();
+				}
+				if (NowIndex != this->m_GoalUnit->GetPolyIndex()) {																	// 現在乗っているポリゴンがゴール地点にあるポリゴンの場合は処理を分岐
+					if (NowIndex == *TargetPathPlanningIndex) {													// 現在乗っているポリゴンが移動中間地点のポリゴンの場合は次の中間地点を決定する処理を行う
+						const float COLLWIDTH = 0.001f * Scale3DRate;												// 当たり判定のサイズ
+						while (true) {																				// 次の中間地点が決定するまでループし続ける
+							if (!this->m_UnitArray.at(static_cast<size_t>(*TargetPathPlanningIndex)).GetNextPolyUnit()) { break; }
+							auto NextIndex = this->m_UnitArray.at(static_cast<size_t>(*TargetPathPlanningIndex)).GetNextPolyUnit()->GetPolyIndex();
+							if (!BackGroundParts->GetWayPoint()->CheckPolyMoveWidth(NowPosition, NextIndex, COLLWIDTH)) { break; }		// 経路上の次のポリゴンの中心座標に直線的に移動できない場合はループから抜ける
+							(*TargetPathPlanningIndex) = NextIndex;													// チェック対象を経路上の更に一つ先のポリゴンに変更する
+							if ((*TargetPathPlanningIndex) == this->m_GoalUnit->GetPolyIndex()) { break; }				// もしゴール地点のポリゴンだったらループを抜ける
+						}
+					}
+					// 移動方向を決定する、移動方向は現在の座標から中間地点のポリゴンの中心座標に向かう方向
+					return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(*TargetPathPlanningIndex)).GetPos();
+				}
+				else {
+					// 方向は目標座標
+					return this->m_GoalPosition;
+				}
+			}
+			//*/
 		}
 	public:
 		bool Init(Util::VECTOR3D StartPos, Util::VECTOR3D GoalPos) {
 			auto* BackGroundParts = BackGround::Instance();
 			// 指定の２点の経路を探索する( 戻り値 true:経路構築成功 false:経路構築失敗( スタート地点とゴール地点を繋ぐ経路が無かった等 ) )
-			this->GoalPosition = GoalPos;			// ゴール位置を保存
+			this->m_GoalPosition = GoalPos;			// ゴール位置を保存
 
-			this->UnitArray.resize(BackGroundParts->GetWayPoint()->GetWayPoints().size());			// 経路探索用のポリゴン情報を格納するメモリ領域を確保、初期化
-			for (auto& p : this->UnitArray) {
-				p.Init(static_cast<int>(&p - &this->UnitArray.front()));
+			this->m_UnitArray.resize(BackGroundParts->GetWayPoint()->GetWayPoints().size());			// 経路探索用のポリゴン情報を格納するメモリ領域を確保、初期化
+			for (auto& p : this->m_UnitArray) {
+				p.Init(static_cast<int>(&p - &this->m_UnitArray.front()));
 			}
 
 			int StartIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds2(StartPos);	// スタート地点にあるポリゴンの番号を取得し、ポリゴンの経路探索処理用の構造体のアドレスを保存
 			if (StartIndex == -1) { return false; }
-			this->StartUnit = &this->UnitArray[static_cast<size_t>(StartIndex)];					// スタート地点にあるポリゴンの番号を取得し、ポリゴンの経路探索処理用の構造体のアドレスを保存
+			this->m_StartUnit = &this->m_UnitArray[static_cast<size_t>(StartIndex)];					// スタート地点にあるポリゴンの番号を取得し、ポリゴンの経路探索処理用の構造体のアドレスを保存
 
 			int GoalIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds2(GoalPos);		// ゴール地点にあるポリゴンの番号を取得し、ポリゴンの経路探索処理用の構造体のアドレスを保存
 			if (GoalIndex == -1) { return false; }
-			this->GoalUnit = &this->UnitArray[static_cast<size_t>(GoalIndex)];				// ゴール地点にあるポリゴンの番号を取得し、ポリゴンの経路探索処理用の構造体のアドレスを保存
+			this->m_GoalUnit = &this->m_UnitArray[static_cast<size_t>(GoalIndex)];				// ゴール地点にあるポリゴンの番号を取得し、ポリゴンの経路探索処理用の構造体のアドレスを保存
 			if (GoalIndex == StartIndex) { return false; }				// ゴール地点にあるポリゴンとスタート地点にあるポリゴンが同じだったら false を返す
 
-			PATHPLANNING_UNIT* ActiveFirstUnit = this->StartUnit;		// 経路探索処理対象のポリゴンとしてスタート地点にあるポリゴンを登録する
+			PATHPLANNING_UNIT* ActiveFirstUnit = this->m_StartUnit;		// 経路探索処理対象のポリゴンとしてスタート地点にあるポリゴンを登録する
 			// 経路を探索してゴール地点のポリゴンにたどり着くまでループを繰り返す
 			while (true) {
 				bool Goal = false;
@@ -293,29 +189,29 @@ namespace AIs {
 					for (int K = 0; K < 8; K++) {
 						int Index = BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(PUnit->GetPolyIndex())).GetLinkPolyIndex(K);
 						if (Index == -1) { continue; }											// 辺に隣接するポリゴンが無い場合は何もしない
-						if (Index == this->StartUnit->GetPolyIndex()) { continue; }				//スタート地点のポリゴンだった場合は何もしない
-						auto& NowUnit = this->UnitArray[static_cast<size_t>(Index)];
+						if (Index == this->m_StartUnit->GetPolyIndex()) { continue; }				//スタート地点のポリゴンだった場合は何もしない
+						auto& NowUnit = this->m_UnitArray[static_cast<size_t>(Index)];
 						if (!NowUnit.SetPrevPolyUnit(PUnit, K)) {
 							continue;
 						}
 						// 次のループで行う経路探索処理対象に追加する、既に追加されていたら追加しない
 						if (!NowUnit.SearchThisUnit(ActiveFirstUnit)) {
-							NowUnit.ActiveNextUnit = ActiveFirstUnit;
+							NowUnit.m_ActiveNextUnit = ActiveFirstUnit;
 							ActiveFirstUnit = &NowUnit;
 						}
 						// 隣接するポリゴンがゴール地点にあるポリゴンだったらゴールに辿り着いたフラグを立てる
-						if (Index == this->GoalUnit->GetPolyIndex()) {
+						if (Index == this->m_GoalUnit->GetPolyIndex()) {
 							Goal = true;
 						}
 					}
-					PUnit = PUnit->ActiveNextUnit;
+					PUnit = PUnit->m_ActiveNextUnit;
 					if (PUnit == nullptr) { break; }
 				}
 
 				if (!ActiveFirstUnit) { return false; }			// スタート地点にあるポリゴンからゴール地点にあるポリゴンに辿り着けないということなので false を返す
 				if (Goal) { break; }
 			}
-			PATHPLANNING_UNIT::SetNextIndex(this->GoalUnit, this->StartUnit);		// ゴール地点のポリゴンからスタート地点のポリゴンに辿って経路上のポリゴンに次に移動すべきポリゴンの番号を代入する
+			PATHPLANNING_UNIT::SetNextIndex(this->m_GoalUnit, this->m_StartUnit);		// ゴール地点のポリゴンからスタート地点のポリゴンに辿って経路上のポリゴンに次に移動すべきポリゴンの番号を代入する
 			return true;										// ここにきたらスタート地点からゴール地点までの経路が探索できたということなので true を返す
 		}
 		void Draw(void) const noexcept {
@@ -333,38 +229,44 @@ namespace AIs {
 					true
 				);
 				//
-				if (Now == GoalUnit) {
+				if (Now == this->m_GoalUnit) {
 					break;
 				}
 				Now = Now->GetNextPolyUnit();
 			}
 		}
 		void Dispose(void) {
-			this->UnitArray.clear();
+			this->m_UnitArray.clear();
 		}
 	};
 }
-class EarlyCharacter :public BaseObject {
-	Charas::HitBoxControl	m_HitBoxControl;
-	Util::VECTOR3D		m_MyTarget = Util::VECTOR3D::zero();
-	Util::VECTOR3D		m_MyPosTarget = Util::VECTOR3D::zero();
-	Util::VECTOR3D		m_Rad = Util::VECTOR3D::zero();
-	Util::VECTOR3D		m_Vector = Util::VECTOR3D::zero();
-	Util::VECTOR2D		m_VecR = Util::VECTOR2D::zero();
-	float				m_Speed = 0.f;
-	float				m_MovePer = 0.f;
-	float				m_YradDif{};
-	float				m_PathUpdateTimer{ 0.f };
+class EarlyCharacter :public CharacterCommon {
 	std::array<float, static_cast<int>(EarlyCharaAnim::Max)>		m_AnimPer{};
-	Sound::SoundUniqueID	m_runfootID{ InvalidID };
-	int					m_FootSoundID{};
-	int					m_TargetPathPlanningIndex{ 0 };		// 次の中間地点となる経路上のポリゴンの経路探索情報が格納されているメモリアドレスを格納する変数
+
+	Util::VECTOR3D		m_MyTarget = Util::VECTOR3D::zero();
 	AIs::PathChecker	m_PathChecker;
-	uint8_t				m_MoveKey{};
+	int					m_TargetPathPlanningIndex{ 0 };		// 次の中間地点となる経路上のポリゴンの経路探索情報が格納されているメモリアドレスを格納する変数
+	float				m_PathUpdateTimer{ 0.f };
+
+	float				m_DownTopTimer{ 0.f };
 	bool				m_DownTop{};
 	bool				m_WakeTop{};
-	char		padding[1]{};
-	float				m_DownTimer{ 0.f };
+	char		padding[2]{};
+
+	float				m_DownBottomTimer{ 0.f };
+	bool				m_DownBottom{};
+	bool				m_WakeBottom{};
+	char		padding2[2]{};
+
+	float				m_KeepPower{ 0.f };
+	float				m_KeepTimer{ 0.f };
+
+	Util::VECTOR3D		m_HitVec{};
+	float				m_HitPower{ 0.f };
+	float				m_HitBack{ 0.f };
+
+	Util::VECTOR3D		m_DownVec{};
+	float				m_DownPower{ 0.f };
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -372,128 +274,73 @@ public:
 	EarlyCharacter& operator=(const EarlyCharacter&) = delete;
 	EarlyCharacter& operator=(EarlyCharacter&&) = delete;
 	virtual ~EarlyCharacter(void) noexcept {}
-private:
-	int				GetFrameNum(void) noexcept override { return static_cast<int>(CharaFrame::Max); }
-	const char*		GetFrameStr(int id) noexcept override { return CharaFrameName[id]; }
 public:
-	auto			GetFrameWorldMat(CharaFrame frame) const noexcept { return ModelID.GetFrameLocalWorldMatrix(GetFrame(static_cast<int>(frame))); }
-	const auto&		GetHitBoxList(void) const noexcept { return this->m_HitBoxControl.GetHitBoxPointList(); }
-
-	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
-	float GetSpeed(void) const noexcept { return m_Speed; }
-	float GetSpeedMax(void) const noexcept {
-		return 2.f * Scale3DRate * DeltaTime;
-	}
-	void SetPos(Util::VECTOR3D MyPos) noexcept {
-		m_MyPosTarget = MyPos - Util::VECTOR3D::up() * Scale3DRate;
-		if (!BackGround::Instance()->CheckLine(MyPos + Util::VECTOR3D::up() * Scale3DRate, &m_MyPosTarget)) {
-			m_MyPosTarget = MyPos;
-		}
-		MyMat = Util::Matrix4x4::Mtrans(m_MyPosTarget);
-	}
-
-	void		ChangePoint() noexcept {
-		auto* BackGroundParts = BackGround::Instance();
-		Util::VECTOR3D MyPos = m_MyPosTarget;
-
-		this->m_TargetPathPlanningIndex = -1;
-		for (int i = 0; i < 10; i++) {
-			this->m_PathChecker.Dispose();
-			if (m_PathChecker.Init(MyPos, m_MyTarget)) {	// 指定の２点の経路情報を探索する
-				this->m_TargetPathPlanningIndex = m_PathChecker.GetStartUnit()->GetPolyIndex();	// 移動開始時点の移動中間地点の経路探索情報もスタート地点にあるポリゴンの情報
-				break;
+	float GetSpeedMax(void) const noexcept { return 2.f * Scale3DRate * DeltaTime; }
+public:
+	void		SetTarget(const Util::VECTOR3D& pos) noexcept { this->m_MyTarget = pos; }
+	void		SetHit(const Util::VECTOR3D& Vec) noexcept {
+		this->m_KeepPower = std::clamp(this->m_KeepPower + 0.35f, 0.f, 1.f);
+		this->m_KeepTimer = 1.f;
+		if (this->m_KeepPower >= 1.f) {
+			//倒れる
+			Util::VECTOR3D A = GetMat().zvec(); A.y = 0.f;
+			Util::VECTOR3D B = Vec; B.y = 0.f;
+			if (Util::VECTOR3D::Dot(A, B) > 0.f) {
+				SetDownTop(B.normalized());
 			}
 			else {
-				MyPos = BackGroundParts->GetWayPoint()->GetRandomPoint(MyPos, 10.f * Scale3DRate);//選定できない場合10m以内で再選定
+				SetDownBottom(B.normalized());
+			}
+		}
+		else {
+			//のけぞり
+			Util::VECTOR3D A = GetMat().zvec(); A.y = 0.f;
+			Util::VECTOR3D B = Vec; B.y = 0.f;
+			if (Util::VECTOR3D::Dot(A, B) > 0.f) {
+				m_HitVec = (B.normalized());
+				this->m_HitPower = 1.f;
+				this->m_HitBack = 1.f;
+			}
+			else {
+				m_HitVec = (B.normalized()) * -1.f;
+				this->m_HitPower = -1.f;
+				this->m_HitBack = -1.f;
 			}
 		}
 	}
-
-	void		SetTarget(const Util::VECTOR3D& pos) noexcept {
-		m_MyTarget = pos;
-	}
-	void		SetDownTop() noexcept {
+	//倒れる
+	void		SetDownTop(const Util::VECTOR3D& Vec) noexcept {
+		m_DownVec = Vec * -1.f;
 		if (!this->m_DownTop) {
 			SetAnim(static_cast<int>(EarlyCharaAnim::DownTop)).SetTime(0.f);
-			this->m_DownTimer = 3.f;
+			this->m_DownTopTimer = 3.f;
+			this->m_DownPower = -1.f;
 		}
 		this->m_DownTop = true;
 	}
-	void		SetWakeTop() noexcept {
-		if (!this->m_WakeTop) {
-			SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).SetTime(0.f);
+	//倒れる
+	void		SetDownBottom(const Util::VECTOR3D& Vec) noexcept {
+		m_DownVec = Vec;
+		if (!this->m_DownBottom) {
+			SetAnim(static_cast<int>(EarlyCharaAnim::DownBottom)).SetTime(0.f);
+			this->m_DownBottomTimer = 3.f;
+			this->m_DownPower = 1.f;
 		}
-		this->m_WakeTop = true;
+		this->m_DownBottom = true;
 	}
-
-	const Charas::HitBox*		CheckHit(const Util::VECTOR3D& StartPos, Util::VECTOR3D* pEndPos) noexcept {
-		//if (!IsAlive()) { return nullptr; }
-		if (!(Util::GetMinLenSegmentToPoint(StartPos, *pEndPos, GetMat().pos()) <= 2.0f * Scale3DRate)) { return nullptr; }
-		return this->m_HitBoxControl.GetLineHit(StartPos, pEndPos);
-	}
-
 public:
-	void Load_Sub(void) noexcept override {
-		m_runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
-		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
-	}
-	void Init_Sub(void) noexcept override {
-		this->m_HitBoxControl.Init();
-		this->m_Speed = 0.f;
+	void CheckDraw_Sub(void) noexcept override {}
+public:
+	void Load_Chara(void) noexcept override {}
+	void Init_Chara(void) noexcept override {
 		this->m_PathUpdateTimer = 1.f;
 		this->m_DownTop = false;
 		this->m_WakeTop = false;
-		this->m_DownTimer = 0.f;
+		this->m_DownTopTimer = 0.f;
+		this->m_DownBottom = false;
+		this->m_WakeBottom = false;
+		this->m_DownBottomTimer = 0.f;
+		this->m_DownPower = 0.f;
 	}
-	void Update_Sub(void) noexcept override;
-	void SetShadowDraw_Sub(void) const noexcept override {
-		ModelID.DrawModel();
-	}
-	void CheckDraw_Sub(void) noexcept override {
-	}
-	void Draw_Sub(void) const noexcept override {
-		//hitbox描画
-#if DRAW_HITBOX
-		this->m_HitBoxControl.Draw();
-#endif
-		ModelID.DrawModel();
-
-		return;
-		auto Pos = (m_MyPosTarget + Util::VECTOR3D::up() * (1.f * Scale3DRate));
-
-		int X = this->m_TargetPathPlanningIndex;
-		Util::VECTOR3D Vec3D = m_PathChecker.GetNextPoint(Pos, &X);
-
-		DxLib::DrawLine3D(Vec3D.get(), Pos.get(), DxLib::GetColor(255, 0, 0));
-
-		for (const auto& m : BackGround::Instance()->GetWayPoint()->GetWayPoints()) {
-			Util::VECTOR3D Vec1 = m.GetPos();
-			//if (!((Vec1 - Pos).magnitude() < 10.f * Scale3DRate)) { continue; }
-			//*
-			for (int K = 0; K < 8; K++) {
-				int LinkIndex = m.GetLinkPolyIndex(K);
-				if (LinkIndex == -1) { continue; }
-				Util::VECTOR3D Vec2 = BackGround::Instance()->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(LinkIndex)).GetPos();
-
-				DxLib::DrawLine3D(Vec1.get(), Vec2.get(), DxLib::GetColor(255, 255, 0));
-			}
-			//*/
-			/*
-			DrawCube3D(
-				m.GetMinPos().get(),
-				m.GetMaxPos().get(),
-				DxLib::GetColor(255, 0, 0),
-				DxLib::GetColor(255, 0, 0),
-				false
-			);
-			//*/
-		}
-		m_PathChecker.Draw();
-	}
-	void ShadowDraw_Sub(void) const noexcept override {
-		ModelID.DrawModel();
-	}
-	void Dispose_Sub(void) noexcept override {
-		ModelID.Dispose();
-	}
+	void Update_Chara(void) noexcept override;
 };

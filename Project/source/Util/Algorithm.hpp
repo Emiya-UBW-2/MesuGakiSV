@@ -69,7 +69,7 @@ namespace Util {
 		inline static VECTOR2D		Reflect(const VECTOR2D& inDirection, const VECTOR2D& inNormal) noexcept { return inDirection + inNormal * (Dot(inNormal, inDirection * -1.f)) * 2.f; }
 		// RotateTowards
 		inline static VECTOR2D		Scale(const VECTOR2D& A, const VECTOR2D& B) noexcept { return vget((A.x * B.x), (A.y * B.y)); }
-		inline static float			SignedAngle(const VECTOR2D& A, const VECTOR2D& B) { return std::atan2f(Cross(A, B), Dot(A, B)); }
+		inline static float			SignedAngle(const VECTOR2D& A, const VECTOR2D& B) noexcept { return std::atan2f(Cross(A, B), Dot(A, B)); }
 		// Slerp
 		// SlerpUnclamped
 		// SmoothDamp
@@ -459,7 +459,7 @@ namespace Util {
 		}
 
 		// 逆行列を作成する
-		static int CreateInverseMatrix33(MATRIX33* Out, const MATRIX33& In) {
+		static int CreateInverseMatrix33(MATRIX33* Out, const MATRIX33& In) noexcept {
 			float detA =
 				In.m[0][0] * In.m[1][1] * In.m[2][2] +
 				In.m[0][1] * In.m[1][2] * In.m[2][0] +
@@ -533,7 +533,7 @@ namespace Util {
 			return TRUE;
 		}
 		// 逆行列を得る
-		static MATRIX33 M33Inverse(const MATRIX33& InM) {
+		static MATRIX33 M33Inverse(const MATRIX33& InM) noexcept {
 			MATRIX33 Result;
 
 			if (!CreateInverseMatrix33(&Result, InM)) {

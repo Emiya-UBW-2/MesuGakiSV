@@ -27,66 +27,66 @@ private:
 	int				GetFrameNum(void) noexcept override { return 0; }
 	const char*		GetFrameStr(int) noexcept override { return nullptr; }
 private:
-	Util::VECTOR3D Vector{};
-	float YVecAdd{};
-	float Timer{};
-	bool m_IsPlaySound{};
+	Util::VECTOR3D			m_Vector{};
+	float					m_YVecAdd{};
+	float					m_Timer{};
+	bool					m_IsPlaySound{};
 	char		padding[3]{};
-	Sound::SoundUniqueID FallCaseID{ InvalidID };
+	Sound::SoundUniqueID	m_FallCaseID{ InvalidID };
 	char		padding2[4]{};
 public:
 	void Set(const Util::Matrix4x4& Case, const Util::Matrix4x4& CaseVec) noexcept {
 		SetMatrix(Case);
-		this->Vector = (CaseVec.pos() - Case.pos()).normalized() *
+		this->m_Vector = (CaseVec.pos() - Case.pos()).normalized() *
 			(static_cast<float>(250 + GetRand(100)) / 100.f * Scale3DRate * DeltaTime);
-		this->YVecAdd = 0.f;
-		this->Timer = 1.f;
+		this->m_YVecAdd = 0.f;
+		this->m_Timer = 1.f;
 		this->m_IsPlaySound = false;
 	}
 public:
 	void Load_Sub(void) noexcept override {
-		FallCaseID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/FallCase.wav", true);
+		this->m_FallCaseID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/FallCase.wav", true);
 	}
 	void Init_Sub(void) noexcept override {
 	}
 	void Update_Sub(void) noexcept override {
-		if (this->Timer == 0.f) { return; }
-		this->Timer = std::max(this->Timer - DeltaTime, 0.f);
-		this->YVecAdd -= GravAccel;
-		this->Vector.y += this->YVecAdd;
-		Util::VECTOR3D Target = this->GetMat().pos() + this->Vector;
+		if (this->m_Timer == 0.f) { return; }
+		this->m_Timer = std::max(this->m_Timer - DeltaTime, 0.f);
+		this->m_YVecAdd -= GravAccel;
+		this->m_Vector.y += this->m_YVecAdd;
+		Util::VECTOR3D Target = this->GetMat().pos() + this->m_Vector;
 		Util::VECTOR3D Normal;
 		if (BackGround::Instance()->CheckLine(this->GetMat().pos(), &Target, &Normal)) {
-			this->YVecAdd = 0.f;
-			this->Vector = Util::VECTOR3D::Reflect(this->Vector, Normal) * 0.8f;
+			this->m_YVecAdd = 0.f;
+			this->m_Vector = Util::VECTOR3D::Reflect(this->m_Vector, Normal) * 0.8f;
 			if (!this->m_IsPlaySound) {
 				this->m_IsPlaySound = true;
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, FallCaseID)->Play3D(Target, 10.f * Scale3DRate);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_FallCaseID)->Play3D(Target, 10.f * Scale3DRate);
 			}
 		}
 
 		this->SetMatrix(
 			this->GetMat().rotation() *
-			Util::Matrix4x4::RotAxis(Util::VECTOR3D::Cross(this->Vector, this->GetMat().zvec()).normalized(), Util::deg2rad(1800.f) * DeltaTime) *
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::Cross(this->m_Vector, this->GetMat().zvec()).normalized(), Util::deg2rad(1800.f) * DeltaTime) *
 			Util::Matrix4x4::Mtrans(Target)
 		);
 	}
 	void SetShadowDraw_Sub(void) const noexcept override {
-		if (this->Timer == 0.f) { return; }
-		ModelID.DrawModel();
+		if (this->m_Timer == 0.f) { return; }
+		GetModel().DrawModel();
 	}
 	void CheckDraw_Sub(void) noexcept override {
 	}
 	void Draw_Sub(void) const noexcept override {
-		if (this->Timer == 0.f) { return; }
-		ModelID.DrawModel();
+		if (this->m_Timer == 0.f) { return; }
+		GetModel().DrawModel();
 	}
 	void ShadowDraw_Sub(void) const noexcept override {
-		if (this->Timer == 0.f) { return; }
-		ModelID.DrawModel();
+		if (this->m_Timer == 0.f) { return; }
+		GetModel().DrawModel();
 	}
 	void Dispose_Sub(void) noexcept override {
-		ModelID.Dispose();
+		SetModel().Dispose();
 	}
 };
 class AmmoHitEffect : public BaseObject {
@@ -139,7 +139,7 @@ public:
 	}
 	void SetShadowDraw_Sub(void) const noexcept override {
 		if (this->Timer == 0.f) { return; }
-		ModelID.DrawModel();
+		GetModel().DrawModel();
 	}
 	void CheckDraw_Sub(void) noexcept override {
 	}
@@ -185,14 +185,14 @@ private:
 	char		padding[4]{};
 public:
 	void Set(const Util::Matrix4x4& Muzzle) noexcept {
-		m_FireMat = Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), Util::deg2rad(GetRand(90)));
-		m_SmokeMat = Muzzle;
-		m_SmokePer = 0.f;
+		this->m_FireMat = Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), Util::deg2rad(GetRand(90)));
+		this->m_SmokeMat = Muzzle;
+		this->m_SmokePer = 0.f;
 		AnimPer = 0.f;
 	}
 public:
 	void Load_Sub(void) noexcept override {
-		m_SmokeGraph = Draw::GraphPool::Instance()->Get("data/Smoke.png")->Get();
+		this->m_SmokeGraph = Draw::GraphPool::Instance()->Get("data/Smoke.png")->Get();
 	}
 	void Init_Sub(void) noexcept override {
 	}
@@ -200,17 +200,17 @@ public:
 		this->m_SmokePer = std::clamp(this->m_SmokePer + DeltaTime / 0.5f, 0.f, 1.f);
 		AnimPer = std::clamp(AnimPer + DeltaTime / 0.1f, 0.f, 1.f);
 		if (0.0f <= AnimPer && AnimPer <= 0.3f) {
-			m_FireOpticalPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.f, 0.3f, AnimPer));
+			this->m_FireOpticalPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.f, 0.3f, AnimPer));
 		}
 		if (0.3f <= AnimPer && AnimPer <= 1.f) {
-			m_FireOpticalPer = Util::Lerp(1.f, 0.f, Util::GetPer01(0.3f, 1.f, AnimPer));
+			this->m_FireOpticalPer = Util::Lerp(1.f, 0.f, Util::GetPer01(0.3f, 1.f, AnimPer));
 		}
 		SetMatrix(
 			Util::Matrix4x4::GetScale(AnimPer) *
-			m_FireMat *
-			m_SmokeMat
+			this->m_FireMat *
+			this->m_SmokeMat
 		);
-		ModelID.SetOpacityRate(m_FireOpticalPer);
+		SetModel().SetOpacityRate(this->m_FireOpticalPer);
 	}
 	void SetShadowDraw_Sub(void) const noexcept override {
 	}
@@ -218,31 +218,31 @@ public:
 	}
 	void Draw_Sub(void) const noexcept override {
 		DxLib::SetUseLighting(FALSE);
-		float Per = std::sin(Util::deg2rad(180.f * m_SmokePer));
+		float Per = std::sin(Util::deg2rad(180.f * this->m_SmokePer));
 		if (Per > 0.f) {
 			for (int loop = 0; loop < 3; ++loop) {
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(64.f * Per));
 				DxLib::DrawBillboard3D(
-					(m_SmokeMat.pos() - m_SmokeMat.zvec() * (static_cast<float>(10 + (2 - loop) * 10) / 100.f * Scale3DRate * m_SmokePer)).get(),
+					(this->m_SmokeMat.pos() - this->m_SmokeMat.zvec() * (static_cast<float>(10 + (2 - loop) * 10) / 100.f * Scale3DRate * this->m_SmokePer)).get(),
 					0.5f,
 					0.5f,
-					0.2f * Scale3DRate * m_SmokePer,
-					Util::deg2rad(180.f * m_SmokePer) * ((loop % 2 == 0) ? 1.f : -1.f),
-					m_SmokeGraph->get(),
+					0.2f * Scale3DRate * this->m_SmokePer,
+					Util::deg2rad(180.f * this->m_SmokePer) * ((loop % 2 == 0) ? 1.f : -1.f),
+					this->m_SmokeGraph->get(),
 					true
 				);
 			}
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
-		if (m_FireOpticalPer > 0.f) {
-			ModelID.DrawModel();
+		if (this->m_FireOpticalPer > 0.f) {
+			GetModel().DrawModel();
 		}
 		DxLib::SetUseLighting(TRUE);
 	}
 	void ShadowDraw_Sub(void) const noexcept override {
 	}
 	void Dispose_Sub(void) noexcept override {
-		ModelID.Dispose();
+		SetModel().Dispose();
 	}
 };
 class Ammo : public BaseObject {
@@ -277,7 +277,7 @@ private:
 		this->Vector = pos - GetMat().pos();
 		this->Timer = 0.f;
 		this->DrawTimer = this->Timer + 1.f;
-		for (auto& ae : m_AmmoEffectPer) {
+		for (auto& ae : this->m_AmmoEffectPer) {
 			ae->Set(
 				pos,
 				this->Vector.normalized() * -1.f
@@ -289,7 +289,7 @@ public:
 		HitGroundID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitGround.wav", true);
 	}
 	void Init_Sub(void) noexcept override {
-		for (auto& ae : m_AmmoEffectPer) {
+		for (auto& ae : this->m_AmmoEffectPer) {
 			ae = std::make_shared<AmmoHitEffect>();
 			ObjectManager::Instance()->InitObject(ae);
 		}
@@ -308,7 +308,7 @@ public:
 		}
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
 			if (c->CheckHit(GetMat().pos(), &Target)) {
-				c->SetDownTop();
+				c->SetHit(Target - GetMat().pos());
 				if (this->Timer != 0.f) {
 					SetAmmo(Target);
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitGroundID)->Play3D(Target, 10.f * Scale3DRate);
@@ -343,7 +343,7 @@ public:
 	void ShadowDraw_Sub(void) const noexcept override {
 	}
 	void Dispose_Sub(void) noexcept override {
-		for (auto& ae : m_AmmoEffectPer) {
+		for (auto& ae : this->m_AmmoEffectPer) {
 			ae.reset();
 		}
 	}
@@ -397,42 +397,42 @@ public:
 	}
 	void SetMagMat(const Util::Matrix4x4& MagMat, const Util::Matrix4x4& MagWelMat) noexcept {
 		Util::Matrix4x4 Mag = MagMat;
-		Mag = Util::Lerp(Mag, MagWelMat, m_MagInPer);
-		Mag = Util::Lerp(Mag, m_MagLoad, m_MagLoadPer);
+		Mag = Util::Lerp(Mag, MagWelMat, this->m_MagInPer);
+		Mag = Util::Lerp(Mag, this->m_MagLoad, this->m_MagLoadPer);
 		SetMatrix(Mag);
 	}
-	void SetMagLoadMat(const Util::Matrix4x4& value) { m_MagLoad = value; }
+	void SetMagLoadMat(const Util::Matrix4x4& value) { this->m_MagLoad = value; }
 	void SetMagPer(float LoadPer, float ReloadPer) {
-		m_MagInPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.f, 0.3f, LoadPer));
-		m_MagLoadPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.3f, 1.f, LoadPer));
+		this->m_MagInPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.f, 0.3f, LoadPer));
+		this->m_MagLoadPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.3f, 1.f, LoadPer));
 
 		if (ReloadPer == 0.f) {
-			m_IsMagUnloadSound = false;
-			m_IsMagLoadSound = false;
+			this->m_IsMagUnloadSound = false;
+			this->m_IsMagLoadSound = false;
 		}
 		if (ReloadPer >= 0.1f) {
 			if (!m_IsMagUnloadSound) {
-				m_IsMagUnloadSound = true;
+				this->m_IsMagUnloadSound = true;
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, UnLoadMagID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
-				m_AmmoNum = 0;
+				this->m_AmmoNum = 0;
 			}
 		}
 		if (ReloadPer >= 0.8f) {
 			if (!m_IsMagLoadSound) {
-				m_IsMagLoadSound = true;
+				this->m_IsMagLoadSound = true;
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, LoadMagID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
-				m_AmmoNum = m_AmmoTotal;
+				this->m_AmmoNum = this->m_AmmoTotal;
 			}
 		}
 	}
-	int GetAmmoNum() const { return m_AmmoNum; }
-	int GetAmmoTotal() const { return m_AmmoTotal; }
+	int GetAmmoNum(void) const noexcept { return this->m_AmmoNum; }
+	int GetAmmoTotal(void) const noexcept { return this->m_AmmoTotal; }
 
-	void SetMag(int value) { m_AmmoNum = value; }
-	bool SubAmmo() {
-		if (m_AmmoNum > 0) {
+	void SetMag(int value) { this->m_AmmoNum = value; }
+	bool SubAmmo(void) noexcept {
+		if (this->m_AmmoNum > 0) {
 			--m_AmmoNum;
 			return true;
 		}
@@ -449,18 +449,18 @@ public:
 	void Update_Sub(void) noexcept override {
 	}
 	void SetShadowDraw_Sub(void) const noexcept override {
-		ModelID.DrawModel();
+		GetModel().DrawModel();
 	}
 	void CheckDraw_Sub(void) noexcept override {
 	}
 	void Draw_Sub(void) const noexcept override {
-		ModelID.DrawModel();
+		GetModel().DrawModel();
 	}
 	void ShadowDraw_Sub(void) const noexcept override {
-		ModelID.DrawModel();
+		GetModel().DrawModel();
 	}
 	void Dispose_Sub(void) noexcept override {
-		ModelID.Dispose();
+		SetModel().Dispose();
 	}
 };
 
@@ -513,31 +513,31 @@ static const char* GunFrameName[static_cast<int>(GunFrame::Max)] = {
 };
 
 class Gun :public BaseObject {
-	std::array<std::shared_ptr<ShotEffect>, 3>	m_ShotEffect{};
-	int					m_ShotEffectID{};
+	std::array<std::shared_ptr<ShotEffect>, 3>			m_ShotEffect{};
+	int													m_ShotEffectID{};
 	char		padding[4]{};
 
-	std::array<std::shared_ptr<Case>, 3>	m_CasePer{};
-	int					m_CaseID{};
+	std::array<std::shared_ptr<Case>, 3>				m_CasePer{};
+	int													m_CaseID{};
 	char		padding2[4]{};
 
-	std::array<std::shared_ptr<Ammo>, 5>	m_AmmoPer{};
-	int					m_AmmoID{};
+	std::array<std::shared_ptr<Ammo>, 5>				m_AmmoPer{};
+	int													m_AmmoID{};
 	char		padding3[4]{};
 
-	std::shared_ptr<Magazine>				m_Magazine{};
+	std::shared_ptr<Magazine>							m_Magazine{};
 
-	std::array<float, static_cast<int>(GunAnim::Max)>		m_AnimPer{};
-	Sound::SoundUniqueID SlideCloseID{ InvalidID };
-	Sound::SoundUniqueID ShotID{ InvalidID };
-	Sound::SoundUniqueID ShotSPID{ InvalidID };
+	std::array<float, static_cast<int>(GunAnim::Max)>	m_AnimPer{};
+	Sound::SoundUniqueID								m_SlideCloseID{ InvalidID };
+	Sound::SoundUniqueID								m_ShotID{ InvalidID };
+	Sound::SoundUniqueID								m_ShotSPID{ InvalidID };
 	//char		padding[4]{};
 
-	const Draw::GraphHandle* m_Pic{};
-	bool				m_IsSlideCloseSound{};
-	bool				m_Trigger{};
-	bool				m_ChamberIn{};
-	bool				m_CanShot{ true };
+	const Draw::GraphHandle*							m_Pic{};
+	bool												m_IsSlideCloseSound{};
+	bool												m_Trigger{};
+	bool												m_ChamberIn{};
+	bool												m_CanShot{ true };
 	char		padding4[4]{};
 public:
 	Gun(void) noexcept {}
@@ -568,135 +568,135 @@ public:
 		Util::VECTOR3D Handzvec = GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::RightHandZVec)).pos() - HandPos;
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
-	auto			GetMagLeftHandMat(void) const noexcept { return m_Magazine->GetMagLeftHandMat(); }
-	auto			GetAmmoNum() const { return m_Magazine->GetAmmoNum() + (m_ChamberIn ? 1 : 0); }
-	auto			GetAmmoTotal() const { return m_Magazine->GetAmmoTotal() + 1; }
-	auto			CanReload() const { return GetAmmoNum() != GetAmmoTotal(); }
-	auto			CanShot() const { return m_CanShot && m_ChamberIn; }
-	const auto*		GetPicPtr(void) const noexcept { return m_Pic; }
+	auto			GetMagLeftHandMat(void) const noexcept { return this->m_Magazine->GetMagLeftHandMat(); }
+	auto			GetAmmoNum(void) const noexcept { return this->m_Magazine->GetAmmoNum() + (this->m_ChamberIn ? 1 : 0); }
+	auto			GetAmmoTotal(void) const noexcept { return this->m_Magazine->GetAmmoTotal() + 1; }
+	auto			CanReload(void) const noexcept { return GetAmmoNum() != GetAmmoTotal(); }
+	auto			CanShot(void) const noexcept { return this->m_CanShot && this->m_ChamberIn; }
+	const auto*		GetPicPtr(void) const noexcept { return this->m_Pic; }
 public:
-	void ShotStart() {
-		if (m_CanShot) {
-			m_CanShot = false;
-			m_ChamberIn = false;
-			m_AnimPer[static_cast<int>(GunAnim::Shot)] = 1.f;
+	void ShotStart(void) noexcept {
+		if (this->m_CanShot) {
+			this->m_CanShot = false;
+			this->m_ChamberIn = false;
+			this->m_AnimPer[static_cast<int>(GunAnim::Shot)] = 1.f;
 			SetAnim(static_cast<int>(GunAnim::Shot)).SetTime(0.f);
 
-			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, ShotID)->Play3D(GetMat().pos(), 50.f * Scale3DRate);
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_ShotID)->Play3D(GetMat().pos(), 50.f * Scale3DRate);
 
-			m_ShotEffect.at(static_cast<size_t>(m_ShotEffectID))->Set(GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle)));
-			++m_ShotEffectID %= static_cast<int>(m_ShotEffect.size());
+			this->m_ShotEffect.at(static_cast<size_t>(this->m_ShotEffectID))->Set(GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle)));
+			++m_ShotEffectID %= static_cast<int>(this->m_ShotEffect.size());
 
-			m_CasePer.at(static_cast<size_t>(m_CaseID))->Set(
+			this->m_CasePer.at(static_cast<size_t>(this->m_CaseID))->Set(
 				GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Case)),
 				GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::CaseVec)));
-			++m_CaseID %= static_cast<int>(m_CasePer.size());
+			++m_CaseID %= static_cast<int>(this->m_CasePer.size());
 
-			m_AmmoPer.at(static_cast<size_t>(m_AmmoID))->Set(GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle)));
-			++m_AmmoID %= static_cast<int>(m_AmmoPer.size());
+			this->m_AmmoPer.at(static_cast<size_t>(this->m_AmmoID))->Set(GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle)));
+			++m_AmmoID %= static_cast<int>(this->m_AmmoPer.size());
 		}
 	}
-	void SetMagLoadMat(const Util::Matrix4x4& value) { m_Magazine->SetMagLoadMat(value); }
-	void SetMagPer(float LoadPer, float ReloadPer) { m_Magazine->SetMagPer(LoadPer, ReloadPer); }
-	void SetCockingPer(float value) {
+	void SetMagLoadMat(const Util::Matrix4x4& value) noexcept { this->m_Magazine->SetMagLoadMat(value); }
+	void SetMagPer(float LoadPer, float ReloadPer) noexcept { this->m_Magazine->SetMagPer(LoadPer, ReloadPer); }
+	void SetCockingPer(float value) noexcept {
 		if (value == 0.f) {
-			m_IsSlideCloseSound = false;
+			this->m_IsSlideCloseSound = false;
 		}
 		if (value >= 0.5f) {
 			if (!m_IsSlideCloseSound) {
-				m_IsSlideCloseSound = true;
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, SlideCloseID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+				this->m_IsSlideCloseSound = true;
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_SlideCloseID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
-				if (m_Magazine->SubAmmo()) {
-					m_ChamberIn = true;
+				if (this->m_Magazine->SubAmmo()) {
+					this->m_ChamberIn = true;
 				}
 			}
 		}
 	}
-	void SetTrigger(bool value) { m_Trigger = value; }
+	void SetTrigger(bool value) noexcept { this->m_Trigger = value; }
 public:
 	void Load_Sub(void) noexcept override {
-		SlideCloseID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/1.wav", true);
-		ShotID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/2.wav", true);
-		ShotSPID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/5.wav", true);
+		this->m_SlideCloseID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/1.wav", true);
+		this->m_ShotID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/2.wav", true);
+		this->m_ShotSPID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/5.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 
-		m_Pic = Draw::GraphPool::Instance()->Get(this->GetFilePath() + "pic.png")->Get();
+		this->m_Pic = Draw::GraphPool::Instance()->Get(this->GetFilePath() + "pic.png")->Get();
 
 		ObjectManager::Instance()->LoadModel("data/9x19/");
 		ObjectManager::Instance()->LoadModel("data/FireEffect/");
 		ObjectManager::Instance()->LoadModel("data/Mag/");
 	}
 	void Init_Sub(void) noexcept override {
-		for (auto& s : m_CasePer) {
+		for (auto& s : this->m_CasePer) {
 			s = std::make_shared<Case>();
 			ObjectManager::Instance()->InitObject(s, s, "data/9x19/");
 		}
-		for (auto& s : m_ShotEffect) {
+		for (auto& s : this->m_ShotEffect) {
 			s = std::make_shared<ShotEffect>();
 			ObjectManager::Instance()->InitObject(s, s, "data/FireEffect/");
 		}
-		for (auto& s : m_AmmoPer) {
+		for (auto& s : this->m_AmmoPer) {
 			s = std::make_shared<Ammo>();
 			ObjectManager::Instance()->InitObject(s);
 		}
 		
-		m_Magazine = std::make_shared<Magazine>();
-		ObjectManager::Instance()->InitObject(m_Magazine, m_Magazine,"data/Mag/");
+		this->m_Magazine = std::make_shared<Magazine>();
+		ObjectManager::Instance()->InitObject(this->m_Magazine, this->m_Magazine,"data/Mag/");
 
 		SetMagPer(0.f, 0.f);
-		m_ChamberIn = true;
+		this->m_ChamberIn = true;
 	}
 	void Update_Sub(void) noexcept override {
 		if (!m_CanShot) {
 			if (SetAnim(static_cast<int>(GunAnim::Shot)).GetTimePer() >= 1.f) {
-				m_AnimPer[static_cast<int>(GunAnim::Shot)] = 0.f;
-				m_CanShot = true;
-				if (m_Magazine->SubAmmo()) {
-					m_ChamberIn = true;
+				this->m_AnimPer[static_cast<int>(GunAnim::Shot)] = 0.f;
+				this->m_CanShot = true;
+				if (this->m_Magazine->SubAmmo()) {
+					this->m_ChamberIn = true;
 				}
 			}
 		}
 
-		Util::Easing(&m_AnimPer[static_cast<size_t>(GunAnim::Slide)], (!m_ChamberIn && m_CanShot) ? 1.f : 0.f, 0.8f);
+		Util::Easing(&m_AnimPer[static_cast<size_t>(GunAnim::Slide)], (!m_ChamberIn && this->m_CanShot) ? 1.f : 0.f, 0.8f);
 
-		Util::Easing(&m_AnimPer[static_cast<size_t>(GunAnim::Trigger)], m_Trigger ? 1.f : 0.f, 0.8f);
+		Util::Easing(&m_AnimPer[static_cast<size_t>(GunAnim::Trigger)], this->m_Trigger ? 1.f : 0.f, 0.8f);
 		//アニメアップデート
 		for (size_t loop = 0; loop < static_cast<size_t>(GunAnim::Max); ++loop) {
-			SetAnim(loop).SetPer(m_AnimPer[loop]);
+			SetAnim(loop).SetPer(this->m_AnimPer[loop]);
 		}
 		SetAnim(static_cast<int>(GunAnim::Shot)).Update(false, 2.f);
-		ModelID.FlipAnimAll();
+		SetModel().FlipAnimAll();
 		//
-		m_Magazine->SetMagMat(GetMat(),
+		this->m_Magazine->SetMagMat(GetMat(),
 			Util::Matrix4x4::RotVec2(GetFrameBaseLocalMat(static_cast<int>(GunFrame::MagIn)).pos(), Util::VECTOR3D::down()) *
 			GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::MagWel))
 		);
 	}
 	void SetShadowDraw_Sub(void) const noexcept override {
-		ModelID.DrawModel();
+		GetModel().DrawModel();
 	}
 	void CheckDraw_Sub(void) noexcept override {
 	}
 	void Draw_Sub(void) const noexcept override {
-		ModelID.DrawModel();
+		GetModel().DrawModel();
 	}
 	void ShadowDraw_Sub(void) const noexcept override {
-		ModelID.DrawModel();
+		GetModel().DrawModel();
 	}
 	void Dispose_Sub(void) noexcept override {
-		ModelID.Dispose();
+		SetModel().Dispose();
 
-		for (auto& s : m_CasePer) {
+		for (auto& s : this->m_CasePer) {
 			s.reset();
 		}
-		for (auto& s : m_ShotEffect) {
+		for (auto& s : this->m_ShotEffect) {
 			s.reset();
 		}
-		for (auto& s : m_AmmoPer) {
+		for (auto& s : this->m_AmmoPer) {
 			s.reset();
 		}
-		m_Magazine.reset();
+		this->m_Magazine.reset();
 
 	}
 };

@@ -12,10 +12,10 @@
 #pragma warning( pop )
 class PauseUI {
 private:
-	Draw::DrawUISystem* m_DrawUI{ nullptr };
-	int				m_UIBase{ InvalidID };
-	int				m_ButtonID[3] = { InvalidID,InvalidID,InvalidID };
-	bool			m_IsActive{};
+	Draw::DrawUISystem*						m_DrawUI{ nullptr };
+	int										m_UIBase{ InvalidID };
+	int										m_ButtonID[3] = { InvalidID,InvalidID,InvalidID };
+	bool									m_IsActive{};
 	char		padding[7]{};
 	std::array<std::function<void()>, 4>	m_ButtonDo{};
 
@@ -34,7 +34,7 @@ public:
 	virtual ~PauseUI(void) noexcept {}
 public:
 	bool		IsEnd(void) const noexcept { return !this->m_DrawUI->Get(this->m_UIBase).IsActive() && this->m_DrawUI->Get(this->m_UIBase).IsAnimeEnd(); }
-	void		SetEnd() noexcept { this->m_DrawUI->Get(this->m_UIBase).SetActive(false); }
+	void		SetEnd(void) noexcept { this->m_DrawUI->Get(this->m_UIBase).SetActive(false); }
 	bool		IsActive(void) const noexcept { return this->m_IsActive; }
 	void		SetActive(bool value) noexcept { this->m_IsActive = value; }
 	void		SetEvent(int ID, const std::function<void()>& value) noexcept { this->m_ButtonDo[static_cast<size_t>(ID)] = value; }

@@ -10,7 +10,7 @@ namespace Draw {
 	public:
 		class AnimControler {
 			class MV1AnimeHandle : public Util::DXHandle {
-				const MV1* m_pBaseModel{};
+				const MV1*	m_pBaseModel{};
 			public:
 				MV1AnimeHandle(void) noexcept {}
 				MV1AnimeHandle(const MV1AnimeHandle& o) noexcept {
@@ -32,22 +32,22 @@ namespace Draw {
 				virtual ~MV1AnimeHandle(void) noexcept {}
 			protected:
 				void			Dispose_Sub(void) noexcept override {
-					MV1DetachAnim(m_pBaseModel->get(), Util::DXHandle::get());
-					m_pBaseModel = nullptr;
+					MV1DetachAnim(this->m_pBaseModel->get(), Util::DXHandle::get());
+					this->m_pBaseModel = nullptr;
 				}
 			public:
 				void			Attach(MV1* model, size_t AnimIndex, const MV1* model_haveanim = nullptr) noexcept {
-					m_pBaseModel = model;
-					if (model_haveanim && (m_pBaseModel->get() != model_haveanim->get())) {
-						Util::DXHandle::SetHandleDirect(MV1AttachAnim(m_pBaseModel->get(), static_cast<int>(AnimIndex), model_haveanim->get()));
+					this->m_pBaseModel = model;
+					if (model_haveanim && (this->m_pBaseModel->get() != model_haveanim->get())) {
+						Util::DXHandle::SetHandleDirect(MV1AttachAnim(this->m_pBaseModel->get(), static_cast<int>(AnimIndex), model_haveanim->get()));
 					}
 					else {
-						Util::DXHandle::SetHandleDirect(MV1AttachAnim(m_pBaseModel->get(), static_cast<int>(AnimIndex)));
+						Util::DXHandle::SetHandleDirect(MV1AttachAnim(this->m_pBaseModel->get(), static_cast<int>(AnimIndex)));
 					}
 				}
-				float			GetTotalTime(void) const noexcept { return MV1GetAttachAnimTotalTime(m_pBaseModel->get(), Util::DXHandle::get()); }
-				void			SetTime(float Time) noexcept { MV1SetAttachAnimTime(m_pBaseModel->get(), Util::DXHandle::get(), Time); }
-				void			SetBlendRate(float Per) noexcept { MV1SetAttachAnimBlendRate(m_pBaseModel->get(), Util::DXHandle::get(), Per); }
+				float			GetTotalTime(void) const noexcept { return MV1GetAttachAnimTotalTime(this->m_pBaseModel->get(), Util::DXHandle::get()); }
+				void			SetTime(float Time) noexcept { MV1SetAttachAnimTime(this->m_pBaseModel->get(), Util::DXHandle::get(), Time); }
+				void			SetBlendRate(float Per) noexcept { MV1SetAttachAnimBlendRate(this->m_pBaseModel->get(), Util::DXHandle::get(), Per); }
 			};
 		private:
 			MV1AnimeHandle	m_handle;
@@ -132,7 +132,7 @@ namespace Draw {
 		};
 	private:
 		std::vector<AnimControler>	m_AnimControler;
-		size_t m_AnimControlerSize{};
+		size_t						m_AnimControlerSize{};
 	public:
 		MV1(void) noexcept {}
 		MV1(const MV1&) = delete;

@@ -37,7 +37,7 @@ namespace Camera {
 			this->m_SendShakePower = power;
 			this->m_Timer = this->m_SendShakeTime;
 		}
-		void			StopCamShake() noexcept {
+		void			StopCamShake(void) noexcept {
 			this->m_SendShakeTime = 1.f;
 			this->m_SendShakePower = 1.f;
 			this->m_Timer = 0.f;
@@ -56,12 +56,11 @@ namespace Camera {
 		static float GetRandf(float arg) noexcept { return -arg + static_cast<float>(DxLib::GetRand(static_cast<int>(arg * 2.f * 10000.f))) / 10000.f; }
 
 		void Update(void) noexcept {
-			if (this->m_SendShakeTime > 0.f) {
-				auto RandRange = this->m_Timer / this->m_SendShakeTime * this->m_SendShakePower;
-				Easing(&this->m_Shake1, Util::VECTOR3D::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 0.8f);
-				Easing(&this->m_Shake2, this->m_Shake1, 0.8f);
-				this->m_Timer = std::max(this->m_Timer - DeltaTime, 0.f);
-			}
+			if (this->m_SendShakeTime == 0.f) { return; }
+			auto RandRange = this->m_Timer / this->m_SendShakeTime * this->m_SendShakePower;
+			Easing(&this->m_Shake1, Util::VECTOR3D::vget(GetRandf(RandRange), GetRandf(RandRange), GetRandf(RandRange)), 0.8f);
+			Easing(&this->m_Shake2, this->m_Shake1, 0.8f);
+			this->m_Timer = std::max(this->m_Timer - DeltaTime, 0.f);
 		}
 	};
 }

@@ -83,9 +83,9 @@ namespace Sound {
 	// 同じ音声を多重に持つクラス(1ハンドルで鳴らせる音は一つであるため)
 	class SoundHandles {
 	private:
-		std::vector<SoundHandle> m_HandleList;
-		size_t Size = 0;
-		size_t nowSelect = 0;
+		std::vector<SoundHandle>	m_HandleList;
+		size_t						Size = 0;
+		size_t						nowSelect = 0;
 	public:
 		// コンストラクタ
 		SoundHandles(size_t buffersize, std::string path_t, bool is3Dsound = true) noexcept {
@@ -158,9 +158,9 @@ namespace Sound {
 		int								m_LocalVolume = 255;	//音声単位で指定できる音量(フェードアウトなどで使用)
 		SoundType						m_SoundType{ SoundType::SE };//自分の音声タイプ
 
-		size_t m_buffersize{};
-		std::string m_path_t{};
-		bool m_is3Dsound = true;
+		size_t							m_buffersize{};
+		std::string						m_path_t{};
+		bool							m_is3Dsound = true;
 		char	Padding2[7]{};
 	public:
 		//コンストラクタ
@@ -171,9 +171,9 @@ namespace Sound {
 			this->m_Handles = std::make_unique<SoundHandles>(buffersize, path_t, is3Dsound);
 			this->m_SoundType = soundType;
 			FlipVolume();
-			m_buffersize = buffersize;
-			m_path_t = path_t;
-			m_is3Dsound = is3Dsound;
+			this->m_buffersize = buffersize;
+			this->m_path_t = path_t;
+			this->m_is3Dsound = is3Dsound;
 		}
 		Soundhave(const Soundhave&) = delete;
 		Soundhave(Soundhave&&) = delete;
@@ -187,10 +187,10 @@ namespace Sound {
 		//サウンドの識別用ID
 		const auto& GetSoundID(void)const noexcept { return this->m_SoundID; }
 		bool Equal(size_t buffersize, std::string path_t, SoundType soundType, bool is3Dsound = true) noexcept {
-			if (m_buffersize != buffersize) { return false; }
-			if (m_SoundType != soundType) { return false; }
-			if (m_is3Dsound != is3Dsound) { return false; }
-			if (m_path_t != path_t) { return false; }
+			if (this->m_buffersize != buffersize) { return false; }
+			if (this->m_SoundType != soundType) { return false; }
+			if (this->m_is3Dsound != is3Dsound) { return false; }
+			if (this->m_path_t != path_t) { return false; }
 			return true;
 		}
 	public:
@@ -224,7 +224,7 @@ namespace Sound {
 	private:
 		// コンストラクタ
 		SoundPool(void) noexcept {
-			m_SoundID = 0;
+			this->m_SoundID = 0;
 			for (auto& hs : this->m_SoundHas) {
 				hs.reserve(128);
 			}
@@ -237,9 +237,9 @@ namespace Sound {
 	public:
 		// 特定のIDにサウンドを追加
 		SoundUniqueID			Add(SoundType Type, size_t buffersize, std::string path_t, bool is3Dsound = true) noexcept {
-			int ID = m_SoundID;
+			int ID = this->m_SoundID;
 			//末尾に追加
-			this->m_SoundHas[static_cast<size_t>(Type)].emplace_back(std::make_unique<Soundhave>(m_SoundID, buffersize, path_t, Type, is3Dsound));
+			this->m_SoundHas[static_cast<size_t>(Type)].emplace_back(std::make_unique<Soundhave>(this->m_SoundID, buffersize, path_t, Type, is3Dsound));
 			++m_SoundID;
 			return ID;
 		}

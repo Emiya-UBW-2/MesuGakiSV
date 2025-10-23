@@ -164,7 +164,7 @@ namespace Util {
 				Font->Get(Draw::FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
 					Draw::FontXCenter::RIGHT, Draw::FontYCenter::BOTTOM,
 					(DrawerMngr->GetDispWidth() - 32), (DrawerMngr->GetDispHeight() - 32), ColorPalette::Green, ColorPalette::Black,
-					"Loading...%d / %d", m_ASyncLoadNum - GetASyncLoadNum(), m_ASyncLoadNum);
+					"Loading...%d / %d", this->m_ASyncLoadNum - GetASyncLoadNum(), this->m_ASyncLoadNum);
 				return;
 			}
 			if (this->m_NowScene) {
@@ -245,7 +245,7 @@ namespace Util {
 					this->m_NowScene->Load();
 					SetUseASyncLoadFlag(false);
 					this->m_Phase = EnumScenePhase::Load;
-					m_ASyncLoadNum = GetASyncLoadNum();
+					this->m_ASyncLoadNum = GetASyncLoadNum();
 				}
 				break;
 			case EnumScenePhase::GoEnd:
