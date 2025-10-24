@@ -109,7 +109,8 @@ PS_OUTPUT main(PS_INPUT PSInput)
 
 	for (int i = 1;i <= 50;i++) {
 		if (i <= caminfo.x) {
-			lWorldPosition.xyz = ViewPositionOne * Depth * i / caminfo.x;
+            lWorldPosition.xyz = ViewPositionOne * Depth * i / caminfo.x;
+			
 			lWorldPosition.w = 1.f;
 			lWorldPosition = mul(g_CamViewToWorldMatrix, lWorldPosition);
 
@@ -123,7 +124,8 @@ PS_OUTPUT main(PS_INPUT PSInput)
 			LPPosition.y = 1.0f - (LPPosition.y + 1.0f) / 2.0f; // yは更に上下反転
 			DepthS = g_ShadowMapTexture.Sample(g_ShadowMapSampler, LPPosition.xy).r;
 
-			if (((lLViewPosition.z - DepthS) > 0.f) && (DepthS > 0)) {
+            if ((DepthS > 0) && lLViewPosition.z > (DepthS + 1.f))
+            {
 				Total1++;
 			}
 			//------------------------------------------------------------------------------------------
@@ -136,7 +138,8 @@ PS_OUTPUT main(PS_INPUT PSInput)
 			LPPosition.y = 1.0f - (LPPosition.y + 1.0f) / 2.0f; // yは更に上下反転
 			DepthS = g_ShadowFarMapTexture.Sample(g_ShadowFarMapSampler, LPPosition.xy).r;
 
-			if (((lLViewPosition.z - DepthS) > 0.f) && (DepthS > 0)) {
+            if ((DepthS > 0) && lLViewPosition.z > (DepthS + 1.f))
+            {
 				Total2++;
 			}
 			// 深度影用のライトから見た射影座標を算出 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++( 終了 )

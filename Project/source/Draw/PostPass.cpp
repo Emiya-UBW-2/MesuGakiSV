@@ -335,14 +335,12 @@ namespace Draw {
 			int xsizeEx = DrawerMngr->GetRenderDispWidth() / EXTEND;
 			int ysizeEx = DrawerMngr->GetRenderDispHeight() / EXTEND;
 
-			const Draw::ScreenHandle* pDepthScreen = ScreenBufferPool->GetBlankScreen(xsizeEx, ysizeEx, true, false)->PopBlankScreen();
 			const Draw::ScreenHandle* pScreenBuffer = ScreenBufferPool->GetBlankScreen(xsizeEx, ysizeEx, true)->PopBlankScreen();
-
-			pDepthScreen->GraphFilterBlt(pGbuffer->GetDepthBuffer(), DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+			const Draw::ScreenHandle* pScreenBuffer2 = ScreenBufferPool->GetBlankScreen(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight(), true)->PopBlankScreen();
 
 			pScreenBuffer->SetDraw_Screen();
 			{
-				pDepthScreen->SetUseTextureToShader(0);
+				pGbuffer->GetDepthBuffer().SetUseTextureToShader(0);
 				PostPassParts->GetShadowDraw()->GetDepthScreen().SetUseTextureToShader(1);
 				PostPassParts->GetShadowDraw()->GetDepthFarScreen().SetUseTextureToShader(2);
 				{
@@ -371,6 +369,7 @@ namespace Draw {
 				SetUseTextureToShader(1, InvalidID);
 				SetUseTextureToShader(2, InvalidID);
 			}
+			//*
 			this->m_GodRayTime += DeltaTime;
 			if (this->m_GodRayTime > 0.5f) {
 				this->m_GodRayTime -= 0.5f;
@@ -390,17 +389,23 @@ namespace Draw {
 
 			}
 			PostPassParts->SetGodRayPerByPostPass(1.f - std::clamp(static_cast<float>(this->m_GodRayRed) / 128.f, 0.f, 1.f));
+			//*/
 
-			pScreenBuffer->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 300);
+			pScreenBuffer2->SetDraw_Screen();
+			{
+				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight(), true);
+			}
+			pScreenBuffer2->GraphFilter(DX_GRAPH_FILTER_GAUSS, 8, 300);
 			TargetGraph->SetDraw_Screen();
 			{
 				pGbuffer->GetColorBuffer().DrawGraph(0, 0, true);
 				SetDrawBlendMode(DX_BLENDMODE_ADD, static_cast<int>(255.f * PostPassParts->GetGodRayParam().GetGodRayPerRet()));
-				pScreenBuffer->DrawExtendGraph(0, 0, DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight(), true);
+				//SetDrawBlendMode(DX_BLENDMODE_ADD, static_cast<int>(255.f));
+				pScreenBuffer2->DrawExtendGraph(0, 0, DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight(), true);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
-			ScreenBufferPool->ResetUseCount(xsizeEx, ysizeEx, true, false);
 			ScreenBufferPool->ResetUseCount(xsizeEx, ysizeEx, true);
+			ScreenBufferPool->ResetUseCount(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight(), true);
 		}
 	};
 	class PostPassDistortion : public PostPassEffect::PostPassBase {

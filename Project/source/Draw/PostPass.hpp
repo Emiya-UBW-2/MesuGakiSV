@@ -656,11 +656,17 @@ namespace Draw {
 				int xsizeEx = DrawerMngr->GetRenderDispWidth() / EXTEND;
 				int ysizeEx = DrawerMngr->GetRenderDispHeight() / EXTEND;
 
+				auto Prev = DxLib::GetCreateDrawValidGraphZBufferBitDepth();
+				DxLib::SetCreateDrawValidGraphZBufferBitDepth(24);
+
 				this->m_BaseShadowHandle.Make(xsizeEx, ysizeEx, TRUE);
 				int size = 2 << 10;
 				this->m_DepthBaseScreenHandle.Make(size, size, FALSE);			// 深度バッファ用の作成
 				this->m_DepthScreenHandle.MakeDepth(size, size);					// 深度バッファの作成
 				this->m_DepthFarScreenHandle.MakeDepth(size, size);				// 深度バッファの作成
+
+				DxLib::SetCreateDrawValidGraphZBufferBitDepth(Prev);
+
 				this->m_Shader.Init("CommonData/shader/VS_SoftShadow.vso", "CommonData/shader/PS_SoftShadow.pso");
 				this->m_ShaderRigid.Init("CommonData/shader/VS_SoftShadow_Rigid.vso", "CommonData/shader/PS_SoftShadow.pso");
 			}
@@ -859,6 +865,7 @@ namespace Draw {
 		void			SetDistortionPer(float value) noexcept { this->m_DistortionPer = value; }
 		void			SetBlackOutParamPer(float value) noexcept { this->m_BlackOutParamPer = value; }
 		void			SetGodRayPerByPostPass(float value) noexcept { this->m_GodRayParam.SetGodRayPerByPostPass(value); }
+		void			SetGodRayPer(float value) noexcept { this->m_GodRayParam.SetGodRayPer(value); }
 		void			SetShadowScale(float value) noexcept { this->m_ShadowScale = value; }
 		// ボケ始める場所を指定(完全にボケるのはニアファーの限度)
 		void			SetDoFNearFar(float near_d, float far_d, float near_m, float far_m) noexcept {

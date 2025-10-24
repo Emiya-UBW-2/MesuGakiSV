@@ -64,6 +64,8 @@ void MainScene::Init_Sub(void) noexcept {
 		(Scale3DRate * 0.15f), Scale3DRate * 5.0f,
 		(Scale3DRate * 0.05f), Scale3DRate * 30.0f);
 
+	PostPassParts->SetGodRayPer(0.5f);
+
 	this->m_IsSceneEnd = false;
 	this->m_IsPauseActive = false;
 
