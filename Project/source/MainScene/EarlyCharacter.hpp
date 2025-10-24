@@ -267,6 +267,9 @@ class EarlyCharacter :public CharacterCommon {
 
 	Util::VECTOR3D		m_DownVec{};
 	float				m_DownPower{ 0.f };
+
+	Sound::SoundUniqueID DownHumanID{ InvalidID };
+	char		padding4[2]{};
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -291,6 +294,7 @@ public:
 			else {
 				SetDownBottom(B.normalized());
 			}
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, DownHumanID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 		}
 		else {
 			//のけぞり
@@ -331,7 +335,9 @@ public:
 public:
 	void CheckDraw_Sub(void) noexcept override {}
 public:
-	void Load_Chara(void) noexcept override {}
+	void Load_Chara(void) noexcept override {
+		DownHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/DownHuman.wav", true);
+	}
 	void Init_Chara(void) noexcept override {
 		this->m_PathUpdateTimer = 1.f;
 		this->m_DownTop = false;

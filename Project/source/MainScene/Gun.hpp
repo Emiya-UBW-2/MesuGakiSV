@@ -262,7 +262,8 @@ private:
 	float Timer{};
 	float DrawTimer{};
 	Sound::SoundUniqueID HitGroundID{ InvalidID };
-	char		padding[4]{};
+	Sound::SoundUniqueID HitHumanID{ InvalidID };
+	//char		padding[4]{};
 	std::array<std::shared_ptr<AmmoHitEffect>, 10>	m_AmmoEffectPer{};
 public:
 	void Set(const Util::Matrix4x4& Muzzle) noexcept {
@@ -287,6 +288,7 @@ private:
 public:
 	void Load_Sub(void) noexcept override {
 		HitGroundID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitGround.wav", true);
+		HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
 	}
 	void Init_Sub(void) noexcept override {
 		for (auto& ae : this->m_AmmoEffectPer) {
@@ -311,7 +313,7 @@ public:
 				c->SetHit(Target - GetMat().pos());
 				if (this->Timer != 0.f) {
 					SetAmmo(Target);
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitGroundID)->Play3D(Target, 10.f * Scale3DRate);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);
 				}
 			}
 		}

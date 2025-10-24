@@ -599,15 +599,15 @@ public:
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 	}
 	void Init_Chara(void) noexcept override {
-		this->m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.txt");
-		this->m_WalkAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Walk.txt");
-		this->m_RunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Run.txt");
+		this->m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.anh");
+		this->m_WalkAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Walk.anh");
+		this->m_RunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Run.anh");
 
-		this->m_HaveHandgunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/HaveHandgun.txt");
-		this->m_HaveRifleAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/HaveRifle.txt");
+		this->m_HaveHandgunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/HaveHandgun.anh");
+		this->m_HaveRifleAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/HaveRifle.anh");
 
-		this->m_ReloadHandgunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/ReloadHandgun.txt");
-		this->m_ReloadRifleAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/ReloadRifle.txt");
+		this->m_ReloadHandgunAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/ReloadHandgun.anh");
+		this->m_ReloadRifleAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/ReloadRifle.anh");
 
 		//Util::HandAnimPool::Instance()->SetAnimSpeed(this->m_WalkAnimIndex, 2.5f);
 
