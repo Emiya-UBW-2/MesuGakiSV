@@ -118,11 +118,22 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 	// 進行方向に前進
 	Util::Easing(&m_Speed, IsMove ? GetSpeedMax() : 0.f, 0.9f);
 
+	if (this->m_Armlocked && !this->m_ArmlockEnd) {
+		this->m_MyPosTarget = this->m_ArmlockPos.pos();
+		MyMat = this->m_ArmlockPos;
+		m_Rot = Util::Matrix3x3::Get33DX(MyMat);
+		this->m_Rad.y = Util::VECTOR3D::SignedAngle(Util::VECTOR3D::forward(), m_Rot.zvec(), Util::VECTOR3D::up());
+	}
 	// 移動ベクトルを加算した仮座標を作成
 	Util::VECTOR3D PosBefore = GetTargetPos();
 	Util::VECTOR3D PosAfter;
 	{
-		PosAfter = PosBefore + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -GetSpeed(), m_Rot);
+		Util::VECTOR3D Vec = Util::VECTOR3D::forward();
+		if (this->m_Armlocked || this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom) {
+			Vec = Util::VECTOR3D::zero();
+		}
+
+		PosAfter = PosBefore + Util::Matrix3x3::Vtrans(Vec * -GetSpeed(), m_Rot);
 
 		PosAfter = PosAfter + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(5.f * Scale3DRate * DeltaTime) * this->m_DownPower, m_Rot);
 
@@ -155,6 +166,7 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 	}
 	// 仮座標を反映
 	this->m_Speed = std::clamp((PosAfter - PosBefore).magnitude(), 0.f, this->m_Speed);
+
 	this->m_MyPosTarget = PosAfter;
 	Util::VECTOR3D MyPos = GetMat().pos();
 	Util::Easing(&MyPos, PosAfter, 0.9f);
@@ -192,9 +204,54 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		}
 	}
 
-	if (this->m_DownTop) {
+	if (this->m_ArmlockInjector && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockInjector)).GetTimePer() >= 1.f) {
+		this->m_ArmlockInjector = false;
+	}
+	if (this->m_ArmlockEnd && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockEnd)).GetTimePer() >= 1.f) {
+		this->m_ArmlockEnd = false;
+		this->m_Armlocked = false;
+
+		this->m_DownBottom = true;
+		SetAnim(static_cast<int>(EarlyCharaAnim::DownBottom)).SetTime(SetAnim(static_cast<int>(EarlyCharaAnim::DownBottom)).GetTotalTime());
+
+		this->m_WakeBottom = false;
+	}
+	if (this->m_Armlocked) {
+		if (!this->m_ArmlockEnd) {
+			if (!this->m_ArmlockInjector) {
+				this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockStart)] = 1.f;
+				this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockInjector)] = 0.f;
+				SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockStart)).Update(false, 1.f);
+			}
+			else {
+				this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockStart)] = 0.f;
+				this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockInjector)] = 1.f;
+				SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockInjector)).Update(false, 1.f);
+			}
+		}
+		else {
+			this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockEnd)] = 1.f;
+			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockEnd)).Update(false, 1.f);
+		}
+
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeBottom)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownBottom)] = 0.f;
+
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Upper)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Stand)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = 0.f;
+	}
+	else if (this->m_DownTop) {
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockStart)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockInjector)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockEnd)] = 0.f;
+
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 1.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeBottom)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownBottom)] = 0.f;
 		SetAnim(static_cast<int>(EarlyCharaAnim::DownTop)).Update(false, 1.f);
 
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Upper)] = 0.f;
@@ -202,8 +259,14 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = 0.f;
 	}
 	else if (this->m_WakeTop) {
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockStart)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockInjector)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockEnd)] = 0.f;
+
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 1.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeBottom)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownBottom)] = 0.f;
 		SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).Update(false, 1.f);
 		if (SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).GetTimePer() >= 1.f) {
 			this->m_WakeTop = false;
@@ -214,6 +277,12 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = 0.f;
 	}
 	else if (this->m_DownBottom) {
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockStart)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockInjector)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockEnd)] = 0.f;
+
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeBottom)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownBottom)] = 1.f;
 		SetAnim(static_cast<int>(EarlyCharaAnim::DownBottom)).Update(false, 1.f);
@@ -223,6 +292,12 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = 0.f;
 	}
 	else if (this->m_WakeBottom) {
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockStart)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockInjector)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockEnd)] = 0.f;
+
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownBottom)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeBottom)] = 1.f;
 		SetAnim(static_cast<int>(EarlyCharaAnim::WakeBottom)).Update(false, 1.f);
@@ -235,6 +310,10 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = 0.f;
 	}
 	else {
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockStart)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockInjector)] = 0.f;
+		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockEnd)] = 0.f;
+
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeBottom)] = 0.f;

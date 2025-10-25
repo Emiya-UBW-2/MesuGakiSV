@@ -12,6 +12,10 @@ void MainScene::Load_Sub(void) noexcept {
 	ObjectManager::Instance()->LoadModel("data/Soldier/");
 	ObjectManager::Instance()->LoadModel("data/Px4/");
 	ObjectManager::Instance()->LoadModel("data/Cx4/");
+
+	m_StandGraph = Draw::GraphPool::Instance()->Get("data/Body.png")->Get();
+	m_SquatGraph = Draw::GraphPool::Instance()->Get("data/BodyC.png")->Get();
+	m_ProneGraph = Draw::GraphPool::Instance()->Get("data/BodyP.png")->Get();
 }
 void MainScene::Init_Sub(void) noexcept {
 	BackGround::Instance()->Init();
@@ -119,13 +123,13 @@ void MainScene::Update_Sub(void) noexcept {
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::E), Localize->Get(335));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Run), Localize->Get(308));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Walk), Localize->Get(309));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Squat), Localize->Get(310));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Prone), Localize->Get(311));
-				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Jump), Localize->Get(312));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack), Localize->Get(336));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(337));
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Squat), Localize->Get(310));
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Prone), Localize->Get(311));
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Jump), Localize->Get(312));
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(337));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::ChangeWeapon), Localize->Get(315));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Reload), Localize->Get(316));
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Reload), Localize->Get(316));
 			}
 			else {
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
@@ -345,6 +349,15 @@ void MainScene::Update_Sub(void) noexcept {
 			Util::SceneBase::SetEndScene();
 		}
 	}
+
+	{
+		this->m_CharaStyleChange = std::max(this->m_CharaStyleChange - DeltaTime, 0.f);
+		if (this->m_CharaStyle != this->m_Character->GetStyle()) {
+			this->m_CharaStyleChange = 3.f;
+		}
+		Util::Easing(&this->m_CharaStyleChangeR, std::clamp(this->m_CharaStyleChange, 0.f, 1.f), 0.9f);
+		this->m_CharaStyle = this->m_Character->GetStyle();
+	}
 }
 void MainScene::BGDraw_Sub(void) noexcept {
 	BackGround::Instance()->BGDraw();
@@ -377,6 +390,8 @@ void MainScene::ShadowDraw_Sub(void) noexcept {
 }
 void MainScene::UIDraw_Sub(void) noexcept {
 	auto* DrawerMngr = Draw::MainDraw::Instance();
+	auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
+	auto* Localize = Util::LocalizePool::Instance();
 	{
 		int count = 0;
 		{
@@ -430,6 +445,83 @@ void MainScene::UIDraw_Sub(void) noexcept {
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
 	}
+	{
+		int xpos = DrawerMngr->GetDispWidth() / 2;
+		int ypos = DrawerMngr->GetDispHeight() * 3 / 4;
+
+		if (this->m_Character->CanArmlock()) {
+			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack));
+			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
+				Draw::FontXCenter::MIDDLE, Draw::FontYCenter::TOP,
+				xpos, ypos + 18,
+				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(341)));
+			ypos += 52;
+		}
+
+		if (this->m_Character->CanArmlockInjector()) {
+			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim));
+			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
+				Draw::FontXCenter::MIDDLE, Draw::FontYCenter::TOP,
+				xpos, ypos + 18,
+				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(342)));
+			ypos += 52;
+		}
+
+		if (this->m_Character->NeedReload()) {
+			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Reload));
+			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
+				Draw::FontXCenter::MIDDLE, Draw::FontYCenter::TOP,
+				xpos, ypos + 18,
+				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(316)));
+			ypos += 52;
+		}
+	}
+	{
+		int xpos = DrawerMngr->GetDispWidth() / 2;
+		int ypos = DrawerMngr->GetDispHeight() * 7 / 8;
+
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * this->m_CharaStyleChangeR), 64, 255));
+		{
+			DxLib::SetDrawBright(0, 255, 0);
+			switch (this->m_Character->GetStyle()) {
+			case CharaStyle::Run:
+			case CharaStyle::Stand:
+				m_StandGraph->DrawRotaGraph(xpos, ypos, 128.f / 500.f, 0.f, true);
+				break;
+			case CharaStyle::Squat:
+				m_SquatGraph->DrawRotaGraph(xpos, ypos, 128.f / 500.f, 0.f, true);
+				break;
+			case CharaStyle::Prone:
+				m_ProneGraph->DrawRotaGraph(xpos, ypos, 128.f / 500.f, 0.f, true);
+				break;
+			case CharaStyle::Max:
+			default:
+				break;
+			}
+			DxLib::SetDrawBright(255, 255, 255);
+		}
+		{
+			xpos = DrawerMngr->GetDispWidth() / 2 - 64;
+			ypos = DrawerMngr->GetDispHeight() * 7 / 8 - 32 + 24 / 2;
+
+			KeyGuideParts->DrawButton(xpos - 24, ypos - 24, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Squat));
+			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
+				Draw::FontXCenter::RIGHT, Draw::FontYCenter::BOTTOM,
+				xpos - 24, ypos,
+				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(310)));
+
+			xpos = DrawerMngr->GetDispWidth() / 2 - 64;
+			ypos = DrawerMngr->GetDispHeight() * 7 / 8 + 32 + 24 / 2;
+
+			KeyGuideParts->DrawButton(xpos - 24, ypos - 24, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Prone));
+			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
+				Draw::FontXCenter::RIGHT, Draw::FontYCenter::BOTTOM,
+				xpos - 24, ypos,
+				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(311)));
+		}
+
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+	}
 	if ((this->m_Character->GetEquip() != InvalidID) || (this->m_EquipUIActivePer > 0.f)) {
 		{
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(64.f * this->m_EquipUIActivePer), 0, 255));
@@ -455,6 +547,17 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		}
 		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(255, 255, 0), false, 3);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+
+		{
+			xpos = DrawerMngr->GetDispWidth() - 64;
+			ypos = DrawerMngr->GetDispHeight() - 128 - 5 - 64;
+
+			KeyGuideParts->DrawButton(xpos - 24, ypos - 24, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim));
+			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
+				Draw::FontXCenter::RIGHT, Draw::FontYCenter::BOTTOM,
+				xpos - 24, ypos,
+				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(337)));
+		}
 	}
 	this->m_PauseUI.Draw();
 	this->m_OptionWindow.Draw();

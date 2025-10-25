@@ -68,6 +68,13 @@ class MainScene : public Util::SceneBase {
 	std::shared_ptr<Gun>			m_HandGun{};
 	std::shared_ptr<Gun>			m_MainGun{};
 
+	float			m_CharaStyleChange{};
+	float			m_CharaStyleChangeR{};
+	CharaStyle		m_CharaStyle{};
+	const Draw::GraphHandle* m_StandGraph{};
+	const Draw::GraphHandle* m_SquatGraph{};
+	const Draw::GraphHandle* m_ProneGraph{};
+
 	Util::VECTOR3D	m_CamOffset{};
 	Util::VECTOR3D	m_CamVec{};
 	std::string		m_MapName{ "Map1" };

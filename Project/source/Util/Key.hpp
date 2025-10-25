@@ -521,57 +521,57 @@ namespace Util {
 	};
 
 	static const char* XInputInputStr[static_cast<size_t>(EnumInput::XInput_Max) - static_cast<size_t>(EnumInput::XInput_Begin)] = {
-		"X",
-		"A",
-		"B",
-		"Y",
-		"L1",
-		"R1",
-		"L2",
-		"R2",
-		"START",
-		"L3",
-		"R3",
-		"LEFT",
-		"UP",
-		"RIGHT",
-		"DOWN",
-		"BACK",
-		"LSLEFT",
-		"LSUP",
-		"LSRIGHT",
-		"LSDOWN",
-		"RSLEFT",
-		"RSUP",
-		"RSRIGHT",
-		"RSDOWN",
+		"XX",
+		"XA",
+		"XB",
+		"XY",
+		"XL1",
+		"XR1",
+		"XL2",
+		"XR2",
+		"XSTART",
+		"XL3",
+		"XR3",
+		"XLEFT",
+		"XUP",
+		"XRIGHT",
+		"XDOWN",
+		"XBACK",
+		"XLSLEFT",
+		"XLSUP",
+		"XLSRIGHT",
+		"XLSDOWN",
+		"XRSLEFT",
+		"XRSUP",
+		"XRSRIGHT",
+		"XRSDOWN",
 	};
 
 	static const char* DInputInputStr[static_cast<size_t>(EnumInput::DInput_Max) - static_cast<size_t>(EnumInput::DInput_Begin)] = {
-		"□",
-		"×",
-		"〇",
-		"△",
-		"L1",
-		"R1",
-		"L2",
-		"R2",
-		"START",
-		"L3",
-		"R3",
-		"LEFT",
-		"UP",
-		"RIGHT",
-		"DOWN",
-		"BACK",
-		"LSLEFT",
-		"LSUP",
-		"LSRIGHT",
-		"LSDOWN",
-		"RSLEFT",
-		"RSUP",
-		"RSRIGHT",
-		"RSDOWN",
+		"D□",
+		"D×",
+		"D〇",
+		"D△",
+		"DL1",
+		"DR1",
+		"DL2",
+		"DR2",
+		"DSTART",
+		"DL3",
+		"DR3",
+		"DLEFT",
+		"DUP",
+		"DRIGHT",
+		"DDOWN",
+		"DBACK",
+		"DLSLEFT",
+		"DLSUP",
+		"DLSRIGHT",
+		"DLSDOWN",
+		"DRSLEFT",
+		"DRSUP",
+		"DRSRIGHT",
+		"DRSDOWN",
 	};
 
 	enum class EnumMenu :size_t {
@@ -718,8 +718,8 @@ namespace Util {
 					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
 					AssignID(EnumMenu::Tab, 0, EnumInput::XInput_OPTION);
 					//
-					AssignID(EnumMenu::Diside, 0, EnumInput::XInput_OK);
-					AssignID(EnumMenu::Cancel, 0, EnumInput::XInput_NG);
+					AssignID(EnumMenu::Diside, 0, EnumInput::XInput_NG);
+					AssignID(EnumMenu::Cancel, 0, EnumInput::XInput_OK);
 					AssignID(EnumMenu::LEFT, 0, EnumInput::XInput_LEFT);
 					AssignID(EnumMenu::LEFT, 1, EnumInput::XInput_LSTICKLEFT);
 					AssignID(EnumMenu::UP, 0, EnumInput::XInput_UP);
@@ -734,8 +734,8 @@ namespace Util {
 					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
 					AssignID(EnumMenu::Tab, 0, EnumInput::DInput_OPTION);
 					//
-					AssignID(EnumMenu::Diside, 0, EnumInput::DInput_OK);
-					AssignID(EnumMenu::Cancel, 0, EnumInput::DInput_NG);
+					AssignID(EnumMenu::Diside, 0, EnumInput::DInput_NG);
+					AssignID(EnumMenu::Cancel, 0, EnumInput::DInput_OK);
 					AssignID(EnumMenu::LEFT, 0, EnumInput::DInput_LEFT);
 					AssignID(EnumMenu::LEFT, 1, EnumInput::DInput_LSTICKLEFT);
 					AssignID(EnumMenu::UP, 0, EnumInput::DInput_UP);
@@ -1020,7 +1020,7 @@ namespace Util {
 				size_t index = static_cast<size_t>(ID) - static_cast<size_t>(EnumInput::XInput_Begin);
 				auto XID = XInputInput[index];
 				bool IsPress = false;
-				if (XID >= 0xF100) {
+				if (XID >= 0xF000) {
 					bool LS_Active = false;
 					bool RS_Active = false;
 					float LS_Degree = 0.f;

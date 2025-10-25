@@ -161,6 +161,10 @@ enum class CharaAnim {
 
 	Combo,//3段コンボ
 
+	ArmlockStart,
+	ArmlockInjector,
+	ArmlockEnd,
+
 	Max,
 };
 
@@ -490,13 +494,22 @@ class Character :public CharacterCommon {
 	bool				m_IsActive{};
 	bool				m_AnimMoving{ false };
 	bool				m_ShotSwitch{ false };
-	bool				m_PunchSwitch{ false };
+	bool				m_PunchActive{ false };
 	bool				m_PunchAttack{ false };
+	bool				m_ArmlockActive{ false };
+	bool				m_ArmlockEnd{ false };
+	bool				m_ArmlockInjector{ false };
+	bool				m_IsArmlock{ false };
 	char		padding[1]{};
+	float				m_ArmlockTime{ 0.f };
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
 	Sound::SoundUniqueID	m_KickID{ InvalidID };
-	Sound::SoundUniqueID HitHumanID{ InvalidID };
+	Sound::SoundUniqueID	HitHumanID{ InvalidID };
+
+	Sound::SoundUniqueID	ArmlockStartID{ InvalidID };
+	Sound::SoundUniqueID	ArmlockID{ InvalidID };
+	Sound::SoundUniqueID	StimID{ InvalidID };
 	int					m_StandAnimIndex{};
 	int					m_WalkAnimIndex{};
 	int					m_RunAnimIndex{};
@@ -508,7 +521,8 @@ class Character :public CharacterCommon {
 	int					m_Now{};
 	int					m_Equip{ InvalidID };
 	int					m_PrevEquip{ InvalidID };
-	char		padding2[4]{};
+	int					m_ArmlockID = InvalidID;
+	//char		padding2[4]{};
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
 public:
@@ -554,7 +568,22 @@ public:
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
 	bool IsFPSView(void) const noexcept { return this->m_IsFPS; }
 	bool IsShotSwitch(void) const noexcept { return this->m_ShotSwitch; }
+	bool CanArmlock(void) const noexcept {
+		if (this->m_Handgun.GetIsEquip()) {
+			return false;
+		}
+		if (this->m_Maingun.GetIsEquip()) {
+			return false;
+		}
+		return this->m_IsArmlock;
+	}
+	bool CanArmlockInjector(void) const noexcept { return (this->m_ArmlockActive && !this->m_ArmlockEnd); }
+	auto GetStyle(void) const noexcept { return this->m_CharaStyle; }
+	bool NeedReload(void) const noexcept;
 	bool IsFreeView(void) const noexcept {
+		if (this->m_ArmlockActive) {
+			return false;
+		}
 		auto* KeyMngr = Util::KeyParam::Instance();
 		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) && !IsFPSView();
 	}
@@ -592,7 +621,7 @@ public:
 	void SetEquip(int value) noexcept { this->m_Equip = value; }
 
 	bool ChanChangeWeapon() const noexcept {
-		return  (!this->GetIsReloading() && !this->m_PunchSwitch);
+		return  (!this->GetIsReloading() && !this->m_PunchActive && !this->m_ArmlockActive);
 	}
 public:
 	void CheckDraw_Sub(void) noexcept override {
@@ -610,6 +639,10 @@ public:
 	void Load_Chara(void) noexcept override {
 		this->m_heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
 		this->HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
+
+		this->ArmlockStartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/ArmlockStart.wav", true);
+		this->ArmlockID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Armlock.wav", true);
+		this->StimID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Stim.wav", true);
 
 		this->m_PunchID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Punch.wav", true);
 		this->m_KickID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Kick.wav", true);
