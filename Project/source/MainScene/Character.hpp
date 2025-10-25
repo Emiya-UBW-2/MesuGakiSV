@@ -159,6 +159,8 @@ enum class CharaAnim {
 
 	ProneAim,//伏せエイム
 
+	Combo,//3段コンボ
+
 	Max,
 };
 
@@ -481,12 +483,15 @@ class Character :public CharacterCommon {
 	float				m_WalkEyeRad{};
 	float				m_YradProne{};
 	float				m_RadLimit{};
+	float				m_PunchTimer{};
+	float				m_PunchPower{};
 	bool				m_PrevIsFPSView{};
 	bool				m_IsFPS{};
 	bool				m_IsActive{};
 	bool				m_AnimMoving{ false };
 	bool				m_ShotSwitch{ false };
-	char		padding[3]{};
+	bool				m_PunchSwitch{ false };
+	char		padding[1]{};
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
 	int					m_StandAnimIndex{};
 	int					m_WalkAnimIndex{};
