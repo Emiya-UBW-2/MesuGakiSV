@@ -62,7 +62,7 @@
 		{
 			"Type":"Fov",
 			"SelectType" : "Int",
-			"Value" : [45,120],
+			"Value" : [45,180],
 			"DefaultValue" : 90
 		},
 		{

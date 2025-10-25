@@ -302,12 +302,12 @@ public:
 			Util::VECTOR3D B = Vec; B.y = 0.f;
 			if (Util::VECTOR3D::Dot(A, B) > 0.f) {
 				m_HitVec = (B.normalized());
-				this->m_HitPower = 1.f;
+				this->m_HitPower = 0.5f;
 				this->m_HitBack = 1.f;
 			}
 			else {
 				m_HitVec = (B.normalized()) * -1.f;
-				this->m_HitPower = -1.f;
+				this->m_HitPower = -0.5f;
 				this->m_HitBack = -1.f;
 			}
 		}

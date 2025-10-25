@@ -329,7 +329,7 @@ protected:
 	//char		padding2[3]{};
 
 	Util::Matrix3x3		m_Rot;
-	//char		padding3[4]{};
+	char		padding3[4]{};
 protected:
 	auto GetRotMat() const { return Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), this->m_Rad.z) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), this->m_Rad.y); }
 	float CalcYradDiff(float TargetYRad) {
@@ -491,8 +491,12 @@ class Character :public CharacterCommon {
 	bool				m_AnimMoving{ false };
 	bool				m_ShotSwitch{ false };
 	bool				m_PunchSwitch{ false };
+	bool				m_PunchAttack{ false };
 	char		padding[1]{};
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
+	Sound::SoundUniqueID	m_PunchID{ InvalidID };
+	Sound::SoundUniqueID	m_KickID{ InvalidID };
+	Sound::SoundUniqueID HitHumanID{ InvalidID };
 	int					m_StandAnimIndex{};
 	int					m_WalkAnimIndex{};
 	int					m_RunAnimIndex{};
@@ -586,6 +590,10 @@ public:
 	bool GetIsReloading(void) const noexcept { return (this->m_Handgun.GetIsReload() || this->m_Handgun.GetIsCocking() || this->m_Maingun.GetIsReload() || this->m_Maingun.GetIsCocking()); }
 	int GetEquip(void) const noexcept { return this->m_Equip; }
 	void SetEquip(int value) noexcept { this->m_Equip = value; }
+
+	bool ChanChangeWeapon() const noexcept {
+		return  (!this->GetIsReloading() && !this->m_PunchSwitch);
+	}
 public:
 	void CheckDraw_Sub(void) noexcept override {
 		if (!IsFPSView()) {
@@ -601,6 +609,10 @@ public:
 public:
 	void Load_Chara(void) noexcept override {
 		this->m_heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
+		this->HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
+
+		this->m_PunchID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Punch.wav", true);
+		this->m_KickID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Kick.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 	}
 	void Init_Chara(void) noexcept override {

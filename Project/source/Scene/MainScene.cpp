@@ -166,7 +166,7 @@ void MainScene::Update_Sub(void) noexcept {
 		DxLib::SetMouseDispFlag(true);
 		return;
 	}
-	if (!this->m_Character->GetIsReloading()) {
+	if (this->m_Character->ChanChangeWeapon()) {
 		if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
 			KeyGuideParts->SetGuideFlip();
 			if ((this->m_EquipUITimer >= 10.f * DeltaTime) || (this->m_Character->GetEquip() == InvalidID)) {

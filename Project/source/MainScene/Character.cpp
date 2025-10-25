@@ -179,47 +179,49 @@ void Character::Update_Chara(void) noexcept {
 	}
 	//
 	if (this->m_IsActive) {
-		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Prone)) {
-			if (this->m_CharaStyle == CharaStyle::Stand || this->m_CharaStyle == CharaStyle::Squat || this->m_CharaStyle == CharaStyle::Prone) {
-				PlayMoveSound();
-				if (this->m_CharaStyle == CharaStyle::Stand) {
-					this->m_CharaStyle = CharaStyle::Squat;
+		if (!this->m_PunchSwitch) {
+			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Prone)) {
+				if (this->m_CharaStyle == CharaStyle::Stand || this->m_CharaStyle == CharaStyle::Squat || this->m_CharaStyle == CharaStyle::Prone) {
+					PlayMoveSound();
+					if (this->m_CharaStyle == CharaStyle::Stand) {
+						this->m_CharaStyle = CharaStyle::Squat;
+					}
+					else if (this->m_CharaStyle == CharaStyle::Squat) {
+						this->m_CharaStyle = CharaStyle::Prone;
+					}
+					else {
+						this->m_CharaStyle = CharaStyle::Squat;
+					}
 				}
-				else if (this->m_CharaStyle == CharaStyle::Squat) {
-					this->m_CharaStyle = CharaStyle::Prone;
+			}
+			else if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
+				if (this->m_CharaStyle == CharaStyle::Stand || this->m_CharaStyle == CharaStyle::Squat) {
+					PlayMoveSound();
+				}
+				if (this->m_CharaStyle != CharaStyle::Squat) {
+					this->m_CharaStyle = CharaStyle::Squat;
 				}
 				else {
-					this->m_CharaStyle = CharaStyle::Squat;
+					this->m_CharaStyle = CharaStyle::Stand;
 				}
-			}
-		}
-		else if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Squat)) {
-			if (this->m_CharaStyle == CharaStyle::Stand || this->m_CharaStyle == CharaStyle::Squat) {
-				PlayMoveSound();
-			}
-			if (this->m_CharaStyle != CharaStyle::Squat) {
-				this->m_CharaStyle = CharaStyle::Squat;
 			}
 			else {
-				this->m_CharaStyle = CharaStyle::Stand;
-			}
-		}
-		else {
-			if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Run)) {
-				if (this->m_CharaStyle == CharaStyle::Prone) {
-					PlayMoveSound();
-					this->m_CharaStyle = CharaStyle::Squat;
-				}
-				else {
-					if (this->m_CharaStyle == CharaStyle::Squat) {
+				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Run)) {
+					if (this->m_CharaStyle == CharaStyle::Prone) {
 						PlayMoveSound();
+						this->m_CharaStyle = CharaStyle::Squat;
 					}
-					this->m_CharaStyle = CharaStyle::Run;
+					else {
+						if (this->m_CharaStyle == CharaStyle::Squat) {
+							PlayMoveSound();
+						}
+						this->m_CharaStyle = CharaStyle::Run;
+					}
 				}
-			}
-			if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::Run)) {
-				if (this->m_CharaStyle != CharaStyle::Squat) {
-					this->m_CharaStyle = CharaStyle::Stand;
+				if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::Run)) {
+					if (this->m_CharaStyle != CharaStyle::Squat) {
+						this->m_CharaStyle = CharaStyle::Stand;
+					}
 				}
 			}
 		}
@@ -548,10 +550,12 @@ void Character::Update_Chara(void) noexcept {
 				}
 			}
 		}
-		if (!(this->m_Handgun.GetIsEquip() || this->m_Maingun.GetIsEquip())) {
-			if (!this->m_PunchSwitch) {
-				this->m_PunchSwitch = true;
-				SetAnim(static_cast<int>(CharaAnim::Combo)).SetTime(0.f);
+		if (this->m_CharaStyle == CharaStyle::Stand || this->m_CharaStyle == CharaStyle::Squat) {
+			if (!(this->m_Handgun.GetIsEquip() || this->m_Maingun.GetIsEquip())) {
+				if (!this->m_PunchSwitch) {
+					this->m_PunchSwitch = true;
+					SetAnim(static_cast<int>(CharaAnim::Combo)).SetTime(0.f);
+				}
 			}
 		}
 	}
@@ -762,7 +766,7 @@ void Character::Update_Chara(void) noexcept {
 	Util::Easing(&m_MovePer, GetSpeed() / GetSpeedMax(), 0.9f);
 
 	if (GetMovePer01() > 0.01f) {
-		this->m_WalkEyeRad += Util::deg2rad(360) * DeltaTime;
+		this->m_WalkEyeRad += Util::deg2rad(180) * DeltaTime * 60.f / (35.f / (GetSpeed() * 2.75f));
 	}
 	else {
 		this->m_WalkEyeRad = 0.f;
@@ -776,6 +780,22 @@ void Character::Update_Chara(void) noexcept {
 		this->m_PunchSwitch = false;
 	}
 
+
+	if (this->m_PunchAttack) {
+		this->m_PunchAttack = false;
+		Util::VECTOR3D Base = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
+		Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), m_Rot);
+		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
+			Util::VECTOR3D Target1 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), m_Rot);
+			Util::VECTOR3D Target2 = Target;
+			Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
+			if (c->CheckHit(Base, &Target1) || c->CheckHit(Base, &Target2) || c->CheckHit(Base, &Target3)) {
+				c->SetHit(Target - Base);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);
+			}
+		}
+	}
+
 	if (this->m_PunchSwitch) {
 		this->m_AnimPer[static_cast<size_t>(CharaAnim::Combo)] = 1.f;
 
@@ -785,14 +805,20 @@ void Character::Update_Chara(void) noexcept {
 		if (static_cast<int>(Now) == 1 && static_cast<int>(Now) != static_cast<int>(m_PunchTimer)) {
 			Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
 			m_PunchPower = 0.2f;
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_PunchID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+			m_PunchAttack = true;
 		}
 		if (static_cast<int>(Now) == 9 && static_cast<int>(Now) != static_cast<int>(m_PunchTimer)) {
 			Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
 			m_PunchPower = 0.2f;
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_PunchID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+			m_PunchAttack = true;
 		}
 		if (static_cast<int>(Now) == 17 && static_cast<int>(Now) != static_cast<int>(m_PunchTimer)) {
 			Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
 			m_PunchPower = 1.f;
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_KickID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+			m_PunchAttack = true;
 		}
 		m_PunchTimer = Now;
 
