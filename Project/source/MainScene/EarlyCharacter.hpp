@@ -461,4 +461,6 @@ public:
 	void Update_Chara(void) noexcept override;
 	void Draw_Chara(void) const noexcept override {
 	}
+	void Dispose_Chara(void) noexcept override {
+	}
 };

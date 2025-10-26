@@ -1367,4 +1367,6 @@ void Character::Update_Chara(void) noexcept {
 			}
 		}
 	}
+	//
+	m_Injector.SetMatrix(GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::LeftHandJoint)));
 }

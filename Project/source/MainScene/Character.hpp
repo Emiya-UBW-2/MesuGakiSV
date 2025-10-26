@@ -470,6 +470,7 @@ public:
 	}
 	void Dispose_Sub(void) noexcept override {
 		SetModel().Dispose();
+		Dispose_Chara();
 	}
 public:
 	virtual bool IsPlayer(void) noexcept = 0;
@@ -477,6 +478,7 @@ public:
 	virtual void Init_Chara(void) noexcept = 0;
 	virtual void Update_Chara(void) noexcept = 0;
 	virtual void Draw_Chara(void) const noexcept = 0;
+	virtual void Dispose_Chara(void) noexcept = 0;
 };
 
 class Character :public CharacterCommon {
@@ -554,6 +556,8 @@ class Character :public CharacterCommon {
 	float				m_DownPower{ 0.f };
 	int					m_TotalAmmo{ 10 };//予備弾数
 	char		padding6[4]{};
+
+	Draw::MV1			m_Injector{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -706,6 +710,7 @@ public:
 		this->m_PunchID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Punch.wav", true);
 		this->m_KickID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Kick.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+		Draw::MV1::Load("data/model/Injector/model.mv1", &m_Injector);
 	}
 	void Init_Chara(void) noexcept override {
 		this->m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.anh");
@@ -729,9 +734,15 @@ public:
 	}
 	void Update_Chara(void) noexcept override;
 	void Draw_Chara(void) const noexcept override {
+		if (this->m_ArmlockInjector) {
+			m_Injector.DrawModel();
+		}
 		if (IsFreeView()) {
 			unsigned int Color = m_CanAim ? ColorPalette::Green : ColorPalette::Red;
 			DrawSphere3D(this->m_AimPoint.get(), 0.5f * Scale3DRate, 6, Color, Color, false);
 		}
+	}
+	void Dispose_Chara(void) noexcept override {
+		m_Injector.Dispose();
 	}
 };
