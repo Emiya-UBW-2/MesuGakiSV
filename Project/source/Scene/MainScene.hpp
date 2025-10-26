@@ -64,13 +64,13 @@ class MainScene : public Util::SceneBase {
 	bool			m_IsPauseActive{ false };
 	bool			m_IsChangeEquip{ false };
 	char		padding[4]{};
-	std::shared_ptr<Character>		m_Character{};
 	std::shared_ptr<Gun>			m_HandGun{};
 	std::shared_ptr<Gun>			m_MainGun{};
 
 	float			m_CharaStyleChange{};
 	float			m_CharaStyleChangeR{};
 	CharaStyle		m_CharaStyle{};
+	char		padding2[4]{};
 	const Draw::GraphHandle* m_StandGraph{};
 	const Draw::GraphHandle* m_SquatGraph{};
 	const Draw::GraphHandle* m_ProneGraph{};

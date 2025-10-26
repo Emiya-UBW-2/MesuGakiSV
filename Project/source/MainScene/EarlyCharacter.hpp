@@ -279,10 +279,15 @@ class EarlyCharacter :public CharacterCommon {
 	Sound::SoundUniqueID DownHumanID{ InvalidID };
 
 	bool				m_Armlocked{ false };
-	bool				m_ArmlockEnd{ false };
-	bool				m_ArmlockInjector{ false };
+	bool				m_ArmlockedEnd{ false };
+	bool				m_ArmlockedInjector{ false };
 	char		padding4[5]{};
-	Util::Matrix4x4		m_ArmlockPos{};
+	Util::Matrix4x4		m_ArmlockedPos{};
+
+
+	bool				m_ArmlockActive{ false };
+	bool				m_ArmlockEnd{ false };
+	float				m_ArmlockTime{ 0.f };
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -346,20 +351,20 @@ public:
 		this->m_DownBottom = true;
 	}
 	//
-	void		SetArmlock(const Util::Matrix4x4& Mat) noexcept {
-		this->m_ArmlockPos = Mat;
+	void		SetArmlocked(const Util::Matrix4x4& Mat) noexcept {
+		this->m_ArmlockedPos = Mat;
 		this->m_Armlocked = true;
 		SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedStart)).SetTime(0.f);
 	}
-	void		SetArmlockInjector() noexcept {
-		if (!this->m_ArmlockInjector) {
-			this->m_ArmlockInjector = true;
+	void		SetArmlockedInjector() noexcept {
+		if (!this->m_ArmlockedInjector) {
+			this->m_ArmlockedInjector = true;
 			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedInjector)).SetTime(0.f);
 		}
 	}
-	void		SetArmlockEnd() noexcept {
-		if (!this->m_ArmlockEnd) {
-			this->m_ArmlockEnd = true;
+	void		SetArmlockedEnd() noexcept {
+		if (!this->m_ArmlockedEnd) {
+			this->m_ArmlockedEnd = true;
 			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedEnd)).SetTime(0.f);
 			this->m_DownBottomTimer = 3.f;
 			this->m_DownPower = 1.f;
@@ -368,6 +373,8 @@ public:
 public:
 	void CheckDraw_Sub(void) noexcept override {}
 public:
+	bool IsPlayer(void) noexcept override { return false; }
+
 	void Load_Chara(void) noexcept override {
 		DownHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/DownHuman.wav", true);
 	}

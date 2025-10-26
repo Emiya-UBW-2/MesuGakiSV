@@ -309,8 +309,9 @@ public:
 			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitGroundID)->Play3D(Target, 10.f * Scale3DRate);
 		}
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
+			if (c->IsPlayer()) { continue; }
 			if (c->CheckHit(GetMat().pos(), &Target)) {
-				c->SetHit(Target - GetMat().pos());
+				((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos());
 				if (this->Timer != 0.f) {
 					SetAmmo(Target);
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);

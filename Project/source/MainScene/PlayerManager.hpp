@@ -15,7 +15,7 @@ class PlayerManager : public Util::SingletonBase<PlayerManager> {
 private:
 	friend class Util::SingletonBase<PlayerManager>;
 private:
-	std::vector<std::shared_ptr<EarlyCharacter>>	m_Character;
+	std::vector<std::shared_ptr<CharacterCommon>>	m_Character;
 private:
 	PlayerManager(void) noexcept {}
 	PlayerManager(const PlayerManager&) = delete;
@@ -25,11 +25,18 @@ private:
 	virtual ~PlayerManager(void) noexcept { Dispose(); }
 public:
 	void Load(void) noexcept {
+		ObjectManager::Instance()->LoadModel("data/Soldier/");
 		ObjectManager::Instance()->LoadModel("data/Early/");
-		this->m_Character.resize(5);
+		this->m_Character.resize(6);
 	}
 	void Init(void) noexcept {
 		size_t loop = 0;
+
+		this->m_Character.at(loop) = std::make_shared<Character>();
+		ObjectManager::Instance()->InitObject(this->m_Character.at(loop), this->m_Character.at(loop), "data/Soldier/");
+		//this->m_Character.at(loop)->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
+		++loop;
+
 		for (auto& m : BackGround::Instance()->GetMapInfo()) {
 			if (m.m_InfoType == InfoType::WayPoint) {
 				this->m_Character.at(loop) = std::make_shared<EarlyCharacter>();
@@ -42,7 +49,8 @@ public:
 	}
 	void SetTarget(const Util::VECTOR3D& pos) noexcept {
 		for (auto& m : this->m_Character) {
-			m->SetTarget(pos);
+			if (m->IsPlayer()) { continue; }
+			((std::shared_ptr<EarlyCharacter>&)m)->SetTarget(pos);
 		}
 	}
 	void Dispose(void) noexcept {

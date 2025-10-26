@@ -471,6 +471,7 @@ public:
 		SetModel().Dispose();
 	}
 public:
+	virtual bool IsPlayer(void) noexcept = 0;
 	virtual void Load_Chara(void) noexcept = 0;
 	virtual void Init_Chara(void) noexcept = 0;
 	virtual void Update_Chara(void) noexcept = 0;
@@ -503,7 +504,7 @@ class Character :public CharacterCommon {
 	bool				m_ArmlockActive{ false };
 	bool				m_ArmlockEnd{ false };
 	bool				m_ArmlockInjector{ false };
-	bool				m_IsArmlock{ false };
+	bool				m_CanArmlock{ false };
 	char		padding[1]{};
 	float				m_ArmlockTime{ 0.f };
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
@@ -527,8 +528,18 @@ class Character :public CharacterCommon {
 	int					m_PrevEquip{ InvalidID };
 	int					m_ArmlockID = InvalidID;
 	char		padding2[4]{};
+
+	bool				m_Armlocked{ false };
+	bool				m_ArmlockedEnd{ false };
+	char		padding4[6]{};
+	Util::Matrix4x4		m_ArmlockedPos{};
+
+	bool				m_WakeBottom{};
+
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
+
+	float				m_ArmlockedTime{ 0.f };
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -572,6 +583,7 @@ public:
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
 	bool IsFPSView(void) const noexcept { return this->m_IsFPS; }
 	bool IsShotSwitch(void) const noexcept { return this->m_ShotSwitch; }
+	bool CanDamage(void) const noexcept { return this->m_ArmlockedTime == 0.f; }
 	bool CanArmlock(void) const noexcept {
 		if (this->m_Handgun.GetIsEquip()) {
 			return false;
@@ -579,7 +591,7 @@ public:
 		if (this->m_Maingun.GetIsEquip()) {
 			return false;
 		}
-		return this->m_IsArmlock;
+		return this->m_CanArmlock;
 	}
 	bool CanArmlockInjector(void) const noexcept { return (this->m_ArmlockActive && !this->m_ArmlockEnd); }
 	auto GetStyle(void) const noexcept { return this->m_CharaStyle; }
@@ -627,6 +639,20 @@ public:
 	bool ChanChangeWeapon() const noexcept {
 		return  (!this->GetIsReloading() && !this->m_PunchActive && !this->m_ArmlockActive);
 	}
+	//
+	void		SetArmlocked(const Util::Matrix4x4& Mat) noexcept {
+		this->m_ArmlockedPos = Mat;
+		this->m_Armlocked = true;
+		SetAnim(static_cast<int>(CharaAnim::ArmlockedStart)).SetTime(0.f);
+	}
+	void		SetArmlockedEnd() noexcept {
+		if (!this->m_ArmlockedEnd) {
+			this->m_ArmlockedEnd = true;
+			SetAnim(static_cast<int>(CharaAnim::ArmlockedEnd)).SetTime(0.f);
+			//this->m_DownBottomTimer = 3.f;
+			//this->m_DownPower = 1.f;
+		}
+	}
 public:
 	void CheckDraw_Sub(void) noexcept override {
 		if (!IsFPSView()) {
@@ -640,6 +666,8 @@ public:
 		}
 	}
 public:
+	bool IsPlayer(void) noexcept override { return true; }
+
 	void Load_Chara(void) noexcept override {
 		this->m_heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
 		this->HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
@@ -669,6 +697,8 @@ public:
 		SetArmAnim(this->m_StandAnimIndex);
 		this->m_AnimChangePer = 1.f;
 		this->m_AnimMoving = false;
+
+		this->m_WakeBottom = false;
 	}
 	void Update_Chara(void) noexcept override;
 };

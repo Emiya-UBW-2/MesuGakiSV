@@ -397,7 +397,7 @@ void Character::Update_Chara(void) noexcept {
 		this->m_RadAdd.y = Util::deg2rad(static_cast<float>(LookX) / 30.f);
 		this->m_RadAdd.x = Util::deg2rad(static_cast<float>(LookY) / 30.f);
 
-		if (this->m_PunchActive || this->m_ArmlockActive) {
+		if (this->m_PunchActive || this->m_ArmlockActive || this->m_Armlocked || this->m_WakeBottom) {
 			this->m_RadAdd.y = 0.f;
 			this->m_RadAdd.x = 0.f;
 		}
@@ -486,6 +486,11 @@ void Character::Update_Chara(void) noexcept {
 			}
 		}
 
+		if (this->m_Armlocked || this->m_WakeBottom) {
+			this->m_RadAdd.y = 0.f;
+			this->m_RadAdd.x = 0.f;
+		}
+
 		this->m_Rad.y += this->m_RadAdd.y;
 		this->m_Rad.y = Util::AngleRange360(this->m_Rad.y);
 
@@ -557,6 +562,7 @@ void Character::Update_Chara(void) noexcept {
 		Util::VECTOR3D Base = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
 		Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), m_Rot);
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
+			if (c->IsPlayer()) { continue; }
 			Util::VECTOR3D Base1 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), m_Rot);
 			Util::VECTOR3D Base2 = Base;
 			Util::VECTOR3D Base3 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
@@ -576,7 +582,7 @@ void Character::Update_Chara(void) noexcept {
 			}
 		}
 	}
-	m_IsArmlock = (ID != InvalidID);
+	m_CanArmlock = (ID != InvalidID);
 
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack)) {
 		if (this->m_Handgun.GetIsReady()) {
@@ -601,7 +607,7 @@ void Character::Update_Chara(void) noexcept {
 		}
 		if (this->m_CharaStyle == CharaStyle::Stand || this->m_CharaStyle == CharaStyle::Squat) {
 			if (!(this->m_Handgun.GetIsEquip() || this->m_Maingun.GetIsEquip())) {
-				if (!m_IsArmlock) {
+				if (!m_CanArmlock) {
 					//パンチ
 					if (!this->m_PunchActive) {
 						this->m_PunchActive = true;
@@ -616,7 +622,7 @@ void Character::Update_Chara(void) noexcept {
 						//IDの相手に羽交い絞めを開始させる
 						m_ArmlockID = ID;
 						if (m_ArmlockID != InvalidID) {
-							PlayerManager::Instance()->SetCharacter().at(static_cast<size_t>(m_ArmlockID))->SetArmlock(GetMat());
+							((std::shared_ptr<EarlyCharacter>&)PlayerManager::Instance()->SetCharacter().at(static_cast<size_t>(m_ArmlockID)))->SetArmlocked(GetMat());
 						}
 
 						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->ArmlockStartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
@@ -636,7 +642,7 @@ void Character::Update_Chara(void) noexcept {
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->ArmlockStartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				SetAnim(static_cast<int>(CharaAnim::ArmlockEnd)).SetTime(0.f);
 				if (m_ArmlockID != InvalidID) {
-					PlayerManager::Instance()->SetCharacter().at(static_cast<size_t>(m_ArmlockID))->SetArmlockEnd();
+					((std::shared_ptr<EarlyCharacter>&)PlayerManager::Instance()->SetCharacter().at(static_cast<size_t>(m_ArmlockID)))->SetArmlockedEnd();
 					m_ArmlockID = InvalidID;
 				}
 			}
@@ -647,7 +653,7 @@ void Character::Update_Chara(void) noexcept {
 					this->m_ArmlockInjector = true;
 					SetAnim(static_cast<int>(CharaAnim::ArmlockInjector)).SetTime(0.f);
 					if (m_ArmlockID != InvalidID) {
-						PlayerManager::Instance()->SetCharacter().at(static_cast<size_t>(m_ArmlockID))->SetArmlockInjector();
+						((std::shared_ptr<EarlyCharacter>&)PlayerManager::Instance()->SetCharacter().at(static_cast<size_t>(m_ArmlockID)))->SetArmlockedInjector();
 					}
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->StimID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
@@ -657,7 +663,7 @@ void Character::Update_Chara(void) noexcept {
 	}
 
 	this->m_ArmlockTime = std::max(this->m_ArmlockTime - DeltaTime, 0.f);
-
+	this->m_ArmlockedTime = std::max(this->m_ArmlockedTime - DeltaTime, 0.f);
 	{
 		bool IsShot = KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack);
 		{
@@ -728,6 +734,12 @@ void Character::Update_Chara(void) noexcept {
 	// 進行方向に前進
 	Util::Easing(&m_Speed, (IsMove || !m_IsActive) ? GetSpeedMax() : 0.f, 0.9f);
 
+	if (this->m_Armlocked && !this->m_ArmlockedEnd) {
+		this->m_MyPosTarget = this->m_ArmlockedPos.pos();
+		MyMat = this->m_ArmlockedPos;
+		m_Rot = Util::Matrix3x3::Get33DX(MyMat);
+		this->m_Rad.y = Util::VECTOR3D::SignedAngle(Util::VECTOR3D::forward(), m_Rot.zvec(), Util::VECTOR3D::up());
+	}
 	// 移動ベクトルを加算した仮座標を作成
 	Util::VECTOR3D PosBefore = GetTargetPos();
 	Util::VECTOR3D PosAfter;
@@ -740,7 +752,7 @@ void Character::Update_Chara(void) noexcept {
 		else {
 			Vec = Util::VECTOR3D::forward();
 		}
-		if (this->m_PunchActive || this->m_ArmlockActive) {
+		if (this->m_Armlocked || this->m_PunchActive || this->m_ArmlockActive || this->m_WakeBottom) {
 			Vec = Util::VECTOR3D::zero();
 		}
 		PosAfter = PosBefore + Util::Matrix3x3::Vtrans(Vec * -GetSpeed(), m_Rot);
@@ -750,7 +762,7 @@ void Character::Update_Chara(void) noexcept {
 	}
 	// 壁判定
 	CheckWall(PosBefore, &PosAfter, Util::VECTOR3D::zero(), Util::VECTOR3D::up()* (0.7f * Scale3DRate), Util::VECTOR3D::up()* (1.6f * Scale3DRate), 0.35f * Scale3DRate);
-	if (this->m_CharaStyle == CharaStyle::Prone) {
+	if (this->m_CharaStyle == CharaStyle::Prone || this->m_WakeBottom) {
 		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos(); PosAdd.y = 0.f; PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
 		CheckWall(PosBefore, &PosAfter, PosAdd, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate);
 	}
@@ -880,6 +892,7 @@ void Character::Update_Chara(void) noexcept {
 		Util::VECTOR3D Base = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
 		Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), m_Rot);
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
+			if (c->IsPlayer()) { continue; }
 			Util::VECTOR3D Base1 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), m_Rot);
 			Util::VECTOR3D Base2 = Base;
 			Util::VECTOR3D Base3 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
@@ -888,7 +901,7 @@ void Character::Update_Chara(void) noexcept {
 			Util::VECTOR3D Target2 = Target;
 			Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
 			if (c->CheckHit(Base1, &Target1) || c->CheckHit(Base2, &Target2) || c->CheckHit(Base3, &Target3)) {
-				c->SetHit(Target - Base);
+				((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - Base);
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);
 			}
 		}
@@ -904,15 +917,54 @@ void Character::Update_Chara(void) noexcept {
 		this->m_ArmlockEnd = false;
 		this->m_ArmlockActive = false;
 	}
+	if (this->m_ArmlockedEnd && SetAnim(static_cast<int>(CharaAnim::ArmlockedEnd)).GetTimePer() >= 1.f) {
+		this->m_ArmlockedEnd = false;
+		this->m_Armlocked = false;
+
+		//起き上がる
+		SetAnim(static_cast<int>(CharaAnim::Wakeup)).SetTime(0.f);
+		this->m_WakeBottom = true;
+		this->m_ArmlockedTime = 3.f;
+	}
+	if (this->m_WakeBottom) {
+		if (SetAnim(static_cast<int>(CharaAnim::Wakeup)).GetTimePer() >= 1.f) {
+			this->m_WakeBottom = false;
+		}
+	}
+	//
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockedStart)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockedEnd)] = 0.f;
+
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockStart)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockInjector)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockEnd)] = 0.f;
+
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::Combo)] = 0.f;
+
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneAim)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::Prone)] = 0.f;
+
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::Wakeup)] = 0.f;
+
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::Squat)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::Stand)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::Stay)] = 0.f;
+	//移動
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneWalk)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = 0.f;
+	this->m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = 0.f;
+	//回転
+	m_AnimPer[static_cast<size_t>(CharaAnim::FlipLeft)] = 0.f;
+	m_AnimPer[static_cast<size_t>(CharaAnim::FlipRight)] = 0.f;
+
 	if (this->m_ArmlockActive) {
 		if (!this->m_ArmlockEnd) {
 			if (!this->m_ArmlockInjector) {
 				this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockStart)] = 1.f;
-				this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockInjector)] = 0.f;
 				SetAnim(static_cast<int>(CharaAnim::ArmlockStart)).Update(false, 1.f);
 			}
 			else {
-				this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockStart)] = 0.f;
 				this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockInjector)] = 1.f;
 				SetAnim(static_cast<int>(CharaAnim::ArmlockInjector)).Update(false, 1.f);
 			}
@@ -921,34 +973,23 @@ void Character::Update_Chara(void) noexcept {
 			this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockEnd)] = 1.f;
 			SetAnim(static_cast<int>(CharaAnim::ArmlockEnd)).Update(false, 1.f);
 		}
-
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Combo)] = 0.f;
-
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneAim)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Prone)] = 0.f;
-
-
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Squat)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Stand)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Stay)] = 0.f;
-		//移動
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneWalk)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = 0.f;
-		//回転
-		{
-			m_AnimPer[static_cast<size_t>(CharaAnim::FlipLeft)] = 0.f;
-			m_AnimPer[static_cast<size_t>(CharaAnim::FlipRight)] = 0.f;
+	}
+	else if (this->m_Armlocked) {
+		if (!this->m_ArmlockedEnd) {
+			this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockedStart)] = 1.f;
+			SetAnim(static_cast<int>(CharaAnim::ArmlockedStart)).Update(false, 1.f);
+		}
+		else {
+			this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockedEnd)] = 1.f;
+			SetAnim(static_cast<int>(CharaAnim::ArmlockedEnd)).Update(false, 1.f);
 		}
 	}
+	else if (this->m_WakeBottom) {
+		this->m_AnimPer[static_cast<size_t>(CharaAnim::Wakeup)] = 1.f;
+		SetAnim(static_cast<int>(CharaAnim::Wakeup)).Update(false, 1.f);
+	}
 	else if (this->m_PunchActive) {
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockStart)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockInjector)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockEnd)] = 0.f;
-
 		this->m_AnimPer[static_cast<size_t>(CharaAnim::Combo)] = 1.f;
-
 		SetAnim(static_cast<int>(CharaAnim::Combo)).Update(false, 1.f);
 
 		float Now = SetAnim(static_cast<int>(CharaAnim::Combo)).GetTime();
@@ -971,37 +1012,13 @@ void Character::Update_Chara(void) noexcept {
 			m_PunchAttack = true;
 		}
 		m_PunchTimer = Now;
-
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneAim)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Prone)] = 0.f;
-
-
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Squat)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Stand)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Stay)] = 0.f;
-		//移動
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneWalk)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = 0.f;
-		//回転
-		{
-			m_AnimPer[static_cast<size_t>(CharaAnim::FlipLeft)] = 0.f;
-			m_AnimPer[static_cast<size_t>(CharaAnim::FlipRight)] = 0.f;
-		}
 	}
 	else {
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockStart)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockInjector)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockEnd)] = 0.f;
-		this->m_AnimPer[static_cast<size_t>(CharaAnim::Combo)] = 0.f;
 		//停止
 		if (NeedAim) {
 			this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneAim)] = (1.f - GetMovePer01()) * this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone));
-			this->m_AnimPer[static_cast<size_t>(CharaAnim::Prone)] = 0.f;
 		}
 		else {
-			this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneAim)] = 0.f;
 			this->m_AnimPer[static_cast<size_t>(CharaAnim::Prone)] = (1.f - GetMovePer01()) * this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone));
 		}
 
@@ -1155,7 +1172,7 @@ void Character::Update_Chara(void) noexcept {
 			RightHandMat = Util::Lerp(Util::Lerp(RightHandMat, GetHolsterMat(), this->m_Handgun.GetPer()), GetHolsterPullMat(), this->m_Handgun.GetPullPer());
 			RightHandMat = Util::Lerp(Util::Lerp(RightHandMat, GetSlingMat(), this->m_Maingun.GetPer()), GetSlingPullMat(), this->m_Maingun.GetPullPer());
 
-			if ((this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)) > 0.5f && !NeedAim) || this->m_PunchActive || this->m_ArmlockActive) {
+			if ((this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)) > 0.5f && !NeedAim) || this->m_PunchActive || this->m_ArmlockActive || this->m_Armlocked || this->m_WakeBottom) {
 				SetModel().ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::RightArm)));
 				SetModel().ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::RightArm2)));
 				SetModel().ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::RightWrist)));
@@ -1214,7 +1231,7 @@ void Character::Update_Chara(void) noexcept {
 				LeftHandMat = Util::Lerp(LeftHandMat, gun->GetPullLeftHandMat(), this->m_Maingun.GetGunPullPer());
 			}
 
-			if ((this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)) > 0.5f && !NeedAim) || this->m_PunchActive || this->m_ArmlockActive) {
+			if ((this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)) > 0.5f && !NeedAim) || this->m_PunchActive || this->m_ArmlockActive || this->m_Armlocked || this->m_WakeBottom) {
 				SetModel().ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::LeftArm)));
 				SetModel().ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::LeftArm2)));
 				SetModel().ResetFrameUserLocalMatrix(GetFrame(static_cast<int>(CharaFrame::LeftWrist)));
