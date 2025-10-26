@@ -511,6 +511,7 @@ class Character :public CharacterCommon {
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
 	Sound::SoundUniqueID	m_KickID{ InvalidID };
 	Sound::SoundUniqueID	HitHumanID{ InvalidID };
+	Sound::SoundUniqueID DownHumanID{ InvalidID };
 
 	Sound::SoundUniqueID	ArmlockStartID{ InvalidID };
 	Sound::SoundUniqueID	ArmlockID{ InvalidID };
@@ -532,7 +533,7 @@ class Character :public CharacterCommon {
 	bool				m_Armlocked{ false };
 	bool				m_ArmlockedEnd{ false };
 	char		padding4[6]{};
-	Util::Matrix4x4		m_ArmlockedPos{};
+	int					m_ArmlockedPos{};
 
 	bool				m_WakeBottom{};
 
@@ -540,6 +541,13 @@ class Character :public CharacterCommon {
 	GunParam			m_Maingun{};
 
 	float				m_ArmlockedTime{ 0.f };
+
+	Util::VECTOR3D		m_HitVec{};
+	float				m_HitPower{ 0.f };
+	float				m_HitBack{ 0.f };
+
+	float				m_ArmlockedEndTimer{};
+	float				m_DownPower{ 0.f };
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -583,14 +591,10 @@ public:
 	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
 	bool IsFPSView(void) const noexcept { return this->m_IsFPS; }
 	bool IsShotSwitch(void) const noexcept { return this->m_ShotSwitch; }
-	bool CanDamage(void) const noexcept { return this->m_ArmlockedTime == 0.f; }
+	bool CanDamage(void) const noexcept {
+		return !this->m_ArmlockActive && !this->m_Armlocked && this->m_ArmlockedTime == 0.f;
+	}
 	bool CanArmlock(void) const noexcept {
-		if (this->m_Handgun.GetIsEquip()) {
-			return false;
-		}
-		if (this->m_Maingun.GetIsEquip()) {
-			return false;
-		}
 		return this->m_CanArmlock;
 	}
 	bool CanArmlockInjector(void) const noexcept { return (this->m_ArmlockActive && !this->m_ArmlockEnd); }
@@ -640,8 +644,8 @@ public:
 		return  (!this->GetIsReloading() && !this->m_PunchActive && !this->m_ArmlockActive);
 	}
 	//
-	void		SetArmlocked(const Util::Matrix4x4& Mat) noexcept {
-		this->m_ArmlockedPos = Mat;
+	void		SetArmlocked(int UniqueID) noexcept {
+		this->m_ArmlockedPos = UniqueID;
 		this->m_Armlocked = true;
 		SetAnim(static_cast<int>(CharaAnim::ArmlockedStart)).SetTime(0.f);
 	}
@@ -650,7 +654,22 @@ public:
 			this->m_ArmlockedEnd = true;
 			SetAnim(static_cast<int>(CharaAnim::ArmlockedEnd)).SetTime(0.f);
 			//this->m_DownBottomTimer = 3.f;
-			//this->m_DownPower = 1.f;
+			this->m_DownPower = 1.f;
+		}
+	}
+	void		SetHit(const Util::VECTOR3D& Vec) noexcept {
+		//のけぞり
+		Util::VECTOR3D A = GetMat().zvec(); A.y = 0.f;
+		Util::VECTOR3D B = Vec; B.y = 0.f;
+		if (Util::VECTOR3D::Dot(A, B) > 0.f) {
+			m_HitVec = (B.normalized());
+			this->m_HitPower = 0.5f;
+			this->m_HitBack = 1.f;
+		}
+		else {
+			m_HitVec = (B.normalized()) * -1.f;
+			this->m_HitPower = -0.5f;
+			this->m_HitBack = -1.f;
 		}
 	}
 public:
@@ -669,6 +688,8 @@ public:
 	bool IsPlayer(void) noexcept override { return true; }
 
 	void Load_Chara(void) noexcept override {
+		DownHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/DownHuman.wav", true);
+
 		this->m_heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
 		this->HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
 

@@ -431,6 +431,10 @@ void Character::Update_Chara(void) noexcept {
 		else {
 			Util::Easing(&m_InputVec, InputVec, 0.9f);
 		}
+		if (std::fabsf(this->m_HitPower) > 0.5f) {
+			m_InputVec.x = -m_HitVec.x;
+			m_InputVec.y = -m_HitVec.z;
+		}
 
 		this->m_RadAdd.y = 0.f;
 		this->m_RadAdd.x = 0.f;
@@ -509,7 +513,7 @@ void Character::Update_Chara(void) noexcept {
 	if (this->m_AnimPer[static_cast<size_t>(CharaAnim::ProneWalk)] > 0.05f) {
 		IsAim = false;
 	}
-	if (this->m_ArmlockActive) {
+	if(this->m_PunchActive || this->m_ArmlockActive || this->m_Armlocked || this->m_WakeBottom) {
 		IsAim = false;
 	}
 
@@ -558,7 +562,9 @@ void Character::Update_Chara(void) noexcept {
 	this->m_ShotSwitch = false;
 
 	int ID = InvalidID;
-	{
+	if (!this->m_Handgun.GetIsEquip() && !this->m_Maingun.GetIsEquip()
+		 && !this->m_Armlocked && !this->m_WakeBottom
+		) {
 		Util::VECTOR3D Base = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
 		Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), m_Rot);
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
@@ -622,7 +628,7 @@ void Character::Update_Chara(void) noexcept {
 						//IDの相手に羽交い絞めを開始させる
 						m_ArmlockID = ID;
 						if (m_ArmlockID != InvalidID) {
-							((std::shared_ptr<EarlyCharacter>&)PlayerManager::Instance()->SetCharacter().at(static_cast<size_t>(m_ArmlockID)))->SetArmlocked(GetMat());
+							((std::shared_ptr<EarlyCharacter>&)PlayerManager::Instance()->SetCharacter().at(static_cast<size_t>(m_ArmlockID)))->SetArmlocked(this->GetObjectID());
 						}
 
 						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->ArmlockStartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
@@ -735,8 +741,9 @@ void Character::Update_Chara(void) noexcept {
 	Util::Easing(&m_Speed, (IsMove || !m_IsActive) ? GetSpeedMax() : 0.f, 0.9f);
 
 	if (this->m_Armlocked && !this->m_ArmlockedEnd) {
-		this->m_MyPosTarget = this->m_ArmlockedPos.pos();
-		MyMat = this->m_ArmlockedPos;
+		auto& Target = (*ObjectManager::Instance()->GetObj(this->m_ArmlockedPos));
+		this->m_MyPosTarget = Target->GetMat().pos();
+		MyMat = Target->GetMat();
 		m_Rot = Util::Matrix3x3::Get33DX(MyMat);
 		this->m_Rad.y = Util::VECTOR3D::SignedAngle(Util::VECTOR3D::forward(), m_Rot.zvec(), Util::VECTOR3D::up());
 	}
@@ -758,7 +765,32 @@ void Character::Update_Chara(void) noexcept {
 		PosAfter = PosBefore + Util::Matrix3x3::Vtrans(Vec * -GetSpeed(), m_Rot);
 
 		PosAfter = PosAfter + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(8.f * Scale3DRate * DeltaTime) * m_PunchPower, m_Rot);
+
+		PosAfter = PosAfter + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(5.f * Scale3DRate * DeltaTime) * this->m_DownPower, m_Rot);
+
+		PosAfter = PosAfter + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * (5.f * Scale3DRate * DeltaTime) * this->m_HitPower,
+			Util::Matrix3x3::RotVec2(Util::VECTOR3D::forward(), m_HitVec));
+
+		Util::Easing(&this->m_HitBack, 0.f, 0.95f);
+		Util::Easing(&this->m_HitPower, 0.f, 0.9f);
+		Util::Easing(&this->m_DownPower, 0.f, 0.9f);
+
 		Util::Easing(&m_PunchPower, 0.f, 0.7f);
+	}
+	//他キャラとのヒット判定
+	if (!this->m_Armlocked && !this->m_ArmlockActive && !this->m_WakeBottom) {
+		float Radius = 2.0f * 0.5f * Scale3DRate;
+		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
+			if (c->GetObjectID() == this->GetObjectID()) { continue; }
+			//
+			auto Vec = c->GetMat().pos() - GetMat().pos();
+			float Height = Vec.y;
+			Vec.y = 0.f;
+			float Len = Vec.magnitude();
+			if (Len < Radius && Height < Radius) {
+				PosAfter = PosAfter + Vec.normalized() * (Len - Radius);
+			}
+		}
 	}
 	// 壁判定
 	CheckWall(PosBefore, &PosAfter, Util::VECTOR3D::zero(), Util::VECTOR3D::up()* (0.7f * Scale3DRate), Util::VECTOR3D::up()* (1.6f * Scale3DRate), 0.35f * Scale3DRate);
@@ -982,6 +1014,12 @@ void Character::Update_Chara(void) noexcept {
 		else {
 			this->m_AnimPer[static_cast<size_t>(CharaAnim::ArmlockedEnd)] = 1.f;
 			SetAnim(static_cast<int>(CharaAnim::ArmlockedEnd)).Update(false, 1.f);
+
+			float Now = SetAnim(static_cast<int>(CharaAnim::ArmlockedEnd)).GetTime();
+			if (static_cast<int>(Now) == 10 && static_cast<int>(Now) != static_cast<int>(m_ArmlockedEndTimer)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, DownHumanID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+			}
+			m_ArmlockedEndTimer = Now;
 		}
 	}
 	else if (this->m_WakeBottom) {
@@ -1112,6 +1150,8 @@ void Character::Update_Chara(void) noexcept {
 		Util::Easing(&m_YradProne, Rad, 0.9f);
 
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper),
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), this->m_HitBack* Util::deg2rad(90.f))*
+
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_Rad.x * 0.6f) *
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), this->m_YradProne * 0.6f) *
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper))

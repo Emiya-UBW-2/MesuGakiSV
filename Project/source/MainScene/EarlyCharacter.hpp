@@ -39,6 +39,8 @@ enum class EarlyCharaAnim {
 	ArmlockStart,
 	ArmlockEnd,
 
+	Punch,
+
 	Max,
 };
 
@@ -276,18 +278,30 @@ class EarlyCharacter :public CharacterCommon {
 	Util::VECTOR3D		m_DownVec{};
 	float				m_DownPower{ 0.f };
 
+	Sound::SoundUniqueID	m_PunchID{ InvalidID };
+	Sound::SoundUniqueID	HitHumanID{ InvalidID };
+
 	Sound::SoundUniqueID DownHumanID{ InvalidID };
+	Sound::SoundUniqueID	ArmlockStartID{ InvalidID };
+	Sound::SoundUniqueID	ArmlockID{ InvalidID };
 
 	bool				m_Armlocked{ false };
 	bool				m_ArmlockedEnd{ false };
 	bool				m_ArmlockedInjector{ false };
 	char		padding4[5]{};
-	Util::Matrix4x4		m_ArmlockedPos{};
+	int					m_ArmlockedPos{};
 
+	bool				m_PunchActive{ false };
+	float				m_PunchTimer{};
 
 	bool				m_ArmlockActive{ false };
 	bool				m_ArmlockEnd{ false };
 	float				m_ArmlockTime{ 0.f };
+
+	float				m_AttackTime{ 0.f };
+	bool				m_PunchAttack{ false };
+
+	float				m_ArmlockedEndTimer{};
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -351,8 +365,8 @@ public:
 		this->m_DownBottom = true;
 	}
 	//
-	void		SetArmlocked(const Util::Matrix4x4& Mat) noexcept {
-		this->m_ArmlockedPos = Mat;
+	void		SetArmlocked(int UniqueID) noexcept {
+		this->m_ArmlockedPos = UniqueID;
 		this->m_Armlocked = true;
 		SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedStart)).SetTime(0.f);
 	}
@@ -377,6 +391,11 @@ public:
 
 	void Load_Chara(void) noexcept override {
 		DownHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/DownHuman.wav", true);
+		this->ArmlockStartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/ArmlockStart.wav", true);
+		this->ArmlockID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Armlock.wav", true);
+
+		this->HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
+		this->m_PunchID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Punch.wav", true);
 	}
 	void Init_Chara(void) noexcept override {
 		this->m_PathUpdateTimer = 1.f;
