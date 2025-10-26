@@ -253,7 +253,7 @@ class EarlyCharacter :public CharacterCommon {
 	std::array<float, static_cast<int>(EarlyCharaAnim::Max)>		m_AnimPer{};
 
 	Util::VECTOR3D		m_MyTarget = Util::VECTOR3D::zero();
-	char		padding3[4]{};
+	//char		padding3[4]{};
 	AIs::PathChecker	m_PathChecker;
 	int					m_TargetPathPlanningIndex{ 0 };		// 次の中間地点となる経路上のポリゴンの経路探索情報が格納されているメモリアドレスを格納する変数
 	float				m_PathUpdateTimer{ 0.f };
@@ -292,16 +292,29 @@ class EarlyCharacter :public CharacterCommon {
 	int					m_ArmlockedPos{};
 
 	bool				m_PunchActive{ false };
+	char		padding5[3]{};
 	float				m_PunchTimer{};
 
 	bool				m_ArmlockActive{ false };
 	bool				m_ArmlockEnd{ false };
+	char		padding7[2]{};
 	float				m_ArmlockTime{ 0.f };
 
 	float				m_AttackTime{ 0.f };
 	bool				m_PunchAttack{ false };
+	char		padding8[3]{};
 
 	float				m_ArmlockedEndTimer{};
+	bool				m_CanSeeUI{ false };
+	char		padding6[3]{};
+	float				m_CanSeePer{};
+	Util::VECTOR2D		m_UIPos{};
+
+	float				m_ArmlockedInjectorTimer{};
+
+	float				m_DrugPer{};
+	float				m_DrugPerR{};
+	const float			m_DrugPerMax{ 100.f };
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -311,6 +324,17 @@ public:
 	virtual ~EarlyCharacter(void) noexcept {}
 public:
 	float GetSpeedMax(void) const noexcept { return 2.f * Scale3DRate * DeltaTime; }
+
+	auto GetCanSeeUI(void) const noexcept { return m_CanSeeUI; }
+	auto GetUIPos(void) const noexcept { return m_UIPos; }
+	auto GetCanSeePer(void) const noexcept { return m_CanSeePer; }
+
+	auto GetDrugPer(void) const noexcept { return m_DrugPerR; }
+	auto GetDrugPerMax(void) const noexcept { return m_DrugPerMax; }
+
+	auto IsDown(void) const noexcept {
+		return (this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom);
+	}
 public:
 	void		SetTarget(const Util::VECTOR3D& pos) noexcept { this->m_MyTarget = pos; }
 	void		SetHit(const Util::VECTOR3D& Vec) noexcept {
@@ -384,8 +408,30 @@ public:
 			this->m_DownPower = 1.f;
 		}
 	}
+
+	void		SetDrug(float value) noexcept {
+		auto prev = m_DrugPer;
+		m_DrugPer = std::clamp(m_DrugPer + value, 0.f, GetDrugPerMax() * 2.f);
+		if (m_DrugPer != prev && m_DrugPer == GetDrugPerMax() * 2.f) {
+			SetDownTop(GetMat().zvec());
+		}
+	}
 public:
-	void CheckDraw_Sub(void) noexcept override {}
+	void CheckDraw_Sub(void) noexcept override {
+		Util::VECTOR3D Pos1 = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Head)).pos();
+		Util::VECTOR3D Pos2 = GetCameraPosition();
+
+		Pos2 = Pos1 + (Pos2 - Pos1) * 0.5f;
+
+		if (BackGround::Instance()->CheckLine(Pos1, &Pos2) == 0) {
+			auto Pos = ConvWorldPosToScreenPos(Pos1.get());
+			if (0.0f < Pos.z && Pos.z < 1.0f) {
+				this->m_UIPos.x = Pos.x;
+				this->m_UIPos.y = Pos.y;
+				this->m_CanSeeUI |= true;
+			}
+		}
+	}
 public:
 	bool IsPlayer(void) noexcept override { return false; }
 
@@ -406,6 +452,9 @@ public:
 		this->m_WakeBottom = false;
 		this->m_DownBottomTimer = 0.f;
 		this->m_DownPower = 0.f;
+
+		m_DrugPer = 0.f;
+		m_DrugPerR = 0.f;
 	}
 	void Update_Chara(void) noexcept override;
 };

@@ -137,7 +137,7 @@ void GunParam::Update(void) noexcept {
 	gun->SetCockingPer(GetCockingPer());
 }
 
-const Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
+Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
 	Util::Matrix4x4 Mat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
 
 	Mat = Mat.rotation() *
@@ -152,14 +152,61 @@ const Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
 			) +
 			Mat.pos());
 	{
-		auto& gun = (*ObjectManager::Instance()->GetObj(this->m_Handgun.GetUniqueID()));
-		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), this->m_Handgun.GetADSPer());
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Handgun.GetUniqueID()));
+		Mat = Util::Lerp(Mat, gun->GetScopeMat(), this->m_Handgun.GetADSPer());
 	}
 	{
-		auto& gun = (*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
-		Mat = Util::Lerp(Mat, gun->GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos)), this->m_Maingun.GetADSPer());
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
+		Mat = Util::Lerp(Mat, gun->GetScopeMat(), this->m_Maingun.GetADSPer());
 	}
 	return Mat;
+}
+
+bool Character::HasLens() const noexcept{
+	if (this->m_Handgun.GetIsReady()) {
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Handgun.GetUniqueID()));
+		return gun->HasLens();
+	}
+	if (this->m_Maingun.GetIsReady()) {
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
+		return gun->HasLens();
+	}
+	return false;
+}
+
+Util::Matrix4x4 Character::GetLensPos(void) const noexcept {
+	if (this->m_Handgun.GetIsReady()) {
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Handgun.GetUniqueID()));
+		return gun->GetLensPos();
+	}
+	if (this->m_Maingun.GetIsReady()) {
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
+		return gun->GetLensPos();
+	}
+	return GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+}
+
+Util::Matrix4x4 Character::GetLensSize(void) const noexcept {
+	if (this->m_Handgun.GetIsReady()) {
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Handgun.GetUniqueID()));
+		return gun->GetLensSize();
+	}
+	if (this->m_Maingun.GetIsReady()) {
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
+		return gun->GetLensSize();
+	}
+	return GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+}
+const Draw::GraphHandle* Character::GetReticlePtr(void) const noexcept {
+	if (this->m_Handgun.GetIsReady()) {
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Handgun.GetUniqueID()));
+		return gun->GetReticlePtr();
+	}
+	if (this->m_Maingun.GetIsReady()) {
+		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
+		return gun->GetReticlePtr();
+	}
+	return nullptr;
 }
 
 bool Character::NeedReload(void) const noexcept {
@@ -779,12 +826,13 @@ void Character::Update_Chara(void) noexcept {
 	}
 	//他キャラとのヒット判定
 	if (!this->m_Armlocked && !this->m_ArmlockActive && !this->m_WakeBottom) {
-		float Radius = 2.0f * 0.5f * Scale3DRate;
+		float Radius = 2.0f * 0.3f * Scale3DRate;
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
 			if (c->GetObjectID() == this->GetObjectID()) { continue; }
+			if (((std::shared_ptr<EarlyCharacter>&)c)->IsDown()) { continue; }
 			//
 			auto Vec = c->GetMat().pos() - GetMat().pos();
-			float Height = Vec.y;
+			float Height = std::fabsf(Vec.y);
 			Vec.y = 0.f;
 			float Len = Vec.magnitude();
 			if (Len < Radius && Height < Radius) {

@@ -312,6 +312,7 @@ public:
 			if (c->IsPlayer()) { continue; }
 			if (c->CheckHit(GetMat().pos(), &Target)) {
 				((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos());
+				((std::shared_ptr<EarlyCharacter>&)c)->SetDrug(((std::shared_ptr<EarlyCharacter>&)c)->GetDrugPerMax() * 34.f / 100.f);
 				if (this->Timer != 0.f) {
 					SetAmmo(Target);
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);
@@ -467,6 +468,109 @@ public:
 	}
 };
 
+enum class SupFrame {
+	Center,
+	Muzzle,
+	Max,
+};
+static const char* SupFrameName[static_cast<int>(SupFrame::Max)] = {
+	"センター",
+	"Muzzle",
+};
+class Suppressor : public BaseObject {
+public:
+	Suppressor(void) noexcept {}
+	Suppressor(const Suppressor&) = delete;
+	Suppressor(Suppressor&&) = delete;
+	Suppressor& operator=(const Suppressor&) = delete;
+	Suppressor& operator=(Suppressor&&) = delete;
+	virtual ~Suppressor(void) noexcept {}
+private:
+	int				GetFrameNum(void) noexcept override { return static_cast<int>(SupFrame::Max); }
+	const char* GetFrameStr(int id) noexcept override { return SupFrameName[id]; }
+private:
+	const Draw::GraphHandle* m_Pic{};
+public:
+	const auto* GetPicPtr(void) const noexcept { return this->m_Pic; }
+public:
+	void Load_Sub(void) noexcept override {
+		this->m_Pic = Draw::GraphPool::Instance()->Get(this->GetFilePath() + "pic.png")->Get();
+	}
+	void Init_Sub(void) noexcept override {
+	}
+	void Update_Sub(void) noexcept override {
+	}
+	void SetShadowDraw_Sub(void) const noexcept override {
+		GetModel().DrawModel();
+	}
+	void CheckDraw_Sub(void) noexcept override {
+	}
+	void Draw_Sub(void) const noexcept override {
+		GetModel().DrawModel();
+	}
+	void ShadowDraw_Sub(void) const noexcept override {
+		GetModel().DrawModel();
+	}
+	void Dispose_Sub(void) noexcept override {
+		SetModel().Dispose();
+	}
+};
+
+enum class ScopeFrame {
+	Center,
+	ADSPos,
+	ScopePos,
+	ScopeLensSize,
+	Max,
+};
+static const char* ScopeFrameName[static_cast<int>(ScopeFrame::Max)] = {
+	"センター",
+	"ADSpos",
+	"Scopepos",
+	"ScopeLensSize",
+};
+class Scope : public BaseObject {
+public:
+	Scope(void) noexcept {}
+	Scope(const Scope&) = delete;
+	Scope(Scope&&) = delete;
+	Scope& operator=(const Scope&) = delete;
+	Scope& operator=(Scope&&) = delete;
+	virtual ~Scope(void) noexcept {}
+private:
+	int				GetFrameNum(void) noexcept override { return static_cast<int>(ScopeFrame::Max); }
+	const char* GetFrameStr(int id) noexcept override { return ScopeFrameName[id]; }
+private:
+	const Draw::GraphHandle* m_Pic{};
+	const Draw::GraphHandle* m_Reticle{};
+public:
+	const auto* GetPicPtr(void) const noexcept { return this->m_Pic; }
+	const auto* GetReticlePtr(void) const noexcept { return this->m_Reticle; }
+public:
+	void Load_Sub(void) noexcept override {
+		this->m_Pic = Draw::GraphPool::Instance()->Get(this->GetFilePath() + "pic.png")->Get();
+		this->m_Reticle = Draw::GraphPool::Instance()->Get(this->GetFilePath() + "Reticle.png")->Get();
+	}
+	void Init_Sub(void) noexcept override {
+	}
+	void Update_Sub(void) noexcept override {
+	}
+	void SetShadowDraw_Sub(void) const noexcept override {
+		GetModel().DrawModel();
+	}
+	void CheckDraw_Sub(void) noexcept override {
+	}
+	void Draw_Sub(void) const noexcept override {
+		GetModel().DrawModel();
+	}
+	void ShadowDraw_Sub(void) const noexcept override {
+		GetModel().DrawModel();
+	}
+	void Dispose_Sub(void) noexcept override {
+		SetModel().Dispose();
+	}
+};
+
 enum class GunAnim {
 	Slide,//スライド
 	Trigger,//トリガー
@@ -529,6 +633,8 @@ class Gun :public BaseObject {
 	char		padding3[4]{};
 
 	std::shared_ptr<Magazine>							m_Magazine{};
+	int													m_AttachSuppressorID{ InvalidID };
+	int													m_AttachScopeID{ InvalidID };
 
 	std::array<float, static_cast<int>(GunAnim::Max)>	m_AnimPer{};
 	Sound::SoundUniqueID								m_SlideCloseID{ InvalidID };
@@ -576,7 +682,48 @@ public:
 	auto			GetAmmoTotal(void) const noexcept { return this->m_Magazine->GetAmmoTotal() + 1; }
 	auto			CanReload(void) const noexcept { return GetAmmoNum() != GetAmmoTotal(); }
 	auto			CanShot(void) const noexcept { return this->m_CanShot && this->m_ChamberIn; }
-	const auto*		GetPicPtr(void) const noexcept { return this->m_Pic; }
+	void			DrawPic(int posx1, int posy1, int posx2, int posy2, bool trns) const noexcept {
+		this->m_Pic->DrawExtendGraph(posx1, posy1, posx2, posy2, trns);
+		if (this->m_AttachSuppressorID != InvalidID) {
+			auto& Target = (std::shared_ptr<Suppressor>&)(*ObjectManager::Instance()->GetObj(this->m_AttachSuppressorID));
+			Target->GetPicPtr()->DrawExtendGraph(posx1, posy1, posx2, posy2, trns);
+		}
+		if (this->m_AttachScopeID != InvalidID) {
+			auto& Target = (std::shared_ptr<Scope>&)(*ObjectManager::Instance()->GetObj(this->m_AttachScopeID));
+			Target->GetPicPtr()->DrawExtendGraph(posx1, posy1, posx2, posy2, trns);
+		}
+	}
+	auto			GetScopeMat(void) noexcept {
+		if (this->m_AttachScopeID != InvalidID) {
+			auto& Target = (*ObjectManager::Instance()->GetObj(this->m_AttachScopeID));
+			return Target->GetFrameLocalWorldMatrix(static_cast<int>(ScopeFrame::ADSPos));
+		}
+		return GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos));
+	}
+	auto			HasLens(void) noexcept {
+		return (this->m_AttachScopeID != InvalidID);
+	}
+	auto			GetLensPos(void) noexcept {
+		if (this->m_AttachScopeID != InvalidID) {
+			auto& Target = (*ObjectManager::Instance()->GetObj(this->m_AttachScopeID));
+			return Target->GetFrameLocalWorldMatrix(static_cast<int>(ScopeFrame::ScopePos));
+		}
+		return GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos));
+	}
+	auto			GetLensSize(void) noexcept {
+		if (this->m_AttachScopeID != InvalidID) {
+			auto& Target = (*ObjectManager::Instance()->GetObj(this->m_AttachScopeID));
+			return Target->GetFrameLocalWorldMatrix(static_cast<int>(ScopeFrame::ScopeLensSize));
+		}
+		return GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos));
+	}
+	const Draw::GraphHandle* GetReticlePtr(void) const noexcept {
+		if (this->m_AttachScopeID != InvalidID) {
+			auto& Target = (std::shared_ptr<Scope>&)(*ObjectManager::Instance()->GetObj(this->m_AttachScopeID));
+			return Target->GetReticlePtr();
+		}
+		return nullptr;
+	}
 public:
 	void ShotStart(void) noexcept {
 		if (this->m_CanShot) {
@@ -585,9 +732,19 @@ public:
 			this->m_AnimPer[static_cast<int>(GunAnim::Shot)] = 1.f;
 			SetAnim(static_cast<int>(GunAnim::Shot)).SetTime(0.f);
 
-			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_ShotID)->Play3D(GetMat().pos(), 50.f * Scale3DRate);
-
-			this->m_ShotEffect.at(static_cast<size_t>(this->m_ShotEffectID))->Set(GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle)));
+			if (this->m_AttachSuppressorID != InvalidID) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_ShotSPID)->Play3D(GetMat().pos(), 50.f * Scale3DRate);
+			}
+			else {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_ShotID)->Play3D(GetMat().pos(), 50.f * Scale3DRate);
+			}
+			if (this->m_AttachSuppressorID != InvalidID) {
+				auto& Target = (std::shared_ptr< Suppressor>&)(*ObjectManager::Instance()->GetObj(this->m_AttachSuppressorID));
+				this->m_ShotEffect.at(static_cast<size_t>(this->m_ShotEffectID))->Set(Target->GetFrameLocalWorldMatrix(static_cast<int>(SupFrame::Muzzle)));
+			}
+			else {
+				this->m_ShotEffect.at(static_cast<size_t>(this->m_ShotEffectID))->Set(GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::Muzzle)));
+			}
 			++m_ShotEffectID %= static_cast<int>(this->m_ShotEffect.size());
 
 			this->m_CasePer.at(static_cast<size_t>(this->m_CaseID))->Set(
@@ -617,6 +774,12 @@ public:
 		}
 	}
 	void SetTrigger(bool value) noexcept { this->m_Trigger = value; }
+	void SetAttachSuppressorID(int value) noexcept {
+		this->m_AttachSuppressorID = value;
+	}
+	void SetAttachScopeID(int value) noexcept {
+		this->m_AttachScopeID = value;
+	}
 public:
 	void Load_Sub(void) noexcept override {
 		this->m_SlideCloseID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/gun/auto1911/1.wav", true);
@@ -675,6 +838,15 @@ public:
 			Util::Matrix4x4::RotVec2(GetFrameBaseLocalMat(static_cast<int>(GunFrame::MagIn)).pos(), Util::VECTOR3D::down()) *
 			GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::MagWel))
 		);
+
+		if (this->m_AttachSuppressorID != InvalidID) {
+			auto& Target = (*ObjectManager::Instance()->GetObj(this->m_AttachSuppressorID));
+			Target->SetMatrix(GetMat());
+		}
+		if (this->m_AttachScopeID != InvalidID) {
+			auto& Target = (*ObjectManager::Instance()->GetObj(this->m_AttachScopeID));
+			Target->SetMatrix(GetMat());
+		}
 	}
 	void SetShadowDraw_Sub(void) const noexcept override {
 		GetModel().DrawModel();

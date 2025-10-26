@@ -906,6 +906,9 @@ namespace Draw {
 			// レンズ
 			TargetGraph->SetDraw_Screen(false);
 			{
+				auto Prev = DxLib::GetDrawMode();
+				DxLib::SetDrawMode(DX_DRAWMODE_BILINEAR);
+
 				pGbuffer->GetColorBuffer().SetUseTextureToShader(0);	// 使用するテクスチャをセット
 				this->m_Shader.SetDispSize(DrawerMngr->GetRenderDispWidth(), DrawerMngr->GetRenderDispHeight());
 				this->m_Shader.SetParam(3,
@@ -913,6 +916,8 @@ namespace Draw {
 					PostPassParts->GetScopeParam().m_Radius, PostPassParts->GetScopeParam().m_Zoom);
 				this->m_Shader.Draw();
 				SetUseTextureToShader(0, InvalidID);
+
+				DxLib::SetDrawMode(Prev);
 			}
 		}
 	};

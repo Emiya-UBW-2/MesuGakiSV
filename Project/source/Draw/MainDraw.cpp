@@ -95,6 +95,7 @@ namespace Draw {
 		LONGLONG EndFrame = 1000LL * 1000LL / static_cast<LONGLONG>(this->m_CalculateTick);
 		if (WaitTime > EndFrame) {
 			this->m_UpdateTickCount = static_cast<int>(WaitTime / EndFrame);
+			//this->m_UpdateTickCount = std::min(this->m_UpdateTickCount, 30);//3回(20FPS)未満は処理落ちさせる
 			this->m_TickTime += this->m_UpdateTickCount * EndFrame;
 		}
 		else {

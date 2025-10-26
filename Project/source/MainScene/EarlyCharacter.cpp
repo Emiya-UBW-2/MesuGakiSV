@@ -7,7 +7,9 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 
 	bool				CanPunch{ false };
 	bool				CanArmlock{ false };
-	if (!this->m_Armlocked && !this->m_WakeTop && !this->m_WakeBottom) {
+	if (!this->m_Armlocked &&
+		!(this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom)
+		) {
 		Util::VECTOR3D Base = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
 		Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), m_Rot);
 
@@ -173,8 +175,9 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				m_RadAdd.y = 0.f;
 			}
 			else {
-				//IsMove = false;
-				//m_RadAdd.y = 0.f;
+				//停止debug
+				IsMove = false;
+				m_RadAdd.y = 0.f;
 			}
 
 
@@ -225,13 +228,15 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		}
 	}
 	//他キャラとのヒット判定
-	if (!this->m_Armlocked && !this->m_ArmlockActive && !this->m_WakeTop && !this->m_WakeBottom) {
-		float Radius = 2.0f * 0.5f * Scale3DRate;
+	if (!this->m_Armlocked && !this->m_ArmlockActive &&
+		!(this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom)
+		) {
+		float Radius = 2.0f * 0.3f * Scale3DRate;
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
 			if (c->GetObjectID() == this->GetObjectID()) { continue; }
 			//
 			auto Vec = c->GetMat().pos() - GetMat().pos();
-			float Height = Vec.y;
+			float Height = std::fabsf(Vec.y);
 			Vec.y = 0.f;
 			float Len = Vec.magnitude();
 			if (Len < Radius && Height < Radius) {
@@ -271,7 +276,9 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 
 	{
 		auto Prev = this->m_DownTopTimer;
-		this->m_DownTopTimer = std::max(this->m_DownTopTimer - 1.f / 60.f, 0.f);
+		if (m_DrugPer < GetDrugPerMax()) {
+			this->m_DownTopTimer = std::max(this->m_DownTopTimer - DeltaTime, 0.f);
+		}
 		if (Prev != 0.f && this->m_DownTopTimer == 0.f) {
 			this->m_DownTop = false;
 			//起き上がる
@@ -283,7 +290,9 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 	}
 	{
 		auto Prev = this->m_DownBottomTimer;
-		this->m_DownBottomTimer = std::max(this->m_DownBottomTimer - 1.f / 60.f, 0.f);
+		if (m_DrugPer < GetDrugPerMax()) {
+			this->m_DownBottomTimer = std::max(this->m_DownBottomTimer - DeltaTime, 0.f);
+		}
 		if (Prev != 0.f && this->m_DownBottomTimer == 0.f) {
 			this->m_DownBottom = false;
 			//起き上がる
@@ -374,6 +383,12 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockedStart)] = 0.f;
 				this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockedInjector)] = 1.f;
 				SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedInjector)).Update(false, 1.f);
+
+				float Now = SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedInjector)).GetTime();
+				if (static_cast<int>(Now) == 30 && static_cast<int>(Now) != static_cast<int>(m_ArmlockedInjectorTimer)) {
+					SetDrug(GetDrugPerMax() * 100.f / 100.f);
+				}
+				m_ArmlockedInjectorTimer = Now;
 			}
 		}
 		else {
@@ -450,4 +465,10 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper))
 		);
 	}
+
+	Util::Easing(&m_CanSeePer, this->m_CanSeeUI ? 1.f : 0.f, 0.9f);
+
+	Util::Easing(&m_DrugPerR, m_DrugPer, 0.9f);
+
+	this->m_CanSeeUI = false;
 }

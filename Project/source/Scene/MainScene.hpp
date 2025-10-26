@@ -37,7 +37,7 @@ public:
 	void Draw(int xpos, int ypos) noexcept {
 		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(0, 0, 0), true);
 		DxLib::SetDrawBright(34, 177, 76);
-		(*this->m_Gun)->GetPicPtr()->DrawExtendGraph(xpos, ypos, xpos + 256, ypos + 128, true);
+		(*this->m_Gun)->DrawPic(xpos, ypos, xpos + 256, ypos + 128, true);
 		DxLib::SetDrawBright(255, 255, 255);
 		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(34, 177, 76), false, 3);
 
@@ -67,6 +67,9 @@ class MainScene : public Util::SceneBase {
 	std::shared_ptr<Gun>			m_HandGun{};
 	std::shared_ptr<Gun>			m_MainGun{};
 
+	std::shared_ptr<Suppressor>			m_HandGunAttach{};
+	std::shared_ptr<Scope>				m_MainGunAttach{};
+
 	float			m_CharaStyleChange{};
 	float			m_CharaStyleChangeR{};
 	CharaStyle		m_CharaStyle{};
@@ -94,6 +97,10 @@ class MainScene : public Util::SceneBase {
 	float					m_EquipUIActivePer{};
 	int						m_EquipID{ 0 };
 	float					m_EquipPer{};
+
+	bool				m_UseLens{ false };
+	Util::VECTOR2D		m_LensPos{};
+	Util::VECTOR2D		m_LensSize{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;

@@ -12,6 +12,9 @@ void MainScene::Load_Sub(void) noexcept {
 	ObjectManager::Instance()->LoadModel("data/Px4/");
 	ObjectManager::Instance()->LoadModel("data/Cx4/");
 
+	ObjectManager::Instance()->LoadModel("data/Cx4Scope/");
+	ObjectManager::Instance()->LoadModel("data/Px4Sup/");
+
 	m_StandGraph = Draw::GraphPool::Instance()->Get("data/Body.png")->Get();
 	m_SquatGraph = Draw::GraphPool::Instance()->Get("data/BodyC.png")->Get();
 	m_ProneGraph = Draw::GraphPool::Instance()->Get("data/BodyP.png")->Get();
@@ -25,6 +28,16 @@ void MainScene::Init_Sub(void) noexcept {
 	this->m_HandGun = std::make_shared<Gun>();
 	ObjectManager::Instance()->InitObject(this->m_MainGun, this->m_MainGun, "data/Cx4/");
 	ObjectManager::Instance()->InitObject(this->m_HandGun, this->m_HandGun, "data/Px4/");
+
+	this->m_MainGunAttach = std::make_shared<Scope>();
+	ObjectManager::Instance()->InitObject(this->m_MainGunAttach, this->m_MainGunAttach, "data/Cx4Scope/");
+
+	this->m_HandGunAttach = std::make_shared<Suppressor>();
+	ObjectManager::Instance()->InitObject(this->m_HandGunAttach, this->m_HandGunAttach, "data/Px4Sup/");
+
+	this->m_MainGun->SetAttachScopeID(this->m_MainGunAttach->GetObjectID());
+
+	this->m_HandGun->SetAttachSuppressorID(this->m_HandGunAttach->GetObjectID());
 
 	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 
@@ -358,6 +371,15 @@ void MainScene::Update_Sub(void) noexcept {
 		Util::Easing(&this->m_CharaStyleChangeR, std::clamp(this->m_CharaStyleChange, 0.f, 1.f), 0.9f);
 		this->m_CharaStyle = Chara->GetStyle();
 	}
+	//
+	{
+		PostPassParts->SetScopeParam().m_IsActive = this->m_UseLens;
+		PostPassParts->SetScopeParam().m_Radius = (this->m_LensSize - this->m_LensPos).magnitude();
+		PostPassParts->SetScopeParam().m_Zoom = 4.f;
+		PostPassParts->SetScopeParam().m_Xpos = this->m_LensPos.x;
+		PostPassParts->SetScopeParam().m_Ypos = 1080 - this->m_LensPos.y;
+	}
+	this->m_UseLens = false;
 }
 void MainScene::BGDraw_Sub(void) noexcept {
 	BackGround::Instance()->BGDraw();
@@ -370,6 +392,36 @@ void MainScene::SetShadowDraw_Sub(void) noexcept {
 	ObjectManager::Instance()->Draw_SetShadow();
 }
 void MainScene::Draw_Sub(void) noexcept {
+	{
+		auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+		if (Chara->HasLens()) {
+			auto Pos = ConvWorldPosToScreenPos(Chara->GetLensPos().pos().get());
+			if (0.0f < Pos.z && Pos.z < 1.0f) {
+				this->m_LensPos.x = Pos.x;
+				this->m_LensPos.y = Pos.y;
+				this->m_UseLens |= true;
+			}
+			auto Size = ConvWorldPosToScreenPos(Chara->GetLensSize().pos().get());
+			if (0.0f < Size.z && Size.z < 1.0f) {
+				this->m_LensSize.x = Size.x;
+				this->m_LensSize.y = Size.y;
+				this->m_UseLens |= true;
+			}
+			/*
+			SetUseLighting(false);
+			DxLib::DrawBillboard3D(
+				Chara->GetLensPos().pos().get(),
+				0.5f,
+				0.5f,
+				0.01f * Scale3DRate,
+				0.f,
+				Chara->GetReticlePtr()->get(),
+				true
+			);
+			SetUseLighting(true);
+			//*/
+		}
+	}
 	SetVerticalFogEnable(true);
 	SetVerticalFogMode(DX_FOGMODE_LINEAR);
 	SetVerticalFogStartEnd(8.0f * Scale3DRate, 7.0f * Scale3DRate);
@@ -394,6 +446,50 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	auto* Localize = Util::LocalizePool::Instance();
 
 	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+	if (this->m_UseLens) {
+		Chara->GetReticlePtr()->DrawRotaGraph(this->m_LensPos.x, this->m_LensPos.y, 512.f/256.f, 0.f, true);
+	}
+	{
+		for (auto& c : PlayerManager::Instance()->GetCharacter()) {
+			if (c->IsPlayer()) { continue; }
+			auto& ec = ((std::shared_ptr<EarlyCharacter>&)c);
+			if (ec->GetCanSeePer() == 0.f) { continue; }
+			if (ec->GetDrugPer() == ec->GetDrugPerMax() * 2.f) { continue; }
+			auto Pos = ec->GetUIPos();
+
+			/*
+			auto Len = std::clamp(
+				(Pos - Util::VECTOR2D::vget(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2)).magnitude() - 100.f,
+				0.f, 500.f);
+			//*/
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA,
+				std::clamp(static_cast<int>(255.f *
+				//(1.f - Len / 500.f)*
+					ec->GetCanSeePer()
+					), 0, 255));
+
+			DrawLine(
+				static_cast<int>(Pos.x), static_cast<int>(Pos.y),
+				static_cast<int>(Pos.x) + 24, static_cast<int>(Pos.y) - 24,
+				ColorPalette::Green, 3);
+
+			DrawBox(
+				static_cast<int>(Pos.x) + 24, static_cast<int>(Pos.y) - 24 - 10,
+				static_cast<int>(Pos.x) + 24 + static_cast<int>(64.f * std::clamp(ec->GetDrugPer(), 0.f, ec->GetDrugPerMax()) / ec->GetDrugPerMax()), static_cast<int>(Pos.y) - 24,
+				ColorPalette::Yellow, true);
+
+			DrawBox(
+				static_cast<int>(Pos.x) + 24, static_cast<int>(Pos.y) - 24 - 10,
+				static_cast<int>(Pos.x) + 24 + static_cast<int>(64.f * std::clamp(ec->GetDrugPer() - ec->GetDrugPerMax(), 0.f, ec->GetDrugPerMax()) / ec->GetDrugPerMax()), static_cast<int>(Pos.y) - 24,
+				ColorPalette::Red, true);
+
+			DrawBox(
+				static_cast<int>(Pos.x) + 24, static_cast<int>(Pos.y) - 24 - 10,
+				static_cast<int>(Pos.x) + 24 + 64, static_cast<int>(Pos.y) - 24,
+				ColorPalette::Green, false, 3);
+		}
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+	}
 	{
 		int count = 0;
 		{
@@ -563,6 +659,8 @@ void MainScene::Dispose_Sub(void) noexcept {
 	PlayerManager::Release();
 	this->m_MainGun.reset();
 	this->m_HandGun.reset();
+	this->m_HandGunAttach.reset();
+	this->m_MainGunAttach.reset();
 	ObjectManager::Instance()->DeleteAll();
 	this->m_PauseUI.Dispose();
 	this->m_OptionWindow.Dispose();

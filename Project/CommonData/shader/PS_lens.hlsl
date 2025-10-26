@@ -55,7 +55,7 @@ Texture2D    g_DiffuseMapTexture            : register(t0);		// ディフューズマッ
 float2 ZoomCalc(in float2 pixel_pos) {
 	float2 pos;
 	pos.x = lenspos.x;
-	pos.y = lenspos.y;
+	pos.y = -lenspos.y;
 
 	float2 out_pos;
 	float2 pos_pix_vec = pixel_pos - pos;
@@ -88,7 +88,7 @@ PS_OUTPUT main(PS_INPUT PSInput)
 	float4 TextureDiffuseColor;
 	float2 pixel_pos;
     pixel_pos.x = PSInput.TextureCoord0.x * dispsize.x;
-    pixel_pos.y = PSInput.TextureCoord0.y * dispsize.y;
+    pixel_pos.y = -PSInput.TextureCoord0.y * dispsize.y;
 	float2 CalcPos = pixel_pos;
 	float2 calc_pos = { 0,0 };
 
@@ -100,11 +100,8 @@ PS_OUTPUT main(PS_INPUT PSInput)
 	CalcPos.x = CalcPos.x / dispsize.x;
 	CalcPos.y = CalcPos.y / dispsize.y;
 
-	// テクスチャカラーの読み込み
-	TextureDiffuseColor = g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, CalcPos);
-
-	// 出力カラー = テクスチャカラー * ディフューズカラー
-	PSOutput.color0 = TextureDiffuseColor * PSInput.DiffuseColor;
+	// テクスチャカラー
+    PSOutput.color0 = g_DiffuseMapTexture.Sample(g_DiffuseMapSampler, CalcPos);
 
 	// 出力パラメータを返す
 	return PSOutput;

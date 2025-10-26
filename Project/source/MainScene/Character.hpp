@@ -536,6 +536,7 @@ class Character :public CharacterCommon {
 	int					m_ArmlockedPos{};
 
 	bool				m_WakeBottom{};
+	char		padding5[7]{};
 
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
@@ -588,7 +589,7 @@ public:
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
 
-	const Util::Matrix4x4 GetEyeMat(void) const noexcept;
+	Util::Matrix4x4 GetEyeMat(void) const noexcept;
 	bool IsFPSView(void) const noexcept { return this->m_IsFPS; }
 	bool IsShotSwitch(void) const noexcept { return this->m_ShotSwitch; }
 	bool CanDamage(void) const noexcept {
@@ -599,6 +600,12 @@ public:
 	}
 	bool CanArmlockInjector(void) const noexcept { return (this->m_ArmlockActive && !this->m_ArmlockEnd); }
 	auto GetStyle(void) const noexcept { return this->m_CharaStyle; }
+
+	bool HasLens() const noexcept;
+	Util::Matrix4x4 GetLensPos(void) const noexcept;
+	Util::Matrix4x4 GetLensSize(void) const noexcept;
+	const Draw::GraphHandle* GetReticlePtr(void) const noexcept;
+
 	bool NeedReload(void) const noexcept;
 	bool IsFreeView(void) const noexcept {
 		if (this->m_ArmlockActive) {
