@@ -32,8 +32,11 @@ enum class EarlyCharaAnim {
 	DownBottom,//仰向きに倒れる
 	WakeBottom,//仰向きから立つ
 
+	ArmlockedStart,
+	ArmlockedInjector,
+	ArmlockedEnd,
+
 	ArmlockStart,
-	ArmlockInjector,
 	ArmlockEnd,
 
 	Max,
@@ -346,18 +349,18 @@ public:
 	void		SetArmlock(const Util::Matrix4x4& Mat) noexcept {
 		this->m_ArmlockPos = Mat;
 		this->m_Armlocked = true;
-		SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockStart)).SetTime(0.f);
+		SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedStart)).SetTime(0.f);
 	}
 	void		SetArmlockInjector() noexcept {
 		if (!this->m_ArmlockInjector) {
 			this->m_ArmlockInjector = true;
-			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockInjector)).SetTime(0.f);
+			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedInjector)).SetTime(0.f);
 		}
 	}
 	void		SetArmlockEnd() noexcept {
 		if (!this->m_ArmlockEnd) {
 			this->m_ArmlockEnd = true;
-			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockEnd)).SetTime(0.f);
+			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedEnd)).SetTime(0.f);
 			this->m_DownBottomTimer = 3.f;
 			this->m_DownPower = 1.f;
 		}

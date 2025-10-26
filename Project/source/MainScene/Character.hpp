@@ -165,6 +165,10 @@ enum class CharaAnim {
 	ArmlockInjector,
 	ArmlockEnd,
 
+	ArmlockedStart,
+	ArmlockedEnd,
+	Wakeup,
+
 	Max,
 };
 
@@ -522,7 +526,7 @@ class Character :public CharacterCommon {
 	int					m_Equip{ InvalidID };
 	int					m_PrevEquip{ InvalidID };
 	int					m_ArmlockID = InvalidID;
-	//char		padding2[4]{};
+	char		padding2[4]{};
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
 public:
