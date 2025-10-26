@@ -221,6 +221,34 @@ bool Character::NeedReload(void) const noexcept {
 	return false;
 }
 
+void Character::CheckDraw_Sub(void) noexcept {
+	if (!IsFPSView()) {
+		if (IsFreeView()) {
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+			Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
+			Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
+			Util::VECTOR3D Now = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
+			auto Target = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
+			this->m_AimPoint = Target;
+			//この点に一番近い敵を狙う
+			float Len = (1.f * Scale3DRate) * (1.f * Scale3DRate);
+			for (auto& c : PlayerManager::Instance()->GetCharacter()) {
+				if (c->IsPlayer()) { continue; }
+				if (((std::shared_ptr<EarlyCharacter>&)c)->IsDown()) { continue; }
+				auto Pos = c->GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
+				if (std::abs(Pos.y - Now.y) >= 0.5f * Scale3DRate) { continue; }
+				//if (Util::VECTOR3D::Dot((Pos - GetMat().pos()).normalized(), GetMat().zvec()) > 0.f) { continue; }
+				auto Vec = this->m_AimPoint - Pos; Vec.y = 0.f;
+				if (Len > Vec.sqrMagnitude()) {
+					Len = Vec.sqrMagnitude();
+					Target = Pos;
+				}
+			}
+			this->m_AimPoint = Target;
+		}
+	}
+}
+
 void Character::Update_Chara(void) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
 	bool LeftKey = KeyMngr->GetBattleKeyPress(Util::EnumBattle::A);
@@ -1125,6 +1153,8 @@ void Character::Update_Chara(void) noexcept {
 					Per = this->m_YradDif / Util::deg2rad(90);
 				}
 			}
+			m_CanAim = std::fabsf(Per) < 1.f;
+
 			Per *= (1.f - this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)));
 
 			Util::Easing(&m_SwitchPer, (Per >= -0.5f) ? 1.f : 0.f, 0.9f);
@@ -1187,6 +1217,7 @@ void Character::Update_Chara(void) noexcept {
 				Per = this->m_YradDif / Util::deg2rad(90);
 			}
 		}
+		m_CanAim = std::fabsf(Per) < 1.f;
 		if (NeedAim) {
 			Per = 0.f;
 		}

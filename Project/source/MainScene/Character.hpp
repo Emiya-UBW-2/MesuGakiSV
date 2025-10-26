@@ -432,6 +432,7 @@ public:
 	void Draw_Sub(void) const noexcept override {
 		//hitbox描画
 		GetModel().DrawModel();
+		Draw_Chara();
 #if DRAW_HITBOX
 		this->m_HitBoxControl.Draw();
 #endif
@@ -475,6 +476,7 @@ public:
 	virtual void Load_Chara(void) noexcept = 0;
 	virtual void Init_Chara(void) noexcept = 0;
 	virtual void Update_Chara(void) noexcept = 0;
+	virtual void Draw_Chara(void) const noexcept = 0;
 };
 
 class Character :public CharacterCommon {
@@ -505,7 +507,8 @@ class Character :public CharacterCommon {
 	bool				m_ArmlockEnd{ false };
 	bool				m_ArmlockInjector{ false };
 	bool				m_CanArmlock{ false };
-	char		padding[1]{};
+	bool				m_CanAim{ false };
+	//char		padding[1]{};
 	float				m_ArmlockTime{ 0.f };
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
@@ -683,17 +686,7 @@ public:
 		}
 	}
 public:
-	void CheckDraw_Sub(void) noexcept override {
-		if (!IsFPSView()) {
-			if (IsFreeView()) {
-				auto* DrawerMngr = Draw::MainDraw::Instance();
-				Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
-				Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
-				Util::VECTOR3D Now = GetMat().pos();
-				this->m_AimPoint = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
-			}
-		}
-	}
+	void CheckDraw_Sub(void) noexcept override;
 public:
 	bool IsPlayer(void) noexcept override { return true; }
 
@@ -732,4 +725,10 @@ public:
 		this->m_WakeBottom = false;
 	}
 	void Update_Chara(void) noexcept override;
+	void Draw_Chara(void) const noexcept override {
+		if (IsFreeView()) {
+			unsigned int Color = m_CanAim ? ColorPalette::Green : ColorPalette::Red;
+			DrawSphere3D(this->m_AimPoint.get(), 0.5f * Scale3DRate, 6.f, Color, Color, false);
+		}
+	}
 };
