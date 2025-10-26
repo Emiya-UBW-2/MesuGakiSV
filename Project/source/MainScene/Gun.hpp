@@ -192,7 +192,7 @@ public:
 	}
 public:
 	void Load_Sub(void) noexcept override {
-		this->m_SmokeGraph = Draw::GraphPool::Instance()->Get("data/Smoke.png")->Get();
+		this->m_SmokeGraph = Draw::GraphPool::Instance()->Get("data/Image/Smoke.png")->Get();
 	}
 	void Init_Sub(void) noexcept override {
 	}
@@ -424,7 +424,7 @@ public:
 		SetMatrix(Mag);
 	}
 	void SetMagLoadMat(const Util::Matrix4x4& value) { this->m_MagLoad = value; }
-	void SetMagPer(float LoadPer, float ReloadPer) {
+	void SetMagPer(float LoadPer, float ReloadPer, int* pTotalAmmo) {
 		this->m_MagInPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.f, 0.3f, LoadPer));
 		this->m_MagLoadPer = Util::Lerp(0.f, 1.f, Util::GetPer01(0.3f, 1.f, LoadPer));
 
@@ -437,6 +437,9 @@ public:
 				this->m_IsMagUnloadSound = true;
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, UnLoadMagID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
+				if (pTotalAmmo) {
+					*pTotalAmmo += this->m_AmmoNum;
+				}
 				this->m_AmmoNum = 0;
 			}
 		}
@@ -445,7 +448,13 @@ public:
 				this->m_IsMagLoadSound = true;
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, LoadMagID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.2f * Scale3DRate);
-				this->m_AmmoNum = this->m_AmmoTotal;
+				if (pTotalAmmo) {
+					this->m_AmmoNum = std::min(*pTotalAmmo, this->m_AmmoTotal);
+					*pTotalAmmo -= this->m_AmmoNum;
+				}
+				else {
+					this->m_AmmoNum = this->m_AmmoTotal;
+				}
 			}
 		}
 	}
@@ -775,7 +784,7 @@ public:
 		}
 	}
 	void SetMagLoadMat(const Util::Matrix4x4& value) noexcept { this->m_Magazine->SetMagLoadMat(value); }
-	void SetMagPer(float LoadPer, float ReloadPer) noexcept { this->m_Magazine->SetMagPer(LoadPer, ReloadPer); }
+	void SetMagPer(float LoadPer, float ReloadPer, int* pTotalAmmo) noexcept { this->m_Magazine->SetMagPer(LoadPer, ReloadPer, pTotalAmmo); }
 	void SetCockingPer(float value) noexcept {
 		if (value == 0.f) {
 			this->m_IsSlideCloseSound = false;
@@ -807,18 +816,18 @@ public:
 
 		this->m_Pic = Draw::GraphPool::Instance()->Get(this->GetFilePath() + "pic.png")->Get();
 
-		ObjectManager::Instance()->LoadModel("data/9x19/");
-		ObjectManager::Instance()->LoadModel("data/FireEffect/");
-		ObjectManager::Instance()->LoadModel("data/Mag/");
+		ObjectManager::Instance()->LoadModel("data/model/9x19/");
+		ObjectManager::Instance()->LoadModel("data/model/FireEffect/");
+		ObjectManager::Instance()->LoadModel("data/model/Mag/");
 	}
 	void Init_Sub(void) noexcept override {
 		for (auto& s : this->m_CasePer) {
 			s = std::make_shared<Case>();
-			ObjectManager::Instance()->InitObject(s, s, "data/9x19/");
+			ObjectManager::Instance()->InitObject(s, s, "data/model/9x19/");
 		}
 		for (auto& s : this->m_ShotEffect) {
 			s = std::make_shared<ShotEffect>();
-			ObjectManager::Instance()->InitObject(s, s, "data/FireEffect/");
+			ObjectManager::Instance()->InitObject(s, s, "data/model/FireEffect/");
 		}
 		for (auto& s : this->m_AmmoPer) {
 			s = std::make_shared<Ammo>();
@@ -826,9 +835,9 @@ public:
 		}
 		
 		this->m_Magazine = std::make_shared<Magazine>();
-		ObjectManager::Instance()->InitObject(this->m_Magazine, this->m_Magazine,"data/Mag/");
+		ObjectManager::Instance()->InitObject(this->m_Magazine, this->m_Magazine,"data/model/Mag/");
 
-		SetMagPer(0.f, 0.f);
+		SetMagPer(0.f, 0.f, nullptr);
 		this->m_ChamberIn = true;
 	}
 	void Update_Sub(void) noexcept override {

@@ -36,10 +36,10 @@ public:
 	}
 	void Draw(int xpos, int ypos) noexcept {
 		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(0, 0, 0), true);
-		DxLib::SetDrawBright(34, 177, 76);
+		DxLib::SetDrawBright(0, 255, 0);
 		(*this->m_Gun)->DrawPic(xpos, ypos, xpos + 256, ypos + 128, true);
 		DxLib::SetDrawBright(255, 255, 255);
-		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(34, 177, 76), false, 3);
+		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(0, 255, 0), false, 3);
 
 		int xsize = std::min(((xpos + 256 - 5) - (xpos + 5)) / (*this->m_Gun)->GetAmmoTotal(), 10);
 		for (int loop = 0; loop < (*this->m_Gun)->GetAmmoTotal(); ++loop) {
@@ -50,7 +50,7 @@ public:
 		for (int loop = 0; loop < (*this->m_Gun)->GetAmmoNum(); ++loop) {
 			DxLib::DrawBox(
 				(xpos + 256 - 5) - (xsize * (loop + 1)) + 1, ypos + 128 - 5 - 24,
-				(xpos + 256 - 5) - (xsize * (loop + 0)) - 1, ypos + 128 - 5, (loop == 0) ? GetColor(255, 0, 0) : GetColor(34, 177, 76), true);
+				(xpos + 256 - 5) - (xsize * (loop + 0)) - 1, ypos + 128 - 5, (loop == 0) ? GetColor(255, 0, 0) : GetColor(0, 255, 0), true);
 		}
 	}
 };

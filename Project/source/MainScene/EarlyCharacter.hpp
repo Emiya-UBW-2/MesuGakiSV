@@ -423,7 +423,7 @@ public:
 		Util::VECTOR3D Pos1 = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Head)).pos();
 		Util::VECTOR3D Pos2 = GetCameraPosition();
 
-		Pos2 = Pos1 + (Pos2 - Pos1) * 0.5f;
+		//Pos2 = Pos1 + (Pos2 - Pos1) * 0.5f;
 
 		if (BackGround::Instance()->CheckLine(Pos1, &Pos2) == 0) {
 			auto Pos = ConvWorldPosToScreenPos(Pos1.get());

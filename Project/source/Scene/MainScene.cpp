@@ -9,15 +9,15 @@ void MainScene::Load_Sub(void) noexcept {
 	BackGround::Instance()->Load(this->m_MapName.c_str());
 
 	PlayerManager::Instance()->Load();
-	ObjectManager::Instance()->LoadModel("data/Px4/");
-	ObjectManager::Instance()->LoadModel("data/Cx4/");
+	ObjectManager::Instance()->LoadModel("data/model/Px4/");
+	ObjectManager::Instance()->LoadModel("data/model/Cx4/");
 
-	ObjectManager::Instance()->LoadModel("data/Cx4Scope/");
-	ObjectManager::Instance()->LoadModel("data/Px4Sup/");
+	ObjectManager::Instance()->LoadModel("data/model/Cx4Scope/");
+	ObjectManager::Instance()->LoadModel("data/model/Px4Sup/");
 
-	m_StandGraph = Draw::GraphPool::Instance()->Get("data/Body.png")->Get();
-	m_SquatGraph = Draw::GraphPool::Instance()->Get("data/BodyC.png")->Get();
-	m_ProneGraph = Draw::GraphPool::Instance()->Get("data/BodyP.png")->Get();
+	m_StandGraph = Draw::GraphPool::Instance()->Get("data/Image/Body.png")->Get();
+	m_SquatGraph = Draw::GraphPool::Instance()->Get("data/Image/BodyC.png")->Get();
+	m_ProneGraph = Draw::GraphPool::Instance()->Get("data/Image/BodyP.png")->Get();
 }
 void MainScene::Init_Sub(void) noexcept {
 	BackGround::Instance()->Init();
@@ -26,14 +26,14 @@ void MainScene::Init_Sub(void) noexcept {
 
 	this->m_MainGun = std::make_shared<Gun>();
 	this->m_HandGun = std::make_shared<Gun>();
-	ObjectManager::Instance()->InitObject(this->m_MainGun, this->m_MainGun, "data/Cx4/");
-	ObjectManager::Instance()->InitObject(this->m_HandGun, this->m_HandGun, "data/Px4/");
+	ObjectManager::Instance()->InitObject(this->m_MainGun, this->m_MainGun, "data/model/Cx4/");
+	ObjectManager::Instance()->InitObject(this->m_HandGun, this->m_HandGun, "data/model/Px4/");
 
 	this->m_MainGunAttach = std::make_shared<Scope>();
-	ObjectManager::Instance()->InitObject(this->m_MainGunAttach, this->m_MainGunAttach, "data/Cx4Scope/");
+	ObjectManager::Instance()->InitObject(this->m_MainGunAttach, this->m_MainGunAttach, "data/model/Cx4Scope/");
 
 	this->m_HandGunAttach = std::make_shared<Suppressor>();
-	ObjectManager::Instance()->InitObject(this->m_HandGunAttach, this->m_HandGunAttach, "data/Px4Sup/");
+	ObjectManager::Instance()->InitObject(this->m_HandGunAttach, this->m_HandGunAttach, "data/model/Px4Sup/");
 
 	this->m_MainGun->SetAttachScopeID(this->m_MainGunAttach->GetObjectID());
 	this->m_HandGun->SetAttachSuppressorID(this->m_HandGunAttach->GetObjectID());
@@ -651,6 +651,15 @@ void MainScene::UIDraw_Sub(void) noexcept {
 				Draw::FontXCenter::RIGHT, Draw::FontYCenter::BOTTOM,
 				xpos - 24, ypos,
 				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(337)));
+		}
+		{
+			xpos = DrawerMngr->GetDispWidth() - 256 - 64;
+			ypos = DrawerMngr->GetDispHeight() - 128 - 5 - 64;
+
+			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
+				Draw::FontXCenter::LEFT, Draw::FontYCenter::BOTTOM,
+				xpos, ypos,
+				ColorPalette::White, ColorPalette::Black, "Spare:%d", Chara->TotalAmmo());
 		}
 	}
 	this->m_PauseUI.Draw();

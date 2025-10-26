@@ -44,7 +44,7 @@ namespace HB {
 	}
 }
 
-void GunParam::Update(void) noexcept {
+void GunParam::Update(int* pTotalAmmo) noexcept {
 	auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(GetUniqueID()));
 	if (this->m_IsEquip) {
 		switch (this->m_EquipPhase) {
@@ -133,7 +133,7 @@ void GunParam::Update(void) noexcept {
 		this->m_GunLoadPer = 0.f;
 		this->m_GunLoadHandPer = 0.f;
 	}
-	gun->SetMagPer(this->m_GunLoadPer, GetReloadPer());
+	gun->SetMagPer(this->m_GunLoadPer, GetReloadPer(), pTotalAmmo);
 	gun->SetCockingPer(GetCockingPer());
 }
 
@@ -780,20 +780,20 @@ void Character::Update_Chara(void) noexcept {
 	if (IsReload) {
 		{
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Handgun.GetUniqueID()));
-			if (this->m_Handgun.GetCanReload() && gun->CanReload()) {
+			if (this->m_Handgun.GetCanReload() && gun->CanReload() && m_TotalAmmo > 0) {
 				this->m_Handgun.ReloadStart();
 			}
 		}
 		{
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
-			if (this->m_Maingun.GetCanReload() && gun->CanReload()) {
+			if (this->m_Maingun.GetCanReload() && gun->CanReload() && m_TotalAmmo > 0) {
 				this->m_Maingun.ReloadStart();
 			}
 		}
 	}
 
-	this->m_Handgun.Update();
-	this->m_Maingun.Update();
+	this->m_Handgun.Update(&m_TotalAmmo);
+	this->m_Maingun.Update(&m_TotalAmmo);
 
 	bool NeedAim = false;
 	{

@@ -126,7 +126,7 @@ namespace Draw {
 		void		Load_Sub(void) noexcept override {
 			this->m_Shader1.Init("CommonData/shader/PS_CubeMap.pso");
 			this->m_Shader2.Init("CommonData/shader/PS_SSR.pso");
-			this->m_SkyBox = GraphPool::Instance()->Get("data/SkyCube.dds")->Get();
+			this->m_SkyBox = GraphPool::Instance()->Get("data/Image/SkyCube.dds")->Get();
 		}
 		void		Dispose_Sub(void) noexcept override {
 			this->m_Shader1.Dispose();

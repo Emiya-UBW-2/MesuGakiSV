@@ -383,7 +383,7 @@ public:
 	void Load(const char* MapName) noexcept {
 		this->m_MapName = MapName;
 		Voxel.Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
-		Draw::MV1::Load("data/SkyBox/model.mqoz", &SkyBoxID);
+		Draw::MV1::Load("data/model/SkyBox/model.mqoz", &SkyBoxID);
 		for (int loop = 0; loop < Voxel.GetReferenceCells().All; ++loop) {
 			std::string Path = "data/" + this->m_MapName + "/map";
 			Path += std::to_string(loop);

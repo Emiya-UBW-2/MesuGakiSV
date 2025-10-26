@@ -317,7 +317,7 @@ public:
 		this->m_IsGunLoad = true;
 		this->m_GunLoadTimer = 0.f;
 	}
-	void Update(void) noexcept;
+	void Update(int* pTotalAmmo) noexcept;
 };
 
 class CharacterCommon :public BaseObject {
@@ -552,6 +552,8 @@ class Character :public CharacterCommon {
 
 	float				m_ArmlockedEndTimer{};
 	float				m_DownPower{ 0.f };
+	int					m_TotalAmmo{ 10 };//予備弾数
+	char		padding6[4]{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -612,6 +614,7 @@ public:
 	Util::Matrix4x4 GetLensSize(void) const noexcept;
 	const Draw::GraphHandle* GetReticlePtr(void) const noexcept;
 
+	int TotalAmmo(void) const noexcept { return m_TotalAmmo; }
 	bool NeedReload(void) const noexcept;
 	bool IsFreeView(void) const noexcept {
 		if (this->m_ArmlockActive) {
@@ -728,7 +731,7 @@ public:
 	void Draw_Chara(void) const noexcept override {
 		if (IsFreeView()) {
 			unsigned int Color = m_CanAim ? ColorPalette::Green : ColorPalette::Red;
-			DrawSphere3D(this->m_AimPoint.get(), 0.5f * Scale3DRate, 6.f, Color, Color, false);
+			DrawSphere3D(this->m_AimPoint.get(), 0.5f * Scale3DRate, 6, Color, Color, false);
 		}
 	}
 };
