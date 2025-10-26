@@ -981,7 +981,7 @@ void Character::Update_Chara(void) noexcept {
 			Util::VECTOR3D Target2 = Target;
 			Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
 			if (c->CheckHit(Base1, &Target1) || c->CheckHit(Base2, &Target2) || c->CheckHit(Base3, &Target3)) {
-				((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - Base);
+				((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - Base, 0.35f);
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);
 			}
 		}

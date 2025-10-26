@@ -99,8 +99,10 @@ class MainScene : public Util::SceneBase {
 	float					m_EquipPer{};
 
 	bool				m_UseLens{ false };
+	char		padding3[3]{};
 	Util::VECTOR2D		m_LensPos{};
 	Util::VECTOR2D		m_LensSize{};
+	char		padding4[4]{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;

@@ -337,8 +337,8 @@ public:
 	}
 public:
 	void		SetTarget(const Util::VECTOR3D& pos) noexcept { this->m_MyTarget = pos; }
-	void		SetHit(const Util::VECTOR3D& Vec) noexcept {
-		this->m_KeepPower = std::clamp(this->m_KeepPower + 0.35f, 0.f, 1.f);
+	void		SetHit(const Util::VECTOR3D& Vec, float Power) noexcept {
+		this->m_KeepPower = std::clamp(this->m_KeepPower + Power, 0.f, 1.f);
 		this->m_KeepTimer = 1.f;
 		if (this->m_KeepPower >= 1.f) {
 			//倒れる
@@ -418,6 +418,8 @@ public:
 	}
 public:
 	void CheckDraw_Sub(void) noexcept override {
+		auto* DrawerMngr = Draw::MainDraw::Instance();
+
 		Util::VECTOR3D Pos1 = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Head)).pos();
 		Util::VECTOR3D Pos2 = GetCameraPosition();
 
@@ -426,8 +428,8 @@ public:
 		if (BackGround::Instance()->CheckLine(Pos1, &Pos2) == 0) {
 			auto Pos = ConvWorldPosToScreenPos(Pos1.get());
 			if (0.0f < Pos.z && Pos.z < 1.0f) {
-				this->m_UIPos.x = Pos.x;
-				this->m_UIPos.y = Pos.y;
+				this->m_UIPos.x = Pos.x * static_cast<float>(DrawerMngr->GetDispWidth()) / static_cast<float>(DrawerMngr->GetRenderDispWidth());
+				this->m_UIPos.y = Pos.y * static_cast<float>(DrawerMngr->GetDispHeight()) / static_cast<float>(DrawerMngr->GetRenderDispHeight());
 				this->m_CanSeeUI |= true;
 			}
 		}

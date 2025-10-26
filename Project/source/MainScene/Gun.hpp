@@ -301,7 +301,7 @@ public:
 		this->DrawTimer = std::max(this->DrawTimer - DeltaTime, 0.f);
 		if (this->Timer == 0.f) { return; }
 		this->Timer = std::max(this->Timer - DeltaTime, 0.f);
-		this->YVecAdd -= GravAccel;
+		//this->YVecAdd -= GravAccel;
 		this->Vector.y += this->YVecAdd;
 		Util::VECTOR3D Target = GetMat().pos() + this->Vector;
 		if (BackGround::Instance()->CheckLine(GetMat().pos(), &Target)) {
@@ -310,9 +310,27 @@ public:
 		}
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
 			if (c->IsPlayer()) { continue; }
-			if (c->CheckHit(GetMat().pos(), &Target)) {
-				((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos());
-				((std::shared_ptr<EarlyCharacter>&)c)->SetDrug(((std::shared_ptr<EarlyCharacter>&)c)->GetDrugPerMax() * 34.f / 100.f);
+			auto* pHitBox = c->CheckHit(GetMat().pos(), &Target);
+			if (pHitBox) {
+				switch (pHitBox->GetColType()) {
+					case HB::HitType::Head:
+						((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos(), 1.f);
+						((std::shared_ptr<EarlyCharacter>&)c)->SetDrug(((std::shared_ptr<EarlyCharacter>&)c)->GetDrugPerMax() * 100.f / 100.f);
+						break;
+					case HB::HitType::Body:
+						((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos(), 0.35f);
+						((std::shared_ptr<EarlyCharacter>&)c)->SetDrug(((std::shared_ptr<EarlyCharacter>&)c)->GetDrugPerMax() * 51.f / 100.f);
+						break;
+					case HB::HitType::Arm:
+					case HB::HitType::Leg:
+						((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos(), 0.35f);
+						((std::shared_ptr<EarlyCharacter>&)c)->SetDrug(((std::shared_ptr<EarlyCharacter>&)c)->GetDrugPerMax() * 34.f / 100.f);
+						break;
+					case HB::HitType::Armor:
+					case HB::HitType::Helmet:
+				default:
+					break;
+				}
 				if (this->Timer != 0.f) {
 					SetAmmo(Target);
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);

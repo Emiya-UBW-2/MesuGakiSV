@@ -376,7 +376,11 @@ void MainScene::Update_Sub(void) noexcept {
 		PostPassParts->SetScopeParam().m_Radius = (this->m_LensSize - this->m_LensPos).magnitude();
 		PostPassParts->SetScopeParam().m_Zoom = 4.f;
 		PostPassParts->SetScopeParam().m_Xpos = this->m_LensPos.x;
-		PostPassParts->SetScopeParam().m_Ypos = 1080 - this->m_LensPos.y;
+		PostPassParts->SetScopeParam().m_Ypos = static_cast<float>(DrawerMngr->GetDispHeight()) - this->m_LensPos.y;
+
+		PostPassParts->SetScopeParam().m_Radius = PostPassParts->SetScopeParam().m_Radius / (static_cast<float>(DrawerMngr->GetDispWidth()) / static_cast<float>(DrawerMngr->GetRenderDispWidth()));
+		PostPassParts->SetScopeParam().m_Xpos = PostPassParts->SetScopeParam().m_Xpos / (static_cast<float>(DrawerMngr->GetDispWidth()) / static_cast<float>(DrawerMngr->GetRenderDispWidth()));
+		PostPassParts->SetScopeParam().m_Ypos = PostPassParts->SetScopeParam().m_Ypos / (static_cast<float>(DrawerMngr->GetDispHeight()) / static_cast<float>(DrawerMngr->GetRenderDispHeight()));
 	}
 	this->m_UseLens = false;
 }
@@ -394,16 +398,18 @@ void MainScene::Draw_Sub(void) noexcept {
 	{
 		auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 		if (Chara->HasLens()) {
+			auto* DrawerMngr = Draw::MainDraw::Instance();
+
 			auto Pos = ConvWorldPosToScreenPos(Chara->GetLensPos().pos().get());
 			if (0.0f < Pos.z && Pos.z < 1.0f) {
-				this->m_LensPos.x = Pos.x;
-				this->m_LensPos.y = Pos.y;
+				this->m_LensPos.x = Pos.x * static_cast<float>(DrawerMngr->GetDispWidth()) / static_cast<float>(DrawerMngr->GetRenderDispWidth());
+				this->m_LensPos.y = Pos.y * static_cast<float>(DrawerMngr->GetDispHeight()) / static_cast<float>(DrawerMngr->GetRenderDispHeight());
 				this->m_UseLens |= true;
 			}
 			auto Size = ConvWorldPosToScreenPos(Chara->GetLensSize().pos().get());
 			if (0.0f < Size.z && Size.z < 1.0f) {
-				this->m_LensSize.x = Size.x;
-				this->m_LensSize.y = Size.y;
+				this->m_LensSize.x = Size.x * static_cast<float>(DrawerMngr->GetDispWidth()) / static_cast<float>(DrawerMngr->GetRenderDispWidth());
+				this->m_LensSize.y = Size.y * static_cast<float>(DrawerMngr->GetDispHeight()) / static_cast<float>(DrawerMngr->GetRenderDispHeight());
 				this->m_UseLens |= true;
 			}
 			/*
@@ -448,7 +454,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 	if (this->m_UseLens) {
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * Chara->GetADSPer()), 0, 255));
-		Chara->GetReticlePtr()->DrawRotaGraph(this->m_LensPos.x, this->m_LensPos.y, 512.f / 256.f * Util::deg2rad(120) / CameraParts->GetCamera().GetCamFov(), 0.f, true);
+		Chara->GetReticlePtr()->DrawRotaGraph(static_cast<int>(this->m_LensPos.x), static_cast<int>(this->m_LensPos.y), 512.f / 256.f * Util::deg2rad(120) / CameraParts->GetCamera().GetCamFov(), 0.f, true);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
 	{
