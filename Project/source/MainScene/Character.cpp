@@ -1034,9 +1034,6 @@ void Character::Update_Chara(void) noexcept {
 	this->m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = 0.f;
 	this->m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = 0.f;
 	this->m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = 0.f;
-	//回転
-	m_AnimPer[static_cast<size_t>(CharaAnim::FlipLeft)] = 0.f;
-	m_AnimPer[static_cast<size_t>(CharaAnim::FlipRight)] = 0.f;
 
 	if (this->m_ArmlockActive) {
 		if (!this->m_ArmlockEnd) {
@@ -1198,10 +1195,11 @@ void Character::Update_Chara(void) noexcept {
 		Util::Easing(&m_YradProne, Rad, 0.9f);
 
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper),
-			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), this->m_HitBack* Util::deg2rad(90.f))*
-
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_Rad.x * 0.6f) *
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), this->m_YradProne * 0.6f) *
+
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), this->m_HitBack * Util::deg2rad(90.f))*
+
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper))
 		);
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2),

@@ -590,6 +590,9 @@ public:
 	}
 
 	Util::Matrix4x4 GetEyeMat(void) const noexcept;
+
+	auto GetADSPer(void) const noexcept { return std::max(this->m_Handgun.GetADSPer(), this->m_Maingun.GetADSPer()); }
+
 	bool IsFPSView(void) const noexcept { return this->m_IsFPS; }
 	bool IsShotSwitch(void) const noexcept { return this->m_ShotSwitch; }
 	bool CanDamage(void) const noexcept {

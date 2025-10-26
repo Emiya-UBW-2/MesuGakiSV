@@ -36,7 +36,6 @@ void MainScene::Init_Sub(void) noexcept {
 	ObjectManager::Instance()->InitObject(this->m_HandGunAttach, this->m_HandGunAttach, "data/Px4Sup/");
 
 	this->m_MainGun->SetAttachScopeID(this->m_MainGunAttach->GetObjectID());
-
 	this->m_HandGun->SetAttachSuppressorID(this->m_HandGunAttach->GetObjectID());
 
 	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
@@ -444,10 +443,13 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 	auto* Localize = Util::LocalizePool::Instance();
+	auto* CameraParts = Camera::Camera3D::Instance();
 
 	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 	if (this->m_UseLens) {
-		Chara->GetReticlePtr()->DrawRotaGraph(this->m_LensPos.x, this->m_LensPos.y, 512.f/256.f, 0.f, true);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * Chara->GetADSPer()), 0, 255));
+		Chara->GetReticlePtr()->DrawRotaGraph(this->m_LensPos.x, this->m_LensPos.y, 512.f / 256.f * Util::deg2rad(120) / CameraParts->GetCamera().GetCamFov(), 0.f, true);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
 	{
 		for (auto& c : PlayerManager::Instance()->GetCharacter()) {

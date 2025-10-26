@@ -700,7 +700,7 @@ public:
 		}
 		return GetFrameLocalWorldMatrix(static_cast<int>(GunFrame::ADSPos));
 	}
-	auto			HasLens(void) noexcept {
+	auto			HasLens(void) const noexcept {
 		return (this->m_AttachScopeID != InvalidID);
 	}
 	auto			GetLensPos(void) noexcept {
