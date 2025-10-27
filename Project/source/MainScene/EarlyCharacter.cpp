@@ -30,8 +30,38 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 					IsInsight = !BackGroundParts->CheckLine(MyPos, &TargetPos);
 				}
 			}
+
+			//誰かが見てた状態が5秒続いたらみんな見る
+			bool WatchAny = false;
+			for (auto& c : PlayerManager::Instance()->GetCharacter()) {
+				if (c->IsPlayer()) { continue; }
+				if (c->GetObjectID() == GetObjectID()) { continue; }
+				auto& ec = ((std::shared_ptr<EarlyCharacter>&)c);
+				if (ec->IsDown()) { continue; }
+				if (ec->m_WatchTimer <= 5.f) { continue; }
+				WatchAny = true;
+				break;
+			}
+			if (WatchAny) {
+				m_WatchAnyTimer += DeltaTime;
+			}
+			else {
+				m_WatchAnyTimer = 0.f;
+			}
+			if (m_WatchAnyTimer >= 5.f) {
+				m_WatchAnyTimer -= 5.f;
+				IsInsight = true;
+			}
+
+
 			if (IsInsight) {
-				m_WatchTimer = 6.f;
+				if (!IsWatching()) {
+					if (m_AlertTimer == 0.f) {
+						m_AlertTimer = 3.f;
+						m_CautionTimer = 0.f;
+					}
+				}
+				m_WatchTimer = 10.f;
 			}
 			else {
 				m_WatchTimer = std::max(m_WatchTimer - DeltaTime, 0.f);
@@ -54,13 +84,26 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				}
 			}
 			if (IsInsight) {
+				if (!IsWatching()) {
+					if (m_AlertTimer == 0.f) {
+						if (m_CautionTimer == 0.f) {
+							m_CautionTimer = 3.f;
+						}
+					}
+				}
 				m_FindTimer = std::min(m_FindTimer + DeltaTime, 3.f);
 			}
 			else {
 				m_FindTimer = std::max(m_FindTimer - DeltaTime, 0.f);
 			}
 			if (m_FindTimer == 3.f) {
-				m_WatchTimer = 6.f;
+				if (!IsWatching()) {
+					if (m_AlertTimer == 0.f) {
+						m_AlertTimer = 3.f;
+						m_CautionTimer = 0.f;
+					}
+				}
+				m_WatchTimer = 10.f;
 			}
 		}
 		if (IsWatching()) {
@@ -78,6 +121,11 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 	}
 
 	{
+		m_AlertTimer = std::max(m_AlertTimer - DeltaTime, 0.f);
+		m_CautionTimer = std::max(m_CautionTimer - DeltaTime, 0.f);
+		Util::Easing(&m_AlertPer, m_AlertTimer, 0.9f);
+		Util::Easing(&m_CautionPer, m_CautionTimer, 0.9f);
+
 		bool				CanPunch{ false };
 		bool				CanArmlock{ false };
 		if (!this->m_Armlocked &&

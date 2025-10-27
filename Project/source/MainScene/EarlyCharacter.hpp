@@ -285,6 +285,9 @@ class EarlyCharacter :public CharacterCommon {
 	Sound::SoundUniqueID	ArmlockStartID{ InvalidID };
 	Sound::SoundUniqueID	ArmlockID{ InvalidID };
 
+	const Draw::GraphHandle* m_Alert{};
+	const Draw::GraphHandle* m_Caution{};
+
 	bool				m_Armlocked{ false };
 	bool				m_ArmlockedEnd{ false };
 	bool				m_ArmlockedInjector{ false };
@@ -321,6 +324,12 @@ class EarlyCharacter :public CharacterCommon {
 	char		padding9[2]{};
 	float				m_WatchTimer{};
 	float				m_FindTimer{};
+	float				m_WatchAnyTimer{};
+
+	float				m_AlertTimer{};
+	float				m_CautionTimer{};
+	float				m_AlertPer{};
+	float				m_CautionPer{};
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -452,6 +461,10 @@ public:
 
 		this->HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
 		this->m_PunchID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Punch.wav", true);
+
+		m_Alert = Draw::GraphPool::Instance()->Get("data/Image/Alert.png")->Get();
+		m_Caution = Draw::GraphPool::Instance()->Get("data/Image/Caution.png")->Get();
+
 	}
 	void Init_Chara(void) noexcept override {
 		this->m_PathUpdateTimer = 1.f;
@@ -468,6 +481,37 @@ public:
 	}
 	void Update_Chara(void) noexcept override;
 	void Draw_Chara(void) const noexcept override {
+		auto Pos = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Head)).pos();
+		SetUseLighting(false);
+		if (m_AlertPer > 0.f) {
+			DxLib::SetDrawBright(255, 0, 0);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(m_AlertPer * 5.f * 255.f), 0, 255));
+			DxLib::DrawBillboard3D(
+				(Pos + Util::VECTOR3D::up() * (0.25f * Scale3DRate * std::clamp(m_AlertPer * 5.f, 0.f, 1.f))).get(),
+				0.5f,
+				0.5f,
+				0.25f * Scale3DRate,
+				0.f,
+				m_Alert->get(),
+				true
+			);
+		}
+		if (m_CautionPer > 0.f) {
+			DxLib::SetDrawBright(0, 255, 0);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(m_CautionPer * 5.f * 255.f), 0, 255));
+			DxLib::DrawBillboard3D(
+				(Pos + Util::VECTOR3D::up() * (0.25f * Scale3DRate * std::clamp(m_CautionPer * 5.f, 0.f, 1.f))).get(),
+				0.5f,
+				0.5f,
+				0.25f * Scale3DRate,
+				0.f,
+				m_Caution->get(),
+				true
+			);
+		}
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		SetUseLighting(true);
+		DxLib::SetDrawBright(255, 255, 255);
 	}
 	void Dispose_Chara(void) noexcept override {
 	}

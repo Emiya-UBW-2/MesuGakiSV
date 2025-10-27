@@ -532,6 +532,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 
 						if (c->IsPlayer()) {
 							DxLib::SetDrawBright(50, 200, 255);
+							DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 							DxLib::DrawCircleGauge(x, y, DegPer + 30.0 / 360.0 * 100.0, m_Watch->get(), DegPer - 30.0 / 360.0 * 100.0, 32.0 / 128.0);
 						}
 						else {
@@ -546,6 +547,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 								else {
 									DxLib::SetDrawBright(0, 255, 0);
 								}
+								DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 								DxLib::DrawCircleGauge(x, y, DegPer + 45.0 / 360.0 * 100.0, m_Watch->get(), DegPer - 45.0 / 360.0 * 100.0, 32.0 / 128.0);
 							}
 						}
