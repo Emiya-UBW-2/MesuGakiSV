@@ -18,6 +18,7 @@ void MainScene::Load_Sub(void) noexcept {
 	m_StandGraph = Draw::GraphPool::Instance()->Get("data/Image/Body.png")->Get();
 	m_SquatGraph = Draw::GraphPool::Instance()->Get("data/Image/BodyC.png")->Get();
 	m_ProneGraph = Draw::GraphPool::Instance()->Get("data/Image/BodyP.png")->Get();
+	m_Watch = Draw::GraphPool::Instance()->Get("data/Image/Watch.png")->Get();
 }
 void MainScene::Init_Sub(void) noexcept {
 	BackGround::Instance()->Init();
@@ -255,7 +256,7 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamTarget2;
 	if (this->m_FPSPer != 0.f) {
 		BackGround::Instance()->SettingChange(2, 1);
-		Util::Matrix4x4 EyeMat = Chara->GetEyeMat();
+		Util::Matrix4x4 EyeMat = Chara->GetPlayerEyeMat();
 		CamPosition1 = EyeMat.pos();
 		CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f * Scale3DRate);
 	}
@@ -298,7 +299,7 @@ void MainScene::Update_Sub(void) noexcept {
 
 	/*
 	{
-		Util::VECTOR3D EyeMat = Chara->GetEyeMat().pos() + Util::VECTOR3D::up() * (-0.25f * Scale3DRate);
+		Util::VECTOR3D EyeMat = Chara->GetEyeMatrix().pos() + Util::VECTOR3D::up() * (-0.25f * Scale3DRate);
 		CamPosition = EyeMat + Util::VECTOR3D::forward() * (-1.5f * Scale3DRate);
 		CamTarget = EyeMat;
 	}
@@ -313,7 +314,7 @@ void MainScene::Update_Sub(void) noexcept {
 		Util::Easing(&m_ShotFov, 0.f, 0.9f);
 	}
 
-	PlayerManager::Instance()->SetTarget(Chara->GetEyeMat().pos());
+	PlayerManager::Instance()->SetTarget(Chara->GetEyeMatrix().pos());
 
 	DxLib::SetMouseDispFlag(!Chara->IsFPSView());
 
@@ -525,13 +526,19 @@ void MainScene::UIDraw_Sub(void) noexcept {
 				for (auto& c : PlayerManager::Instance()->GetCharacter()) {
 					BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(c->GetMat().pos());
 					if (m.GetID() <= Pos.y) {
+						int x= 256 + static_cast<int>(static_cast<float>(Pos.x * 128 / 256) * 3.f);
+						int y = 256 + static_cast<int>(static_cast<float>(-Pos.z * 128 / 256) * 3.f);
+
+						DxLib::SetDrawBright(0, 255, 0);
+
+						auto Vec = c->GetEyeMatrix().zvec() * -1.f;
+						double DegPer = static_cast<double>(Util::rad2deg(std::atan2f(Vec.x, Vec.z))) / 360.0 * 100.0;
+
+						DxLib::DrawCircleGauge(x, y, DegPer + 45.0 / 360.0 * 100.0, m_Watch->get(), DegPer - 45.0 / 360.0 * 100.0, 32.0 / 128.0);
+
 						DxLib::SetDrawBright(255, 255, 255);
 						DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-
-						DxLib::DrawCircle(
-							256 + static_cast<int>(static_cast<float>(Pos.x * 128 / 256) * 3.f),
-							256 + static_cast<int>(static_cast<float>(-Pos.z * 128 / 256) * 3.f),
-							3, c->IsPlayer() ? ColorPalette::Blue : ColorPalette::Red, TRUE);
+						DxLib::DrawCircle(x, y, 3, c->IsPlayer() ? ColorPalette::Blue : ColorPalette::Red, TRUE);
 					}
 				}
 			}

@@ -78,6 +78,8 @@ class MainScene : public Util::SceneBase {
 	const Draw::GraphHandle* m_SquatGraph{};
 	const Draw::GraphHandle* m_ProneGraph{};
 
+	const Draw::GraphHandle* m_Watch{};
+
 	Util::VECTOR3D	m_CamOffset{};
 	Util::VECTOR3D	m_CamVec{};
 	std::string		m_MapName{ "Map1" };

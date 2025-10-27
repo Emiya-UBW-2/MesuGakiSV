@@ -137,8 +137,8 @@ void GunParam::Update(int* pTotalAmmo) noexcept {
 	gun->SetCockingPer(GetCockingPer());
 }
 
-Util::Matrix4x4 Character::GetEyeMat(void) const noexcept {
-	Util::Matrix4x4 Mat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+Util::Matrix4x4 Character::GetPlayerEyeMat(void) const noexcept {
+	Util::Matrix4x4 Mat = GetEyeMatrix();
 
 	Mat = Mat.rotation() *
 		Util::Matrix4x4::Mtrans(
@@ -183,7 +183,7 @@ Util::Matrix4x4 Character::GetLensPos(void) const noexcept {
 		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
 		return gun->GetLensPos();
 	}
-	return GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+	return GetEyeMatrix();
 }
 
 Util::Matrix4x4 Character::GetLensSize(void) const noexcept {
@@ -195,7 +195,7 @@ Util::Matrix4x4 Character::GetLensSize(void) const noexcept {
 		auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
 		return gun->GetLensSize();
 	}
-	return GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+	return GetEyeMatrix();
 }
 const Draw::GraphHandle* Character::GetReticlePtr(void) const noexcept {
 	if (this->m_Handgun.GetIsReady()) {
@@ -871,13 +871,13 @@ void Character::Update_Chara(void) noexcept {
 	// 壁判定
 	CheckWall(PosBefore, &PosAfter, Util::VECTOR3D::zero(), Util::VECTOR3D::up()* (0.7f * Scale3DRate), Util::VECTOR3D::up()* (1.6f * Scale3DRate), 0.35f * Scale3DRate);
 	if (this->m_CharaStyle == CharaStyle::Prone || this->m_WakeBottom) {
-		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos(); PosAdd.y = 0.f; PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
+		Util::VECTOR3D PosAdd = GetEyeMatrix().pos() - GetMat().pos(); PosAdd.y = 0.f; PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
 		CheckWall(PosBefore, &PosAfter, PosAdd, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate);
 	}
 	// 地面判定
 	bool IsFall = true;
 	if (m_CharaStyle == CharaStyle::Prone) {
-		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos(); PosAdd.y = 0.f;
+		Util::VECTOR3D PosAdd = GetEyeMatrix().pos() - GetMat().pos(); PosAdd.y = 0.f;
 		PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
 		{
 			Util::VECTOR3D EndPos = PosAfter + PosAdd - Util::VECTOR3D::up() * Scale3DRate;
@@ -919,7 +919,7 @@ void Character::Update_Chara(void) noexcept {
 	}
 	/*
 	else if (this->m_CharaStyle == CharaStyle::Prone) {
-		Util::VECTOR3D PosAdd = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)).pos() - GetMat().pos(); PosAdd.y = 0.f; PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
+		Util::VECTOR3D PosAdd = GetEyeMatrix().pos() - GetMat().pos(); PosAdd.y = 0.f; PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
 		{
 			if (CheckGround(&PosAfter, PosAdd, 1.f, 1.f)) {
 				if (IsFall) {
@@ -1196,7 +1196,7 @@ void Character::Update_Chara(void) noexcept {
 	SetAnim(static_cast<int>(CharaAnim::ProneWalk)).Update(true, GetSpeed() * 8.f);
 	SetModel().FlipAnimAll();
 
-	Util::Matrix4x4 HandBaseMat = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye));
+	Util::Matrix4x4 HandBaseMat = GetEyeMatrix();
 
 	HandBaseMat =
 		Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), -m_HandRad2.y) *

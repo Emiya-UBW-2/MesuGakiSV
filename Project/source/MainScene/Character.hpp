@@ -410,6 +410,7 @@ public:
 		MyMat = Util::Matrix4x4::Mtrans(GetTargetPos());
 		m_Rot = Util::Matrix3x3::Get33DX(MyMat);
 	}
+	auto GetEyeMatrix(void) const noexcept { return GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Eye)); }
 public:
 	void Load_Sub(void) noexcept override {
 		this->m_runfootID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/runfoot.wav", true);
@@ -598,7 +599,7 @@ public:
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
 
-	Util::Matrix4x4 GetEyeMat(void) const noexcept;
+	Util::Matrix4x4 GetPlayerEyeMat(void) const noexcept;
 
 	auto GetADSPer(void) const noexcept { return std::max(this->m_Handgun.GetADSPer(), this->m_Maingun.GetADSPer()); }
 
