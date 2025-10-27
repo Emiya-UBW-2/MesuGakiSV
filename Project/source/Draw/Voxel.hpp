@@ -260,10 +260,10 @@ namespace BG {
 	static constexpr float CellScale = 0.25f * Scale3DRate;// 1個のブロックの実際のサイズ設定
 
 	// ブロックの最大描画範囲
-	static constexpr int DrawMaxXPlus = 60;
-	static constexpr int DrawMaxXMinus = -60;
+	static constexpr int DrawMaxXPlus = 100;
+	static constexpr int DrawMaxXMinus = -100;
 	static constexpr int DrawMaxZPlus = 100;
-	static constexpr int DrawMaxZMinus = -40;
+	static constexpr int DrawMaxZMinus = -100;
 	static constexpr int DrawMaxYPlus = 30;
 	static constexpr int DrawMaxYMinus = -70;
 

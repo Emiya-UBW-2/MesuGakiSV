@@ -254,7 +254,7 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamPosition2;
 	Util::VECTOR3D CamTarget2;
 	if (this->m_FPSPer != 0.f) {
-		BackGround::Instance()->SettingChange(3, 1);
+		BackGround::Instance()->SettingChange(2, 1);
 		Util::Matrix4x4 EyeMat = Chara->GetEyeMat();
 		CamPosition1 = EyeMat.pos();
 		CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f * Scale3DRate);
