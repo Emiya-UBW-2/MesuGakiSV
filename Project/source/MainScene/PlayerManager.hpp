@@ -47,12 +47,6 @@ public:
 			}
 		}
 	}
-	void SetTarget(const Util::VECTOR3D& pos) noexcept {
-		for (auto& m : this->m_Character) {
-			if (m->IsPlayer()) { continue; }
-			((std::shared_ptr<EarlyCharacter>&)m)->SetTarget(pos);
-		}
-	}
 	void Dispose(void) noexcept {
 		for (auto& m : this->m_Character) {
 			m.reset();

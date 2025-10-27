@@ -314,8 +314,6 @@ void MainScene::Update_Sub(void) noexcept {
 		Util::Easing(&m_ShotFov, 0.f, 0.9f);
 	}
 
-	PlayerManager::Instance()->SetTarget(Chara->GetEyeMatrix().pos());
-
 	DxLib::SetMouseDispFlag(!Chara->IsFPSView());
 
 	Chara->SetIsActive(!m_Exit);
@@ -529,16 +527,32 @@ void MainScene::UIDraw_Sub(void) noexcept {
 						int x= 256 + static_cast<int>(static_cast<float>(Pos.x * 128 / 256) * 3.f);
 						int y = 256 + static_cast<int>(static_cast<float>(-Pos.z * 128 / 256) * 3.f);
 
-						DxLib::SetDrawBright(0, 255, 0);
-
 						auto Vec = c->GetEyeMatrix().zvec() * -1.f;
 						double DegPer = static_cast<double>(Util::rad2deg(std::atan2f(Vec.x, Vec.z))) / 360.0 * 100.0;
 
-						DxLib::DrawCircleGauge(x, y, DegPer + 45.0 / 360.0 * 100.0, m_Watch->get(), DegPer - 45.0 / 360.0 * 100.0, 32.0 / 128.0);
+						if (c->IsPlayer()) {
+							DxLib::SetDrawBright(50, 200, 255);
+							DxLib::DrawCircleGauge(x, y, DegPer + 30.0 / 360.0 * 100.0, m_Watch->get(), DegPer - 30.0 / 360.0 * 100.0, 32.0 / 128.0);
+						}
+						else {
+							auto& ec = ((std::shared_ptr<EarlyCharacter>&)c);
+							if (!ec->IsDown()) {
+								if (ec->IsWatching()) {
+									DxLib::SetDrawBright(255, 0, 0);
+								}
+								else if (ec->GetFindPer() > 0.f) {
+									DxLib::SetDrawBright(255, 255 - static_cast<int>(255.f * ec->GetFindPer()), 0);
+								}
+								else {
+									DxLib::SetDrawBright(0, 255, 0);
+								}
+								DxLib::DrawCircleGauge(x, y, DegPer + 45.0 / 360.0 * 100.0, m_Watch->get(), DegPer - 45.0 / 360.0 * 100.0, 32.0 / 128.0);
+							}
+						}
 
 						DxLib::SetDrawBright(255, 255, 255);
 						DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-						DxLib::DrawCircle(x, y, 3, c->IsPlayer() ? ColorPalette::Blue : ColorPalette::Red, TRUE);
+						DxLib::DrawCircle(x, y, 3, c->IsPlayer() ? ColorPalette::Yellow : ColorPalette::Red, TRUE);
 					}
 				}
 			}

@@ -315,6 +315,12 @@ class EarlyCharacter :public CharacterCommon {
 	float				m_DrugPer{};
 	float				m_DrugPerR{};
 	const float			m_DrugPerMax{ 100.f };
+
+	bool				m_IsMove{ false };
+	bool				m_IsTurn{ false };
+	char		padding9[2]{};
+	float				m_WatchTimer{};
+	float				m_FindTimer{};
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -332,9 +338,11 @@ public:
 	auto GetDrugPer(void) const noexcept { return m_DrugPerR; }
 	auto GetDrugPerMax(void) const noexcept { return m_DrugPerMax; }
 
-	auto IsDown(void) const noexcept {
-		return (this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom);
-	}
+	auto IsDown(void) const noexcept { return (this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom); }
+
+	auto IsWatching(void) const noexcept { return m_WatchTimer != 0.f; }
+	
+	auto GetFindPer(void) const noexcept { return m_FindTimer / 3.f; }
 public:
 	void		SetTarget(const Util::VECTOR3D& pos) noexcept { this->m_MyTarget = pos; }
 	void		SetHit(const Util::VECTOR3D& Vec, float Power) noexcept {
