@@ -223,29 +223,33 @@ bool Character::NeedReload(void) const noexcept {
 
 void Character::CheckDraw_Sub(void) noexcept {
 	if (!IsFPSView()) {
-		if (IsFreeView()) {
-			auto* DrawerMngr = Draw::MainDraw::Instance();
-			Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 0.f));
-			Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(DrawerMngr->GetMousePositionX()), static_cast<float>(DrawerMngr->GetMousePositionY()), 1.f));
-			Util::VECTOR3D Now = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
-			auto Target = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
-			this->m_AimPoint = Target;
-			//この点に一番近い敵を狙う
-			float Len = (1.f * Scale3DRate) * (1.f * Scale3DRate);
-			for (auto& c : PlayerManager::Instance()->GetCharacter()) {
-				if (c->IsPlayer()) { continue; }
-				if (((std::shared_ptr<EarlyCharacter>&)c)->IsDown()) { continue; }
-				auto Pos = c->GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
-				if (std::abs(Pos.y - Now.y) >= 0.5f * Scale3DRate) { continue; }
-				//if (Util::VECTOR3D::Dot((Pos - GetMat().pos()).normalized(), GetMat().zvec()) > 0.f) { continue; }
-				auto Vec = this->m_AimPoint - Pos; Vec.y = 0.f;
-				if (Len > Vec.sqrMagnitude()) {
-					Len = Vec.sqrMagnitude();
-					Target = Pos;
-				}
+		auto* DrawerMngr = Draw::MainDraw::Instance();
+		float MX = static_cast<float>(DrawerMngr->GetMousePositionX()) * static_cast<float>(DrawerMngr->GetRenderDispWidth()) / static_cast<float>(DrawerMngr->GetDispWidth());
+		float MY = static_cast<float>(DrawerMngr->GetMousePositionY()) * static_cast<float>(DrawerMngr->GetRenderDispHeight()) / static_cast<float>(DrawerMngr->GetDispHeight());
+		Util::VECTOR3D Near = ConvScreenPosToWorldPos(VGet(MX, MY, 0.f));
+		Util::VECTOR3D Far = ConvScreenPosToWorldPos(VGet(MX, MY, 1.f));
+		Util::VECTOR3D Now = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
+		auto Target = Util::Lerp(Near, Far, (Now.y - Near.y) / (Far.y - Near.y));
+		this->m_AimPoint = Target;
+		//この点に一番近い敵を狙う
+		float Len = (1.f * Scale3DRate) * (1.f * Scale3DRate);
+		for (auto& c : PlayerManager::Instance()->GetCharacter()) {
+			if (c->IsPlayer()) { continue; }
+			if (((std::shared_ptr<EarlyCharacter>&)c)->IsDown()) { continue; }
+			auto Pos = c->GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
+			if (std::abs(Pos.y - Now.y) >= 0.5f * Scale3DRate) { continue; }
+			//if (Util::VECTOR3D::Dot((Pos - GetMat().pos()).normalized(), GetMat().zvec()) > 0.f) { continue; }
+			auto Vec = this->m_AimPoint - Pos; Vec.y = 0.f;
+			if (Len > Vec.sqrMagnitude()) {
+				Len = Vec.sqrMagnitude();
+				Target = Pos;
+				this->m_IsAutoAim = true;
 			}
-			this->m_AimPoint = Target;
 		}
+		this->m_AimPoint = Target;
+		auto Pos2D = ConvWorldPosToScreenPos(this->m_AimPoint.get());
+		this->m_AimPoint2D.x = Pos2D.x * static_cast<float>(DrawerMngr->GetDispWidth()) / static_cast<float>(DrawerMngr->GetRenderDispWidth());
+		this->m_AimPoint2D.y = Pos2D.y * static_cast<float>(DrawerMngr->GetDispHeight()) / static_cast<float>(DrawerMngr->GetRenderDispHeight());
 	}
 }
 
@@ -689,10 +693,12 @@ void Character::Update_Chara(void) noexcept {
 		if (this->m_CharaStyle == CharaStyle::Stand || this->m_CharaStyle == CharaStyle::Squat) {
 			if (!(this->m_Handgun.GetIsEquip() || this->m_Maingun.GetIsEquip())) {
 				if (!m_CanArmlock) {
-					//パンチ
-					if (!this->m_PunchActive) {
-						this->m_PunchActive = true;
-						SetAnim(static_cast<int>(CharaAnim::Combo)).SetTime(0.f);
+					if (!IsFreeView()) {
+						//パンチ
+						if (!this->m_PunchActive) {
+							this->m_PunchActive = true;
+							SetAnim(static_cast<int>(CharaAnim::Combo)).SetTime(0.f);
+						}
 					}
 				}
 				else {
@@ -1369,4 +1375,6 @@ void Character::Update_Chara(void) noexcept {
 	}
 	//
 	m_Injector.SetMatrix(GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::LeftHandJoint)));
+
+	this->m_IsAutoAim = false;
 }

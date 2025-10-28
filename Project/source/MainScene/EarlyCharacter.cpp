@@ -38,7 +38,7 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				if (c->GetObjectID() == GetObjectID()) { continue; }
 				auto& ec = ((std::shared_ptr<EarlyCharacter>&)c);
 				if (ec->IsDown()) { continue; }
-				if (ec->m_WatchTimer <= 5.f) { continue; }
+				if (ec->m_WatchTimer <= 7.f) { continue; }
 				WatchAny = true;
 				break;
 			}

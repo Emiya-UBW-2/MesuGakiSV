@@ -1,6 +1,7 @@
 ﻿#include "MainScene.hpp"
 
 #include "../MainScene/BackGround.hpp"
+#include "../MainScene/AmmoBox.hpp"
 
 void MainScene::Load_Sub(void) noexcept {
 	ObjectManager::Create();
@@ -19,6 +20,10 @@ void MainScene::Load_Sub(void) noexcept {
 	m_SquatGraph = Draw::GraphPool::Instance()->Get("data/Image/BodyC.png")->Get();
 	m_ProneGraph = Draw::GraphPool::Instance()->Get("data/Image/BodyP.png")->Get();
 	m_Watch = Draw::GraphPool::Instance()->Get("data/Image/Watch.png")->Get();
+	m_Cursor = Draw::GraphPool::Instance()->Get("data/Image/Cursor.png")->Get();
+	m_Lock = Draw::GraphPool::Instance()->Get("data/Image/Lock.png")->Get();
+
+	AmmoBoxPool::Create();
 }
 void MainScene::Init_Sub(void) noexcept {
 	BackGround::Instance()->Init();
@@ -49,7 +54,13 @@ void MainScene::Init_Sub(void) noexcept {
 			Chara->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
 		}
 	}
-
+	//
+	AmmoBoxPool::Instance()->Init();
+	for (auto& m : BackGround::Instance()->GetMapInfo()) {
+		if (m.m_InfoType == InfoType::WayPoint) {
+			AmmoBoxPool::Instance()->AddOne(BackGround::Instance()->GetWorldPos(m.m_pos));
+		}
+	}
 	this->m_Exit = false;
 	this->m_Fade = 1.f;
 
@@ -135,10 +146,10 @@ void MainScene::Update_Sub(void) noexcept {
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Run), Localize->Get(308));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Walk), Localize->Get(309));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack), Localize->Get(336));
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(338));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Squat), Localize->Get(310));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Prone), Localize->Get(311));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Jump), Localize->Get(312));
-				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(337));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::ChangeWeapon), Localize->Get(315));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Reload), Localize->Get(316));
 			}
@@ -182,6 +193,9 @@ void MainScene::Update_Sub(void) noexcept {
 		return;
 	}
 	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+
+	Util::Easing(&m_AutoAimActive, Chara->GetIsAutoAim() ? 1.f : 0.f, 0.9f);
+	m_AimRotate += Util::deg2rad(180) * DeltaTime;
 
 	if (Chara->ChanChangeWeapon()) {
 		if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
@@ -238,6 +252,8 @@ void MainScene::Update_Sub(void) noexcept {
 	else {
 		this->m_EquipUIActivePer = std::clamp(this->m_EquipUIActivePer - DeltaTime / 0.1f, 0.f, 1.f);
 	}
+
+	AmmoBoxPool::Instance()->Update();
 
 	ObjectManager::Instance()->UpdateObject();
 	//更新
@@ -314,7 +330,7 @@ void MainScene::Update_Sub(void) noexcept {
 		Util::Easing(&m_ShotFov, 0.f, 0.9f);
 	}
 
-	DxLib::SetMouseDispFlag(!Chara->IsFPSView());
+	DxLib::SetMouseDispFlag(!Chara->IsFPSView() && !Chara->IsFreeView());
 
 	Chara->SetIsActive(!m_Exit);
 
@@ -394,6 +410,7 @@ void MainScene::SetShadowDraw_Sub(void) noexcept {
 	ObjectManager::Instance()->Draw_SetShadow();
 }
 void MainScene::Draw_Sub(void) noexcept {
+	AmmoBoxPool::Instance()->SetPos2D();
 	{
 		auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 		if (Chara->HasLens()) {
@@ -456,6 +473,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		Chara->GetReticlePtr()->DrawRotaGraph(static_cast<int>(this->m_LensPos.x), static_cast<int>(this->m_LensPos.y), 512.f / 256.f * Util::deg2rad(120) / CameraParts->GetCamera().GetCamFov(), 0.f, true);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
+	AmmoBoxPool::Instance()->DrawUI();
 	{
 		for (auto& c : PlayerManager::Instance()->GetCharacter()) {
 			if (c->IsPlayer()) { continue; }
@@ -471,7 +489,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 			//*/
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA,
 				std::clamp(static_cast<int>(255.f *
-				//(1.f - Len / 500.f)*
+					//(1.f - Len / 500.f)*
 					ec->GetCanSeePer()
 					), 0, 255));
 
@@ -496,6 +514,18 @@ void MainScene::UIDraw_Sub(void) noexcept {
 				ColorPalette::Green, false, 3);
 		}
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+	}
+	if (Chara->IsFreeView()) {
+		DxLib::SetDrawBright(0, 255, 0);
+		m_Cursor->DrawRotaGraph(static_cast<int>(Chara->GetAimPoint2D().x), static_cast<int>(Chara->GetAimPoint2D().y), 1.0f, 0.f, true);
+
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m_AutoAimActive), 0, 255));
+		DxLib::SetDrawBright(128, 0, 0);
+		m_Lock->DrawRotaGraph(static_cast<int>(Chara->GetAimPoint2D().x), static_cast<int>(Chara->GetAimPoint2D().y), 1.0f * (2.f - m_AutoAimActive), m_AimRotate, true);
+		DxLib::SetDrawBright(255, 0, 0);
+		m_Lock->DrawRotaGraph(static_cast<int>(Chara->GetAimPoint2D().x), static_cast<int>(Chara->GetAimPoint2D().y), 1.0f * (2.f - m_AutoAimActive), -m_AimRotate, true);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		DxLib::SetDrawBright(255, 255, 255);
 	}
 	{
 		int count = 0;
@@ -682,7 +712,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
 				Draw::FontXCenter::LEFT, Draw::FontYCenter::BOTTOM,
 				xpos, ypos,
-				ColorPalette::White, ColorPalette::Black, "Spare:%d", Chara->TotalAmmo());
+				ColorPalette::White, ColorPalette::Black, "Spare:%d/%d", Chara->TotalAmmo(), Chara->CanHaveAmmo());
 		}
 	}
 	this->m_PauseUI.Draw();
@@ -697,6 +727,7 @@ void MainScene::Dispose_Sub(void) noexcept {
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->StopAll();
 	BackGround::Release();
 	PlayerManager::Release();
+	AmmoBoxPool::Release();
 	this->m_MainGun.reset();
 	this->m_HandGun.reset();
 	this->m_HandGunAttach.reset();

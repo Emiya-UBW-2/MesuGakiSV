@@ -80,6 +80,9 @@ class MainScene : public Util::SceneBase {
 
 	const Draw::GraphHandle* m_Watch{};
 
+	const Draw::GraphHandle* m_Cursor{};
+	const Draw::GraphHandle* m_Lock{};
+
 	Util::VECTOR3D	m_CamOffset{};
 	Util::VECTOR3D	m_CamVec{};
 	std::string		m_MapName{ "Map1" };
@@ -99,6 +102,8 @@ class MainScene : public Util::SceneBase {
 	float					m_EquipUIActivePer{};
 	int						m_EquipID{ 0 };
 	float					m_EquipPer{};
+	float					m_AutoAimActive{};
+	float					m_AimRotate{};
 
 	bool				m_UseLens{ false };
 	char		padding3[3]{};

@@ -491,6 +491,7 @@ class Character :public CharacterCommon {
 	std::array<float, static_cast<int>(CharaStyle::Max)>	m_StylePer{};
 	CharaStyle												m_CharaStyle{ CharaStyle::Stand };
 	Util::VECTOR3D											m_AimPoint;
+	Util::VECTOR2D											m_AimPoint2D;
 	float				m_YradR{};
 	float				m_AnimChangePer{};
 	float				m_SwitchPer{};
@@ -542,7 +543,8 @@ class Character :public CharacterCommon {
 	int					m_ArmlockedPos{};
 
 	bool				m_WakeBottom{};
-	char		padding5[7]{};
+	bool				m_IsAutoAim{};
+	char		padding5[6]{};
 
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
@@ -555,8 +557,9 @@ class Character :public CharacterCommon {
 
 	float				m_ArmlockedEndTimer{};
 	float				m_DownPower{ 0.f };
-	int					m_TotalAmmo{ 10 };//予備弾数
-	char		padding6[4]{};
+	int					m_TotalAmmo{ 0 };//予備弾数
+	int					m_CanHaveAmmo{ 17*2 };//予備弾数
+	//char		padding6[4]{};
 
 	Draw::MV1			m_Injector{};
 public:
@@ -599,6 +602,9 @@ public:
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
 
+	const auto& GetAimPoint2D() const noexcept { return m_AimPoint2D; }
+	auto GetIsAutoAim() const noexcept { return m_IsAutoAim && m_CanAim; }
+
 	Util::Matrix4x4 GetPlayerEyeMat(void) const noexcept;
 
 	auto GetADSPer(void) const noexcept { return std::max(this->m_Handgun.GetADSPer(), this->m_Maingun.GetADSPer()); }
@@ -620,6 +626,7 @@ public:
 	const Draw::GraphHandle* GetReticlePtr(void) const noexcept;
 
 	int TotalAmmo(void) const noexcept { return m_TotalAmmo; }
+	int CanHaveAmmo(void) const noexcept { return m_CanHaveAmmo; }
 	bool NeedReload(void) const noexcept;
 	bool IsFreeView(void) const noexcept {
 		if (this->m_ArmlockActive) {
@@ -693,6 +700,9 @@ public:
 			this->m_HitBack = -1.f;
 		}
 	}
+	void		AddAmmo(int value) noexcept {
+		m_TotalAmmo += value;
+	}
 public:
 	void CheckDraw_Sub(void) noexcept override;
 public:
@@ -737,10 +747,6 @@ public:
 	void Draw_Chara(void) const noexcept override {
 		if (this->m_ArmlockInjector) {
 			m_Injector.DrawModel();
-		}
-		if (IsFreeView()) {
-			unsigned int Color = m_CanAim ? ColorPalette::Green : ColorPalette::Red;
-			DrawSphere3D(this->m_AimPoint.get(), 0.5f * Scale3DRate, 6, Color, Color, false);
 		}
 	}
 	void Dispose_Chara(void) noexcept override {
