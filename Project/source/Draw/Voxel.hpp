@@ -642,17 +642,17 @@ namespace BG {
 			}
 		};
 	private:
-		std::array<CellsData, TotalCellLayer>	m_CellxN{};								// 各層の描画ポリゴンデータ
-		int										m_MaxDrawLOD = 1;						// 実体の描画限界
-		int										m_ShadowMaxDrawLOD = 1;					// 影の描画限界
-		Draw::GraphHandle						m_tex{};								// 表示に使用するテクスチャ
-		std::array<DrawThreadData, TotalCellLayer + TotalCellLayer>	m_DrawThreadDatas;	// 0~TotalCellLayer-1 = 表示ポリゴンスレッド用 / TotalCellLayer~ = 影スレッド用
-		int										m_ThreadCounter = 0;
-		Util::VECTOR3D							m_DrawCenterPos{};
-		Util::VECTOR3D							m_CamVec{};
-		Util::VECTOR3D							m_ShadowDrawCenterPos{};
-		Util::VECTOR3D							m_ShadowCamVec{};
-		char		padding2[4]{};
+		std::array<CellsData, TotalCellLayer>						m_CellxN{};					// 各層の描画ポリゴンデータ
+		int															m_MaxDrawLOD = 1;			// 実体の描画限界
+		int															m_ShadowMaxDrawLOD = 1;		// 影の描画限界
+		Draw::GraphHandle											m_tex{};					// 表示に使用するテクスチャ
+		std::array<DrawThreadData, TotalCellLayer + TotalCellLayer>	m_DrawThreadDatas;			// 0~TotalCellLayer-1 = 表示ポリゴンスレッド用 / TotalCellLayer~ = 影スレッド用
+		int															m_ThreadCounter = 0;
+		Util::VECTOR3D												m_DrawCenterPos{};
+		Util::VECTOR3D												m_CamVec{};
+		Util::VECTOR3D												m_ShadowDrawCenterPos{};
+		Util::VECTOR3D												m_ShadowCamVec{};
+		char		padding[4]{};
 	private:
 		// 各方向に向いているポリゴンの追加
 		void			AddPlaneXPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept;

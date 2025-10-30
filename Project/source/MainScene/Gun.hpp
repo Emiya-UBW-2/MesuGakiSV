@@ -27,13 +27,12 @@ private:
 	int				GetFrameNum(void) noexcept override { return 0; }
 	const char*		GetFrameStr(int) noexcept override { return nullptr; }
 private:
+	Sound::SoundUniqueID	m_FallCaseID{ InvalidID };
 	Util::VECTOR3D			m_Vector{};
 	float					m_YVecAdd{};
 	float					m_Timer{};
 	bool					m_IsPlaySound{};
 	char		padding[3]{};
-	Sound::SoundUniqueID	m_FallCaseID{ InvalidID };
-	char		padding2[4]{};
 public:
 	void Set(const Util::Matrix4x4& Case, const Util::Matrix4x4& CaseVec) noexcept {
 		SetMatrix(Case);
@@ -263,7 +262,6 @@ private:
 	float DrawTimer{};
 	Sound::SoundUniqueID HitGroundID{ InvalidID };
 	Sound::SoundUniqueID HitHumanID{ InvalidID };
-	//char		padding[4]{};
 	std::array<std::shared_ptr<AmmoHitEffect>, 10>	m_AmmoEffectPer{};
 public:
 	void Set(const Util::Matrix4x4& Muzzle) noexcept {
@@ -516,7 +514,7 @@ private:
 	int				GetFrameNum(void) noexcept override { return static_cast<int>(SupFrame::Max); }
 	const char* GetFrameStr(int id) noexcept override { return SupFrameName[id]; }
 private:
-	const Draw::GraphHandle* m_Pic{};
+	const Draw::GraphHandle*	m_Pic{};
 public:
 	const auto* GetPicPtr(void) const noexcept { return this->m_Pic; }
 public:
@@ -568,8 +566,8 @@ private:
 	int				GetFrameNum(void) noexcept override { return static_cast<int>(ScopeFrame::Max); }
 	const char* GetFrameStr(int id) noexcept override { return ScopeFrameName[id]; }
 private:
-	const Draw::GraphHandle* m_Pic{};
-	const Draw::GraphHandle* m_Reticle{};
+	const Draw::GraphHandle*	m_Pic{};
+	const Draw::GraphHandle*	m_Reticle{};
 public:
 	const auto* GetPicPtr(void) const noexcept { return this->m_Pic; }
 	const auto* GetReticlePtr(void) const noexcept { return this->m_Reticle; }
@@ -664,17 +662,18 @@ class Gun :public BaseObject {
 	int													m_AttachScopeID{ InvalidID };
 
 	std::array<float, static_cast<int>(GunAnim::Max)>	m_AnimPer{};
+	char		padding4[4]{};
+
 	Sound::SoundUniqueID								m_SlideCloseID{ InvalidID };
 	Sound::SoundUniqueID								m_ShotID{ InvalidID };
 	Sound::SoundUniqueID								m_ShotSPID{ InvalidID };
-	//char		padding[4]{};
 
 	const Draw::GraphHandle*							m_Pic{};
 	bool												m_IsSlideCloseSound{};
 	bool												m_Trigger{};
 	bool												m_ChamberIn{};
 	bool												m_CanShot{ true };
-	char		padding4[4]{};
+	char		padding5[4]{};
 public:
 	Gun(void) noexcept {}
 	Gun(const Gun&) = delete;

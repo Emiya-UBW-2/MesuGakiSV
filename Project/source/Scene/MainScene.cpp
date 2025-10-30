@@ -44,14 +44,14 @@ void MainScene::Init_Sub(void) noexcept {
 	this->m_MainGun->SetAttachScopeID(this->m_MainGunAttach->GetObjectID());
 	this->m_HandGun->SetAttachSuppressorID(this->m_HandGunAttach->GetObjectID());
 
-	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+	auto& Player = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 
-	Chara->SetMainGunUniqueID(this->m_MainGun->GetObjectID());
-	Chara->SetSubGunUniqueID(this->m_HandGun->GetObjectID());
+	Player->SetMainGunUniqueID(this->m_MainGun->GetObjectID());
+	Player->SetSubGunUniqueID(this->m_HandGun->GetObjectID());
 
 	for (auto& m : BackGround::Instance()->GetMapInfo()) {
 		if (m.m_InfoType == this->m_EntrancePoint) {
-			Chara->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
+			Player->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
 		}
 	}
 	//
@@ -64,9 +64,9 @@ void MainScene::Init_Sub(void) noexcept {
 	this->m_Exit = false;
 	this->m_Fade = 1.f;
 
-	cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
-	OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
-	EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
+	this->m_cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
+	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
+	this->m_EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
 
 	this->m_EquipUI.emplace_back();
 	this->m_EquipUI.back().Init(&this->m_MainGun);
@@ -116,7 +116,7 @@ void MainScene::Init_Sub(void) noexcept {
 	auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 	KeyGuideParts->SetGuideFlip();
 
-	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->Play(DX_PLAYTYPE_LOOP, TRUE);
+	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 }
 void MainScene::Update_Sub(void) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
@@ -173,7 +173,7 @@ void MainScene::Update_Sub(void) noexcept {
 	//ポーズメニュー
 	{
 		if (KeyMngr->GetMenuKeyTrigger(Util::EnumMenu::Tab)) {
-			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
 			this->m_IsPauseActive ^= 1;
 			KeyGuideParts->SetGuideFlip();
 		}
@@ -192,19 +192,19 @@ void MainScene::Update_Sub(void) noexcept {
 		DxLib::SetMouseDispFlag(true);
 		return;
 	}
-	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+	auto& Player = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 
-	Util::Easing(&m_AutoAimActive, Chara->GetIsAutoAim() ? 1.f : 0.f, 0.9f);
+	Util::Easing(&m_AutoAimActive, Player->GetIsAutoAim() ? 1.f : 0.f, 0.9f);
 	m_AimRotate += Util::deg2rad(180) * DeltaTime;
 
-	if (Chara->ChanChangeWeapon()) {
+	if (Player->ChanChangeWeapon()) {
 		if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
 			KeyGuideParts->SetGuideFlip();
-			if ((this->m_EquipUITimer >= 10.f * DeltaTime) || (Chara->GetEquip() == InvalidID)) {
-				Chara->SetEquip(this->m_EquipID);
+			if ((this->m_EquipUITimer >= 10.f * DeltaTime) || (Player->GetEquip() == InvalidID)) {
+				Player->SetEquip(this->m_EquipID);
 			}
 			else {
-				Chara->SetEquip(InvalidID);
+				Player->SetEquip(InvalidID);
 			}
 		}
 		bool IsChangeEquip = KeyMngr->GetBattleKeyPress(Util::EnumBattle::E);
@@ -216,20 +216,20 @@ void MainScene::Update_Sub(void) noexcept {
 			this->m_EquipUITimer = std::clamp(this->m_EquipUITimer + DeltaTime, 0.f, 10.f * DeltaTime);
 			if (this->m_EquipUITimer >= 10.f * DeltaTime) {
 				if (Prev < 10.f * DeltaTime) {
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 				Util::Easing(&m_EquipPer, 0.f, 0.9f);
 				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::W)) {
 					--m_EquipID;
 					if (this->m_EquipID < 0) { this->m_EquipID = static_cast<int>(this->m_EquipUI.size()) - 1; }
 					this->m_EquipPer -= 1.f;
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::S)) {
 					++m_EquipID;
 					if (this->m_EquipID > static_cast<int>(this->m_EquipUI.size()) - 1) { this->m_EquipID = 0; }
 					this->m_EquipPer += 1.f;
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 			}
 		}
@@ -264,7 +264,7 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamPosition;
 	Util::VECTOR3D CamTarget;
 
-	this->m_FPSPer = std::clamp(this->m_FPSPer + (Chara->IsFPSView() ? 1.f : -1.f) * DeltaTime / 0.25f, 0.f, 1.f);
+	this->m_FPSPer = std::clamp(this->m_FPSPer + (Player->IsFPSView() ? 1.f : -1.f) * DeltaTime / 0.25f, 0.f, 1.f);
 
 	Util::VECTOR3D CamPosition1;
 	Util::VECTOR3D CamTarget1;
@@ -272,14 +272,14 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamTarget2;
 	if (this->m_FPSPer != 0.f) {
 		BackGround::Instance()->SettingChange(2, 1);
-		Util::Matrix4x4 EyeMat = Chara->GetPlayerEyeMat();
+		Util::Matrix4x4 EyeMat = Player->GetPlayerEyeMat();
 		CamPosition1 = EyeMat.pos();
 		CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f * Scale3DRate);
 	}
 	if (this->m_FPSPer != 1.f) {
 		BackGround::Instance()->SettingChange(1, 0);
 		float Length = (Scale3DRate * 5.f);
-		if (Chara->IsFreeView()) {
+		if (Player->IsFreeView()) {
 			Util::Easing(&this->m_CamOffset, Util::VECTOR3D::vget(XPer * 3.f, 0.f, -YPer * 2.f), 0.8f);
 			Length = (Scale3DRate * 5.f);
 		}
@@ -287,7 +287,7 @@ void MainScene::Update_Sub(void) noexcept {
 			Util::Easing(&this->m_CamOffset, Util::VECTOR3D::zero(), 0.8f);
 			Length = (Scale3DRate * 3.f);
 		}
-		Util::VECTOR3D CamPos = Chara->GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
+		Util::VECTOR3D CamPos = Player->GetMat().pos() + (Util::VECTOR3D::vget(0.f, 1.f, 0.f) + this->m_CamOffset) * Scale3DRate;
 		Util::VECTOR3D CamVec = Util::VECTOR3D::vget(0, 5.f, -3.f).normalized() * Length;
 		{
 			Util::VECTOR3D Target = CamPos + CamVec.normalized() * (Scale3DRate * 5.f);
@@ -315,7 +315,7 @@ void MainScene::Update_Sub(void) noexcept {
 
 	/*
 	{
-		Util::VECTOR3D EyeMat = Chara->GetEyeMatrix().pos() + Util::VECTOR3D::up() * (-0.25f * Scale3DRate);
+		Util::VECTOR3D EyeMat = Player->GetEyeMatrix().pos() + Util::VECTOR3D::up() * (-0.25f * Scale3DRate);
 		CamPosition = EyeMat + Util::VECTOR3D::forward() * (-1.5f * Scale3DRate);
 		CamTarget = EyeMat;
 	}
@@ -323,16 +323,16 @@ void MainScene::Update_Sub(void) noexcept {
 
 	CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 
-	if (Chara->IsShotSwitch()) {
+	if (Player->IsShotSwitch()) {
 		this->m_ShotFov = 1.f;
 	}
 	else {
 		Util::Easing(&m_ShotFov, 0.f, 0.9f);
 	}
 
-	DxLib::SetMouseDispFlag(!Chara->IsFPSView() && !Chara->IsFreeView());
+	DxLib::SetMouseDispFlag(!Player->IsFPSView() && !Player->IsFreeView());
 
-	Chara->SetIsActive(!m_Exit);
+	Player->SetIsActive(!m_Exit);
 
 	BackGround::Instance()->Update();
 
@@ -340,7 +340,7 @@ void MainScene::Update_Sub(void) noexcept {
 	if (!m_Exit) {
 		for (auto& m : BackGround::Instance()->GetMapInfo()) {
 			if (m.m_InfoType == InfoType::None || m.m_InfoType == InfoType::Max) { continue; }
-			Util::VECTOR3D Vec = BackGround::Instance()->GetWorldPos(m.m_pos) - Chara->GetMat().pos();
+			Util::VECTOR3D Vec = BackGround::Instance()->GetWorldPos(m.m_pos) - Player->GetMat().pos();
 			float Len = 0.125f * Scale3DRate;
 			if (std::fabsf(Vec.y) >= Len) { continue; }
 			Vec.y = 0.f;
@@ -379,11 +379,11 @@ void MainScene::Update_Sub(void) noexcept {
 
 	{
 		this->m_CharaStyleChange = std::max(this->m_CharaStyleChange - DeltaTime, 0.f);
-		if (this->m_CharaStyle != Chara->GetStyle()) {
+		if (this->m_CharaStyle != Player->GetStyle()) {
 			this->m_CharaStyleChange = 3.f;
 		}
 		Util::Easing(&this->m_CharaStyleChangeR, std::clamp(this->m_CharaStyleChange, 0.f, 1.f), 0.9f);
-		this->m_CharaStyle = Chara->GetStyle();
+		this->m_CharaStyle = Player->GetStyle();
 	}
 	//
 	{
@@ -412,17 +412,17 @@ void MainScene::SetShadowDraw_Sub(void) noexcept {
 void MainScene::Draw_Sub(void) noexcept {
 	AmmoBoxPool::Instance()->SetPos2D();
 	{
-		auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
-		if (Chara->HasLens()) {
+		auto& Player = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+		if (Player->HasLens()) {
 			auto* DrawerMngr = Draw::MainDraw::Instance();
 
-			auto Pos = ConvWorldPosToScreenPos(Chara->GetLensPos().pos().get());
+			auto Pos = ConvWorldPosToScreenPos(Player->GetLensPos().pos().get());
 			if (0.0f < Pos.z && Pos.z < 1.0f) {
 				this->m_LensPos.x = Pos.x * static_cast<float>(DrawerMngr->GetDispWidth()) / static_cast<float>(DrawerMngr->GetRenderDispWidth());
 				this->m_LensPos.y = Pos.y * static_cast<float>(DrawerMngr->GetDispHeight()) / static_cast<float>(DrawerMngr->GetRenderDispHeight());
 				this->m_UseLens |= true;
 			}
-			auto Size = ConvWorldPosToScreenPos(Chara->GetLensSize().pos().get());
+			auto Size = ConvWorldPosToScreenPos(Player->GetLensSize().pos().get());
 			if (0.0f < Size.z && Size.z < 1.0f) {
 				this->m_LensSize.x = Size.x * static_cast<float>(DrawerMngr->GetDispWidth()) / static_cast<float>(DrawerMngr->GetRenderDispWidth());
 				this->m_LensSize.y = Size.y * static_cast<float>(DrawerMngr->GetDispHeight()) / static_cast<float>(DrawerMngr->GetRenderDispHeight());
@@ -431,12 +431,12 @@ void MainScene::Draw_Sub(void) noexcept {
 			/*
 			SetUseLighting(false);
 			DxLib::DrawBillboard3D(
-				Chara->GetLensPos().pos().get(),
+				Player->GetLensPos().pos().get(),
 				0.5f,
 				0.5f,
 				0.01f * Scale3DRate,
 				0.f,
-				Chara->GetReticlePtr()->get(),
+				Player->GetReticlePtr()->get(),
 				true
 			);
 			SetUseLighting(true);
@@ -467,10 +467,10 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	auto* Localize = Util::LocalizePool::Instance();
 	auto* CameraParts = Camera::Camera3D::Instance();
 
-	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+	auto& Player = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 	if (this->m_UseLens) {
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * Chara->GetADSPer()), 0, 255));
-		Chara->GetReticlePtr()->DrawRotaGraph(static_cast<int>(this->m_LensPos.x), static_cast<int>(this->m_LensPos.y), 512.f / 256.f * Util::deg2rad(120) / CameraParts->GetCamera().GetCamFov(), 0.f, true);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * Player->GetADSPer()), 0, 255));
+		Player->GetReticlePtr()->DrawRotaGraph(static_cast<int>(this->m_LensPos.x), static_cast<int>(this->m_LensPos.y), 512.f / 256.f * Util::deg2rad(120) / CameraParts->GetCamera().GetCamFov(), 0.f, true);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
 	AmmoBoxPool::Instance()->DrawUI();
@@ -515,22 +515,22 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		}
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
-	if (Chara->IsFreeView()) {
+	if (Player->IsFreeView()) {
 		DxLib::SetDrawBright(0, 255, 0);
-		m_Cursor->DrawRotaGraph(static_cast<int>(Chara->GetAimPoint2D().x), static_cast<int>(Chara->GetAimPoint2D().y), 1.0f, 0.f, true);
+		m_Cursor->DrawRotaGraph(static_cast<int>(Player->GetAimPoint2D().x), static_cast<int>(Player->GetAimPoint2D().y), 1.0f, 0.f, true);
 
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m_AutoAimActive), 0, 255));
 		DxLib::SetDrawBright(128, 0, 0);
-		m_Lock->DrawRotaGraph(static_cast<int>(Chara->GetAimPoint2D().x), static_cast<int>(Chara->GetAimPoint2D().y), 1.0f * (2.f - m_AutoAimActive), m_AimRotate, true);
+		m_Lock->DrawRotaGraph(static_cast<int>(Player->GetAimPoint2D().x), static_cast<int>(Player->GetAimPoint2D().y), 1.0f * (2.f - m_AutoAimActive), m_AimRotate, true);
 		DxLib::SetDrawBright(255, 0, 0);
-		m_Lock->DrawRotaGraph(static_cast<int>(Chara->GetAimPoint2D().x), static_cast<int>(Chara->GetAimPoint2D().y), 1.0f * (2.f - m_AutoAimActive), -m_AimRotate, true);
+		m_Lock->DrawRotaGraph(static_cast<int>(Player->GetAimPoint2D().x), static_cast<int>(Player->GetAimPoint2D().y), 1.0f * (2.f - m_AutoAimActive), -m_AimRotate, true);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		DxLib::SetDrawBright(255, 255, 255);
 	}
 	{
 		int count = 0;
 		{
-			BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(Chara->GetMat().pos());
+			BG::Algorithm::Vector3Int Pos = BackGround::Instance()->GetVoxelPoint(Player->GetMat().pos());
 			for (auto& m : BackGround::Instance()->GetMapGraph()) {
 				if (m.GetID() <= Pos.y) {
 					m.m_Per = std::clamp(m.m_Per + DeltaTime, 0.f, 1.f);
@@ -596,7 +596,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		int xpos = DrawerMngr->GetDispWidth() / 2;
 		int ypos = DrawerMngr->GetDispHeight() * 3 / 4;
 
-		if (Chara->CanArmlock()) {
+		if (Player->CanArmlock()) {
 			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack));
 			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
 				Draw::FontXCenter::MIDDLE, Draw::FontYCenter::TOP,
@@ -605,7 +605,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 			ypos += 52;
 		}
 
-		if (Chara->CanArmlockInjector()) {
+		if (Player->CanArmlockInjector()) {
 			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim));
 			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
 				Draw::FontXCenter::MIDDLE, Draw::FontYCenter::TOP,
@@ -614,7 +614,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 			ypos += 52;
 		}
 
-		if (Chara->NeedReload()) {
+		if (Player->NeedReload()) {
 			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Reload));
 			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
 				Draw::FontXCenter::MIDDLE, Draw::FontYCenter::TOP,
@@ -630,7 +630,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * this->m_CharaStyleChangeR), 64, 255));
 		{
 			DxLib::SetDrawBright(0, 255, 0);
-			switch (Chara->GetStyle()) {
+			switch (Player->GetStyle()) {
 			case CharaStyle::Run:
 			case CharaStyle::Stand:
 				m_StandGraph->DrawRotaGraph(xpos, ypos, 128.f / 500.f, 0.f, true);
@@ -669,7 +669,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
-	if ((Chara->GetEquip() != InvalidID) || (this->m_EquipUIActivePer > 0.f)) {
+	if ((Player->GetEquip() != InvalidID) || (this->m_EquipUIActivePer > 0.f)) {
 		{
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(64.f * this->m_EquipUIActivePer), 0, 255));
 			DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
@@ -712,7 +712,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
 				Draw::FontXCenter::LEFT, Draw::FontYCenter::BOTTOM,
 				xpos, ypos,
-				ColorPalette::White, ColorPalette::Black, "Spare:%d/%d", Chara->TotalAmmo(), Chara->CanHaveAmmo());
+				ColorPalette::White, ColorPalette::Black, "Spare:%d/%d", Player->TotalAmmo(), Player->CanHaveAmmo());
 		}
 	}
 	this->m_PauseUI.Draw();
@@ -724,7 +724,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	}
 }
 void MainScene::Dispose_Sub(void) noexcept {
-	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, EnviID)->StopAll();
+	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->StopAll();
 	BackGround::Release();
 	PlayerManager::Release();
 	AmmoBoxPool::Release();

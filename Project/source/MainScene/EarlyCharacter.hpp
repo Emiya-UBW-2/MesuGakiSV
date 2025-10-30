@@ -140,7 +140,6 @@ namespace AIs {
 			}
 			/*
 			{
-				auto* BackGroundParts = BackGround::Instance();
 				int NowIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds(NowPosition);
 				if (!((*TargetPathPlanningIndex != -1) && (this->m_GoalUnit))) {
 					return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(BackGroundParts->GetWayPoint()->GetNearestBuilds2(NowPosition))).GetPos();
@@ -249,24 +248,63 @@ namespace AIs {
 		}
 	};
 }
+
+class MarkDraw {
+	const Draw::GraphHandle*	m_Graph{};
+	float						m_Timer{};
+	float						m_Per{};
+public:
+	MarkDraw(void) noexcept {}
+	MarkDraw(const MarkDraw&) = delete;
+	MarkDraw(MarkDraw&&) = delete;
+	MarkDraw& operator=(const MarkDraw&) = delete;
+	MarkDraw& operator=(MarkDraw&&) = delete;
+	virtual ~MarkDraw(void) noexcept {}
+public:
+	bool IsActive() const noexcept { return this->m_Timer != 0.f; }
+	void SetActive() noexcept { this->m_Timer = 3.f; }
+	void SetDisActive() noexcept { this->m_Timer = 0.f; }
+public:
+	void Init(std::string_view FilePath)noexcept {
+		this->m_Graph = Draw::GraphPool::Instance()->Get(FilePath)->Get();
+		this->m_Timer = 0.f;
+		this->m_Per = 0.f;
+	}
+	void Update() noexcept {
+		this->m_Timer = std::max(this->m_Timer - DeltaTime, 0.f);
+		Util::Easing(&this->m_Per, this->m_Timer, 0.9f);
+	}
+	void Draw(const  Util::VECTOR3D& Pos, int ColorR, int ColorG, int ColorB) const noexcept {
+		if (this->m_Per > 0.f) {
+			SetUseLighting(false);
+			DxLib::SetDrawBright(ColorR, ColorG, ColorB);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(this->m_Per * 5.f * 255.f), 0, 255));
+			DxLib::DrawBillboard3D(
+				(Pos + Util::VECTOR3D::up() * (0.25f * Scale3DRate * std::clamp(this->m_Per * 5.f, 0.f, 1.f))).get(),
+				0.5f,
+				0.5f,
+				0.25f * Scale3DRate,
+				0.f,
+				this->m_Graph->get(),
+				true
+			);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+			SetUseLighting(true);
+			DxLib::SetDrawBright(255, 255, 255);
+		}
+	}
+};
+
 class EarlyCharacter :public CharacterCommon {
 	std::array<float, static_cast<int>(EarlyCharaAnim::Max)>		m_AnimPer{};
 
 	Util::VECTOR3D		m_MyTarget = Util::VECTOR3D::zero();
-	//char		padding3[4]{};
-	AIs::PathChecker	m_PathChecker;
+	AIs::PathChecker	m_PathChecker{};
 	int					m_TargetPathPlanningIndex{ 0 };		// 次の中間地点となる経路上のポリゴンの経路探索情報が格納されているメモリアドレスを格納する変数
 	float				m_PathUpdateTimer{ 0.f };
 
-	float				m_DownTopTimer{ 0.f };
-	bool				m_DownTop{};
-	bool				m_WakeTop{};
-	char		padding[2]{};
-
-	float				m_DownBottomTimer{ 0.f };
-	bool				m_DownBottom{};
-	bool				m_WakeBottom{};
-	char		padding2[2]{};
+	SpecialAction		m_DownTop{};
+	SpecialAction		m_DownBottom{};
 
 	float				m_KeepPower{ 0.f };
 	float				m_KeepTimer{ 0.f };
@@ -277,59 +315,45 @@ class EarlyCharacter :public CharacterCommon {
 
 	Util::VECTOR3D		m_DownVec{};
 	float				m_DownPower{ 0.f };
+	char		padding[4]{};
 
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
-	Sound::SoundUniqueID	HitHumanID{ InvalidID };
+	Sound::SoundUniqueID	m_HitHumanID{ InvalidID };
+	Sound::SoundUniqueID	m_DownHumanID{ InvalidID };
+	Sound::SoundUniqueID	m_ArmlockStartID{ InvalidID };
+	Sound::SoundUniqueID	m_ArmlockID{ InvalidID };
 
-	Sound::SoundUniqueID DownHumanID{ InvalidID };
-	Sound::SoundUniqueID	ArmlockStartID{ InvalidID };
-	Sound::SoundUniqueID	ArmlockID{ InvalidID };
+	MarkDraw			m_Alert{};
+	MarkDraw			m_Caution{};
 
-	const Draw::GraphHandle* m_Alert{};
-	const Draw::GraphHandle* m_Caution{};
-
-	bool				m_Armlocked{ false };
-	bool				m_ArmlockedEnd{ false };
-	bool				m_ArmlockedInjector{ false };
-	char		padding4[5]{};
+	SpecialAction		m_Armlocked{};
+	float				m_ArmlockedInjectorTimer{};
 	int					m_ArmlockedPos{};
+	bool				m_ArmlockedInjector{ false };
+	char		padding2[7]{};
 
-	bool				m_PunchActive{ false };
-	char		padding5[3]{};
-	float				m_PunchTimer{};
+	SpecialAction		m_Punch{};
+	SpecialAction		m_Armlock{};
 
-	bool				m_ArmlockActive{ false };
-	bool				m_ArmlockEnd{ false };
-	char		padding7[2]{};
-	float				m_ArmlockTime{ 0.f };
-
-	float				m_AttackTime{ 0.f };
+	float				m_AttackCoolDown{ 0.f };
 	bool				m_PunchAttack{ false };
-	char		padding8[3]{};
+	char		padding3[3]{};
 
-	float				m_ArmlockedEndTimer{};
-	bool				m_CanSeeUI{ false };
-	char		padding6[3]{};
 	float				m_CanSeePer{};
 	Util::VECTOR2D		m_UIPos{};
-
-	float				m_ArmlockedInjectorTimer{};
+	bool				m_CanSeeUI{ false };
+	char		padding4[3]{};
 
 	float				m_DrugPer{};
 	float				m_DrugPerR{};
 	const float			m_DrugPerMax{ 100.f };
 
-	bool				m_IsMove{ false };
-	bool				m_IsTurn{ false };
-	char		padding9[2]{};
-	float				m_WatchTimer{};
-	float				m_FindTimer{};
-	float				m_WatchAnyTimer{};
-
 	float				m_AlertTimer{};
 	float				m_CautionTimer{};
-	float				m_AlertPer{};
-	float				m_CautionPer{};
+	float				m_AlertAnyTimer{};
+	bool				m_IsMove{ false };
+	bool				m_IsTurn{ false };
+	char		padding5[2]{};
 public:
 	EarlyCharacter(void) noexcept {}
 	EarlyCharacter(const EarlyCharacter&) = delete;
@@ -340,18 +364,18 @@ public:
 public:
 	float GetSpeedMax(void) const noexcept { return 2.f * Scale3DRate * DeltaTime; }
 
-	auto GetCanSeeUI(void) const noexcept { return m_CanSeeUI; }
-	auto GetUIPos(void) const noexcept { return m_UIPos; }
-	auto GetCanSeePer(void) const noexcept { return m_CanSeePer; }
+	auto GetCanSeeUI(void) const noexcept { return this->m_CanSeeUI; }
+	auto GetUIPos(void) const noexcept { return this->m_UIPos; }
+	auto GetCanSeePer(void) const noexcept { return this->m_CanSeePer; }
 
-	auto GetDrugPer(void) const noexcept { return m_DrugPerR; }
-	auto GetDrugPerMax(void) const noexcept { return m_DrugPerMax; }
+	auto GetDrugPer(void) const noexcept { return this->m_DrugPerR; }
+	auto GetDrugPerMax(void) const noexcept { return this->m_DrugPerMax; }
 
-	auto IsDown(void) const noexcept { return (this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom); }
+	auto IsDown(void) const noexcept { return (this->m_DownTop.IsActive() || this->m_DownTop.m_End || this->m_DownBottom.IsActive() || this->m_DownBottom.m_End); }
 
-	auto IsWatching(void) const noexcept { return m_WatchTimer != 0.f; }
+	auto IsWatching(void) const noexcept { return this->m_AlertTimer != 0.f; }
 	
-	auto GetFindPer(void) const noexcept { return m_FindTimer / 3.f; }
+	auto GetFindPer(void) const noexcept { return this->m_CautionTimer / 3.f; }
 public:
 	void		SetTarget(const Util::VECTOR3D& pos) noexcept { this->m_MyTarget = pos; }
 	void		SetHit(const Util::VECTOR3D& Vec, float Power) noexcept {
@@ -367,19 +391,19 @@ public:
 			else {
 				SetDownBottom(B.normalized());
 			}
-			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, DownHumanID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_DownHumanID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 		}
 		else {
 			//のけぞり
 			Util::VECTOR3D A = GetMat().zvec(); A.y = 0.f;
 			Util::VECTOR3D B = Vec; B.y = 0.f;
 			if (Util::VECTOR3D::Dot(A, B) > 0.f) {
-				m_HitVec = (B.normalized());
+				this->m_HitVec = (B.normalized());
 				this->m_HitPower = 0.5f;
 				this->m_HitBack = 1.f;
 			}
 			else {
-				m_HitVec = (B.normalized()) * -1.f;
+				this->m_HitVec = (B.normalized()) * -1.f;
 				this->m_HitPower = -0.5f;
 				this->m_HitBack = -1.f;
 			}
@@ -387,28 +411,28 @@ public:
 	}
 	//倒れる
 	void		SetDownTop(const Util::VECTOR3D& Vec) noexcept {
-		m_DownVec = Vec * -1.f;
-		if (!this->m_DownTop) {
+		this->m_DownVec = Vec * -1.f;
+		if (!this->m_DownTop.IsActive()) {
 			SetAnim(static_cast<int>(EarlyCharaAnim::DownTop)).SetTime(0.f);
-			this->m_DownTopTimer = 3.f;
+			this->m_DownTop.m_Time = 3.f;
 			this->m_DownPower = -1.f;
 		}
-		this->m_DownTop = true;
+		this->m_DownTop.SetActive();
 	}
 	//倒れる
 	void		SetDownBottom(const Util::VECTOR3D& Vec) noexcept {
-		m_DownVec = Vec;
-		if (!this->m_DownBottom) {
+		this->m_DownVec = Vec;
+		if (!this->m_DownBottom.IsActive()) {
 			SetAnim(static_cast<int>(EarlyCharaAnim::DownBottom)).SetTime(0.f);
-			this->m_DownBottomTimer = 3.f;
+			this->m_DownBottom.m_Time = 3.f;
 			this->m_DownPower = 1.f;
 		}
-		this->m_DownBottom = true;
+		this->m_DownBottom.SetActive();
 	}
 	//
 	void		SetArmlocked(int UniqueID) noexcept {
 		this->m_ArmlockedPos = UniqueID;
-		this->m_Armlocked = true;
+		this->m_Armlocked.SetActive();
 		SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedStart)).SetTime(0.f);
 	}
 	void		SetArmlockedInjector() noexcept {
@@ -418,18 +442,18 @@ public:
 		}
 	}
 	void		SetArmlockedEnd() noexcept {
-		if (!this->m_ArmlockedEnd) {
-			this->m_ArmlockedEnd = true;
+		if (!this->m_Armlocked.m_End) {
+			this->m_Armlocked.m_End = true;
 			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedEnd)).SetTime(0.f);
-			this->m_DownBottomTimer = 3.f;
+			this->m_DownBottom.m_Time = 3.f;
 			this->m_DownPower = 1.f;
 		}
 	}
 
 	void		SetDrug(float value) noexcept {
-		auto prev = m_DrugPer;
-		m_DrugPer = std::clamp(m_DrugPer + value, 0.f, GetDrugPerMax() * 2.f);
-		if (m_DrugPer != prev && m_DrugPer == GetDrugPerMax() * 2.f) {
+		auto prev = this->m_DrugPer;
+		this->m_DrugPer = std::clamp(this->m_DrugPer + value, 0.f, GetDrugPerMax() * 2.f);
+		if (this->m_DrugPer != prev && this->m_DrugPer == GetDrugPerMax() * 2.f) {
 			SetDownTop(GetMat().zvec());
 		}
 	}
@@ -455,63 +479,34 @@ public:
 	bool IsPlayer(void) noexcept override { return false; }
 
 	void Load_Chara(void) noexcept override {
-		DownHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/DownHuman.wav", true);
-		this->ArmlockStartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/ArmlockStart.wav", true);
-		this->ArmlockID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Armlock.wav", true);
-
-		this->HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
+		this->m_DownHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/DownHuman.wav", true);
+		this->m_ArmlockStartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/ArmlockStart.wav", true);
+		this->m_ArmlockID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Armlock.wav", true);
+		this->m_HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
 		this->m_PunchID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Punch.wav", true);
 
-		m_Alert = Draw::GraphPool::Instance()->Get("data/Image/Alert.png")->Get();
-		m_Caution = Draw::GraphPool::Instance()->Get("data/Image/Caution.png")->Get();
-
+		this->m_Alert.Init("data/Image/Alert.png");
+		this->m_Caution.Init("data/Image/Caution.png");
 	}
 	void Init_Chara(void) noexcept override {
 		this->m_PathUpdateTimer = 1.f;
-		this->m_DownTop = false;
-		this->m_WakeTop = false;
-		this->m_DownTopTimer = 0.f;
-		this->m_DownBottom = false;
-		this->m_WakeBottom = false;
-		this->m_DownBottomTimer = 0.f;
+
+		this->m_DownTop.Init();
+		this->m_DownBottom.Init();
+		this->m_Armlocked.Init();
+		this->m_Punch.Init();
+		this->m_Armlock.Init();
+
 		this->m_DownPower = 0.f;
 
-		m_DrugPer = 0.f;
-		m_DrugPerR = 0.f;
+		this->m_DrugPer = 0.f;
+		this->m_DrugPerR = 0.f;
 	}
 	void Update_Chara(void) noexcept override;
 	void Draw_Chara(void) const noexcept override {
 		auto Pos = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Head)).pos();
-		SetUseLighting(false);
-		if (m_AlertPer > 0.f) {
-			DxLib::SetDrawBright(255, 0, 0);
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(m_AlertPer * 5.f * 255.f), 0, 255));
-			DxLib::DrawBillboard3D(
-				(Pos + Util::VECTOR3D::up() * (0.25f * Scale3DRate * std::clamp(m_AlertPer * 5.f, 0.f, 1.f))).get(),
-				0.5f,
-				0.5f,
-				0.25f * Scale3DRate,
-				0.f,
-				m_Alert->get(),
-				true
-			);
-		}
-		if (m_CautionPer > 0.f) {
-			DxLib::SetDrawBright(0, 255, 0);
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(m_CautionPer * 5.f * 255.f), 0, 255));
-			DxLib::DrawBillboard3D(
-				(Pos + Util::VECTOR3D::up() * (0.25f * Scale3DRate * std::clamp(m_CautionPer * 5.f, 0.f, 1.f))).get(),
-				0.5f,
-				0.5f,
-				0.25f * Scale3DRate,
-				0.f,
-				m_Caution->get(),
-				true
-			);
-		}
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-		SetUseLighting(true);
-		DxLib::SetDrawBright(255, 255, 255);
+		this->m_Alert.Draw(Pos, 255, 0, 0);
+		this->m_Caution.Draw(Pos, 0, 255, 0);
 	}
 	void Dispose_Chara(void) noexcept override {
 	}

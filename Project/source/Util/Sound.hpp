@@ -23,7 +23,7 @@ namespace Sound {
 		BGM,
 		VOICE,
 	};
-	typedef int SoundUniqueID;
+	typedef int64_t SoundUniqueID;
 	// 1音声を管理するハンドル
 	class SoundHandle : public Util::DXHandle {
 	public:
@@ -82,20 +82,19 @@ namespace Sound {
 	};
 	// 同じ音声を多重に持つクラス(1ハンドルで鳴らせる音は一つであるため)
 	class SoundHandles {
-	private:
 		std::vector<SoundHandle>	m_HandleList;
-		size_t						Size = 0;
-		size_t						nowSelect = 0;
+		size_t						m_Size = 0;
+		size_t						m_nowSelect = 0;
 	public:
 		// コンストラクタ
 		SoundHandles(size_t buffersize, std::string path_t, bool is3Dsound = true) noexcept {
 			if (is3Dsound) {
 				SetCreate3DSoundFlag(TRUE);
 			}
-			this->Size = buffersize;
-			this->m_HandleList.resize(this->Size);
+			this->m_Size = buffersize;
+			this->m_HandleList.resize(this->m_Size);
 			this->m_HandleList[0].Load(path_t);
-			for (size_t loop = 1; loop < this->Size; ++loop) {
+			for (size_t loop = 1; loop < this->m_Size; ++loop) {
 				this->m_HandleList[loop].Duplicate(this->m_HandleList[0]);
 			}
 			SetCreate3DSoundFlag(FALSE);
@@ -112,20 +111,20 @@ namespace Sound {
 		}
 	public:
 		// サウンドが再生中かどうかを取得
-		bool	CheckPlay(void) const noexcept { return this->m_HandleList[this->nowSelect].CheckPlay(); }
+		bool	CheckPlay(void) const noexcept { return this->m_HandleList[this->m_nowSelect].CheckPlay(); }
 		// サウンドを一つ再生
 		size_t	Play(int type_t = DX_PLAYTYPE_BACK, int Flag_t = 1, int panpal = -256) noexcept {
-			auto Answer = this->nowSelect;
-			auto& NowHandle = this->m_HandleList[this->nowSelect];
+			auto Answer = this->m_nowSelect;
+			auto& NowHandle = this->m_HandleList[this->m_nowSelect];
 			NowHandle.Play(type_t, Flag_t);
 			if (panpal != -256) { NowHandle.Pan(panpal); }
-			++this->nowSelect %= this->Size;
+			++this->m_nowSelect %= this->m_Size;
 			return Answer;
 		}
 		size_t	Play3D(const Util::VECTOR3D& pos_t, float radius, int type_t = DX_PLAYTYPE_BACK) noexcept {
-			auto Answer = this->nowSelect;
-			this->m_HandleList[this->nowSelect].Play3D(pos_t, radius, type_t);
-			++this->nowSelect %= this->Size;
+			auto Answer = this->m_nowSelect;
+			this->m_HandleList[this->m_nowSelect].Play3D(pos_t, radius, type_t);
+			++this->m_nowSelect %= this->m_Size;
 			return Answer;
 		}
 		void			SetPosition(const Util::VECTOR3D& pos_t) noexcept {
@@ -152,8 +151,7 @@ namespace Sound {
 	// SoundTypeごとに分かれた音声管理クラス
 	class Soundhave {
 	private:
-		SoundUniqueID								m_SoundID{ 0 };		//サウンドの識別用ID
-		char	Padding[4]{};
+		SoundUniqueID					m_SoundID{ 0 };		//サウンドの識別用ID
 		std::unique_ptr<SoundHandles>	m_Handles;				//実際に音声を持っているハンドル
 		int								m_LocalVolume = 255;	//音声単位で指定できる音量(フェードアウトなどで使用)
 		SoundType						m_SoundType{ SoundType::SE };//自分の音声タイプ
@@ -161,7 +159,7 @@ namespace Sound {
 		size_t							m_buffersize{};
 		std::string						m_path_t{};
 		bool							m_is3Dsound = true;
-		char	Padding2[7]{};
+		char		padding[7]{};
 	public:
 		//コンストラクタ
 		Soundhave(SoundUniqueID SoundIDSelect, size_t buffersize, std::string path_t, SoundType soundType, bool is3Dsound = true) noexcept {
@@ -186,7 +184,7 @@ namespace Sound {
 	public:
 		//サウンドの識別用ID
 		const auto& GetSoundID(void)const noexcept { return this->m_SoundID; }
-		bool Equal(size_t buffersize, std::string path_t, SoundType soundType, bool is3Dsound = true) noexcept {
+		bool Equal(size_t buffersize, std::string path_t, SoundType soundType, bool is3Dsound = true) const noexcept {
 			if (this->m_buffersize != buffersize) { return false; }
 			if (this->m_SoundType != soundType) { return false; }
 			if (this->m_is3Dsound != is3Dsound) { return false; }
@@ -219,8 +217,7 @@ namespace Sound {
 	private:
 		//各種サウンドを保持しておくリスト
 		std::array<std::vector<std::unique_ptr<Soundhave>>, 3>	m_SoundHas;
-		SoundUniqueID			m_SoundID{ 0 };		//サウンドの識別用ID
-		char	Padding[4]{};
+		SoundUniqueID											m_SoundID{ 0 };		//サウンドの識別用ID
 	private:
 		// コンストラクタ
 		SoundPool(void) noexcept {
@@ -237,7 +234,7 @@ namespace Sound {
 	public:
 		// 特定のIDにサウンドを追加
 		SoundUniqueID			Add(SoundType Type, size_t buffersize, std::string path_t, bool is3Dsound = true) noexcept {
-			int ID = this->m_SoundID;
+			auto ID = this->m_SoundID;
 			//末尾に追加
 			this->m_SoundHas[static_cast<size_t>(Type)].emplace_back(std::make_unique<Soundhave>(this->m_SoundID, buffersize, path_t, Type, is3Dsound));
 			++m_SoundID;

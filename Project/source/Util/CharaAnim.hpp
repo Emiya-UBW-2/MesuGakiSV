@@ -131,6 +131,8 @@ namespace Util {
 		}
 	};
 
+	typedef int64_t HandAnimID;
+
 	class HandAnimPool : public SingletonBase<HandAnimPool> {
 	private:
 		friend class SingletonBase<HandAnimPool>;
@@ -144,27 +146,27 @@ namespace Util {
 		HandAnimPool& operator=(HandAnimPool&&) = delete;
 		virtual ~HandAnimPool(void) noexcept { Dispose(); }
 	public:
-		void	SetAnimSpeed(int index, float Speed) noexcept {
-			this->m_Anim.at(static_cast<size_t>(index)).SetSpeed(Speed);
+		void	SetAnimSpeed(HandAnimID ID, float Speed) noexcept {
+			this->m_Anim.at(static_cast<size_t>(ID)).SetSpeed(Speed);
 		}
-		void			GoTimeStart(int index) noexcept {
-			this->m_Anim.at(static_cast<size_t>(index)).GoTimeStart();
+		void			GoTimeStart(HandAnimID ID) noexcept {
+			this->m_Anim.at(static_cast<size_t>(ID)).GoTimeStart();
 		}
 
-		const HandAnimData& GetAnim(int index) const noexcept { return this->m_Anim.at(static_cast<size_t>(index)); }
-		int				Add(const char* Path) noexcept {
-			auto ID = GetIndex(Path);
+		const HandAnimData& GetAnim(HandAnimID ID) const noexcept { return this->m_Anim.at(static_cast<size_t>(ID)); }
+		HandAnimID				Add(const char* Path) noexcept {
+			auto ID = GetID(Path);
 			if (ID != -1) {
 				return ID;
 			}
 			this->m_Anim.emplace_back();
 			this->m_Anim.back().Init(Path);
-			return static_cast<int>(this->m_Anim.size() - 1);
+			return static_cast<HandAnimID>(this->m_Anim.size() - 1);
 		}
-		int				GetIndex(const char* Path) noexcept {
+		HandAnimID				GetID(const char* Path) noexcept {
 			for (auto& a : this->m_Anim) {
 				if (a.GetPath() == Path) {
-					return static_cast<int>(&a - &m_Anim.front());
+					return static_cast<HandAnimID>(&a - &m_Anim.front());
 				}
 			}
 			return -1;

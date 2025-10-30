@@ -99,7 +99,7 @@ namespace Util {
 			int							m_Value{};
 			int							m_ValueMin{};
 			int							m_ValueMax{};
-			char	Padding[4]{};
+			char		padding[4]{};
 			std::string					m_Type{};
 			std::vector<std::string>	m_ValueList{};
 		public:

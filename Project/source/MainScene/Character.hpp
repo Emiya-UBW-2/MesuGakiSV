@@ -320,6 +320,25 @@ public:
 	void Update(int* pTotalAmmo) noexcept;
 };
 
+struct SpecialAction {
+	float				m_Time{ 0.f };
+	float				m_AnimTimer{ 0.f };
+	bool				m_Active{ false };
+	bool				m_End{ false };
+	char		padding[2]{};
+public:
+	auto		IsActive() const noexcept { return m_Active; }
+	void		SetActive() noexcept {
+		m_Active = true;
+	}
+public:
+	void		Init() noexcept {
+		this->m_Active = false;
+		this->m_End = false;
+		this->m_Time = 0.f;
+	}
+};
+
 class CharacterCommon :public BaseObject {
 	HB::HitBoxControl	m_HitBoxControl;
 	Sound::SoundUniqueID	m_runfootID{ InvalidID };
@@ -334,10 +353,8 @@ protected:
 	float				m_MovePer = 0.f;
 	float				m_YradDif{};
 	int					m_FootSoundID{};
-	//char		padding2[3]{};
-
 	Util::Matrix3x3		m_Rot;
-	char		padding3[4]{};
+	char		padding[4]{};
 protected:
 	auto GetRotMat() const { return Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), this->m_Rad.z) * Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), this->m_Rad.y); }
 	float CalcYradDiff(float TargetYRad) {
@@ -356,8 +373,8 @@ protected:
 		}
 		return std::clamp(this->m_YradDif / Util::deg2rad(15.f), -1.f, 1.f);
 	}
-	auto GetMovePer01() const { return m_MovePer; }
-	auto GetTargetPos() const { return m_MyPosTarget; }
+	auto GetMovePer01() const { return this->m_MovePer; }
+	auto GetTargetPos() const { return this->m_MyPosTarget; }
 
 	void CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& PosAdd, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius) {
 		Util::VECTOR3D SPos = StartPos + PosAdd;
@@ -377,7 +394,7 @@ protected:
 		}
 	}
 protected:
-	float GetSpeed() const { return m_Speed; }
+	float GetSpeed() const { return this->m_Speed; }
 public:
 	CharacterCommon(void) noexcept {}
 	CharacterCommon(const CharacterCommon&) = delete;
@@ -507,13 +524,10 @@ class Character :public CharacterCommon {
 	bool				m_ShotSwitch{ false };
 	bool				m_PunchActive{ false };
 	bool				m_PunchAttack{ false };
-	bool				m_ArmlockActive{ false };
-	bool				m_ArmlockEnd{ false };
 	bool				m_ArmlockInjector{ false };
 	bool				m_CanArmlock{ false };
 	bool				m_CanAim{ false };
-	//char		padding[1]{};
-	float				m_ArmlockTime{ 0.f };
+	char		padding2[6]{};
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
 	Sound::SoundUniqueID	m_KickID{ InvalidID };
@@ -523,44 +537,38 @@ class Character :public CharacterCommon {
 	Sound::SoundUniqueID	ArmlockStartID{ InvalidID };
 	Sound::SoundUniqueID	ArmlockID{ InvalidID };
 	Sound::SoundUniqueID	StimID{ InvalidID };
-	int					m_StandAnimIndex{};
-	int					m_WalkAnimIndex{};
-	int					m_RunAnimIndex{};
-	int					m_HaveHandgunAnimIndex{};
-	int					m_HaveRifleAnimIndex{};
-	int					m_ReloadHandgunAnimIndex{};
-	int					m_ReloadRifleAnimIndex{};
-	int					m_Prev{};
-	int					m_Now{};
+	Util::HandAnimID	m_StandAnimIndex{};
+	Util::HandAnimID	m_WalkAnimIndex{};
+	Util::HandAnimID	m_RunAnimIndex{};
+	Util::HandAnimID	m_HaveHandgunAnimIndex{};
+	Util::HandAnimID	m_HaveRifleAnimIndex{};
+	Util::HandAnimID	m_ReloadHandgunAnimIndex{};
+	Util::HandAnimID	m_ReloadRifleAnimIndex{};
+	Util::HandAnimID	m_Prev{};
+	Util::HandAnimID	m_Now{};
 	int					m_Equip{ InvalidID };
 	int					m_PrevEquip{ InvalidID };
 	int					m_ArmlockID = InvalidID;
-	char		padding2[4]{};
+	char		padding[4]{};
 
-	bool				m_Armlocked{ false };
-	bool				m_ArmlockedEnd{ false };
-	char		padding4[6]{};
+	SpecialAction		m_Armlock;
+	SpecialAction		m_Armlocked;
 	int					m_ArmlockedPos{};
 
 	bool				m_WakeBottom{};
 	bool				m_IsAutoAim{};
-	char		padding5[6]{};
+	char		padding3[2]{};
 
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
-
-	float				m_ArmlockedTime{ 0.f };
 
 	Util::VECTOR3D		m_HitVec{};
 	float				m_HitPower{ 0.f };
 	float				m_HitBack{ 0.f };
 
-	float				m_ArmlockedEndTimer{};
 	float				m_DownPower{ 0.f };
 	int					m_TotalAmmo{ 0 };//予備弾数
 	int					m_CanHaveAmmo{ 17*2 };//予備弾数
-	//char		padding6[4]{};
-
 	Draw::MV1			m_Injector{};
 public:
 	Character(void) noexcept {}
@@ -602,8 +610,8 @@ public:
 		return Util::Matrix4x4::Axis1(Handyvec.normalized(), Handzvec.normalized() * -1.f, HandPos);
 	}
 
-	const auto& GetAimPoint2D() const noexcept { return m_AimPoint2D; }
-	auto GetIsAutoAim() const noexcept { return m_IsAutoAim && m_CanAim; }
+	const auto& GetAimPoint2D() const noexcept { return this->m_AimPoint2D; }
+	auto GetIsAutoAim() const noexcept { return this->m_IsAutoAim && this->m_CanAim; }
 
 	Util::Matrix4x4 GetPlayerEyeMat(void) const noexcept;
 
@@ -612,12 +620,12 @@ public:
 	bool IsFPSView(void) const noexcept { return this->m_IsFPS; }
 	bool IsShotSwitch(void) const noexcept { return this->m_ShotSwitch; }
 	bool CanDamage(void) const noexcept {
-		return !this->m_ArmlockActive && !this->m_Armlocked && this->m_ArmlockedTime == 0.f;
+		return !this->m_Armlock.IsActive() && !this->m_Armlocked.IsActive() && this->m_Armlocked.m_Time == 0.f;
 	}
 	bool CanArmlock(void) const noexcept {
 		return this->m_CanArmlock;
 	}
-	bool CanArmlockInjector(void) const noexcept { return (this->m_ArmlockActive && !this->m_ArmlockEnd); }
+	bool CanArmlockInjector(void) const noexcept { return (this->m_Armlock.IsActive() && !this->m_Armlock.m_End); }
 	auto GetStyle(void) const noexcept { return this->m_CharaStyle; }
 
 	bool HasLens() const noexcept;
@@ -625,11 +633,11 @@ public:
 	Util::Matrix4x4 GetLensSize(void) const noexcept;
 	const Draw::GraphHandle* GetReticlePtr(void) const noexcept;
 
-	int TotalAmmo(void) const noexcept { return m_TotalAmmo; }
-	int CanHaveAmmo(void) const noexcept { return m_CanHaveAmmo; }
+	int TotalAmmo(void) const noexcept { return this->m_TotalAmmo; }
+	int CanHaveAmmo(void) const noexcept { return this->m_CanHaveAmmo; }
 	bool NeedReload(void) const noexcept;
 	bool IsFreeView(void) const noexcept {
-		if (this->m_ArmlockActive) {
+		if (this->m_Armlock.IsActive()) {
 			return false;
 		}
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -653,7 +661,7 @@ public:
 			break;
 		}
 	}
-	void SetArmAnim(int Index) noexcept {
+	void SetArmAnim(Util::HandAnimID Index) noexcept {
 		this->m_Now = Index;
 		if (this->m_Prev != this->m_Now && !m_AnimMoving) {
 			Util::HandAnimPool::Instance()->GoTimeStart(this->m_Now);
@@ -669,17 +677,17 @@ public:
 	void SetEquip(int value) noexcept { this->m_Equip = value; }
 
 	bool ChanChangeWeapon() const noexcept {
-		return  (!this->GetIsReloading() && !this->m_PunchActive && !this->m_ArmlockActive);
+		return  (!this->GetIsReloading() && !this->m_PunchActive && !this->m_Armlock.IsActive());
 	}
 	//
 	void		SetArmlocked(int UniqueID) noexcept {
 		this->m_ArmlockedPos = UniqueID;
-		this->m_Armlocked = true;
+		this->m_Armlocked.SetActive();
 		SetAnim(static_cast<int>(CharaAnim::ArmlockedStart)).SetTime(0.f);
 	}
 	void		SetArmlockedEnd() noexcept {
-		if (!this->m_ArmlockedEnd) {
-			this->m_ArmlockedEnd = true;
+		if (!this->m_Armlocked.m_End) {
+			this->m_Armlocked.m_End = true;
 			SetAnim(static_cast<int>(CharaAnim::ArmlockedEnd)).SetTime(0.f);
 			//this->m_DownBottomTimer = 3.f;
 			this->m_DownPower = 1.f;
@@ -742,6 +750,9 @@ public:
 		this->m_AnimMoving = false;
 
 		this->m_WakeBottom = false;
+
+		this->m_Armlock.Init();
+		this->m_Armlocked.Init();
 	}
 	void Update_Chara(void) noexcept override;
 	void Draw_Chara(void) const noexcept override {

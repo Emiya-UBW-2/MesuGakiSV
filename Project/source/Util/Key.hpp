@@ -662,15 +662,14 @@ namespace Util {
 			Key*		m_Ptr{ nullptr };
 		};
 	private:
-		std::vector<Key>		m_Input{};
+		std::vector<Key>																		m_Input{};
 		std::array<std::array<std::vector<KeyPair>, 2>, static_cast<size_t>(InputType::Max)>	m_MenuKey{};
 		std::array<std::array<std::vector<KeyPair>, 2>, static_cast<size_t>(InputType::Max)>	m_BattleKey{};
-		InputType				m_InputType{ InputType::XInput };
-		bool					m_DeviceChangeSwitch{ true };
-		char		padding[3]{};
-		DxLib::XINPUT_STATE			m_inputXInput{};
-		char		padding2[2]{};
-		DxLib::DINPUT_JOYSTATE			m_inputDInput{};
+		InputType																				m_InputType{ InputType::XInput };
+		DxLib::DINPUT_JOYSTATE																	m_inputDInput{};
+		DxLib::XINPUT_STATE																		m_inputXInput{};
+		bool																					m_DeviceChangeSwitch{ true };
+		char		padding[5]{};
 	private:
 		//コンストラクタ
 		KeyParam(void) noexcept {

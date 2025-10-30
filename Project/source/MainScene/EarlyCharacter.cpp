@@ -5,144 +5,143 @@
 void EarlyCharacter::Update_Chara(void) noexcept {
 	auto* BackGroundParts = BackGround::Instance();
 
-	auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+	auto& Player = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 	{
 		auto MyPos = GetEyeMatrix().pos();
 		auto MyVec = GetEyeMatrix().zvec() * -1.f; MyVec.y = 0.f; MyVec = MyVec.normalized();
-		auto TargetPos = Chara->GetEyeMatrix().pos();
+		auto TargetPos = Player->GetEyeMatrix().pos();
 		auto TargetVec = TargetPos - MyPos; 
 		auto Height = std::fabsf(TargetVec.y); TargetVec.y = 0.f;
 		auto Len = TargetVec.magnitude();
 		auto rad = std::atan2f(Util::VECTOR3D::Cross(MyVec, TargetVec.normalized()).y, Util::VECTOR3D::Dot(MyVec, TargetVec.normalized()));
 		{
-			bool IsInsight = !IsDown();
+			bool IsAlert = !IsDown();
 			{
-				if (IsInsight) {
-					IsInsight = Height < 1.5f * Scale3DRate;
+				if (IsAlert) {
+					IsAlert = Height < 1.5f * Scale3DRate;
 				}
-				if (IsInsight) {
-					IsInsight = std::fabsf(rad) < Util::deg2rad(45) || (Len < 0.75f * Scale3DRate);
+				if (IsAlert) {
+					IsAlert = std::fabsf(rad) < Util::deg2rad(45) || (Len < 0.75f * Scale3DRate);
 				}
-				if (IsInsight) {
-					IsInsight = Len < 4.f * Scale3DRate;
+				if (IsAlert) {
+					IsAlert = Len < 4.f * Scale3DRate;
 				}
-				if (IsInsight) {
-					IsInsight = !BackGroundParts->CheckLine(MyPos, &TargetPos);
+				if (IsAlert) {
+					IsAlert = !BackGroundParts->CheckLine(MyPos, &TargetPos);
 				}
 			}
 
-			//誰かが見てた状態が5秒続いたらみんな見る
+			//誰かが見てた状態がになってないか5秒間隔で確認
 			bool WatchAny = false;
 			for (auto& c : PlayerManager::Instance()->GetCharacter()) {
 				if (c->IsPlayer()) { continue; }
 				if (c->GetObjectID() == GetObjectID()) { continue; }
 				auto& ec = ((std::shared_ptr<EarlyCharacter>&)c);
 				if (ec->IsDown()) { continue; }
-				if (ec->m_WatchTimer <= 7.f) { continue; }
+				if (ec->m_AlertTimer <= 7.f) { continue; }
 				WatchAny = true;
 				break;
 			}
 			if (WatchAny) {
-				m_WatchAnyTimer += DeltaTime;
+				this->m_AlertAnyTimer += DeltaTime;
 			}
 			else {
-				m_WatchAnyTimer = 0.f;
+				this->m_AlertAnyTimer = 0.f;
 			}
-			if (m_WatchAnyTimer >= 5.f) {
-				m_WatchAnyTimer -= 5.f;
-				IsInsight = true;
+			if (this->m_AlertAnyTimer >= 5.f) {
+				this->m_AlertAnyTimer -= 5.f;
+				IsAlert = true;
 			}
 
 
-			if (IsInsight) {
+			if (IsAlert) {
 				if (!IsWatching()) {
-					if (m_AlertTimer == 0.f) {
-						m_AlertTimer = 3.f;
-						m_CautionTimer = 0.f;
+					if (!this->m_Alert.IsActive()) {
+						this->m_Alert.SetActive();
+						this->m_Caution.SetDisActive();
 					}
 				}
-				m_WatchTimer = 10.f;
+				this->m_AlertTimer = 10.f;
 			}
 			else {
-				m_WatchTimer = std::max(m_WatchTimer - DeltaTime, 0.f);
+				this->m_AlertTimer = std::max(this->m_AlertTimer - DeltaTime, 0.f);
 			}
 		}
 		{
-			bool IsInsight = !IsDown();
+			bool IsCaution = !IsDown();
 			{
-				if (IsInsight) {
-					IsInsight = Height < 1.5f * Scale3DRate;
+				if (IsCaution) {
+					IsCaution = Height < 1.5f * Scale3DRate;
 				}
-				if (IsInsight) {
-					IsInsight = std::fabsf(rad) < Util::deg2rad(45) || (Len < 0.75f * Scale3DRate);
+				if (IsCaution) {
+					IsCaution = std::fabsf(rad) < Util::deg2rad(45) || (Len < 0.75f * Scale3DRate);
 				}
-				if (IsInsight) {
-					IsInsight = Len < 7.f * Scale3DRate;
+				if (IsCaution) {
+					IsCaution = Len < 7.f * Scale3DRate;
 				}
-				if (IsInsight) {
-					IsInsight = !BackGroundParts->CheckLine(MyPos, &TargetPos);
+				if (IsCaution) {
+					IsCaution = !BackGroundParts->CheckLine(MyPos, &TargetPos);
 				}
 			}
-			if (IsInsight) {
+			if (IsCaution) {
 				if (!IsWatching()) {
-					if (m_AlertTimer == 0.f) {
-						if (m_CautionTimer == 0.f) {
-							m_CautionTimer = 3.f;
+					if (!this->m_Alert.IsActive()) {
+						if (!this->m_Caution.IsActive()) {
+							this->m_Caution.SetActive();
 						}
 					}
 				}
-				m_FindTimer = std::min(m_FindTimer + DeltaTime, 3.f);
+				this->m_CautionTimer = std::min(this->m_CautionTimer + DeltaTime, 3.f);
 			}
 			else {
-				m_FindTimer = std::max(m_FindTimer - DeltaTime, 0.f);
+				this->m_CautionTimer = std::max(this->m_CautionTimer - DeltaTime, 0.f);
 			}
-			if (m_FindTimer == 3.f) {
+			if (this->m_CautionTimer == 3.f) {
 				if (!IsWatching()) {
-					if (m_AlertTimer == 0.f) {
-						m_AlertTimer = 3.f;
-						m_CautionTimer = 0.f;
+					if (!this->m_Alert.IsActive()) {
+						this->m_Alert.SetActive();
+						this->m_Caution.SetDisActive();
 					}
 				}
-				m_WatchTimer = 10.f;
+				this->m_AlertTimer = 10.f;
 			}
 		}
 		if (IsWatching()) {
 			//視認したらその方向を追う
 			SetTarget(TargetPos);
-			m_IsMove = true;
-			m_IsTurn = true;
+			this->m_IsMove = true;
+			this->m_IsTurn = true;
 		}
 		else {
 			//見失った
+			//TODO:一番近いウェイポイントに移ってから哨戒
 			SetTarget(MyPos + MyVec);
-			m_IsMove = false;
-			m_IsTurn = false;
+			this->m_IsMove = false;
+			this->m_IsTurn = false;
 		}
 	}
 
 	{
-		m_AlertTimer = std::max(m_AlertTimer - DeltaTime, 0.f);
-		m_CautionTimer = std::max(m_CautionTimer - DeltaTime, 0.f);
-		Util::Easing(&m_AlertPer, m_AlertTimer, 0.9f);
-		Util::Easing(&m_CautionPer, m_CautionTimer, 0.9f);
+		this->m_Alert.Update();
+		this->m_Caution.Update();
 
 		bool				CanPunch{ false };
 		bool				CanArmlock{ false };
-		if (!this->m_Armlocked &&
-			!(this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom)
+		if (!this->m_Armlocked.IsActive() &&
+			!(this->m_DownTop.IsActive() || this->m_DownTop.m_End || this->m_DownBottom.IsActive() || this->m_DownBottom.m_End)
 			) {
 			Util::VECTOR3D Base = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
-			Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), m_Rot);
+			Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), this->m_Rot);
 
-			Util::VECTOR3D Base1 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), m_Rot);
+			Util::VECTOR3D Base1 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), this->m_Rot);
 			Util::VECTOR3D Base2 = Base;
-			Util::VECTOR3D Base3 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
+			Util::VECTOR3D Base3 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), this->m_Rot);
 
-			Util::VECTOR3D Target1 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), m_Rot);
+			Util::VECTOR3D Target1 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), this->m_Rot);
 			Util::VECTOR3D Target2 = Target;
-			Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
-			if (Chara->CheckHit(Base1, &Target1) || Chara->CheckHit(Base2, &Target2) || Chara->CheckHit(Base3, &Target3)) {
-				Util::VECTOR3D A = Chara->GetMat().zvec(); A.y = 0.f;
+			Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), this->m_Rot);
+			if (Player->CheckHit(Base1, &Target1) || Player->CheckHit(Base2, &Target2) || Player->CheckHit(Base3, &Target3)) {
+				Util::VECTOR3D A = Player->GetMat().zvec(); A.y = 0.f;
 				Util::VECTOR3D B = Target - Base; B.y = 0.f;
 				if (Util::VECTOR3D::Dot(A, B) > 0.f) {
 					CanPunch = true;
@@ -154,42 +153,42 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		}
 
 
-		if (CanPunch && Chara->CanDamage() && (this->m_AttackTime == 0.f)) {
+		if (CanPunch && Player->CanDamage() && (this->m_AttackCoolDown == 0.f)) {
 			//パンチ
-			if (!this->m_PunchActive) {
-				this->m_PunchActive = true;
+			if (!this->m_Punch.IsActive()) {
+				this->m_Punch.SetActive();
 				SetAnim(static_cast<int>(EarlyCharaAnim::Punch)).SetTime(0.f);
-				m_AttackTime = 3.f;
+				this->m_AttackCoolDown = 3.f;
 			}
 		}
-		if (CanArmlock && Chara->CanDamage() && (this->m_AttackTime == 0.f)) {
-			if (!this->m_ArmlockActive) {
-				this->m_ArmlockActive = true;
-				this->m_ArmlockTime = 2.f;
+		if (CanArmlock && Player->CanDamage() && (this->m_AttackCoolDown == 0.f)) {
+			if (!this->m_Armlock.IsActive()) {
+				this->m_Armlock.SetActive();
+				this->m_Armlock.m_Time = 2.f;
 				SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockStart)).SetTime(0.f);
 				//IDの相手に羽交い絞めを開始させる
-				Chara->SetArmlocked(this->GetObjectID());
+				Player->SetArmlocked(this->GetObjectID());
 
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->ArmlockStartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
-				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->ArmlockID)->Play3D(GetMat().pos(), 10.f * Scale3DRate, DX_PLAYTYPE_LOOP);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_ArmlockStartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_ArmlockID)->Play3D(GetMat().pos(), 10.f * Scale3DRate, DX_PLAYTYPE_LOOP);
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
-				m_AttackTime = 3.f;
+				this->m_AttackCoolDown = 3.f;
 			}
 		}
-		if (this->m_ArmlockActive && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockStart)).GetTimePer() >= 1.f) {
-			if (this->m_ArmlockTime == 0.f) {
-				if (!this->m_ArmlockEnd) {
-					this->m_ArmlockEnd = true;
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->ArmlockID)->StopAll();
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->ArmlockStartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+		if (this->m_Armlock.IsActive() && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockStart)).GetTimePer() >= 1.f) {
+			if (this->m_Armlock.m_Time == 0.f) {
+				if (!this->m_Armlock.m_End) {
+					this->m_Armlock.m_End = true;
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_ArmlockID)->StopAll();
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_ArmlockStartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 					SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockEnd)).SetTime(0.f);
-					Chara->SetArmlockedEnd();
+					Player->SetArmlockedEnd();
 				}
 			}
 		}
 
-		this->m_ArmlockTime = std::max(this->m_ArmlockTime - DeltaTime, 0.f);
-		this->m_AttackTime = std::max(this->m_AttackTime - DeltaTime, 0.f);
+		this->m_Armlock.m_Time = std::max(this->m_Armlock.m_Time - DeltaTime, 0.f);
+		this->m_AttackCoolDown = std::max(this->m_AttackCoolDown - DeltaTime, 0.f);
 
 		//前準備
 		this->m_PathUpdateTimer = std::max(this->m_PathUpdateTimer - DeltaTime, 0.f);
@@ -252,7 +251,7 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				if (InputVec.magnitude() >= 1.f * Scale3DRate) {
 					InputVec = InputVec.normalized();
 				}
-				if (this->m_PunchActive || this->m_ArmlockActive) {
+				if (this->m_Punch.IsActive() || this->m_Armlock.IsActive()) {
 					InputVec = Util::VECTOR2D::zero();
 				}
 			}
@@ -264,13 +263,13 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				Util::Easing(&m_InputVec, InputVec, 0.9f);
 			}
 
-			if (this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom) {
-				m_InputVec.x = m_DownVec.x;
-				m_InputVec.y = m_DownVec.z;
+			if (this->m_DownTop.IsActive() || this->m_DownTop.m_End || this->m_DownBottom.IsActive() || this->m_DownBottom.m_End) {
+				this->m_InputVec.x = this->m_DownVec.x;
+				this->m_InputVec.y = this->m_DownVec.z;
 			}
 			if (std::fabsf(this->m_HitPower) > 0.5f) {
-				m_InputVec.x = -m_HitVec.x;
-				m_InputVec.y = -m_HitVec.z;
+				this->m_InputVec.x = -m_HitVec.x;
+				this->m_InputVec.y = -m_HitVec.z;
 			}
 
 			if (this->m_InputVec.sqrMagnitude() > 0.f) {
@@ -278,35 +277,35 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 
 				IsMove = std::fabsf(Per) < 0.3f;
 
-				m_RadAdd.y = 0.f;
+				this->m_RadAdd.y = 0.f;
 				if (std::fabsf(Per) > 0.01f) {
 					float Power = 1.f;
-					m_RadAdd.y = Per * Power * Util::deg2rad(720.f) * DeltaTime;
+					this->m_RadAdd.y = Per * Power * Util::deg2rad(720.f) * DeltaTime;
 				}
 
-				if (this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom) {
+				if (this->m_DownTop.IsActive() || this->m_DownTop.m_End || this->m_DownBottom.IsActive() || this->m_DownBottom.m_End) {
 					IsMove = false;
 				}
 				else if (std::fabsf(this->m_HitPower) > 0.5f) {
 					IsMove = false;
 				}
-				else if (this->m_Armlocked || this->m_PunchActive || this->m_ArmlockActive) {
+				else if (this->m_Armlocked.IsActive() || this->m_Punch.IsActive() || this->m_Armlock.IsActive()) {
 					IsMove = false;
-					m_RadAdd.y = 0.f;
+					this->m_RadAdd.y = 0.f;
 				}
 				if (!m_IsMove) {
 					//停止
 					IsMove = false;
 				}
 				if (!m_IsTurn) {
-					m_RadAdd.y = 0.f;
+					this->m_RadAdd.y = 0.f;
 				}
 
 
-				this->m_Rad.y += m_RadAdd.y;
+				this->m_Rad.y += this->m_RadAdd.y;
 				{
 					float Power = 1.f;
-					Util::Easing(&m_Rad.z, m_RadAdd.y * Power, 0.9f);
+					Util::Easing(&m_Rad.z, this->m_RadAdd.y * Power, 0.9f);
 				}
 				this->m_Rad.y = Util::AngleRange360(this->m_Rad.y);
 			}
@@ -317,28 +316,28 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		// 進行方向に前進
 		Util::Easing(&m_Speed, IsMove ? GetSpeedMax() : 0.f, 0.9f);
 
-		if (this->m_Armlocked && !this->m_ArmlockedEnd) {
+		if (this->m_Armlocked.IsActive() && !this->m_Armlocked.m_End) {
 			auto& Target = (*ObjectManager::Instance()->GetObj(this->m_ArmlockedPos));
 			this->m_MyPosTarget = Target->GetMat().pos();
 			MyMat = Target->GetMat();
-			m_Rot = Util::Matrix3x3::Get33DX(MyMat);
-			this->m_Rad.y = Util::VECTOR3D::SignedAngle(Util::VECTOR3D::forward(), m_Rot.zvec(), Util::VECTOR3D::up());
+			this->m_Rot = Util::Matrix3x3::Get33DX(MyMat);
+			this->m_Rad.y = Util::VECTOR3D::SignedAngle(Util::VECTOR3D::forward(), this->m_Rot.zvec(), Util::VECTOR3D::up());
 		}
 		// 移動ベクトルを加算した仮座標を作成
 		Util::VECTOR3D PosBefore = GetTargetPos();
 		Util::VECTOR3D PosAfter;
 		{
 			Util::VECTOR3D Vec = Util::VECTOR3D::forward();
-			if (this->m_Armlocked || this->m_PunchActive || this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom) {
+			if (this->m_Armlocked.IsActive() || this->m_Punch.IsActive() || this->m_DownTop.IsActive() || this->m_DownTop.m_End || this->m_DownBottom.IsActive() || this->m_DownBottom.m_End) {
 				Vec = Util::VECTOR3D::zero();
 			}
 
-			PosAfter = PosBefore + Util::Matrix3x3::Vtrans(Vec * -GetSpeed(), m_Rot);
+			PosAfter = PosBefore + Util::Matrix3x3::Vtrans(Vec * -GetSpeed(), this->m_Rot);
 
-			PosAfter = PosAfter + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(5.f * Scale3DRate * DeltaTime) * this->m_DownPower, m_Rot);
+			PosAfter = PosAfter + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(5.f * Scale3DRate * DeltaTime) * this->m_DownPower, this->m_Rot);
 
 			PosAfter = PosAfter + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * (5.f * Scale3DRate * DeltaTime) * this->m_HitPower,
-				Util::Matrix3x3::RotVec2(Util::VECTOR3D::forward(), m_HitVec));
+				Util::Matrix3x3::RotVec2(Util::VECTOR3D::forward(), this->m_HitVec));
 
 			Util::Easing(&this->m_HitBack, 0.f, 0.95f);
 			Util::Easing(&this->m_HitPower, 0.f, 0.9f);
@@ -350,8 +349,8 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 			}
 		}
 		//他キャラとのヒット判定
-		if (!this->m_Armlocked && !this->m_ArmlockActive &&
-			!(this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom)
+		if (!this->m_Armlocked.IsActive() && !this->m_Armlock.IsActive() &&
+			!(this->m_DownTop.IsActive() || this->m_DownTop.m_End || this->m_DownBottom.IsActive() || this->m_DownBottom.m_End)
 			) {
 			float Radius = 2.0f * 0.3f * Scale3DRate;
 			for (auto& c : PlayerManager::Instance()->SetCharacter()) {
@@ -368,7 +367,7 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		}
 		// 壁判定
 		CheckWall(PosBefore, &PosAfter, Util::VECTOR3D::zero(), Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate);
-		if (this->m_DownTop || this->m_WakeTop || this->m_DownBottom || this->m_WakeBottom) {
+		if (this->m_DownTop.IsActive() || this->m_DownTop.m_End || this->m_DownBottom.IsActive() || this->m_DownBottom.m_End) {
 			Util::VECTOR3D PosAdd = GetEyeMatrix().pos() - GetMat().pos(); PosAdd.y = 0.f; PosAdd = PosAdd.normalized() * (0.5f * Scale3DRate);
 			CheckWall(PosBefore, &PosAfter, PosAdd, Util::VECTOR3D::up() * (0.7f * Scale3DRate), Util::VECTOR3D::up() * (1.6f * Scale3DRate), 0.35f * Scale3DRate);
 		}
@@ -388,7 +387,7 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		Util::VECTOR3D MyPos = GetMat().pos();
 		Util::Easing(&MyPos, PosAfter, 0.9f);
 
-		m_Rot = Util::Matrix3x3::Get33DX(GetRotMat());
+		this->m_Rot = Util::Matrix3x3::Get33DX(GetRotMat());
 		SetMatrix(
 			GetRotMat() * Util::Matrix4x4::Mtrans(MyPos)
 		);
@@ -397,73 +396,73 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		Util::Easing(&m_MovePer, GetSpeed() / GetSpeedMax(), 0.9f);
 
 		{
-			auto Prev = this->m_DownTopTimer;
-			if (m_DrugPer < GetDrugPerMax()) {
-				this->m_DownTopTimer = std::max(this->m_DownTopTimer - DeltaTime, 0.f);
+			auto Prev = this->m_DownTop.m_Time;
+			if (this->m_DrugPer < GetDrugPerMax()) {
+				this->m_DownTop.m_Time = std::max(this->m_DownTop.m_Time - DeltaTime, 0.f);
 			}
-			if (Prev != 0.f && this->m_DownTopTimer == 0.f) {
-				this->m_DownTop = false;
+			if (Prev != 0.f && this->m_DownTop.m_Time == 0.f) {
+				this->m_DownTop.m_Active = false;
 				//起き上がる
-				if (!this->m_WakeTop) {
+				if (!this->m_DownTop.m_End) {
 					SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).SetTime(0.f);
 				}
-				this->m_WakeTop = true;
+				this->m_DownTop.m_End = true;
 			}
 		}
 		{
-			auto Prev = this->m_DownBottomTimer;
-			if (m_DrugPer < GetDrugPerMax()) {
-				this->m_DownBottomTimer = std::max(this->m_DownBottomTimer - DeltaTime, 0.f);
+			auto Prev = this->m_DownBottom.m_Time;
+			if (this->m_DrugPer < GetDrugPerMax()) {
+				this->m_DownBottom.m_Time = std::max(this->m_DownBottom.m_Time - DeltaTime, 0.f);
 			}
-			if (Prev != 0.f && this->m_DownBottomTimer == 0.f) {
-				this->m_DownBottom = false;
+			if (Prev != 0.f && this->m_DownBottom.m_Time == 0.f) {
+				this->m_DownBottom.m_Active = false;
 				//起き上がる
-				if (!this->m_WakeBottom) {
+				if (!this->m_DownBottom.m_End) {
 					SetAnim(static_cast<int>(EarlyCharaAnim::WakeBottom)).SetTime(0.f);
 				}
-				this->m_WakeBottom = true;
+				this->m_DownBottom.m_End = true;
 			}
 		}
 
 		if (this->m_PunchAttack) {
 			this->m_PunchAttack = false;
 			Util::VECTOR3D Base = GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Upper2)).pos();
-			Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), m_Rot);
+			Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), this->m_Rot);
 			for (auto& c : PlayerManager::Instance()->SetCharacter()) {
 				if (!c->IsPlayer()) { continue; }
-				Util::VECTOR3D Base1 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), m_Rot);
+				Util::VECTOR3D Base1 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), this->m_Rot);
 				Util::VECTOR3D Base2 = Base;
-				Util::VECTOR3D Base3 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
+				Util::VECTOR3D Base3 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), this->m_Rot);
 
-				Util::VECTOR3D Target1 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), m_Rot);
+				Util::VECTOR3D Target1 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), this->m_Rot);
 				Util::VECTOR3D Target2 = Target;
-				Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), m_Rot);
+				Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), this->m_Rot);
 				if (c->CheckHit(Base1, &Target1) || c->CheckHit(Base2, &Target2) || c->CheckHit(Base3, &Target3)) {
 					((std::shared_ptr<Character>&)c)->SetHit(Target - Base);
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_HitHumanID)->Play3D(Target, 10.f * Scale3DRate);
 				}
 			}
 		}
 
-		if (this->m_PunchActive && SetAnim(static_cast<int>(EarlyCharaAnim::Punch)).GetTimePer() >= 1.f) {
-			this->m_PunchActive = false;
+		if (this->m_Punch.IsActive() && SetAnim(static_cast<int>(EarlyCharaAnim::Punch)).GetTimePer() >= 1.f) {
+			this->m_Punch.m_Active = false;
 		}
 		if (this->m_ArmlockedInjector && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedInjector)).GetTimePer() >= 1.f) {
 			this->m_ArmlockedInjector = false;
 		}
-		if (this->m_ArmlockedEnd && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedEnd)).GetTimePer() >= 1.f) {
-			this->m_ArmlockedEnd = false;
-			this->m_Armlocked = false;
+		if (this->m_Armlocked.m_End && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedEnd)).GetTimePer() >= 1.f) {
+			this->m_Armlocked.m_End = false;
+			this->m_Armlocked.m_Active = false;
 
-			this->m_DownBottom = true;
+			this->m_DownBottom.SetActive();
 			SetAnim(static_cast<int>(EarlyCharaAnim::DownBottom)).SetTime(SetAnim(static_cast<int>(EarlyCharaAnim::DownBottom)).GetTotalTime());
 
-			this->m_WakeBottom = false;
+			this->m_DownBottom.m_End = false;
 		}
-		if (this->m_ArmlockEnd && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockEnd)).GetTimePer() >= 1.f) {
-			this->m_ArmlockEnd = false;
-			this->m_ArmlockActive = false;
-			m_AttackTime = 3.f;
+		if (this->m_Armlock.m_End && SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockEnd)).GetTimePer() >= 1.f) {
+			this->m_Armlock.m_End = false;
+			this->m_Armlock.m_Active = false;
+			this->m_AttackCoolDown = 3.f;
 		}
 		//
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Punch)] = 0.f;
@@ -484,8 +483,8 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Stand)] = 0.f;
 		this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Walk)] = 0.f;
 
-		if (this->m_ArmlockActive) {
-			if (!this->m_ArmlockEnd) {
+		if (this->m_Armlock.IsActive()) {
+			if (!this->m_Armlock.m_End) {
 				this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockStart)] = 1.f;
 				SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockStart)).Update(false, 1.f);
 			}
@@ -494,8 +493,8 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockEnd)).Update(false, 1.f);
 			}
 		}
-		else if (this->m_Armlocked) {
-			if (!this->m_ArmlockedEnd) {
+		else if (this->m_Armlocked.IsActive()) {
+			if (!this->m_Armlocked.m_End) {
 				if (!this->m_ArmlockedInjector) {
 					this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockedStart)] = 1.f;
 					this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::ArmlockedInjector)] = 0.f;
@@ -507,10 +506,10 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 					SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedInjector)).Update(false, 1.f);
 
 					float Now = SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedInjector)).GetTime();
-					if (static_cast<int>(Now) == 30 && static_cast<int>(Now) != static_cast<int>(m_ArmlockedInjectorTimer)) {
+					if (static_cast<int>(Now) == 30 && static_cast<int>(Now) != static_cast<int>(this->m_ArmlockedInjectorTimer)) {
 						SetDrug(GetDrugPerMax() * 100.f / 100.f);
 					}
-					m_ArmlockedInjectorTimer = Now;
+					this->m_ArmlockedInjectorTimer = Now;
 				}
 			}
 			else {
@@ -519,47 +518,47 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 
 
 				float Now = SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedEnd)).GetTime();
-				if (static_cast<int>(Now) == 10 && static_cast<int>(Now) != static_cast<int>(m_ArmlockedEndTimer)) {
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, DownHumanID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
+				if (static_cast<int>(Now) == 10 && static_cast<int>(Now) != static_cast<int>(this->m_Armlocked.m_AnimTimer)) {
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_DownHumanID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 				}
-				m_ArmlockedEndTimer = Now;
+				this->m_Armlocked.m_AnimTimer = Now;
 			}
 		}
-		else if (this->m_DownTop) {
+		else if (this->m_DownTop.IsActive()) {
 			this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownTop)] = 1.f;
 			SetAnim(static_cast<int>(EarlyCharaAnim::DownTop)).Update(false, 1.f);
 		}
-		else if (this->m_WakeTop) {
+		else if (this->m_DownTop.m_End) {
 			this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeTop)] = 1.f;
 			SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).Update(false, 1.f);
 			if (SetAnim(static_cast<int>(EarlyCharaAnim::WakeTop)).GetTimePer() >= 1.f) {
-				this->m_WakeTop = false;
+				this->m_DownTop.m_End = false;
 			}
 		}
-		else if (this->m_DownBottom) {
+		else if (this->m_DownBottom.IsActive()) {
 			this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::DownBottom)] = 1.f;
 			SetAnim(static_cast<int>(EarlyCharaAnim::DownBottom)).Update(false, 1.f);
 		}
-		else if (this->m_WakeBottom) {
+		else if (this->m_DownBottom.m_End) {
 			this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::WakeBottom)] = 1.f;
 			SetAnim(static_cast<int>(EarlyCharaAnim::WakeBottom)).Update(false, 1.f);
 			if (SetAnim(static_cast<int>(EarlyCharaAnim::WakeBottom)).GetTimePer() >= 1.f) {
-				this->m_WakeBottom = false;
+				this->m_DownBottom.m_End = false;
 			}
 		}
-		else if (this->m_PunchActive) {
+		else if (this->m_Punch.IsActive()) {
 			this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Punch)] = 1.f;
 			SetAnim(static_cast<int>(EarlyCharaAnim::Punch)).Update(false, 1.f);
 
 			float Now = SetAnim(static_cast<int>(EarlyCharaAnim::Punch)).GetTime();
-			if (static_cast<int>(Now) == 1 && static_cast<int>(Now) != static_cast<int>(m_PunchTimer)) {
+			if (static_cast<int>(Now) == 1 && static_cast<int>(Now) != static_cast<int>(this->m_Punch.m_Time)) {
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_PunchID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
 			}
-			if (static_cast<int>(Now) == 10 && static_cast<int>(Now) != static_cast<int>(m_PunchTimer)) {
+			if (static_cast<int>(Now) == 10 && static_cast<int>(Now) != static_cast<int>(this->m_Punch.m_Time)) {
 				Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
-				m_PunchAttack = true;
+				this->m_PunchAttack = true;
 			}
-			m_PunchTimer = Now;
+			this->m_Punch.m_Time = Now;
 		}
 		else {
 			this->m_AnimPer[static_cast<size_t>(EarlyCharaAnim::Upper)] = 1.f;
@@ -590,7 +589,7 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 
 		Util::Easing(&m_CanSeePer, this->m_CanSeeUI ? 1.f : 0.f, 0.9f);
 
-		Util::Easing(&m_DrugPerR, m_DrugPer, 0.9f);
+		Util::Easing(&m_DrugPerR, this->m_DrugPer, 0.9f);
 
 		this->m_CanSeeUI = false;
 	}

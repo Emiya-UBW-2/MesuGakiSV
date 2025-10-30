@@ -128,8 +128,8 @@ namespace Draw {
 			const auto total_draw_width = info.back().DrawX + info.back().SizeX - info.front().DrawX;
 			if (total_draw_width <= area_width) {
 				// 一行ですむ場合
-				const float padding = (area_width - total_draw_width) / 2.0f;
-				DxLib::DrawStringFToHandle(draw_area_x_left + padding, draw_area_y_top, String.c_str(), Color, Util::DXHandle::get(), EdgeColor, false);
+				const float Padding = (area_width - total_draw_width) / 2.0f;
+				DxLib::DrawStringFToHandle(draw_area_x_left + Padding, draw_area_y_top, String.c_str(), Color, Util::DXHandle::get(), EdgeColor, false);
 				return static_cast<float>(line_space);
 			}
 
@@ -150,9 +150,9 @@ namespace Draw {
 					const size_t str_len_byte = current_string_byte_pos - line_front_string_byte_pos;
 					// it->DrawXは前の文字の右端に等しい
 					// const float line_width = it->DrawX - line_front_it->DrawX;
-					const float padding = 0.f;// (area_width - line_width) / 2.0f;
+					const float Padding = 0.f;// (area_width - line_width) / 2.0f;
 					const auto line_string = String.substr(line_front_string_byte_pos / sizeof(TCHAR), (str_len_byte / sizeof(TCHAR)));
-					DxLib::DrawStringFToHandle(draw_area_x_left + padding, draw_area_y_top + current_y_relative, line_string.c_str(), Color, Util::DXHandle::get(), EdgeColor, false);
+					DxLib::DrawStringFToHandle(draw_area_x_left + Padding, draw_area_y_top + current_y_relative, line_string.c_str(), Color, Util::DXHandle::get(), EdgeColor, false);
 					// itが指す文字が先頭になる
 					line_front_string_byte_pos = current_string_byte_pos;
 					current_y_relative += static_cast<float>(line_space);
@@ -162,9 +162,9 @@ namespace Draw {
 			}
 			// 最終行の描画
 			// const auto last_line_width = info.back().DrawX + info.back().SizeX - line_front_it->DrawX;
-			const float padding = 0.f;// (area_width - last_line_width) / 2.0f;
+			const float Padding = 0.f;// (area_width - last_line_width) / 2.0f;
 			const auto line_string = String.substr(line_front_string_byte_pos / sizeof(TCHAR));
-			DxLib::DrawStringFToHandle(draw_area_x_left + padding, draw_area_y_top + current_y_relative, line_string.c_str(), Color, Util::DXHandle::get(), EdgeColor, false);
+			DxLib::DrawStringFToHandle(draw_area_x_left + Padding, draw_area_y_top + current_y_relative, line_string.c_str(), Color, Util::DXHandle::get(), EdgeColor, false);
 			return current_y_relative + static_cast<float>(line_space);
 		}
 	public:

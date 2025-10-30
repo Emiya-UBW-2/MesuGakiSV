@@ -58,7 +58,7 @@ namespace Draw {
 		Util::VECTOR2D	Scale{ Util::VECTOR2D::vget(1.f, 1.f) };
 		Util::VECTOR2D	Center{ Util::VECTOR2D::vget(0.f, 0.f) };
 		float			Rad{ Util::deg2rad(0.f) };
-		char			padding[4]{};
+		char		padding[4]{};
 		Util::ColorRGBA	Color{ Util::ColorRGBA(255, 255, 255, 255) };
 	public:
 		Param2D(void) noexcept {}
@@ -123,7 +123,7 @@ namespace Draw {
 			std::string			m_String{};
 			const GraphHandle*	m_ImageHandle{};
 			bool				m_IsHitCheck{};
-			char		padding2[7]{};
+			char		padding[7]{};
 		public:
 			void			SetString(std::string_view value) noexcept { this->m_String = value; }
 			const auto& GetName(void) const noexcept { return this->m_Name; }
@@ -152,6 +152,7 @@ namespace Draw {
 		Param2D					m_BasePositionParam{ Param2D() };
 		int						m_AnimDataLastSelect{};
 		int						m_Frame{};
+		std::string				m_BranchName{};
 		bool					m_IsSelect{};
 		bool					m_IsActive{ true };
 		bool					m_IsAnimeEnd{ false };
@@ -159,7 +160,6 @@ namespace Draw {
 		bool					m_UseButton{};
 		bool					m_IsHitCheck{};
 		char		padding[2]{};
-		std::string				m_BranchName{};
 	public:
 		//コンストラクタ
 		DrawModule(void) noexcept {

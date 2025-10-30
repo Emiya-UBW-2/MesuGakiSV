@@ -197,7 +197,7 @@ namespace Util {
 	class DXHandle {
 	private:
 		int		m_handle{ InvalidID };
-		char	Padding[4]{};
+		char		padding[4]{};
 	protected:
 		constexpr DXHandle(int h) noexcept : m_handle(h) {}
 	public:

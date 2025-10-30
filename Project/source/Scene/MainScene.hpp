@@ -56,60 +56,52 @@ public:
 };
 
 class MainScene : public Util::SceneBase {
-	OptionWindow	m_OptionWindow;
-	PauseUI			m_PauseUI;
-	InfoType		m_EntrancePoint{ InfoType::Entrance1 };
-	bool			m_Exit{ false };
-	bool			m_IsSceneEnd{ false };
-	bool			m_IsPauseActive{ false };
-	bool			m_IsChangeEquip{ false };
+	OptionWindow					m_OptionWindow;
+	PauseUI							m_PauseUI;
+	InfoType						m_EntrancePoint{ InfoType::Entrance1 };
+	bool							m_Exit{ false };
+	bool							m_IsSceneEnd{ false };
+	bool							m_IsPauseActive{ false };
+	bool							m_IsChangeEquip{ false };
 	char		padding[4]{};
 	std::shared_ptr<Gun>			m_HandGun{};
 	std::shared_ptr<Gun>			m_MainGun{};
-
-	std::shared_ptr<Suppressor>			m_HandGunAttach{};
-	std::shared_ptr<Scope>				m_MainGunAttach{};
-
-	float			m_CharaStyleChange{};
-	float			m_CharaStyleChangeR{};
-	CharaStyle		m_CharaStyle{};
+	std::shared_ptr<Suppressor>		m_HandGunAttach{};
+	std::shared_ptr<Scope>			m_MainGunAttach{};
+	float							m_CharaStyleChange{};
+	float							m_CharaStyleChangeR{};
+	CharaStyle						m_CharaStyle{};
 	char		padding2[4]{};
-	const Draw::GraphHandle* m_StandGraph{};
-	const Draw::GraphHandle* m_SquatGraph{};
-	const Draw::GraphHandle* m_ProneGraph{};
-
-	const Draw::GraphHandle* m_Watch{};
-
-	const Draw::GraphHandle* m_Cursor{};
-	const Draw::GraphHandle* m_Lock{};
-
-	Util::VECTOR3D	m_CamOffset{};
-	Util::VECTOR3D	m_CamVec{};
-	std::string		m_MapName{ "Map1" };
-	float			m_FPSPer{ 0.f };
-	float			m_CamCheckLen{};
-	float			m_CamCheckTimer{};
-	float			m_Fade{ 1.f };
-
-	float			m_ShotFov{ 0.f };
-
-	Sound::SoundUniqueID cursorID{ InvalidID };
-	Sound::SoundUniqueID OKID{ InvalidID };
-	Sound::SoundUniqueID EnviID{ InvalidID };
-	//char		padding2[4]{};
-	std::vector<EquipUI>	m_EquipUI;
-	float					m_EquipUITimer{};
-	float					m_EquipUIActivePer{};
-	int						m_EquipID{ 0 };
-	float					m_EquipPer{};
-	float					m_AutoAimActive{};
-	float					m_AimRotate{};
-
-	bool				m_UseLens{ false };
-	char		padding3[3]{};
-	Util::VECTOR2D		m_LensPos{};
-	Util::VECTOR2D		m_LensSize{};
-	char		padding4[4]{};
+	const Draw::GraphHandle*		m_StandGraph{};
+	const Draw::GraphHandle*		m_SquatGraph{};
+	const Draw::GraphHandle*		m_ProneGraph{};
+	const Draw::GraphHandle*		m_Watch{};
+	const Draw::GraphHandle*		m_Cursor{};
+	const Draw::GraphHandle*		m_Lock{};
+	Util::VECTOR3D					m_CamOffset{};
+	Util::VECTOR3D					m_CamVec{};
+	std::string						m_MapName{ "Map1" };
+	float							m_FPSPer{ 0.f };
+	float							m_CamCheckLen{};
+	float							m_CamCheckTimer{};
+	float							m_Fade{ 1.f };
+	float							m_ShotFov{ 0.f };
+	char		padding3[4]{};
+	Sound::SoundUniqueID			m_cursorID{ InvalidID };
+	Sound::SoundUniqueID			m_OKID{ InvalidID };
+	Sound::SoundUniqueID			m_EnviID{ InvalidID };
+	std::vector<EquipUI>			m_EquipUI;
+	float							m_EquipUITimer{};
+	float							m_EquipUIActivePer{};
+	int								m_EquipID{ 0 };
+	float							m_EquipPer{};
+	float							m_AutoAimActive{};
+	float							m_AimRotate{};
+	bool							m_UseLens{ false };
+	char		padding4[3]{};
+	Util::VECTOR2D					m_LensPos{};
+	Util::VECTOR2D					m_LensSize{};
+	char		padding5[4]{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;

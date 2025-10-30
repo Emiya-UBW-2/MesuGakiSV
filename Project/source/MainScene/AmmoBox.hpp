@@ -27,15 +27,15 @@ private:
 	int				GetFrameNum(void) noexcept override { return 0; }
 	const char*		GetFrameStr(int) noexcept override { return nullptr; }
 private:
+	float	m_CoolDown{};
 	bool	m_IsActive{ false };
 	char		padding[3]{};
-	float	m_CoolDown{};
 public:
-	float GetCoolDown(void) const noexcept { return m_CoolDown; }
+	float GetCoolDown(void) const noexcept { return this->m_CoolDown; }
 	void SetCoolDown(float value) noexcept {
 		m_CoolDown = value;
 	}
-	bool IsActive(void) const noexcept { return m_IsActive; }
+	bool IsActive(void) const noexcept { return this->m_IsActive; }
 	void SetActive(bool value) noexcept {
 		m_IsActive = value;
 	}
@@ -89,27 +89,26 @@ private:
 private:
 	std::array<GetItemStr, 6>							m_GetItemStr{};
 	std::array<std::shared_ptr<AmmoBox>, 64>			m_Ammo{};
-	Sound::SoundUniqueID GetID{ InvalidID };
-	Sound::SoundUniqueID FullID{ InvalidID };
-	char		padding[4]{};
+	Sound::SoundUniqueID								m_GetID{ InvalidID };
+	Sound::SoundUniqueID								m_FullID{ InvalidID };
 private:
 	AmmoBoxPool(void) noexcept {
 		ObjectManager::Instance()->LoadModel("data/model/Box/");
-		GetID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/GetItem.wav", false);
-		FullID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/ItemFull.wav", false);
+		m_GetID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/GetItem.wav", false);
+		m_FullID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/ItemFull.wav", false);
 	}
 	AmmoBoxPool(const AmmoBoxPool&) = delete;
 	AmmoBoxPool(AmmoBoxPool&&) = delete;
 	AmmoBoxPool& operator=(const AmmoBoxPool&) = delete;
 	AmmoBoxPool& operator=(AmmoBoxPool&&) = delete;
 	virtual ~AmmoBoxPool(void) noexcept {
-		for (auto& a : m_Ammo) {
+		for (auto& a : this->m_Ammo) {
 			a.reset();
 		}
 	}
 private:
 	void AddStr(const Util::VECTOR3D& Case,std::string_view value, unsigned int Color) noexcept {
-		for (auto& s : m_GetItemStr) {
+		for (auto& s : this->m_GetItemStr) {
 			if (s.Timer > 0.f) { continue; }
 			s.Pos = Case;
 			s.Str = value;
@@ -120,7 +119,7 @@ private:
 	}
 public:
 	void AddOne(const Util::VECTOR3D& Case) noexcept {
-		for (auto& a : m_Ammo) {
+		for (auto& a : this->m_Ammo) {
 			if (a->IsActive()) { continue; }
 			a->SetActive(true);
 			a->SetCoolDown(0.f);
@@ -130,37 +129,37 @@ public:
 	}
 public:
 	void Init(void) noexcept {
-		for (auto& a : m_Ammo) {
+		for (auto& a : this->m_Ammo) {
 			a = std::make_shared<AmmoBox>();
 			ObjectManager::Instance()->InitObject(a, a, "data/model/Box/");
 			a->SetActive(false);
 		}
 	}
 	void Update(void) noexcept {
-		auto& Chara = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
+		auto& Player = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 
-		for (auto& s : m_GetItemStr) {
+		for (auto& s : this->m_GetItemStr) {
 			if (s.Timer <= 0.f) { continue; }
 			s.Timer = std::max(s.Timer - DeltaTime, 0.f);
 			s.Pos += Util::VECTOR3D::up() * (0.1f * Scale3DRate * DeltaTime);
 		}
-		for (auto& a : m_Ammo) {
+		for (auto& a : this->m_Ammo) {
 			if (!a->IsActive()) { continue; }
-			auto Vec = (a->GetMat().pos() - Chara->GetMat().pos());
+			auto Vec = (a->GetMat().pos() - Player->GetMat().pos());
 			auto height = Vec.y; Vec.y = 0.f;
 			if (Vec.magnitude() <= 0.5f * Scale3DRate && std::fabsf(height) <= 0.5f * Scale3DRate) {
-				auto Ammo = std::min(Chara->CanHaveAmmo() - Chara->TotalAmmo(), 10);
+				auto Ammo = std::min(Player->CanHaveAmmo() - Player->TotalAmmo(), 10);
 				if (Ammo > 0) {
 					AddStr(a->GetMat().pos() + Util::VECTOR3D::up() * (0.5f * Scale3DRate), "Ammo +" + std::to_string(Ammo), ColorPalette::White);
 					a->SetActive(false);
-					Chara->AddAmmo(Ammo);
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, GetID)->Play(DX_PLAYTYPE_BACK, TRUE);
+					Player->AddAmmo(Ammo);
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_GetID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 				else {
 					if (a->GetCoolDown() <= 0.f) {
 						a->SetCoolDown(3.f);
 						AddStr(a->GetMat().pos() + Util::VECTOR3D::up() * (0.5f * Scale3DRate), "Ammo Full", ColorPalette::Red);
-						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, FullID)->Play(DX_PLAYTYPE_BACK, TRUE);
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_FullID)->Play(DX_PLAYTYPE_BACK, TRUE);
 					}
 				}
 			}
@@ -169,7 +168,7 @@ public:
 	}
 	void SetPos2D(void) noexcept {
 		auto* DrawerMngr = Draw::MainDraw::Instance();
-		for (auto& s : m_GetItemStr) {
+		for (auto& s : this->m_GetItemStr) {
 			if (s.Timer <= 0.f) { continue; }
 			auto Pos = ConvWorldPosToScreenPos(s.Pos.get());
 			if (0.0f < Pos.z && Pos.z < 1.0f) {
@@ -179,7 +178,7 @@ public:
 		}
 	}
 	void DrawUI(void) noexcept {
-		for (auto& s : m_GetItemStr) {
+		for (auto& s : this->m_GetItemStr) {
 			if (s.Timer <= 0.f) { continue; }
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * (s.Timer * 3.f)), 0, 255));
 			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, 24, 3)->DrawString(
