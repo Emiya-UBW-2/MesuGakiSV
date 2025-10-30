@@ -57,7 +57,7 @@ void MainScene::Init_Sub(void) noexcept {
 	//
 	AmmoBoxPool::Instance()->Init();
 	for (auto& m : BackGround::Instance()->GetMapInfo()) {
-		if (m.m_InfoType == InfoType::WayPoint) {
+		if (m.m_InfoType == InfoType::AmmoBox) {
 			AmmoBoxPool::Instance()->AddOne(BackGround::Instance()->GetWorldPos(m.m_pos));
 		}
 	}
@@ -364,6 +364,7 @@ void MainScene::Update_Sub(void) noexcept {
 			case InfoType::None:
 			case InfoType::WayPoint:
 			case InfoType::WayPoint2:
+			case InfoType::AmmoBox:
 			case InfoType::Max:
 			default:
 				break;

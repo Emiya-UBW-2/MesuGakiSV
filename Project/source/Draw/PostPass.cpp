@@ -288,7 +288,7 @@ namespace Draw {
 		}
 	};
 	class PostPassGodRay : public PostPassEffect::PostPassBase {
-		static const int EXTEND = 8;
+		static const int EXTEND = 2;
 	private:
 		Shader2DController				m_Shader;		// シェーダー
 		Draw::ScreenHandle				m_Min;			// 描画スクリーン

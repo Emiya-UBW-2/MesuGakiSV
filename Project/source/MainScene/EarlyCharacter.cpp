@@ -18,6 +18,9 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 			bool IsAlert = !IsDown();
 			{
 				if (IsAlert) {
+					IsAlert = !this->m_Armlocked.IsActive();
+				}
+				if (IsAlert) {
 					IsAlert = Height < 1.5f * Scale3DRate;
 				}
 				if (IsAlert) {
@@ -71,6 +74,9 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 			bool IsCaution = !IsDown();
 			{
 				if (IsCaution) {
+					IsCaution = !this->m_Armlocked.IsActive();
+				}
+				if (IsCaution) {
 					IsCaution = Height < 1.5f * Scale3DRate;
 				}
 				if (IsCaution) {
@@ -82,6 +88,9 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				if (IsCaution) {
 					IsCaution = !BackGroundParts->CheckLine(MyPos, &TargetPos);
 				}
+			}
+			if (!(IsDown() || this->m_Armlocked.IsActive()) && this->m_FlipBack > 0.f) {
+				IsCaution = true;
 			}
 			if (IsCaution) {
 				if (!IsWatching()) {
@@ -106,7 +115,12 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				this->m_AlertTimer = 10.f;
 			}
 		}
-		if (IsWatching()) {
+		if (!(IsDown() || this->m_Armlocked.IsActive()) && this->m_FlipBack>0.f) {
+			this->m_FlipBack = std::max(this->m_FlipBack - DeltaTime, 0.f);
+			this->m_IsMove = false;
+			this->m_IsTurn = true;
+		}
+		else if (IsWatching()) {
 			//視認したらその方向を追う
 			SetTarget(TargetPos);
 			this->m_IsMove = true;
@@ -115,7 +129,7 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 		else {
 			//見失った
 			//TODO:一番近いウェイポイントに移ってから哨戒
-			SetTarget(MyPos + MyVec);
+			SetTarget(MyPos + MyVec * 2.f);
 			this->m_IsMove = false;
 			this->m_IsTurn = false;
 		}
@@ -248,6 +262,13 @@ void EarlyCharacter::Update_Chara(void) noexcept {
 				Util::VECTOR3D Vec3D = this->m_PathChecker.GetNextPoint(Pos, &this->m_TargetPathPlanningIndex) - Pos;
 				InputVec.x = Vec3D.x;
 				InputVec.y = Vec3D.z;
+
+				if (!(IsDown() || this->m_Armlocked.IsActive()) && this->m_FlipBack > 0.f) {
+					InputVec.x = m_FlipBackVec.x;
+					InputVec.y = m_FlipBackVec.z;
+				}
+
+
 				if (InputVec.magnitude() >= 1.f * Scale3DRate) {
 					InputVec = InputVec.normalized();
 				}

@@ -169,6 +169,8 @@ enum class CharaAnim {
 	ArmlockedEnd,
 	Wakeup,
 
+	Fall,
+
 	Max,
 };
 
@@ -515,19 +517,18 @@ class Character :public CharacterCommon {
 	float				m_WalkEyeRad{};
 	float				m_YradProne{};
 	float				m_RadLimit{};
-	float				m_PunchTimer{};
 	float				m_PunchPower{};
 	bool				m_PrevIsFPSView{};
 	bool				m_IsFPS{};
 	bool				m_IsActive{};
 	bool				m_AnimMoving{ false };
 	bool				m_ShotSwitch{ false };
-	bool				m_PunchActive{ false };
 	bool				m_PunchAttack{ false };
 	bool				m_ArmlockInjector{ false };
 	bool				m_CanArmlock{ false };
 	bool				m_CanAim{ false };
-	char		padding2[6]{};
+	bool				m_IsFall{ false };
+	char		padding2[2]{};
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
 	Sound::SoundUniqueID	m_KickID{ InvalidID };
@@ -551,13 +552,14 @@ class Character :public CharacterCommon {
 	int					m_ArmlockID = InvalidID;
 	char		padding[4]{};
 
+	SpecialAction		m_Punch;
 	SpecialAction		m_Armlock;
 	SpecialAction		m_Armlocked;
 	int					m_ArmlockedPos{};
 
 	bool				m_WakeBottom{};
 	bool				m_IsAutoAim{};
-	char		padding3[2]{};
+	char		padding3[6]{};
 
 	GunParam			m_Handgun{};
 	GunParam			m_Maingun{};
@@ -677,12 +679,13 @@ public:
 	void SetEquip(int value) noexcept { this->m_Equip = value; }
 
 	bool ChanChangeWeapon() const noexcept {
-		return  (!this->GetIsReloading() && !this->m_PunchActive && !this->m_Armlock.IsActive());
+		return  (!this->GetIsReloading() && !this->m_Punch.IsActive() && !this->m_Armlock.IsActive());
 	}
 	//
 	void		SetArmlocked(int UniqueID) noexcept {
 		this->m_ArmlockedPos = UniqueID;
 		this->m_Armlocked.SetActive();
+		this->m_Punch.m_Active = false;
 		SetAnim(static_cast<int>(CharaAnim::ArmlockedStart)).SetTime(0.f);
 	}
 	void		SetArmlockedEnd() noexcept {

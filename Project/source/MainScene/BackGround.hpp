@@ -27,6 +27,7 @@ enum class InfoType : size_t {
 	Exit3,
 	WayPoint,
 	WayPoint2,
+	AmmoBox,
 	Max,
 };
 static const char* InfoTypeStr[static_cast<int>(InfoType::Max)] = {
@@ -39,6 +40,7 @@ static const char* InfoTypeStr[static_cast<int>(InfoType::Max)] = {
 	"Exit3",
 	"WayPoint",
 	"WayPoint2",
+	"AmmoBox",
 };
 
 class WayPointClass {

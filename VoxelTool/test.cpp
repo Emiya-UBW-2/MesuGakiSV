@@ -144,6 +144,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Exit2,
 		Exit3,
 		WayPoint,
+		WayPoint2,
+		AmmoBox,
 		Max,
 	};
 	static const char* InfoTypeStr[static_cast<int>(InfoType::Max)] = {
@@ -155,6 +157,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		"Exit2",
 		"Exit3",
 		"WayPoint",
+		"WayPoint2",
+		"AmmoBox",
 	};
 
 	struct MapInfo {
@@ -253,6 +257,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 		if (CheckHitKey(KEY_INPUT_7) != 0) {
 			m_InfoType = InfoType::WayPoint;
+		}
+		if (CheckHitKey(KEY_INPUT_9) != 0) {
+			m_InfoType = InfoType::AmmoBox;
 		}
 		if (CheckHitKey(KEY_INPUT_0) != 0) {
 			m_InfoType = InfoType::None;
@@ -371,6 +378,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					case InfoType::WayPoint:
 						Color = GetColor(0, 255, 0);
 						break;
+					case InfoType::AmmoBox:
+						Color = GetColor(0, 0, 255);
+						break;
+					case InfoType::WayPoint2:
 					case InfoType::None:
 					case InfoType::Max:
 					default:

@@ -351,6 +351,8 @@ class EarlyCharacter :public CharacterCommon {
 	float				m_AlertTimer{};
 	float				m_CautionTimer{};
 	float				m_AlertAnyTimer{};
+	float				m_FlipBack{};
+	Util::VECTOR3D		m_FlipBackVec{};
 	bool				m_IsMove{ false };
 	bool				m_IsTurn{ false };
 	char		padding5[2]{};
@@ -444,6 +446,8 @@ public:
 	void		SetArmlockedEnd() noexcept {
 		if (!this->m_Armlocked.m_End) {
 			this->m_Armlocked.m_End = true;
+			m_FlipBackVec = GetEyeMatrix().zvec(); m_FlipBackVec.y = 0.f; m_FlipBackVec = m_FlipBackVec.normalized();
+			this->m_FlipBack = 1.5f;
 			SetAnim(static_cast<int>(EarlyCharaAnim::ArmlockedEnd)).SetTime(0.f);
 			this->m_DownBottom.m_Time = 3.f;
 			this->m_DownPower = 1.f;
