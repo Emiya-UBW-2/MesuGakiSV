@@ -148,29 +148,20 @@ enum class CharaAnim {
 	LeftHand_3,//左中指
 	LeftHand_4,//左薬指
 	LeftHand_5,//左子指
-
-	FlipLeft,//左に向く
+	NOTUSE1,
 	Stay,//待機
-
 	Prone,//伏せ
 	ProneWalk,//伏せ移動
-
-	FlipRight,//右に向く
-
+	NOTUSE2,
 	ProneAim,//伏せエイム
-
 	Combo,//3段コンボ
-
 	ArmlockStart,
 	ArmlockInjector,
 	ArmlockEnd,
-
 	ArmlockedStart,
 	ArmlockedEnd,
 	Wakeup,
-
 	Fall,
-
 	Max,
 };
 
@@ -516,6 +507,7 @@ class Character :public CharacterCommon {
 	float				m_SwitchPer{};
 	float				m_WalkEyeRad{};
 	float				m_YradProne{};
+	float				m_YradUpper{};
 	float				m_RadLimit{};
 	float				m_PunchPower{};
 	bool				m_PrevIsFPSView{};
@@ -528,7 +520,7 @@ class Character :public CharacterCommon {
 	bool				m_CanArmlock{ false };
 	bool				m_CanAim{ false };
 	bool				m_IsFall{ false };
-	char		padding2[2]{};
+	char		padding2[6]{};
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
 	Sound::SoundUniqueID	m_KickID{ InvalidID };
@@ -756,6 +748,8 @@ public:
 
 		this->m_Armlock.Init();
 		this->m_Armlocked.Init();
+
+		this->m_TotalAmmo = this->m_CanHaveAmmo;
 	}
 	void Update_Chara(void) noexcept override;
 	void Draw_Chara(void) const noexcept override {

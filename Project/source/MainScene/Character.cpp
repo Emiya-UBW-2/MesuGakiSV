@@ -1161,6 +1161,7 @@ void Character::Update_Chara(void) noexcept {
 		this->m_AnimPer[static_cast<size_t>(CharaAnim::SquatWalk)] = GetMovePer01() * this->m_StylePer.at(static_cast<size_t>(CharaStyle::Squat));
 		this->m_AnimPer[static_cast<size_t>(CharaAnim::Walk)] = GetMovePer01() * this->m_StylePer.at(static_cast<size_t>(CharaStyle::Stand));
 		this->m_AnimPer[static_cast<size_t>(CharaAnim::Run)] = GetMovePer01() * this->m_StylePer.at(static_cast<size_t>(CharaStyle::Run));
+		/*
 		//回転
 		{
 			float Per = 0.f;
@@ -1180,6 +1181,7 @@ void Character::Update_Chara(void) noexcept {
 			Util::Easing(&m_AnimPer[static_cast<size_t>(CharaAnim::FlipLeft)], std::clamp(Per, 0.f, 1.f), 0.9f);
 			Util::Easing(&m_AnimPer[static_cast<size_t>(CharaAnim::FlipRight)], std::clamp(Per, -1.f, 0.f) * -1.f, 0.9f);
 		}
+		//*/
 	}
 	//
 	this->m_AnimPer[static_cast<size_t>(CharaAnim::ReftHand_1)] = 1.f;
@@ -1227,24 +1229,45 @@ void Character::Update_Chara(void) noexcept {
 		ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper));
 		ResetFrameUserLocalMatrix(static_cast<int>(CharaFrame::Upper2));
 
-		float Per = 0.f;
-		if (!IsFPSView()) {
-			if (IsFreeView() && (this->m_CharaStyle != CharaStyle::Run) && !GetIsReloading()) {
-				Per = Util::VECTOR3D::SignedAngle(GetMat().zvec() * -1.f, this->m_AimPoint - GetMat().pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
+		{
+			float Per = 0.f;
+			if (!IsFPSView()) {
+				if (IsFreeView() && (this->m_CharaStyle != CharaStyle::Run) && !GetIsReloading()) {
+					Per = Util::VECTOR3D::SignedAngle(GetMat().zvec() * -1.f, this->m_AimPoint - GetMat().pos(), Util::VECTOR3D::up()) / Util::deg2rad(90);
+				}
+				else {
+					Per = this->m_YradDif / Util::deg2rad(90);
+				}
 			}
-			else {
-				Per = this->m_YradDif / Util::deg2rad(90);
+			this->m_CanAim = std::fabsf(Per) < 1.f;
+			if (NeedAim) {
+				Per = 0.f;
 			}
+			Per *= this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone));
+			float Rad = Util::deg2rad(90) * std::clamp(Per, -0.3f, 0.3f);
+			Util::Easing(&m_YradProne, Rad, 0.9f);
 		}
-		this->m_CanAim = std::fabsf(Per) < 1.f;
-		if (NeedAim) {
-			Per = 0.f;
+		//回転
+		{
+			float Per = 0.f;
+			if (!IsFPSView()) {
+				if (IsFreeView() && (this->m_CharaStyle != CharaStyle::Run) && !GetIsReloading()) {
+					Per = -Util::VECTOR3D::SignedAngle(GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Head)).zvec() * -1.f, this->m_AimPoint - GetFrameLocalWorldMatrix(static_cast<int>(CharaFrame::Head)).pos(), Util::VECTOR3D::up());
+				}
+				else {
+					Per = this->m_YradDif;
+				}
+			}
+			this->m_CanAim = std::fabsf(Per / Util::deg2rad(90)) < 1.f;
+
+			Per *= (1.f - this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone)));
+
+			Util::Easing(&m_SwitchPer, (Per / Util::deg2rad(90) >= -0.5f) ? 1.f : 0.f, 0.9f);
+			m_YradUpper = std::clamp(-Per, -Util::deg2rad(90), Util::deg2rad(90));
 		}
-		Per *= this->m_StylePer.at(static_cast<size_t>(CharaStyle::Prone));
-		float Rad = Util::deg2rad(90) * std::clamp(Per, -0.3f, 0.3f);
-		Util::Easing(&m_YradProne, Rad, 0.9f);
 
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper),
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), m_YradUpper * 0.5f)*
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_Rad.x * 0.6f) *
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), this->m_YradProne * 0.6f) *
 
@@ -1253,8 +1276,9 @@ void Character::Update_Chara(void) noexcept {
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper))
 		);
 		SetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2),
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), m_YradUpper * 0.5f)*
 			Util::Matrix4x4::RotAxis(Util::VECTOR3D::right(), -m_Rad.x * 0.4f) *
-			Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), this->m_YradProne * 0.4f) *
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::forward(), this->m_YradProne * 0.4f)*
 			GetFrameLocalMatrix(static_cast<int>(CharaFrame::Upper2))
 		);
 	}
