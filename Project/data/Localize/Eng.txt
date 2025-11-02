@@ -46,7 +46,7 @@
 0309=Walk
 0310=Squat
 0311=Prone
-0312=Jump
+0312=îÚÇ—çûÇ›
 0313=Attack
 0314=Use Sight
 0315=Change Weapon

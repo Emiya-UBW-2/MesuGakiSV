@@ -162,6 +162,7 @@ enum class CharaAnim {
 	ArmlockedEnd,
 	Wakeup,
 	Fall,
+	Dive,//ダイブ
 	Max,
 };
 
@@ -169,6 +170,7 @@ enum class CharaFrame {
 	Center,
 	Upper,
 	Upper2,
+	Neck,
 	Head,
 	Eye,
 	LeftFoot1,
@@ -206,6 +208,7 @@ static const char* CharaFrameName[static_cast<int>(CharaFrame::Max)] = {
 	"センター",
 	"上半身",
 	"上半身2",
+	"首",
 	"頭",
 	"両目",
 	"左足",
@@ -516,11 +519,12 @@ class Character :public CharacterCommon {
 	bool				m_AnimMoving{ false };
 	bool				m_ShotSwitch{ false };
 	bool				m_PunchAttack{ false };
+	bool				m_DiveAttack{ false };
 	bool				m_ArmlockInjector{ false };
 	bool				m_CanArmlock{ false };
 	bool				m_CanAim{ false };
 	bool				m_IsFall{ false };
-	char		padding2[6]{};
+	char		padding2[2]{};
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
 	Sound::SoundUniqueID	m_KickID{ InvalidID };
@@ -549,6 +553,9 @@ class Character :public CharacterCommon {
 	SpecialAction		m_Armlocked;
 	int					m_ArmlockedPos{};
 
+	SpecialAction		m_Dive;
+
+	float				m_DivePer{};
 	bool				m_WakeBottom{};
 	bool				m_IsAutoAim{};
 	char		padding3[6]{};
