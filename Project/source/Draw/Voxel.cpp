@@ -148,7 +148,6 @@ namespace BG {
 		int8_t CanDrawXYZ = 0b000000;
 		Algorithm::Vector3Int Vofset = Vofs;
 		for (Vofset.z = MaxminT; Vofset.z <= MaxmaxT; ++Vofset.z) {
-			if (!cellx.isInside((VCenter + Vofset).x, (VCenter + Vofset).y, (VCenter + Vofset).z)) { continue; }
 			const auto& CellBuff = cellx.GetCellBuf(VCenter + Vofset);
 			bool CheckInside = false;
 			if (!cellx.isReferenceCell()) {
@@ -164,6 +163,7 @@ namespace BG {
 				|| CheckInside// 描画してはならない地点に入った
 				|| (PrevPut && CheckBlockID)// 置けるところだがテクスチャが変わった
 				|| !CellBuff.CanDraw()// 描画してはいけないブロックの地点に入った
+				|| (!cellx.isInside((VCenter + Vofset).x, (VCenter + Vofset).y, (VCenter + Vofset).z))//範囲外なので置けない
 				);
 			if (IsPutPoint) {
 				if (!PrevPut) {
@@ -240,7 +240,6 @@ namespace BG {
 		int8_t CanDrawXYZ = 0b000000;
 		Algorithm::Vector3Int Vofset = Vofs;
 		for (Vofset.x = MaxminT; Vofset.x <= MaxmaxT; ++Vofset.x) {
-			if (!cellx.isInside((VCenter + Vofset).x, (VCenter + Vofset).y, (VCenter + Vofset).z)) { continue; }
 			const auto& CellBuff = cellx.GetCellBuf(VCenter + Vofset);
 			bool CheckInside = false;
 			if (!cellx.isReferenceCell()) {
@@ -256,6 +255,7 @@ namespace BG {
 				|| CheckInside// 描画してはならない地点に入ったので置けない
 				|| (PrevPut && CheckBlockID)// 置けるところだがテクスチャが変わったので置けない
 				|| !CellBuff.CanDraw()// 描画してはいけないブロックの地点に入ったので置けない
+				|| (!cellx.isInside((VCenter + Vofset).x, (VCenter + Vofset).y, (VCenter + Vofset).z))//範囲外なので置けない
 				);
 			if (IsPutPoint) {
 				if (!PrevPut) {
@@ -322,7 +322,6 @@ namespace BG {
 		}
 		Algorithm::Vector3Int Vofs{};
 		for (Vofs.y = DrawMaxYMinus; Vofs.y <= DrawMaxYPlus; ++Vofs.y) {
-			if (!cellx.isInside(0, VCenter.y + Vofs.y, 0)) { continue; }
 			float CamVecDotY = Draws.GetCamVec().y * (static_cast<float>(Vofs.y) + 0.5f);
 			if (UseCenterFrustumCulling) {
 				// 矩形がカメラの平面寄り裏にある場合(4点がすべて裏にある場合)はスキップ

@@ -301,7 +301,7 @@ namespace BackGround {
 		}
 		Algorithm::Vector3Int Vofs{};
 		for (Vofs.y = DrawMaxYMinus; Vofs.y <= DrawMaxYPlus; ++Vofs.y) {
-			if (!cellx.isInside(VCenter.x + Vofs.x, VCenter.y + Vofs.y, VCenter.z + Vofs.z)) { continue; }
+			if (!cellx.isInside(0.f, VCenter.y + Vofs.y, 0.f)) { continue; }
 			float CamVecDotY = Draws.GetCamVec().y * (static_cast<float>(Vofs.y) + 0.5f);
 			if (UseCenterFrustumCulling) {
 				// 矩形がカメラの平面寄り裏にある場合(4点がすべて裏にある場合)はスキップ
@@ -316,6 +316,7 @@ namespace BackGround {
 			}
 			// X
 			for (Vofs.z = DrawMaxZMinus; Vofs.z <= DrawMaxZPlus; ++Vofs.z) {
+				if (!cellx.isInside(0.f, VCenter.y + Vofs.y, VCenter.z + Vofs.z)) { continue; }
 				int xMaxminT = DrawMaxXMinus;
 				int xMaxmaxT = DrawMaxXPlus;
 				if (UseCenterFrustumCulling) {
@@ -330,6 +331,7 @@ namespace BackGround {
 			}
 			// Z
 			for (Vofs.x = DrawMaxXMinus; Vofs.x <= DrawMaxXPlus; ++Vofs.x) {
+				if (!cellx.isInside(VCenter.x + Vofs.x, VCenter.y + Vofs.y, 0.f)) { continue; }
 				int zMaxminT = DrawMaxZMinus;
 				int zMaxmaxT = DrawMaxZPlus;
 				if (UseCenterFrustumCulling) {

@@ -359,9 +359,9 @@ namespace BG {
 			}
 			bool			isInside(int Xvoxel, int Yvoxel, int Zvoxel) const noexcept {
 				return 
-					((0 <= Xvoxel) && (Xvoxel < this->All)) &&
-					((0 <= Yvoxel) && (Yvoxel < this->All)) &&
-					((0 <= Zvoxel) && (Zvoxel < this->All))
+					((5 <= Xvoxel) && (Xvoxel < this->All - 5)) &&
+					((5 <= Yvoxel) && (Yvoxel < this->All - 5)) &&
+					((5 <= Zvoxel) && (Zvoxel < this->All - 5))
 					;
 			}
 			// ボクセル座標から描画座標の最小範囲に変換
