@@ -124,7 +124,11 @@ namespace AIs {
 			}
 			int NowIndex = BackGroundParts->GetWayPoint()->GetNearestBuilds(NowPosition);
 			if (!((*TargetPathPlanningIndex != -1) && (this->m_GoalUnit))) {
-				return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(BackGroundParts->GetWayPoint()->GetNearestBuilds2(NowPosition))).GetPos();
+				auto Ans = BackGroundParts->GetWayPoint()->GetNearestBuilds2(NowPosition);
+				if (Ans == -1) {
+					return this->m_GoalPosition;
+				}
+				return BackGroundParts->GetWayPoint()->GetWayPoints().at(static_cast<size_t>(Ans)).GetPos();
 			}
 			if (NowIndex != this->m_GoalUnit->GetPolyIndex()) {																	// 現在乗っているポリゴンがゴール地点にあるポリゴンの場合は処理を分岐
 				if (NowIndex == *TargetPathPlanningIndex) {													// 現在乗っているポリゴンが移動中間地点のポリゴンの場合は次の中間地点を決定する処理を行う

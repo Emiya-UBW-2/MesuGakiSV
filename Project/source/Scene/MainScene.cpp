@@ -73,7 +73,8 @@ void MainScene::Init_Sub(void) noexcept {
 	this->m_EquipUI.emplace_back();
 	this->m_EquipUI.back().Init(&this->m_HandGun);
 
-	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.7f, 0.3f).normalized();
+	//Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.7f, 0.3f).normalized();
+	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(0.02f, -1.f, 0.02f).normalized();
 
 	auto* PostPassParts = Draw::PostPassEffect::Instance();
 	PostPassParts->SetShadowScale(0.5f);
@@ -271,7 +272,7 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamPosition2;
 	Util::VECTOR3D CamTarget2;
 	if (this->m_FPSPer != 0.f) {
-		BackGround::Instance()->SettingChange(2, 1);
+		BackGround::Instance()->SettingChange(1, 0);
 		Util::Matrix4x4 EyeMat = Player->GetPlayerEyeMat();
 		CamPosition1 = EyeMat.pos();
 		CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f * Scale3DRate);
@@ -444,12 +445,19 @@ void MainScene::Draw_Sub(void) noexcept {
 			//*/
 		}
 	}
+	SetFogEnable(true);
+	SetFogMode(DX_FOGMODE_LINEAR);
+	SetFogStartEnd(20.0f * Scale3DRate, 50.0f * Scale3DRate);
+	SetFogColor(0, 0, 0);
+
 	SetVerticalFogEnable(true);
 	SetVerticalFogMode(DX_FOGMODE_LINEAR);
 	SetVerticalFogStartEnd(8.0f * Scale3DRate, 7.0f * Scale3DRate);
 	SetVerticalFogColor(0, 0, 0);
 	BackGround::Instance()->Draw();
 	SetVerticalFogEnable(false);
+
+	SetFogEnable(false);
 	ObjectManager::Instance()->Draw();
 }
 void MainScene::DepthDraw_Sub(void) noexcept {

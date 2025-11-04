@@ -271,7 +271,7 @@ void Character::Update_Chara(void) noexcept {
 		this->m_IsFPS ^= 1;
 	}
 	//
-	if (!m_Dive.IsActive() && (this->m_CharaStyle != CharaStyle::Prone)) {
+	if (!m_Dive.IsActive() && (this->m_CharaStyle != CharaStyle::Prone) && !(this->m_Punch.IsActive() || this->m_Armlock.IsActive() || this->m_Armlocked.IsActive() || this->m_WakeBottom)) {
 		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Jump)) {
 			this->m_Dive.SetActive();
 			this->m_DivePer = 1.f;
@@ -531,6 +531,10 @@ void Character::Update_Chara(void) noexcept {
 			this->m_InputVec.x = -m_HitVec.x;
 			this->m_InputVec.y = -m_HitVec.z;
 		}
+		if (this->m_Punch.IsActive() || this->m_Armlock.IsActive() || this->m_Armlocked.IsActive() || this->m_WakeBottom) {
+			this->m_InputVec.x = 0.f;
+			this->m_InputVec.y = 0.f;
+		}
 
 		this->m_RadAdd.y = 0.f;
 		this->m_RadAdd.x = 0.f;
@@ -584,11 +588,6 @@ void Character::Update_Chara(void) noexcept {
 				}
 				Util::Easing(&m_Rad.z, this->m_RadAdd.y * Power, 0.9f);
 			}
-		}
-
-		if (this->m_Armlocked.IsActive() || this->m_WakeBottom) {
-			this->m_RadAdd.y = 0.f;
-			this->m_RadAdd.x = 0.f;
 		}
 
 		this->m_Rad.y += this->m_RadAdd.y;
@@ -1039,13 +1038,13 @@ void Character::Update_Chara(void) noexcept {
 		Util::VECTOR3D Target = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::forward() * -(1.5f * Scale3DRate), this->m_Rot);
 		for (auto& c : PlayerManager::Instance()->SetCharacter()) {
 			if (c->IsPlayer()) { continue; }
-			Util::VECTOR3D Base1 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), this->m_Rot);
+			Util::VECTOR3D Base1 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.5f * Scale3DRate), this->m_Rot);
 			Util::VECTOR3D Base2 = Base;
-			Util::VECTOR3D Base3 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), this->m_Rot);
+			Util::VECTOR3D Base3 = Base + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.5f * Scale3DRate), this->m_Rot);
 
-			Util::VECTOR3D Target1 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.3f * Scale3DRate), this->m_Rot);
+			Util::VECTOR3D Target1 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * (0.5f * Scale3DRate), this->m_Rot);
 			Util::VECTOR3D Target2 = Target;
-			Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.3f * Scale3DRate), this->m_Rot);
+			Util::VECTOR3D Target3 = Target + Util::Matrix3x3::Vtrans(Util::VECTOR3D::right() * -(0.5f * Scale3DRate), this->m_Rot);
 			if (c->CheckHit(Base1, &Target1) || c->CheckHit(Base2, &Target2) || c->CheckHit(Base3, &Target3)) {
 				((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - Base, 1.5f);
 				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, HitHumanID)->Play3D(Target, 10.f * Scale3DRate);

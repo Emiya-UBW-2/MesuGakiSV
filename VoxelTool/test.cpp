@@ -67,18 +67,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				int xp = XSize * Xvoxel / (Voxel.GetReferenceCells().All - 1);
 				int yp = YSize - YSize * Zvoxel / (Voxel.GetReferenceCells().All - 1);
 				int r = 0;
-				GetPixelSoftImage(SoftImage1F, xp, yp, &r, nullptr, nullptr, nullptr);
+				int b = 0;
+				GetPixelSoftImage(SoftImage1F, xp, yp, &r, nullptr, &b, nullptr);
 				int ID = 1;
 				{
 					int cr = 0;
 					int cg = 0;
 					int cb = 0;
 					GetPixelSoftImage(SoftImage1FColor, xp, yp, &cr, &cg, &cb, nullptr);
-					if (cr == 255 && cg == 0 && cb == 0) {
+					if (cr == 0 && cg == 255 && cb == 0) {
+						ID = 5;
+					}
+					else if (cr == 255 && cg == 0 && cb == 0) {
 						ID = 4;
 					}
 					else if (cr == 255 && cg == 255 && cb == 0) {
 						ID = 3;
+					}
+					else if (cr == 0 && cg == 0 && cb == 255) {
+						ID = 2;
 					}
 				}
 
@@ -107,23 +114,32 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				int xp = XSize * Xvoxel / (Voxel.GetReferenceCells().All - 1);
 				int yp = YSize - YSize * Zvoxel / (Voxel.GetReferenceCells().All - 1);
 				int r = 0;
-				GetPixelSoftImage(SoftImage2F, xp, yp, &r, nullptr, nullptr, nullptr);
+				int b = 0;
+				GetPixelSoftImage(SoftImage2F, xp, yp, &r, nullptr, &b, nullptr);
 				int ID = 1;
 				{
 					int cr = 0;
 					int cg = 0;
 					int cb = 0;
 					GetPixelSoftImage(SoftImage2FColor, xp, yp, &cr, &cg, &cb, nullptr);
-					if (cr == 255 && cg == 0 && cb == 0) {
+					if (cr == 0 && cg == 255 && cb == 0) {
+						ID = 5;
+					}
+					else if (cr == 255 && cg == 0 && cb == 0) {
 						ID = 4;
 					}
 					else if (cr == 255 && cg == 255 && cb == 0) {
 						ID = 3;
 					}
+					else if (cr == 0 && cg == 0 && cb == 255) {
+						ID = 2;
+					}
 				}
-
+				if (b == 255) {
+					ID += 6;
+				}
 				if (r != 0) {
-					int Min = Voxel.GetReferenceCells().All / 4 + Voxel.GetReferenceCells().All * 3 / 4 * 160 / 255;
+					int Min = Voxel.GetReferenceCells().All / 4 + Voxel.GetReferenceCells().All * 3 / 4 * r / 255;
 					int Now = Voxel.GetReferenceCells().All / 4 + Voxel.GetReferenceCells().All * 3 / 4 * r / 255;
 					for (int Yvoxel = Min - 3; Yvoxel < Now; ++Yvoxel) {
 						Voxel.SetBlick(Xvoxel, Yvoxel, Zvoxel, ID, false);

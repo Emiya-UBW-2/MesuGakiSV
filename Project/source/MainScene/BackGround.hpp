@@ -114,9 +114,8 @@ public:
 				}
 			}
 		}
-		Util::VECTOR3D Answer;
 		if (SelList.size() == 0) {
-			Answer = Pos;
+			return Pos;
 		}
 		return this->m_WayPoints.at(static_cast<size_t>(SelList.at(static_cast<size_t>(GetRand((int)SelList.size() - 1))))).GetPos();
 	}

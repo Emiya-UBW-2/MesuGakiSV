@@ -307,7 +307,10 @@ namespace BG {
 			float					Scale = (CellScale * static_cast<float>(this->ScaleRate));// 描画座標に変換する際にかける数
 		private:
 			// 特定軸のループするインデックスを取得
-			int			GetLoopIndex(int axis) const noexcept { return (axis % this->All + this->All) % this->All; }
+			int			GetLoopIndex(int axis) const noexcept {
+				return std::clamp(axis, 0, this->All - 1);
+				//return (axis % this->All + this->All) % this->All;
+			}
 		public:
 			const CellBuffer& GetCellBuf(int Xvoxel, int Yvoxel, int Zvoxel) const noexcept { return this->m_CellBuffer[GetCellIndex(Xvoxel, Yvoxel, Zvoxel)]; }
 			const CellBuffer& GetCellBuf(const Algorithm::Vector3Int& VoxelPoint) const noexcept { return GetCellBuf(VoxelPoint.x, VoxelPoint.y, VoxelPoint.z); }
@@ -354,7 +357,13 @@ namespace BG {
 					return s_EmptyBlick;
 				}
 			}
-			bool			isInside(int Yvoxel) const noexcept { return ((0 <= Yvoxel) && (Yvoxel < this->All)); }
+			bool			isInside(int Xvoxel, int Yvoxel, int Zvoxel) const noexcept {
+				return 
+					((0 <= Xvoxel) && (Xvoxel < this->All)) &&
+					((0 <= Yvoxel) && (Yvoxel < this->All)) &&
+					((0 <= Zvoxel) && (Zvoxel < this->All))
+					;
+			}
 			// ボクセル座標から描画座標の最小範囲に変換
 			Util::VECTOR3D		GetWorldPos(int Xvoxel, int Yvoxel, int Zvoxel) const noexcept {
 				return Util::VECTOR3D::vget(
@@ -379,17 +388,27 @@ namespace BG {
 				);
 			}
 			void				CalcOcclusion(int Xvoxel, int Yvoxel, int Zvoxel) noexcept {
-				if (!isInside(Yvoxel)) { return; }
+				if (!isInside(Xvoxel, Yvoxel, Zvoxel)) { return; }
 				if (GetCellBuf(Xvoxel, Yvoxel, Zvoxel).IsEmpty()) { return; }
 
 				SetCellBuf(Xvoxel, Yvoxel, Zvoxel).ResetOcclusion();
-				if (!GetCellBuf(Xvoxel + 1, Yvoxel, Zvoxel).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(0); }
+				if ((Xvoxel == this->All - 1) ? true : !GetCellBuf(Xvoxel + 1, Yvoxel, Zvoxel).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(0); }
 
-				if (!GetCellBuf(Xvoxel - 1, Yvoxel, Zvoxel).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(1); }
-				if ((Yvoxel == this->All - 1) ? true : !GetCellBuf(Xvoxel, Yvoxel + 1, Zvoxel).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(2); }
+				if ((Xvoxel == 0) ? true : !GetCellBuf(Xvoxel - 1, Yvoxel, Zvoxel).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(1); }
+
+				if (Yvoxel == this->All - 1) {
+					SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(2);
+				}
+				else {
+					if (GetCellBuf(Xvoxel, Yvoxel + 1, Zvoxel).GetCellTexID() >= 7) {
+					}
+					else if (!GetCellBuf(Xvoxel, Yvoxel + 1, Zvoxel).IsEmpty()) {
+						SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(2);
+					}
+				}
 				if ((Yvoxel == 0) ? true : !GetCellBuf(Xvoxel, Yvoxel - 1, Zvoxel).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(3); }
-				if (!GetCellBuf(Xvoxel, Yvoxel, Zvoxel + 1).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(4); }
-				if (!GetCellBuf(Xvoxel, Yvoxel, Zvoxel - 1).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(5); }
+				if ((Zvoxel == this->All - 1) ? true : !GetCellBuf(Xvoxel, Yvoxel, Zvoxel + 1).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(4); }
+				if ((Zvoxel == 0) ? true : !GetCellBuf(Xvoxel, Yvoxel, Zvoxel - 1).IsEmpty()) { SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(5); }
 			}
 		public:
 			void				Init(int scale) noexcept {

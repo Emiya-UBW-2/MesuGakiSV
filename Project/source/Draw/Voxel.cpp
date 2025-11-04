@@ -21,6 +21,9 @@ namespace BG {
 
 	void		VoxelControl::AddPlaneXPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
+		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
+			return;
+		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int zscale{};
@@ -38,6 +41,9 @@ namespace BG {
 	}
 	void		VoxelControl::AddPlaneXMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
+		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
+			return;
+		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int zscale{};
@@ -55,6 +61,9 @@ namespace BG {
 	}
 	void		VoxelControl::AddPlaneYPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
+		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
+			return;
+		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int zscale{};
@@ -89,6 +98,9 @@ namespace BG {
 	}
 	void		VoxelControl::AddPlaneZPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
+		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
+			return;
+		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int xscale{};
@@ -106,6 +118,9 @@ namespace BG {
 	}
 	void		VoxelControl::AddPlaneZMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
+		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
+			return;
+		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int xscale{};
@@ -133,6 +148,7 @@ namespace BG {
 		int8_t CanDrawXYZ = 0b000000;
 		Algorithm::Vector3Int Vofset = Vofs;
 		for (Vofset.z = MaxminT; Vofset.z <= MaxmaxT; ++Vofset.z) {
+			if (!cellx.isInside((VCenter + Vofset).x, (VCenter + Vofset).y, (VCenter + Vofset).z)) { continue; }
 			const auto& CellBuff = cellx.GetCellBuf(VCenter + Vofset);
 			bool CheckInside = false;
 			if (!cellx.isReferenceCell()) {
@@ -224,6 +240,7 @@ namespace BG {
 		int8_t CanDrawXYZ = 0b000000;
 		Algorithm::Vector3Int Vofset = Vofs;
 		for (Vofset.x = MaxminT; Vofset.x <= MaxmaxT; ++Vofset.x) {
+			if (!cellx.isInside((VCenter + Vofset).x, (VCenter + Vofset).y, (VCenter + Vofset).z)) { continue; }
 			const auto& CellBuff = cellx.GetCellBuf(VCenter + Vofset);
 			bool CheckInside = false;
 			if (!cellx.isReferenceCell()) {
@@ -305,7 +322,7 @@ namespace BG {
 		}
 		Algorithm::Vector3Int Vofs{};
 		for (Vofs.y = DrawMaxYMinus; Vofs.y <= DrawMaxYPlus; ++Vofs.y) {
-			if (!cellx.isInside(VCenter.y + Vofs.y)) { continue; }
+			if (!cellx.isInside(0, VCenter.y + Vofs.y, 0)) { continue; }
 			float CamVecDotY = Draws.GetCamVec().y * (static_cast<float>(Vofs.y) + 0.5f);
 			if (UseCenterFrustumCulling) {
 				// 矩形がカメラの平面寄り裏にある場合(4点がすべて裏にある場合)はスキップ
@@ -378,7 +395,7 @@ namespace BG {
 						Start.x + Xofs, Start.y + Yofs, Start.z + Zofs,
 						End.x + Xofs, End.y + Yofs, End.z + Zofs,
 						[&](const Algorithm::Vector3Int& Voxel) {
-							if (!GetReferenceCells().isInside(Voxel.y)) { return false; }
+							if (!GetReferenceCells().isInside(Voxel.x, Voxel.y, Voxel.z)) { return false; }
 							if (!GetReferenceCells().GetCellBuf(Voxel).CanDraw()) { return false; }
 							Util::VECTOR3D MinPos = GetReferenceCells().GetWorldPosOffset(Voxel, 0, 0, 0);
 							MinPos = MinPos + Util::VECTOR3D::vget(-0.1f, -0.1f, -0.1f) * Scale3DRate;
@@ -420,7 +437,7 @@ namespace BG {
 						Start.x + Xofs, Start.y + Yofs, Start.z + Zofs,
 						End.x + Xofs, End.y + Yofs, End.z + Zofs,
 						[&](const Algorithm::Vector3Int& Voxel) {
-							if (!GetReferenceCells().isInside(Voxel.y)) { return false; }
+							if (!GetReferenceCells().isInside(Voxel.x, Voxel.y, Voxel.z)) { return false; }
 							const auto& CellBuff = GetReferenceCells().GetCellBuf(Voxel);
 							if (!CellBuff.CanDraw()) { return false; }
 							Util::VECTOR3D MinPos = GetReferenceCells().GetWorldPosOffset(Voxel, 0, 0, 0);
@@ -786,7 +803,7 @@ namespace BG {
 			[this]() {
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].StartRegist();
-				AddCubes(0, static_cast<size_t>(TotalCellLayer + 0), false, false, false);
+				AddCubes(0, static_cast<size_t>(TotalCellLayer + 0), false, false, true);
 			},
 			[this]() {
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].EndRegist();
@@ -795,7 +812,7 @@ namespace BG {
 			[this]() {
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 1)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 1)].StartRegist();
-				AddCubes(1, static_cast<size_t>(TotalCellLayer + 1), false, false, false);
+				AddCubes(1, static_cast<size_t>(TotalCellLayer + 1), false, false, true);
 			},
 			[this]() {
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 1)].EndRegist();
@@ -804,7 +821,7 @@ namespace BG {
 			[this]() {
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 2)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 2)].StartRegist();
-				AddCubes(2, static_cast<size_t>(TotalCellLayer + 2), false, false, false);
+				AddCubes(2, static_cast<size_t>(TotalCellLayer + 2), false, false, true);
 			},
 			[this]() {
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
@@ -814,7 +831,7 @@ namespace BG {
 			[this]() {
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 3)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 3)].StartRegist();
-				AddCubes(3, static_cast<size_t>(TotalCellLayer + 3), false, false, false);
+				AddCubes(3, static_cast<size_t>(TotalCellLayer + 3), false, false, true);
 			},
 			[this]() {
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 3)].EndRegist();
@@ -822,6 +839,14 @@ namespace BG {
 		this->m_ThreadCounter = 0;
 		// 
 		SettingChange(1/*2段目まで表示*/, 0/*1段目まで表示*/);
+
+		MATERIALPARAM Param{};
+		Param.Diffuse = GetColorF(0.0f, 0.0f, 0.0f, 1.0f);						// ディフューズカラー
+		Param.Ambient = GetColorF(0.5f, 0.5f, 0.5f, 1.0f);						// アンビエントカラー
+		Param.Specular = GetColorF(0.0f, 0.0f, 0.0f, 0.0f);						// スペキュラカラー
+		Param.Emissive = GetColorF(0.0f, 0.0f, 0.0f, 0.0f);						// エミッシブカラー
+		Param.Power = 500.0f;													// スペキュラハイライトの鮮明度
+		SetMaterialParam(Param);
 	}
 	void		VoxelControl::Update(void) noexcept {
 		for (int loop = 0; loop < TotalCellLayer; ++loop) {
