@@ -685,20 +685,22 @@ void Character::Update_Chara(void) noexcept {
 	}
 	this->m_CanArmlock = (ID != InvalidID);
 
+	if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
+		if (this->m_Maingun.GetIsReady()) {
+			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
+			if (gun->CanShot() && this->m_Maingun.CanShot()) {
+				gun->ShotStart();
+				this->m_ShotSwitch = true;
+				if (IsFPSView()) {
+					Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.01f * Scale3DRate);
+				}
+			}
+		}
+	}
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack)) {
 		if (this->m_Handgun.GetIsReady()) {
 			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Handgun.GetUniqueID()));
 			if (gun->CanShot() && this->m_Handgun.CanShot()) {
-				gun->ShotStart();
-				this->m_ShotSwitch = true;
-				if (IsFPSView()) {
-					Camera::Camera3D::Instance()->SetCamShake(0.1f, 0.1f * Scale3DRate);
-				}
-			}
-		}
-		if (this->m_Maingun.GetIsReady()) {
-			auto& gun = (std::shared_ptr<Gun>&)(*ObjectManager::Instance()->GetObj(this->m_Maingun.GetUniqueID()));
-			if (gun->CanShot() && this->m_Maingun.CanShot()) {
 				gun->ShotStart();
 				this->m_ShotSwitch = true;
 				if (IsFPSView()) {

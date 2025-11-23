@@ -165,9 +165,10 @@ void MainScene::Update_Sub(void) noexcept {
 			}
 		}
 	);
+	auto& Player = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 	//
 	CameraParts->SetCamInfo(Util::Lerp(Util::deg2rad(45),
-		CameraParts->GetCamera().GetCamFov() - this->m_ShotFov * Util::deg2rad(5),
+		CameraParts->GetCamera().GetCamFov() - this->m_ShotFov * Util::Lerp(Util::deg2rad(5), Util::deg2rad(15), Player->GetADSPer()),
 		this->m_FPSPer), CameraParts->GetCamera().GetCamNear(), CameraParts->GetCamera().GetCamFar());
 	// 影をセット
 	PostPassParts->SetShadowFarChange();
@@ -193,7 +194,6 @@ void MainScene::Update_Sub(void) noexcept {
 		DxLib::SetMouseDispFlag(true);
 		return;
 	}
-	auto& Player = ((std::shared_ptr<Character>&)PlayerManager::Instance()->SetCharacter().at(0));
 
 	Util::Easing(&m_AutoAimActive, Player->GetIsAutoAim() ? 1.f : 0.f, 0.9f);
 	m_AimRotate += Util::deg2rad(180) * DeltaTime;
@@ -328,7 +328,7 @@ void MainScene::Update_Sub(void) noexcept {
 		this->m_ShotFov = 1.f;
 	}
 	else {
-		Util::Easing(&m_ShotFov, 0.f, 0.9f);
+		Util::Easing(&m_ShotFov, 0.f, 0.8f);
 	}
 
 	DxLib::SetMouseDispFlag(!Player->IsFPSView() && !Player->IsFreeView());
