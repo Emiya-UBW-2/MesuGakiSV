@@ -267,9 +267,12 @@ void Character::Update_Chara(void) noexcept {
 	MoveKey |= UpKey ? (1 << 2) : 0;
 	MoveKey |= DownKey ? (1 << 3) : 0;
 	//
+	/*
 	if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Walk)) {
 		this->m_IsFPS ^= 1;
 	}
+	//*/
+	this->m_IsFPS = true;
 	//
 	if (!m_Dive.IsActive() && (this->m_CharaStyle != CharaStyle::Prone) && !(this->m_Punch.IsActive() || this->m_Armlock.IsActive() || this->m_Armlocked.IsActive() || this->m_WakeBottom)) {
 		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Jump)) {

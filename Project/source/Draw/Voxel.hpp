@@ -400,9 +400,7 @@ namespace BG {
 					SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(2);
 				}
 				else {
-					if (GetCellBuf(Xvoxel, Yvoxel + 1, Zvoxel).GetCellTexID() >= 7) {
-					}
-					else if (!GetCellBuf(Xvoxel, Yvoxel + 1, Zvoxel).IsEmpty()) {
+					if (!GetCellBuf(Xvoxel, Yvoxel + 1, Zvoxel).IsEmpty()) {
 						SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetOcclusion(2);
 					}
 				}

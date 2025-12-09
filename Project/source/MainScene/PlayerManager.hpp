@@ -27,7 +27,7 @@ public:
 	void Load(void) noexcept {
 		ObjectManager::Instance()->LoadModel("data/model/Soldier/");
 		ObjectManager::Instance()->LoadModel("data/model/Early/");
-		this->m_Character.resize(6);
+		this->m_Character.resize(1);
 	}
 	void Init(void) noexcept {
 		size_t loop = 0;

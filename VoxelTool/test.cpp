@@ -104,6 +104,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		DeleteSoftImage(SoftImage1F);
 		DeleteSoftImage(SoftImage1FColor);
 	}
+	//if(false)
 	{
 		int XSize{}, YSize{};
 		int SoftImage2F = LoadSoftImage("data/map2F.bmp");

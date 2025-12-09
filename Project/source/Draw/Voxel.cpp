@@ -21,9 +21,6 @@ namespace BG {
 
 	void		VoxelControl::AddPlaneXPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
-		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
-			return;
-		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int zscale{};
@@ -41,9 +38,6 @@ namespace BG {
 	}
 	void		VoxelControl::AddPlaneXMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
-		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
-			return;
-		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int zscale{};
@@ -61,9 +55,6 @@ namespace BG {
 	}
 	void		VoxelControl::AddPlaneYPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
-		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
-			return;
-		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int zscale{};
@@ -98,9 +89,6 @@ namespace BG {
 	}
 	void		VoxelControl::AddPlaneZPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
-		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
-			return;
-		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int xscale{};
@@ -118,9 +106,6 @@ namespace BG {
 	}
 	void		VoxelControl::AddPlaneZMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
-		if (cellx.GetCellBuf(Voxel1).GetCellTexID() >= 7) {
-			return;
-		}
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
 		int xscale{};
