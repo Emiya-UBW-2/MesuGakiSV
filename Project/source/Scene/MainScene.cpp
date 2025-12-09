@@ -64,14 +64,8 @@ void MainScene::Init_Sub(void) noexcept {
 	this->m_Exit = false;
 	this->m_Fade = 1.f;
 
-	this->m_cursorID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cursor.wav", false);
 	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
 	this->m_EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
-
-	this->m_EquipUI.emplace_back();
-	this->m_EquipUI.back().Init(&this->m_MainGun);
-	this->m_EquipUI.emplace_back();
-	this->m_EquipUI.back().Init(&this->m_HandGun);
 
 	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.9f, -0.5f, -0.3f).normalized();
 	//Util::VECTOR3D LightVec = Util::VECTOR3D::vget(0.02f, -1.f, 0.02f).normalized();
@@ -118,6 +112,7 @@ void MainScene::Init_Sub(void) noexcept {
 	KeyGuideParts->SetGuideFlip();
 
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->Play(DX_PLAYTYPE_LOOP, TRUE);
+	m_IsResetMouse = true;
 }
 void MainScene::Update_Sub(void) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
@@ -129,26 +124,20 @@ void MainScene::Update_Sub(void) noexcept {
 		[this]() {
 			auto* Localize = Util::LocalizePool::Instance();
 			auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
-			if (this->m_IsChangeEquip) {
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
-
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::W), "");
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::S), Localize->Get(332));
-			}
-			else if (!this->m_IsPauseActive) {
+			if (!this->m_IsPauseActive) {
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
 
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::W), "");
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::S), "");
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::A), "");
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::D), Localize->Get(334));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Q), "");
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::E), Localize->Get(335));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Run), Localize->Get(308));
-				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Walk), Localize->Get(309));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Jump), Localize->Get(312));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack), Localize->Get(336));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(338));
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Q), "");
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::E), Localize->Get(335));
+				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Walk), Localize->Get(309));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Squat), Localize->Get(310));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Prone), Localize->Get(311));
 				//KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::ChangeWeapon), Localize->Get(315));
@@ -192,66 +181,14 @@ void MainScene::Update_Sub(void) noexcept {
 	}
 	if (this->m_IsPauseActive) {
 		DxLib::SetMouseDispFlag(true);
+		m_IsResetMouse = true;
 		return;
 	}
 
-	Util::Easing(&m_AutoAimActive, Player->GetIsAutoAim() ? 1.f : 0.f, 0.9f);
-	m_AimRotate += Util::deg2rad(180) * DeltaTime;
-
-	if (Player->ChanChangeWeapon()) {
-		if (KeyMngr->GetBattleKeyReleaseTrigger(Util::EnumBattle::E)) {
-			KeyGuideParts->SetGuideFlip();
-			if ((this->m_EquipUITimer >= 10.f * DeltaTime) || (Player->GetEquip() == InvalidID)) {
-				Player->SetEquip(this->m_EquipID);
-			}
-			else {
-				Player->SetEquip(InvalidID);
-			}
-		}
-		bool IsChangeEquip = KeyMngr->GetBattleKeyPress(Util::EnumBattle::E);
-		if (IsChangeEquip) {
-			if (IsChangeEquip != this->m_IsChangeEquip) {
-				KeyGuideParts->SetGuideFlip();
-			}
-			float Prev = this->m_EquipUITimer;
-			this->m_EquipUITimer = std::clamp(this->m_EquipUITimer + DeltaTime, 0.f, 10.f * DeltaTime);
-			if (this->m_EquipUITimer >= 10.f * DeltaTime) {
-				if (Prev < 10.f * DeltaTime) {
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
-				}
-				Util::Easing(&m_EquipPer, 0.f, 0.9f);
-				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::W)) {
-					--m_EquipID;
-					if (this->m_EquipID < 0) { this->m_EquipID = static_cast<int>(this->m_EquipUI.size()) - 1; }
-					this->m_EquipPer -= 1.f;
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
-				}
-				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::S)) {
-					++m_EquipID;
-					if (this->m_EquipID > static_cast<int>(this->m_EquipUI.size()) - 1) { this->m_EquipID = 0; }
-					this->m_EquipPer += 1.f;
-					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_cursorID)->Play(DX_PLAYTYPE_BACK, TRUE);
-				}
-			}
-		}
-		else {
-			this->m_EquipUITimer = 0;
-			this->m_EquipPer = 0.f;
-		}
-		this->m_IsChangeEquip = IsChangeEquip;
-	}
-	else {
-		this->m_EquipUITimer = 0;
-		this->m_EquipPer = 0.f;
-		this->m_IsChangeEquip = false;
-	}
-	if (this->m_EquipUITimer >= 10.f * DeltaTime) {
-		this->m_EquipUIActivePer = std::clamp(this->m_EquipUIActivePer + DeltaTime / 0.1f, 0.f, 1.f);
-		DxLib::SetMouseDispFlag(true);
-		return;
-	}
-	else {
-		this->m_EquipUIActivePer = std::clamp(this->m_EquipUIActivePer - DeltaTime / 0.1f, 0.f, 1.f);
+	if (m_IsResetMouse) {
+		m_IsResetMouse = false;
+		auto* DrawerMngr = Draw::MainDraw::Instance();
+		DxLib::SetMousePoint(DrawerMngr->GetWindowDrawWidth() / 2, DrawerMngr->GetWindowDrawHeight() / 2);
 	}
 
 	AmmoBoxPool::Instance()->Update();
@@ -524,18 +461,6 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		}
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
-	if (Player->IsFreeView()) {
-		DxLib::SetDrawBright(0, 255, 0);
-		m_Cursor->DrawRotaGraph(static_cast<int>(Player->GetAimPoint2D().x), static_cast<int>(Player->GetAimPoint2D().y), 1.0f, 0.f, true);
-
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * m_AutoAimActive), 0, 255));
-		DxLib::SetDrawBright(128, 0, 0);
-		m_Lock->DrawRotaGraph(static_cast<int>(Player->GetAimPoint2D().x), static_cast<int>(Player->GetAimPoint2D().y), 1.0f * (2.f - m_AutoAimActive), m_AimRotate, true);
-		DxLib::SetDrawBright(255, 0, 0);
-		m_Lock->DrawRotaGraph(static_cast<int>(Player->GetAimPoint2D().x), static_cast<int>(Player->GetAimPoint2D().y), 1.0f * (2.f - m_AutoAimActive), -m_AimRotate, true);
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-		DxLib::SetDrawBright(255, 255, 255);
-	}
 	{
 		int count = 0;
 		{
@@ -677,52 +602,6 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		}
 
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-	}
-	if ((Player->GetEquip() != InvalidID) || (this->m_EquipUIActivePer > 0.f)) {
-		{
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(64.f * this->m_EquipUIActivePer), 0, 255));
-			DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-		}
-
-		int xpos = DrawerMngr->GetDispWidth() - 256 - 64;
-		int ypos = DrawerMngr->GetDispHeight() - 128 - 64;
-		for (int loop = 1; loop <= 3; ++loop) {
-			int ID = (loop + 4 + this->m_EquipID) % static_cast<int>(this->m_EquipUI.size());
-			int Y = ypos + static_cast<int>(static_cast<float>(128 + 16) * this->m_EquipUIActivePer) * loop + static_cast<int>(static_cast<float>(128 + 16) * this->m_EquipPer);
-			auto& d = this->m_EquipUI.at(static_cast<size_t>(ID));
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255 - (std::abs(Y - ypos))), 0, 255));
-			d.Draw(xpos, Y);
-		}
-		for (int loop = -3; loop <= 0; ++loop) {
-			int ID = (loop + 4 + this->m_EquipID) % static_cast<int>(this->m_EquipUI.size());
-			int Y = ypos + static_cast<int>(static_cast<float>(128 + 16) * this->m_EquipUIActivePer) * loop + static_cast<int>(static_cast<float>(128 + 16) * this->m_EquipPer);
-			auto& d = this->m_EquipUI.at(static_cast<size_t>(ID));
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255 - (std::abs(Y - ypos))), 0, 255));
-			d.Draw(xpos, Y);
-		}
-		DxLib::DrawBox(xpos, ypos, xpos + 256, ypos + 128, GetColor(255, 255, 0), false, 3);
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-
-		{
-			xpos = DrawerMngr->GetDispWidth() - 64;
-			ypos = DrawerMngr->GetDispHeight() - 128 - 5 - 64;
-
-			KeyGuideParts->DrawButton(xpos - 24, ypos - 24, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim));
-			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
-				Draw::FontXCenter::RIGHT, Draw::FontYCenter::BOTTOM,
-				xpos - 24, ypos,
-				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(337)));
-		}
-		{
-			xpos = DrawerMngr->GetDispWidth() - 256 - 64;
-			ypos = DrawerMngr->GetDispHeight() - 128 - 5 - 64;
-
-			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
-				Draw::FontXCenter::LEFT, Draw::FontYCenter::BOTTOM,
-				xpos, ypos,
-				ColorPalette::White, ColorPalette::Black, "Spare:%d/%d", Player->TotalAmmo(), Player->CanHaveAmmo());
-		}
 	}
 	this->m_PauseUI.Draw();
 	this->m_OptionWindow.Draw();

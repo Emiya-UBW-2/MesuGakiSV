@@ -699,11 +699,11 @@ namespace Draw {
 				{
 					auto* pOption = Util::OptionParam::Instance();
 					const float ShadowLevel = static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::Shadow))->GetSelect());
-					this->m_Shader.SetPixelParam(3, ShadowLevel, this->m_Scale * 450.f, 0.f, 0.f);
+					this->m_Shader.SetPixelParam(3, ShadowLevel, this->m_Scale * 450.f, 1.f, 1.5f);
 					this->m_Shader.SetVertexCameraMatrix(4, GetCamViewMatrix(false), GetCamProjectionMatrix(false));
 					this->m_Shader.SetVertexCameraMatrix(5, GetCamViewMatrix(true), GetCamProjectionMatrix(true));
 					this->m_Shader.Draw_lamda(doing);
-					this->m_ShaderRigid.SetPixelParam(3, ShadowLevel, this->m_Scale * 450.f, 0.f, 0.f);
+					this->m_ShaderRigid.SetPixelParam(3, ShadowLevel, this->m_Scale * 450.f, 1.f, 1.5f);
 					this->m_ShaderRigid.SetVertexCameraMatrix(4, GetCamViewMatrix(false), GetCamProjectionMatrix(false));
 					this->m_ShaderRigid.SetVertexCameraMatrix(5, GetCamViewMatrix(true), GetCamProjectionMatrix(true));
 					this->m_ShaderRigid.Draw_lamda(doing_rigid);

@@ -62,8 +62,8 @@ class MainScene : public Util::SceneBase {
 	bool							m_Exit{ false };
 	bool							m_IsSceneEnd{ false };
 	bool							m_IsPauseActive{ false };
-	bool							m_IsChangeEquip{ false };
-	char		padding[4]{};
+	bool							m_IsResetMouse{ false };
+	char		padding[3]{};
 	std::shared_ptr<Gun>			m_HandGun{};
 	std::shared_ptr<Gun>			m_MainGun{};
 	std::shared_ptr<Suppressor>		m_HandGunAttach{};
@@ -87,16 +87,8 @@ class MainScene : public Util::SceneBase {
 	float							m_Fade{ 1.f };
 	float							m_ShotFov{ 0.f };
 	char		padding3[4]{};
-	Sound::SoundUniqueID			m_cursorID{ InvalidID };
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
 	Sound::SoundUniqueID			m_EnviID{ InvalidID };
-	std::vector<EquipUI>			m_EquipUI;
-	float							m_EquipUITimer{};
-	float							m_EquipUIActivePer{};
-	int								m_EquipID{ 0 };
-	float							m_EquipPer{};
-	float							m_AutoAimActive{};
-	float							m_AimRotate{};
 	bool							m_UseLens{ false };
 	char		padding4[3]{};
 	Util::VECTOR2D					m_LensPos{};

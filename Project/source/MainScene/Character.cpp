@@ -273,6 +273,8 @@ void Character::Update_Chara(void) noexcept {
 	}
 	//*/
 	this->m_IsFPS = true;
+	this->m_Handgun.SetIsEquip(true);
+	this->m_Maingun.SetIsEquip(false);
 	//
 	if (!m_Dive.IsActive() && (this->m_CharaStyle != CharaStyle::Prone) && !(this->m_Punch.IsActive() || this->m_Armlock.IsActive() || this->m_Armlocked.IsActive() || this->m_WakeBottom)) {
 		if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Jump)) {
@@ -446,10 +448,7 @@ void Character::Update_Chara(void) noexcept {
 	int LookX = 0;
 	int LookY = 0;
 
-	if (IsFPSView()) {
-		if (this->m_PrevIsFPSView != IsFPSView()) {
-			DxLib::SetMousePoint(DrawerMngr->GetWindowDrawWidth() / 2, DrawerMngr->GetWindowDrawHeight() / 2);
-		}
+	{
 		int MX = DrawerMngr->GetMousePositionX();
 		int MY = DrawerMngr->GetMousePositionY();
 		DxLib::GetMousePoint(&MX, &MY);
