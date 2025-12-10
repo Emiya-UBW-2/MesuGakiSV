@@ -306,38 +306,6 @@ class BackGround : public Util::SingletonBase<BackGround> {
 private:
 	friend class Util::SingletonBase<BackGround>;
 private:
-	class mapGraph {
-		const Draw::GraphHandle*	m_Map{};
-		int					m_ID{};
-	public:
-		float				m_Per{};
-	public:
-		const auto& GetMap(void) const noexcept { return this->m_Map; }
-		auto GetID(void) const noexcept { return this->m_ID; }
-		auto GetPer(void) const noexcept { return this->m_Per; }
-	public:
-		mapGraph(void) noexcept {}
-		mapGraph(const mapGraph&) = delete;
-		mapGraph(mapGraph&& o) noexcept {
-			this->m_Map = o.m_Map;
-			this->m_ID = o.m_ID;
-			this->m_Per = o.m_Per;
-		}
-		mapGraph& operator=(const mapGraph&) = delete;
-		mapGraph& operator=(mapGraph&& o) noexcept {
-			this->m_Map = o.m_Map;
-			this->m_ID = o.m_ID;
-			this->m_Per = o.m_Per;
-			return *this;
-		}
-		virtual ~mapGraph(void) noexcept {}
-	public:
-		void Init(std::basic_string_view<TCHAR> FileName, int ID) noexcept {
-			this->m_Map = Draw::GraphPool::Instance()->Get(FileName)->Get();
-			this->m_ID = ID;
-			this->m_Per = 0.f;
-		}
-	};
 	struct MapInfo {
 		InfoType					m_InfoType{ InfoType::None };
 		BG::Algorithm::Vector3Int	m_pos{};
@@ -345,9 +313,8 @@ private:
 	};
 private:
 	std::vector<MapInfo>	m_MapInfo;
-	BG::VoxelControl		Voxel;
+	std::array<BG::VoxelControl,3>		m_Voxel;
 	Draw::MV1				SkyBoxID{};
-	std::vector<mapGraph>	m_map;
 	std::string				m_MapName;
 	std::unique_ptr<WayPointClass>		m_WayPoint;
 private:
@@ -359,46 +326,47 @@ private:
 	virtual ~BackGround(void) noexcept { Dispose(); }
 public:
 	auto			GetVoxelPoint(const Util::VECTOR3D& StartPos) const noexcept {
-		BG::Algorithm::Vector3Int Pos = Voxel.GetReferenceCells().GetVoxelPoint(StartPos);
-		Pos.x -= Voxel.GetReferenceCells().All / 2;
-		Pos.z -= Voxel.GetReferenceCells().All / 2;
+		BG::Algorithm::Vector3Int Pos = m_Voxel.at(0).GetReferenceCells().GetVoxelPoint(StartPos);
+		Pos.x -= m_Voxel.at(0).GetReferenceCells().All / 2;
+		Pos.z -= m_Voxel.at(0).GetReferenceCells().All / 2;
 		return Pos;
 	}
 	auto			GetWorldPos(const BG::Algorithm::Vector3Int& StartPos) const noexcept {
 		BG::Algorithm::Vector3Int Pos = StartPos;
-		//Pos.x += Voxel.GetReferenceCells().All / 2;
-		//Pos.z += Voxel.GetReferenceCells().All / 2;
-		return Voxel.GetReferenceCells().GetWorldPos(Pos);
+		//Pos.x += m_Voxel.at(0).GetReferenceCells().All / 2;
+		//Pos.z += m_Voxel.at(0).GetReferenceCells().All / 2;
+		return m_Voxel.at(0).GetReferenceCells().GetWorldPos(Pos);
 	}
 	int				CheckLine(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, Util::VECTOR3D* Normal = nullptr) const noexcept {
-		return Voxel.CheckLine(StartPos, EndPos, Normal);
+		return m_Voxel.at(0).CheckLine(StartPos, EndPos, Normal);
 	}
 	bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept {
-		return Voxel.CheckWall(StartPos, EndPos, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
+		return m_Voxel.at(0).CheckWall(StartPos, EndPos, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
 	}
-	auto&			GetMapGraph(void) noexcept { return this->m_map; }
 	const auto&		GetMapInfo(void) const noexcept { return this->m_MapInfo; }
-	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { Voxel.SettingChange(DrawLOD, ShadowLOD); }
+	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { m_Voxel.at(0).SettingChange(DrawLOD, ShadowLOD); }
 	const auto&		GetWayPoint(void) const noexcept { return this->m_WayPoint; }
 public:
 	void Load(const char* MapName) noexcept {
 		this->m_MapName = MapName;
-		Voxel.Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
+		m_Voxel.at(0).Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
+		m_Voxel.at(1).Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
+		m_Voxel.at(2).Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
+
 		Draw::MV1::Load("data/model/SkyBox/model.mqoz", &SkyBoxID);
-		for (int loop = 0; loop < Voxel.GetReferenceCells().All; ++loop) {
-			std::string Path = "data/" + this->m_MapName + "/map";
-			Path += std::to_string(loop);
-			Path += ".png";
-			if (Util::IsFileExist(Path.c_str())) {
-				this->m_map.emplace_back();
-				this->m_map.back().Init(Path, loop);
-			}
-		}
 	}
 	void Init(void) noexcept {
-		Voxel.InitStart();											// 初期化開始時処理
-		Voxel.LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
-		Voxel.InitEnd();											// 初期化終了時処理
+		m_Voxel.at(0).InitStart();											// 初期化開始時処理
+		m_Voxel.at(0).LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
+		m_Voxel.at(0).InitEnd();											// 初期化終了時処理
+
+		m_Voxel.at(1).InitStart();											// 初期化開始時処理
+		m_Voxel.at(1).LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
+		m_Voxel.at(1).InitEnd();											// 初期化終了時処理
+
+		m_Voxel.at(2).InitStart();											// 初期化開始時処理
+		m_Voxel.at(2).LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
+		m_Voxel.at(2).InitEnd();											// 初期化終了時処理
 		this->m_WayPoint = std::make_unique<WayPointClass>();
 		this->m_MapInfo.clear();
 		if (std::filesystem::is_regular_file("data/" + this->m_MapName + "/Event.txt")) {
@@ -434,14 +402,14 @@ public:
 			for (size_t p1 = 0; p1 < this->m_MapInfo.size(); ++p1) {
 				auto& m = this->m_MapInfo.at(p1);
 				if (m.m_InfoType != InfoType::WayPoint) { continue; }
-				auto Pos1 = Voxel.GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
+				auto Pos1 = m_Voxel.at(0).GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 				int ID = 0;
 				for (size_t p2 = 0; p2 < this->m_MapInfo.size(); ++p2) {
 					auto& m2 = this->m_MapInfo.at(p2);
 					if (p1 == p2) { continue; }
 					if (ID >= 8) { continue; }
 					if (m2.m_InfoType != InfoType::WayPoint) { continue; }
-					auto Pos2 = Voxel.GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
+					auto Pos2 = m_Voxel.at(0).GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 					if (!CheckLine(Pos1, &Pos2)) {
 						//線分の間を埋める
 						auto Vec = Pos2 - Pos1;
@@ -457,7 +425,7 @@ public:
 								Pos = Pos3;
 							}
 
-							this->m_MapInfo.back().m_pos = Voxel.GetReferenceCells().GetVoxelPoint(Pos);
+							this->m_MapInfo.back().m_pos = m_Voxel.at(0).GetReferenceCells().GetVoxelPoint(Pos);
 						}
 						++ID;
 					}
@@ -489,7 +457,7 @@ public:
 			this->m_WayPoint->Init(count);
 			for (auto& m : this->m_MapInfo) {
 				if (!((m.m_InfoType == InfoType::WayPoint2))) { continue; }
-				auto Pos1 = Voxel.GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
+				auto Pos1 = m_Voxel.at(0).GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 				auto& bu = this->m_WayPoint->AddWayPoint(
 					Pos1 + Util::VECTOR3D::vget(1.f, 1.f, 1.f) * (-0.125f * Scale3DRate),
 					Pos1 + Util::VECTOR3D::vget(1.f, 9.f, 1.f) * (0.125f * Scale3DRate)
@@ -499,7 +467,7 @@ public:
 					if (ID >= 8) { continue; }
 					if (&m == &m2) { continue; }
 					if (!((m2.m_InfoType == InfoType::WayPoint2))) { continue; }
-					auto Pos2 = Voxel.GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
+					auto Pos2 = m_Voxel.at(0).GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
 					auto Vec = Pos2 - Pos1;
 					if (Vec.magnitude() >= 0.4f * Scale3DRate) { continue; }
 					if (!CheckLine(Pos1, &Pos2)) {
@@ -516,17 +484,32 @@ public:
 		auto* CameraParts = Camera::Camera3D::Instance();
 		auto* PostPassParts = Draw::PostPassEffect::Instance();
 		// ボクセル処理
-		Voxel.SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+		m_Voxel.at(0).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
 			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
-		Voxel.SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
-		Voxel.Update();
+		m_Voxel.at(0).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
+		m_Voxel.at(0).Update();
+
+		m_Voxel.at(1).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
+		m_Voxel.at(1).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
+		m_Voxel.at(1).Update();
+
+		m_Voxel.at(2).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
+		m_Voxel.at(2).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
+		m_Voxel.at(2).Update();
 	}
 	void Dispose(void) noexcept {
-		Voxel.Dispose();
-		Voxel.Dispose_Load();
+		m_Voxel.at(0).Dispose();
+		m_Voxel.at(0).Dispose_Load();
+
+		m_Voxel.at(1).Dispose();
+		m_Voxel.at(1).Dispose_Load();
+
+		m_Voxel.at(2).Dispose();
+		m_Voxel.at(2).Dispose_Load();
 		this->m_WayPoint.reset();
 		SkyBoxID.Dispose();
-		this->m_map.clear();
 		this->m_MapInfo.clear();
 	}
 
@@ -536,11 +519,15 @@ public:
 		DxLib::SetUseLighting(TRUE);
 	}
 	void SetShadowDrawRigid(void) const noexcept {
-		Voxel.DrawByShader();
+		m_Voxel.at(0).DrawByShader();
+		m_Voxel.at(1).DrawByShader();
+		m_Voxel.at(2).DrawByShader();
 	}
 	void SetShadowDraw(void) const noexcept {}
 	void Draw(void) const noexcept {
-		Voxel.Draw();
+		m_Voxel.at(0).Draw();
+		m_Voxel.at(1).Draw();
+		m_Voxel.at(2).Draw();
 		/*
 		{
 			for (auto& m : this->m_MapInfo) {
@@ -569,13 +556,15 @@ public:
 				default:
 					break;
 				}
-				DrawSphere3D(Voxel.GetReferenceCells().GetWorldPos(m.m_pos).get(), 0.125f * Scale3DRate, 8, Color, GetColor(0, 0, 0), TRUE);
+				DrawSphere3D(m_Voxel.at(0).GetReferenceCells().GetWorldPos(m.m_pos).get(), 0.125f * Scale3DRate, 8, Color, GetColor(0, 0, 0), TRUE);
 			}
 		}
 		//*/
 	}
 	void ShadowDrawFar(void) const noexcept {
-		Voxel.DrawShadow();
+		m_Voxel.at(0).DrawShadow();
+		m_Voxel.at(1).DrawShadow();
+		m_Voxel.at(2).DrawShadow();
 	}
 	void ShadowDraw(void) const noexcept {}
 };
