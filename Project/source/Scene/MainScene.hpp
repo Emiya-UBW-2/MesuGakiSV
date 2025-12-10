@@ -58,7 +58,6 @@ public:
 class MainScene : public Util::SceneBase {
 	OptionWindow					m_OptionWindow;
 	PauseUI							m_PauseUI;
-	InfoType						m_EntrancePoint{ InfoType::Entrance1 };
 	bool							m_Exit{ false };
 	bool							m_IsSceneEnd{ false };
 	bool							m_IsPauseActive{ false };

@@ -1,7 +1,7 @@
 Type=Entrance1
 X=131
 Y=160
-Z=161
+Z=166
 Type=Exit1
 X=135
 Y=160

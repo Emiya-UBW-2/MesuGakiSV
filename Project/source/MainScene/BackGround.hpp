@@ -317,6 +317,8 @@ private:
 	Draw::MV1				SkyBoxID{};
 	std::string				m_MapName;
 	std::unique_ptr<WayPointClass>		m_WayPoint;
+public:
+	Util::VECTOR3D					m_Offset{};
 private:
 	BackGround(void) noexcept {}
 	BackGround(const BackGround&) = delete;
@@ -338,10 +340,16 @@ public:
 		return m_Voxel.at(0).GetReferenceCells().GetWorldPos(Pos);
 	}
 	int				CheckLine(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, Util::VECTOR3D* Normal = nullptr) const noexcept {
-		return m_Voxel.at(0).CheckLine(StartPos, EndPos, Normal);
+		Util::VECTOR3D EP = *EndPos - m_Offset;
+		auto Answer = m_Voxel.at(0).CheckLine(StartPos - m_Offset, &EP, Normal);
+		*EndPos = EP + m_Offset;
+		return Answer;
 	}
 	bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept {
-		return m_Voxel.at(0).CheckWall(StartPos, EndPos, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
+		Util::VECTOR3D EP = *EndPos - m_Offset;
+		auto Answer = m_Voxel.at(0).CheckWall(StartPos - m_Offset, &EP, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
+		*EndPos = EP + m_Offset;
+		return Answer;
 	}
 	const auto&		GetMapInfo(void) const noexcept { return this->m_MapInfo; }
 	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { m_Voxel.at(0).SettingChange(DrawLOD, ShadowLOD); }
@@ -484,19 +492,22 @@ public:
 		auto* CameraParts = Camera::Camera3D::Instance();
 		auto* PostPassParts = Draw::PostPassEffect::Instance();
 		// ボクセル処理
-		m_Voxel.at(0).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+		m_Voxel.at(0).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), Util::VECTOR3D::vget(0.f, 0.f, 0.f) * Scale3DRate,
 			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(0).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
+		m_Voxel.at(0).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+			PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
 		m_Voxel.at(0).Update();
 
-		m_Voxel.at(1).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+		m_Voxel.at(1).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), Util::VECTOR3D::vget(0.f, 0.f, 20.f) * Scale3DRate,
 			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(1).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
+		m_Voxel.at(1).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+			PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
 		m_Voxel.at(1).Update();
 
-		m_Voxel.at(2).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+		m_Voxel.at(2).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), Util::VECTOR3D::vget(0.f, 0.f, -20.f)*Scale3DRate,
 			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(2).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
+		m_Voxel.at(2).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+			PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
 		m_Voxel.at(2).Update();
 	}
 	void Dispose(void) noexcept {

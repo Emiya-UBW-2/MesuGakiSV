@@ -19,7 +19,7 @@ namespace BG {
 		return (isPlusX ? (1 << 2) : 0) | (isPlusY ? (1 << 1) : 0) | (isPlusZ ? (1 << 0) : 0);
 	}
 
-	void		VoxelControl::AddPlaneXPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
+	void		VoxelControl::AddPlaneXPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
@@ -31,12 +31,12 @@ namespace BG {
 			Xofs = Voxel1.z % 2 == 0;
 			Yofs = cellx.GetCellBuf(Voxel1).GetCellTexID() + 1;
 		}
-		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel2, 1, 0, 1), Util::VECTOR3D::vget(1.f, 0.f, 0.f), Xofs + zscale, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel1, 1, 0, 0), Util::VECTOR3D::vget(1.f, 0.f, 0.f), Xofs + 0, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel2, 1, 1, 1), Util::VECTOR3D::vget(1.f, 0.f, 0.f), Xofs + zscale, Yofs + 1);
-		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel1, 1, 1, 0), Util::VECTOR3D::vget(1.f, 0.f, 0.f), Xofs + 0, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel2, 1, 0, 1) + OffsetPos, Util::VECTOR3D::vget(1.f, 0.f, 0.f), Xofs + zscale, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel1, 1, 0, 0) + OffsetPos, Util::VECTOR3D::vget(1.f, 0.f, 0.f), Xofs + 0, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel2, 1, 1, 1) + OffsetPos, Util::VECTOR3D::vget(1.f, 0.f, 0.f), Xofs + zscale, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel1, 1, 1, 0) + OffsetPos, Util::VECTOR3D::vget(1.f, 0.f, 0.f), Xofs + 0, Yofs + 1);
 	}
-	void		VoxelControl::AddPlaneXMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
+	void		VoxelControl::AddPlaneXMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
@@ -48,12 +48,12 @@ namespace BG {
 			Xofs = Voxel1.z % 2 == 0;
 			Yofs = cellx.GetCellBuf(Voxel1).GetCellTexID() + 1;
 		}
-		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel2, 0, 1, 1), Util::VECTOR3D::vget(-1.f, 0.f, 0.f), Xofs + zscale, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel1, 0, 1, 0), Util::VECTOR3D::vget(-1.f, 0.f, 0.f), Xofs + 0, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel2, 0, 0, 1), Util::VECTOR3D::vget(-1.f, 0.f, 0.f), Xofs + zscale, Yofs + 1);
-		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel1, 0, 0, 0), Util::VECTOR3D::vget(-1.f, 0.f, 0.f), Xofs + 0, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel2, 0, 1, 1) + OffsetPos, Util::VECTOR3D::vget(-1.f, 0.f, 0.f), Xofs + zscale, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel1, 0, 1, 0) + OffsetPos, Util::VECTOR3D::vget(-1.f, 0.f, 0.f), Xofs + 0, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel2, 0, 0, 1) + OffsetPos, Util::VECTOR3D::vget(-1.f, 0.f, 0.f), Xofs + zscale, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel1, 0, 0, 0) + OffsetPos, Util::VECTOR3D::vget(-1.f, 0.f, 0.f), Xofs + 0, Yofs + 1);
 	}
-	void		VoxelControl::AddPlaneYPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
+	void		VoxelControl::AddPlaneYPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
@@ -65,12 +65,12 @@ namespace BG {
 			Xofs = Voxel1.z % 2 == 0;
 			Yofs = cellx.GetCellBuf(Voxel1).GetCellTexID() + 0;
 		}
-		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel2, 1, 1, 1), Util::VECTOR3D::vget(0.f, 1.f, 0.f), Xofs + zscale, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel1, 1, 1, 0), Util::VECTOR3D::vget(0.f, 1.f, 0.f), Xofs + 0, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel2, 0, 1, 1), Util::VECTOR3D::vget(0.f, 1.f, 0.f), Xofs + zscale, Yofs + 1);
-		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel1, 0, 1, 0), Util::VECTOR3D::vget(0.f, 1.f, 0.f), Xofs + 0, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel2, 1, 1, 1) + OffsetPos, Util::VECTOR3D::vget(0.f, 1.f, 0.f), Xofs + zscale, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel1, 1, 1, 0) + OffsetPos, Util::VECTOR3D::vget(0.f, 1.f, 0.f), Xofs + 0, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel2, 0, 1, 1) + OffsetPos, Util::VECTOR3D::vget(0.f, 1.f, 0.f), Xofs + zscale, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel1, 0, 1, 0) + OffsetPos, Util::VECTOR3D::vget(0.f, 1.f, 0.f), Xofs + 0, Yofs + 1);
 	}
-	void		VoxelControl::AddPlaneYMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
+	void		VoxelControl::AddPlaneYMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
@@ -82,12 +82,12 @@ namespace BG {
 			Xofs = Voxel1.z % 2 == 0;
 			Yofs = cellx.GetCellBuf(Voxel1).GetCellTexID() + 2;
 		}
-		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel2, 0, 0, 1), Util::VECTOR3D::vget(0.f, -1.f, 0.f), Xofs + zscale, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel1, 0, 0, 0), Util::VECTOR3D::vget(0.f, -1.f, 0.f), Xofs + 0, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel2, 1, 0, 1), Util::VECTOR3D::vget(0.f, -1.f, 0.f), Xofs + zscale, Yofs + 1);
-		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel1, 1, 0, 0), Util::VECTOR3D::vget(0.f, -1.f, 0.f), Xofs + 0, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel2, 0, 0, 1) + OffsetPos, Util::VECTOR3D::vget(0.f, -1.f, 0.f), Xofs + zscale, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel1, 0, 0, 0) + OffsetPos, Util::VECTOR3D::vget(0.f, -1.f, 0.f), Xofs + 0, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel2, 1, 0, 1) + OffsetPos, Util::VECTOR3D::vget(0.f, -1.f, 0.f), Xofs + zscale, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel1, 1, 0, 0) + OffsetPos, Util::VECTOR3D::vget(0.f, -1.f, 0.f), Xofs + 0, Yofs + 1);
 	}
-	void		VoxelControl::AddPlaneZPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
+	void		VoxelControl::AddPlaneZPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
@@ -99,12 +99,12 @@ namespace BG {
 			Xofs = Voxel2.x % 2 == 0;
 			Yofs = cellx.GetCellBuf(Voxel1).GetCellTexID() + 1;
 		}
-		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel1, 0, 0, 1), Util::VECTOR3D::vget(0.f, 0.f, 1.f), Xofs + xscale, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel2, 1, 0, 1), Util::VECTOR3D::vget(0.f, 0.f, 1.f), Xofs + 0, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel1, 0, 1, 1), Util::VECTOR3D::vget(0.f, 0.f, 1.f), Xofs + xscale, Yofs + 1);
-		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel2, 1, 1, 1), Util::VECTOR3D::vget(0.f, 0.f, 1.f), Xofs + 0, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel1, 0, 0, 1) + OffsetPos, Util::VECTOR3D::vget(0.f, 0.f, 1.f), Xofs + xscale, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel2, 1, 0, 1) + OffsetPos, Util::VECTOR3D::vget(0.f, 0.f, 1.f), Xofs + 0, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel1, 0, 1, 1) + OffsetPos, Util::VECTOR3D::vget(0.f, 0.f, 1.f), Xofs + xscale, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel2, 1, 1, 1) + OffsetPos, Util::VECTOR3D::vget(0.f, 0.f, 1.f), Xofs + 0, Yofs + 1);
 	}
-	void		VoxelControl::AddPlaneZMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept {
+	void		VoxelControl::AddPlaneZMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		int Now = static_cast<int>(pTarget->RegistPlane());
 
@@ -116,15 +116,15 @@ namespace BG {
 			Xofs = Voxel2.x % 2 == 0;
 			Yofs = cellx.GetCellBuf(Voxel1).GetCellTexID() + 1;
 		}
-		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel1, 0, 1, 0), Util::VECTOR3D::vget(0.f, 0.f, -1.f), Xofs + xscale, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel2, 1, 1, 0), Util::VECTOR3D::vget(0.f, 0.f, -1.f), Xofs + 0, Yofs + 0);
-		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel1, 0, 0, 0), Util::VECTOR3D::vget(0.f, 0.f, -1.f), Xofs + xscale, Yofs + 1);
-		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel2, 1, 0, 0), Util::VECTOR3D::vget(0.f, 0.f, -1.f), Xofs + 0, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 0, cellx.GetWorldPosOffset(Voxel1, 0, 1, 0) + OffsetPos, Util::VECTOR3D::vget(0.f, 0.f, -1.f), Xofs + xscale, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 1, cellx.GetWorldPosOffset(Voxel2, 1, 1, 0) + OffsetPos, Util::VECTOR3D::vget(0.f, 0.f, -1.f), Xofs + 0, Yofs + 0);
+		pTarget->SetParamToPlane(Now * 4 + 2, cellx.GetWorldPosOffset(Voxel1, 0, 0, 0) + OffsetPos, Util::VECTOR3D::vget(0.f, 0.f, -1.f), Xofs + xscale, Yofs + 1);
+		pTarget->SetParamToPlane(Now * 4 + 3, cellx.GetWorldPosOffset(Voxel2, 1, 0, 0) + OffsetPos, Util::VECTOR3D::vget(0.f, 0.f, -1.f), Xofs + 0, Yofs + 1);
 	}
 	void		VoxelControl::AddPlanesXY(VERTEX3DData* pTarget,
 		bool isDrawXPlus, bool isDrawYPlus,
 		size_t id,
-		const Algorithm::Vector3Int& VCenter, const Algorithm::Vector3Int& Vofs, int MaxminT, int MaxmaxT, bool useTexture) noexcept {
+		const Algorithm::Vector3Int& VCenter, const Algorithm::Vector3Int& Vofs, int MaxminT, int MaxmaxT, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		int Min = 0;
 		int Max = 0;
@@ -186,22 +186,22 @@ namespace BG {
 					}
 					if (isDrawXPlus) {
 						if (CheckFill || ((CanDrawXYZ & (1 << 0)) != 0)) {
-							AddPlaneXPlus(pTarget, id, V1, V2, useTexture);
+							AddPlaneXPlus(pTarget, id, V1, V2, useTexture, OffsetPos);
 						}
 					}
 					else {
 						if (CheckFill || ((CanDrawXYZ & (1 << 1)) != 0)) {
-							AddPlaneXMinus(pTarget, id, V1, V2, useTexture);
+							AddPlaneXMinus(pTarget, id, V1, V2, useTexture, OffsetPos);
 						}
 					}
 					if (isDrawYPlus) {
 						if (CheckFill || ((CanDrawXYZ & (1 << 2)) != 0)) {
-							AddPlaneYPlus(pTarget, id, V1, V2, useTexture);
+							AddPlaneYPlus(pTarget, id, V1, V2, useTexture, OffsetPos);
 						}
 					}
 					else {
 						if (CheckFill || ((CanDrawXYZ & (1 << 3)) != 0)) {
-							AddPlaneYMinus(pTarget, id, V1, V2, useTexture);
+							AddPlaneYMinus(pTarget, id, V1, V2, useTexture, OffsetPos);
 						}
 					}
 					// テクスチャ変化の場合だけもう一回判定させるドン
@@ -216,7 +216,7 @@ namespace BG {
 	void		VoxelControl::AddPlanesZ(VERTEX3DData* pTarget,
 		bool isDrawZPlus,
 		size_t id,
-		const Algorithm::Vector3Int& VCenter, const Algorithm::Vector3Int& Vofs, int MaxminT, int MaxmaxT, bool useTexture) noexcept {
+		const Algorithm::Vector3Int& VCenter, const Algorithm::Vector3Int& Vofs, int MaxminT, int MaxmaxT, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		int Min = 0;
 		int Max = 0;
@@ -272,12 +272,12 @@ namespace BG {
 					Algorithm::Vector3Int V2 = Vofset; V2.x = Max; V2 += VCenter;
 					if (isDrawZPlus) {
 						if (CheckFill || ((CanDrawXYZ & (1 << 4)) != 0)) {
-							AddPlaneZPlus(pTarget, id, V1, V2, useTexture);
+							AddPlaneZPlus(pTarget, id, V1, V2, useTexture, OffsetPos);
 						}
 					}
 					else {
 						if (CheckFill || ((CanDrawXYZ & (1 << 5)) != 0)) {
-							AddPlaneZMinus(pTarget, id, V1, V2, useTexture);
+							AddPlaneZMinus(pTarget, id, V1, V2, useTexture, OffsetPos);
 						}
 					}
 					// テクスチャ変化の場合だけもう一回判定させるドン
@@ -292,7 +292,7 @@ namespace BG {
 	void		VoxelControl::AddCubes(size_t id, size_t threadID, bool UseCenterFrustumCulling, bool IsPers, bool useTexture) noexcept {
 		CellsData& cellx = this->m_CellxN[id];
 		DrawThreadData& Draws = this->m_DrawThreadDatas[threadID];
-		Algorithm::Vector3Int VCenter = cellx.GetVoxelPoint(Draws.GetDrawCenterPos());// 描画の中心となる場所を指定しておく
+		Algorithm::Vector3Int VCenter = cellx.GetVoxelPoint(Draws.GetDrawCenterPos() - Draws.GetDrawOffsetPos());// 描画の中心となる場所を指定しておく
 
 		// 三次元の内積はaX*bX+aY*bY+aZ*bZなので各辺が確定した時に求めておく
 		float CamDotMinX = 0.f;
@@ -331,7 +331,7 @@ namespace BG {
 				}
 				AddPlanesZ(Draws.GetVert32Ptr(),
 					IsPers ? (Vofs.z < 0) : (Draws.GetCamVec().z < 0.0f),
-					id, VCenter, Vofs, xMaxminT, xMaxmaxT, useTexture);
+					id, VCenter, Vofs, xMaxminT, xMaxmaxT, useTexture, Draws.GetDrawOffsetPos());
 			}
 			// Z
 			for (Vofs.x = DrawMaxXMinus; Vofs.x <= DrawMaxXPlus; ++Vofs.x) {
@@ -346,7 +346,7 @@ namespace BG {
 				AddPlanesXY(Draws.GetVert32Ptr(),
 					IsPers ? (Vofs.x < 0) : (Draws.GetCamVec().x < 0.0f),
 					IsPers ? (Vofs.y < 0) : (Draws.GetCamVec().y < 0.0f),
-					id, VCenter, Vofs, zMaxminT, zMaxmaxT, useTexture);
+					id, VCenter, Vofs, zMaxminT, zMaxmaxT, useTexture, Draws.GetDrawOffsetPos());
 			}
 		}
 	}
@@ -749,7 +749,7 @@ namespace BG {
 		// 描画ポリゴンを生成するスレッドを作成
 		this->m_DrawThreadDatas[0].SetupJob(
 			[this]() {
-				this->m_DrawThreadDatas[0].SetDrawInfo(this->m_DrawCenterPos, this->m_CamVec);
+				this->m_DrawThreadDatas[0].SetDrawInfo(this->m_DrawCenterPos, this->m_DrawOffsetPos, this->m_CamVec);
 				this->m_DrawThreadDatas[0].StartRegist();
 				AddCubes(0, 0, true, true, true);
 			},
@@ -758,7 +758,7 @@ namespace BG {
 			}, false);
 		this->m_DrawThreadDatas[1].SetupJob(
 			[this]() {
-				this->m_DrawThreadDatas[1].SetDrawInfo(this->m_DrawCenterPos, this->m_CamVec);
+				this->m_DrawThreadDatas[1].SetDrawInfo(this->m_DrawCenterPos, this->m_DrawOffsetPos, this->m_CamVec);
 				this->m_DrawThreadDatas[1].StartRegist();
 				AddCubes(1, 1, true, true, true);
 			},
@@ -767,7 +767,7 @@ namespace BG {
 			}, false);
 		this->m_DrawThreadDatas[2].SetupJob(
 			[this]() {
-				this->m_DrawThreadDatas[2].SetDrawInfo(this->m_DrawCenterPos, this->m_CamVec);
+				this->m_DrawThreadDatas[2].SetDrawInfo(this->m_DrawCenterPos, this->m_DrawOffsetPos, this->m_CamVec);
 				this->m_DrawThreadDatas[2].StartRegist();
 				AddCubes(2, 2, true, true, true);
 			},
@@ -776,7 +776,7 @@ namespace BG {
 			}, false);
 		this->m_DrawThreadDatas[3].SetupJob(
 			[this]() {
-				this->m_DrawThreadDatas[3].SetDrawInfo(this->m_DrawCenterPos, this->m_CamVec);
+				this->m_DrawThreadDatas[3].SetDrawInfo(this->m_DrawCenterPos, this->m_DrawOffsetPos, this->m_CamVec);
 				this->m_DrawThreadDatas[3].StartRegist();
 				AddCubes(3, 3, true, true, true);
 			},
@@ -785,7 +785,7 @@ namespace BG {
 			}, false);
 		this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].SetupJob(
 			[this]() {
-				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
+				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_DrawOffsetPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].StartRegist();
 				AddCubes(0, static_cast<size_t>(TotalCellLayer + 0), false, false, true);
 			},
@@ -794,7 +794,7 @@ namespace BG {
 			}, false);
 		this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 1)].SetupJob(
 			[this]() {
-				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 1)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
+				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 1)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_DrawOffsetPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 1)].StartRegist();
 				AddCubes(1, static_cast<size_t>(TotalCellLayer + 1), false, false, true);
 			},
@@ -803,17 +803,16 @@ namespace BG {
 			}, false);
 		this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 2)].SetupJob(
 			[this]() {
-				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 2)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
+				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 2)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_DrawOffsetPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 2)].StartRegist();
 				AddCubes(2, static_cast<size_t>(TotalCellLayer + 2), false, false, true);
 			},
 			[this]() {
-				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 0)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 2)].EndRegist();
 			}, false);
 		this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 3)].SetupJob(
 			[this]() {
-				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 3)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_ShadowCamVec);
+				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 3)].SetDrawInfo(this->m_ShadowDrawCenterPos, this->m_DrawOffsetPos, this->m_ShadowCamVec);
 				this->m_DrawThreadDatas[static_cast<size_t>(TotalCellLayer + 3)].StartRegist();
 				AddCubes(3, static_cast<size_t>(TotalCellLayer + 3), false, false, true);
 			},

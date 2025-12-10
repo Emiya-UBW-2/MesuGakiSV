@@ -602,6 +602,7 @@ namespace BG {
 		// スレッドが変更し描画で参照するデータ
 		class DrawThreadData {
 			Util::VECTOR3D				m_DrawCenterPos{};	// 描画時の中心座標
+			Util::VECTOR3D				m_DrawOffsetPos{};	// 描画時の中心座標
 			Util::VECTOR3D				m_CamVec{};			// 描画時の視点の向き
 			VERTEX3DData				m_Vert32{};			// 描画先
 			ThreadJobs					m_Jobs{};			// 生成用スレッド
@@ -615,12 +616,14 @@ namespace BG {
 		public:
 			// 描画情報の取得
 			const Util::VECTOR3D& GetDrawCenterPos(void) const noexcept { return this->m_DrawCenterPos; }
+			const Util::VECTOR3D& GetDrawOffsetPos(void) const noexcept { return this->m_DrawOffsetPos; }
 			const Util::VECTOR3D& GetCamVec(void) const noexcept { return this->m_CamVec; }
 			// ジョブのセットアップ
 			void SetupJob(std::function<void()> Doing, std::function<void()> EndDoing, bool IsDoOnce) noexcept { this->m_Jobs.Init(Doing, EndDoing, IsDoOnce); }
 			// 描画情報の書き込み
-			void		SetDrawInfo(const Util::VECTOR3D& camPos, const Util::VECTOR3D& camVec) noexcept {
+			void		SetDrawInfo(const Util::VECTOR3D& camPos, const Util::VECTOR3D& OffsetPos, const Util::VECTOR3D& camVec) noexcept {
 				this->m_DrawCenterPos = camPos;
+				this->m_DrawOffsetPos = OffsetPos;
 				this->m_CamVec = camVec;
 			}
 			// 登録開始
@@ -666,21 +669,22 @@ namespace BG {
 		std::array<DrawThreadData, TotalCellLayer + TotalCellLayer>	m_DrawThreadDatas;			// 0~TotalCellLayer-1 = 表示ポリゴンスレッド用 / TotalCellLayer~ = 影スレッド用
 		int															m_ThreadCounter = 0;
 		Util::VECTOR3D												m_DrawCenterPos{};
+		Util::VECTOR3D												m_DrawOffsetPos{};
 		Util::VECTOR3D												m_CamVec{};
 		Util::VECTOR3D												m_ShadowDrawCenterPos{};
 		Util::VECTOR3D												m_ShadowCamVec{};
 		char		padding[4]{};
 	private:
 		// 各方向に向いているポリゴンの追加
-		void			AddPlaneXPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept;
-		void			AddPlaneXMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept;
-		void			AddPlaneYPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept;
-		void			AddPlaneYMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept;
-		void			AddPlaneZPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept;
-		void			AddPlaneZMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture) noexcept;
+		void			AddPlaneXPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
+		void			AddPlaneXMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
+		void			AddPlaneYPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
+		void			AddPlaneYMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
+		void			AddPlaneZPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
+		void			AddPlaneZMinus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
 		// XZ方向に走査してポリゴンをなるべく少ないポリゴン数で表示する
-		void			AddPlanesXY(VERTEX3DData* pTarget, bool isDrawXPlus, bool isDrawYPlus, size_t id, const Algorithm::Vector3Int& VCenter, const Algorithm::Vector3Int& Vofs, int MaxminT, int MaxmaxT, bool useTexture) noexcept;
-		void			AddPlanesZ(VERTEX3DData* pTarget, bool isDrawZPlus, size_t id, const Algorithm::Vector3Int& VCenter, const Algorithm::Vector3Int& Vofs, int MaxminT, int MaxmaxT, bool useTexture) noexcept;
+		void			AddPlanesXY(VERTEX3DData* pTarget, bool isDrawXPlus, bool isDrawYPlus, size_t id, const Algorithm::Vector3Int& VCenter, const Algorithm::Vector3Int& Vofs, int MaxminT, int MaxmaxT, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
+		void			AddPlanesZ(VERTEX3DData* pTarget, bool isDrawZPlus, size_t id, const Algorithm::Vector3Int& VCenter, const Algorithm::Vector3Int& Vofs, int MaxminT, int MaxmaxT, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
 		// 視界から見て映るものだけをテクスチャ関係込みで更新
 		// UseCenterFrustumCulling=中心を起点に視錐台カリングをするかどうか
 		// IsPersは中心を起点に透視射影をするか
@@ -733,8 +737,9 @@ namespace BG {
 		}
 		inline float	GetDrawFarMax(void) const noexcept { return static_cast<float>(std::min(std::min(DrawMaxXPlus, DrawMaxZPlus), DrawMaxYPlus)) * CellScale; }
 
-		void			SetDrawInfo(const Util::VECTOR3D& CenterPos, const Util::VECTOR3D& CamVec) noexcept {
+		void			SetDrawInfo(const Util::VECTOR3D& CenterPos, const Util::VECTOR3D& OffsetPos, const Util::VECTOR3D& CamVec) noexcept {
 			this->m_DrawCenterPos = CenterPos;
+			this->m_DrawOffsetPos = OffsetPos;
 			this->m_CamVec = CamVec;
 		}
 		void			SetShadowDrawInfo(const Util::VECTOR3D& CenterPos, const Util::VECTOR3D& CamVec) noexcept {

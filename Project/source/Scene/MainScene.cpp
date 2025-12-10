@@ -49,8 +49,10 @@ void MainScene::Init_Sub(void) noexcept {
 	Player->SetMainGunUniqueID(this->m_MainGun->GetObjectID());
 	Player->SetSubGunUniqueID(this->m_HandGun->GetObjectID());
 
+	BackGround::Instance()->m_Offset = Util::VECTOR3D::vget(0.f, 0.f, 0.f) * Scale3DRate;
+	
 	for (auto& m : BackGround::Instance()->GetMapInfo()) {
-		if (m.m_InfoType == this->m_EntrancePoint) {
+		if (m.m_InfoType == InfoType::Entrance1) {
 			Player->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
 		}
 	}
@@ -285,14 +287,12 @@ void MainScene::Update_Sub(void) noexcept {
 			if (Vec.sqrMagnitude() >= (Len + 0.35f * Scale3DRate) * (Len + 0.35f * Scale3DRate)) { continue; }
 			switch (m.m_InfoType) {
 			case InfoType::Exit1:
-				this->m_EntrancePoint = InfoType::Entrance1;
-				this->m_MapName = "Map1";
-				this->m_Exit = true;
+				BackGround::Instance()->m_Offset = Util::VECTOR3D::vget(0.f, 0.f, -20.f) * Scale3DRate;
+				//this->m_EntrancePoint = InfoType::Entrance1;
+				//this->m_MapName = "Map1";
+				//this->m_Exit = true;
 				break;
 			case InfoType::Exit2:
-				this->m_EntrancePoint = InfoType::Entrance2;
-				this->m_MapName = "Map1";
-				this->m_Exit = true;
 				break;
 			case InfoType::Exit3:
 				break;
