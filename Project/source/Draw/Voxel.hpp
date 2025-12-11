@@ -24,6 +24,33 @@
 #include "../Util/Util.hpp"
 #include "../Util/Algorithm.hpp"
 
+
+enum class InfoType : size_t {
+	None,
+	Entrance1,
+	Entrance2,
+	Entrance3,
+	Exit1,
+	Exit2,
+	Exit3,
+	WayPoint,
+	WayPoint2,
+	AmmoBox,
+	Max,
+};
+static const char* InfoTypeStr[static_cast<int>(InfoType::Max)] = {
+	"None",
+	"Entrance1",
+	"Entrance2",
+	"Entrance3",
+	"Exit1",
+	"Exit2",
+	"Exit3",
+	"WayPoint",
+	"WayPoint2",
+	"AmmoBox",
+};
+
 namespace BG {
 	// 算術補助
 	namespace Algorithm {
@@ -364,6 +391,11 @@ namespace BG {
 			}
 		};
 	private:
+		struct MapInfo {
+			InfoType					m_InfoType{ InfoType::None };
+			BG::Algorithm::Vector3Int	m_pos{};
+			char		padding[4]{};
+		};
 		// 描画ポリゴンデータ
 		class CellsData {
 			// セル一つ一つに含まれる情報
@@ -676,6 +708,8 @@ namespace BG {
 		Util::VECTOR3D												m_ShadowDrawCenterPos{};
 		Util::VECTOR3D												m_ShadowCamVec{};
 		char		padding[4]{};
+	public:
+		std::vector<MapInfo>	m_MapInfo;
 	private:
 		// 各方向に向いているポリゴンの追加
 		void			AddPlaneXPlus(VERTEX3DData* pTarget, size_t id, const Algorithm::Vector3Int& Voxel1, const Algorithm::Vector3Int& Voxel2, bool useTexture, const Util::VECTOR3D& OffsetPos) noexcept;
@@ -702,7 +736,7 @@ namespace BG {
 		// 対人を想定した壁判定を行う
 		bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept;
 		// ボクセルデータをロードする
-		void			LoadCellsFile(const char* Path) noexcept;
+		void			LoadCellsFile(std::string Path) noexcept;
 		// ボクセルデータをセーブする
 		void			SaveCellsFile(const char* Path) const noexcept;
 		// 所定の座標にボクセルデータをロードする

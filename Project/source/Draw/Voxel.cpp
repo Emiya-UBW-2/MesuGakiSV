@@ -557,17 +557,52 @@ namespace BG {
 		return HitFlag;
 	}
 
-	void		VoxelControl::LoadCellsFile(const char* Path) noexcept {
-		std::vector<int8_t>				SaveCellIDList{};
-		std::ifstream fin{};
-		fin.open(Path, std::ios::in | std::ios::binary);
-		SaveCellIDList.resize(static_cast<size_t>(256 * 256 * 256));
-		fin.read((char*)SaveCellIDList.data(), static_cast<size_t>(sizeof(SaveCellIDList[0])) * 256 * 256 * 256);
-		fin.close();
-		for (int Xvoxel = 0; Xvoxel < GetReferenceCells().All; ++Xvoxel) {
-			for (int Yvoxel = 0; Yvoxel < GetReferenceCells().All; ++Yvoxel) {
-				for (int Zvoxel = 0; Zvoxel < GetReferenceCells().All; ++Zvoxel) {
-					SetBlick(Xvoxel, Yvoxel, Zvoxel, SaveCellIDList[GetReferenceCells().GetCellIndex(Xvoxel, Yvoxel, Zvoxel)], false);
+	void		VoxelControl::LoadCellsFile(std::string Path) noexcept {
+		{
+			std::string FilePath = "data/" + Path + "/Map.txt";
+			std::vector<int8_t>				SaveCellIDList{};
+			std::ifstream fin{};
+			fin.open(FilePath, std::ios::in | std::ios::binary);
+			SaveCellIDList.resize(static_cast<size_t>(256 * 256 * 256));
+			fin.read((char*)SaveCellIDList.data(), static_cast<size_t>(sizeof(SaveCellIDList[0])) * 256 * 256 * 256);
+			fin.close();
+			for (int Xvoxel = 0; Xvoxel < GetReferenceCells().All; ++Xvoxel) {
+				for (int Yvoxel = 0; Yvoxel < GetReferenceCells().All; ++Yvoxel) {
+					for (int Zvoxel = 0; Zvoxel < GetReferenceCells().All; ++Zvoxel) {
+						SetBlick(Xvoxel, Yvoxel, Zvoxel, SaveCellIDList[GetReferenceCells().GetCellIndex(Xvoxel, Yvoxel, Zvoxel)], false);
+					}
+				}
+			}
+		}
+		{
+			std::string FilePath = "data/" + Path + "/Event.txt";
+			this->m_MapInfo.clear();
+			if (std::filesystem::is_regular_file(FilePath)) {
+				std::ifstream ifs(FilePath);
+				while (true) {
+					std::string Buffer;
+					std::getline(ifs, Buffer);
+					std::string LEFT = Buffer.substr(0, Buffer.find("="));
+					std::string RIGHT = Buffer.substr(Buffer.find("=") + 1);
+					if (LEFT == "Type") {
+						this->m_MapInfo.emplace_back();
+						for (int loop = 0; loop < static_cast<int>(InfoType::Max); ++loop) {
+							if (RIGHT == InfoTypeStr[static_cast<size_t>(loop)]) {
+								this->m_MapInfo.back().m_InfoType = static_cast<InfoType>(loop);
+								break;
+							}
+						}
+					}
+					else if (LEFT == "X") {
+						this->m_MapInfo.back().m_pos.x = std::stoi(RIGHT);
+					}
+					else if (LEFT == "Y") {
+						this->m_MapInfo.back().m_pos.y = std::stoi(RIGHT);
+					}
+					else if (LEFT == "Z") {
+						this->m_MapInfo.back().m_pos.z = std::stoi(RIGHT);
+					}
+					if (ifs.eof()) { break; }
 				}
 			}
 		}
@@ -836,7 +871,7 @@ namespace BG {
 		// 全階層の初期化
 		for (int loop = 0; loop < TotalCellLayer; ++loop) {
 			CellsData& cellx = this->m_CellxN[static_cast<size_t>(loop)];
-			//cellx.Init(loop);
+			cellx.Init(loop);
 		}
 	}
 	void		VoxelControl::InitEnd2(void) noexcept {
@@ -919,6 +954,7 @@ namespace BG {
 	}
 
 	void		VoxelControl::Dispose(void) noexcept {
+		this->m_MapInfo.clear();
 		for (auto& Vert : this->m_DrawThreadDatas) {
 			Vert.Dispose();
 		}

@@ -79,7 +79,6 @@ class MainScene : public Util::SceneBase {
 	const Draw::GraphHandle*		m_Lock{};
 	Util::VECTOR3D					m_CamOffset{};
 	Util::VECTOR3D					m_CamVec{};
-	std::string						m_MapName{ "Map1" };
 	float							m_FPSPer{ 0.f };
 	float							m_CamCheckLen{};
 	float							m_CamCheckTimer{};

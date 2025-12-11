@@ -1,0 +1,8 @@
+Name=9x19
+ammo_cal(mm)=9.0
+ammo_speed(m/s)=400
+ammo_pene(mm)=10
+ammo_damage=34
+FallSound=0
+Pellets=1
+Accuracy=0.5

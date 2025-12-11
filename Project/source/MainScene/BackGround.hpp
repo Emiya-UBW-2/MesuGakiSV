@@ -17,32 +17,6 @@
 #include "../Draw/MV1.hpp"
 #include "../Draw/Voxel.hpp"
 
-enum class InfoType : size_t {
-	None,
-	Entrance1,
-	Entrance2,
-	Entrance3,
-	Exit1,
-	Exit2,
-	Exit3,
-	WayPoint,
-	WayPoint2,
-	AmmoBox,
-	Max,
-};
-static const char* InfoTypeStr[static_cast<int>(InfoType::Max)] = {
-	"None",
-	"Entrance1",
-	"Entrance2",
-	"Entrance3",
-	"Exit1",
-	"Exit2",
-	"Exit3",
-	"WayPoint",
-	"WayPoint2",
-	"AmmoBox",
-};
-
 class WayPointClass {
 public:
 	class Builds {
@@ -306,22 +280,16 @@ class BackGround : public Util::SingletonBase<BackGround> {
 private:
 	friend class Util::SingletonBase<BackGround>;
 private:
-	struct MapInfo {
-		InfoType					m_InfoType{ InfoType::None };
-		BG::Algorithm::Vector3Int	m_pos{};
-		char		padding[4]{};
-	};
-private:
-	std::vector<MapInfo>	m_MapInfo;
 	std::array<BG::VoxelControl, 2>		m_Voxel;
 	std::array<BG::VoxelControl*, 2>	m_pVoxel{};
 	BG::VoxelControl::ThreadJobs					m_Jobs{};			// 生成用スレッド
 	Draw::MV1				SkyBoxID{};
-	std::string				m_MapName;
 	std::unique_ptr<WayPointClass>		m_WayPoint;
+	Util::VECTOR3D					VecT;
+	int								m_VOfs{ 0 };
+	std::string						m_NextMap{};
 public:
 	Util::VECTOR3D					m_Offset{};
-	int								m_VOfs{ 0 };
 private:
 	BackGround(void) noexcept {}
 	BackGround(const BackGround&) = delete;
@@ -354,25 +322,27 @@ public:
 		*EndPos = EP + m_Offset;
 		return Answer;
 	}
-	const auto&		GetMapInfo(void) const noexcept { return this->m_MapInfo; }
+	const auto&		GetMapInfo(void) const noexcept { return m_pVoxel.at(0)->m_MapInfo; }
 	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { m_pVoxel.at(0)->SettingChange(DrawLOD, ShadowLOD); }
 	const auto&		GetWayPoint(void) const noexcept { return this->m_WayPoint; }
 public:
-	void Load(const char* MapName) noexcept {
-		this->m_MapName = MapName;
-		m_Voxel.at(0).Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
-		m_Voxel.at(1).Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
+	void Load() noexcept {
+		m_Voxel.at(0).Load("data/maptex.png");							// 事前読み込み
+		m_Voxel.at(1).Load("data/maptex.png");							// 事前読み込み
 
 		Draw::MV1::Load("data/model/SkyBox/model.mqoz", &SkyBoxID);
 
 	}
 	void Init(void) noexcept {
+		m_NextMap = (GetRand(100) < 50) ? "Map2" : "Map1";
+
+
 		m_Voxel.at(0).InitStart();											// 初期化開始時処理
-		m_Voxel.at(0).LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
+		m_Voxel.at(0).LoadCellsFile("Map1");					// ボクセルデータの読み込み
 		m_Voxel.at(0).InitEnd();											// 初期化終了時処理
 
 		m_Voxel.at(1).InitStart();											// 初期化開始時処理
-		m_Voxel.at(1).LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
+		m_Voxel.at(1).LoadCellsFile(m_NextMap);					// ボクセルデータの読み込み
 		m_Voxel.at(1).InitEnd();											// 初期化終了時処理
 
 		m_pVoxel.at(0) = &m_Voxel.at(0);
@@ -380,48 +350,23 @@ public:
 
 		m_Jobs.Init([&]() {
 			m_pVoxel.at(1)->InitStart2();											// 初期化開始時処理
-			m_pVoxel.at(1)->LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
+			m_pVoxel.at(1)->LoadCellsFile(m_NextMap);					// ボクセルデータの読み込み
 			m_pVoxel.at(1)->InitEnd();											// 初期化終了時処理
 			}, [&]() {}, true);
 
-			m_Jobs.JobStart();
-		this->m_MapInfo.clear();
-		if (std::filesystem::is_regular_file("data/" + this->m_MapName + "/Event.txt")) {
-			std::ifstream ifs("data/" + this->m_MapName + "/Event.txt");
-			while (true) {
-				std::string Buffer;
-				std::getline(ifs, Buffer);
-				std::string LEFT = Buffer.substr(0, Buffer.find("="));
-				std::string RIGHT = Buffer.substr(Buffer.find("=") + 1);
-				if (LEFT == "Type") {
-					this->m_MapInfo.emplace_back();
-					for (int loop = 0; loop < static_cast<int>(InfoType::Max); ++loop) {
-						if (RIGHT == InfoTypeStr[static_cast<size_t>(loop)]) {
-							this->m_MapInfo.back().m_InfoType = static_cast<InfoType>(loop);
-							break;
-						}
-					}
-				}
-				else if (LEFT == "X") {
-					this->m_MapInfo.back().m_pos.x = std::stoi(RIGHT);
-				}
-				else if (LEFT == "Y") {
-					this->m_MapInfo.back().m_pos.y = std::stoi(RIGHT);
-				}
-				else if (LEFT == "Z") {
-					this->m_MapInfo.back().m_pos.z = std::stoi(RIGHT);
-				}
-				if (ifs.eof()) { break; }
-			}
-		}
+		this->m_Offset = Util::VECTOR3D::vget(0.f, 0.f, 0.f) * Scale3DRate;
+
+		m_Jobs.JobStart();
 	}
 	void ChangeOffset(void) noexcept {
-		this->m_Offset += Util::VECTOR3D::vget(0.f, 0.f, -20.f) * Scale3DRate;
+		this->m_Offset += VecT;
 		++this->m_VOfs;
 		
-		m_pVoxel.at(0) = &m_Voxel.at((m_VOfs + 0) % 2);
-		m_pVoxel.at(1) = &m_Voxel.at((m_VOfs + 1) % 2);
+		m_pVoxel.at(0) = &m_Voxel.at(static_cast<size_t>((m_VOfs + 0) % 2));
+		m_pVoxel.at(1) = &m_Voxel.at(static_cast<size_t>((m_VOfs + 1) % 2));
 
+		m_NextMap = (GetRand(100) < 50) ? "Map2" : "Map1";
+	
 		m_Jobs.JobStart();
 	}
 	void Update(void) noexcept {
@@ -434,7 +379,58 @@ public:
 			PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
 		m_pVoxel.at(0)->Update();
 
-		m_pVoxel.at(1)->SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), m_Offset + Util::VECTOR3D::vget(0.f, 0.f, -20.f) * Scale3DRate,
+		{
+			Util::VECTOR3D Vec1;
+			Util::VECTOR3D Vec2;
+			for (auto& m : m_pVoxel.at(0)->m_MapInfo) {
+				if (m.m_InfoType == InfoType::None || m.m_InfoType == InfoType::Max) { continue; }
+				switch (m.m_InfoType) {
+				case InfoType::Exit1:
+				case InfoType::Exit3:
+					break;
+				case InfoType::Exit2:
+					Vec1 = GetWorldPos(m.m_pos) + m_Offset;
+					Vec1.y = 0.f;
+					break;
+				case InfoType::Entrance1:
+				case InfoType::Entrance2:
+				case InfoType::Entrance3:
+				case InfoType::WayPoint:
+				case InfoType::WayPoint2:
+				case InfoType::AmmoBox:
+				case InfoType::None:
+				case InfoType::Max:
+				default:
+					break;
+				}
+			}
+			for (auto& m : m_pVoxel.at(1)->m_MapInfo) {
+				if (m.m_InfoType == InfoType::None || m.m_InfoType == InfoType::Max) { continue; }
+				switch (m.m_InfoType) {
+				case InfoType::Entrance1:
+					Vec2 = GetWorldPos(m.m_pos) + m_Offset;
+					Vec2.y = 0.f;
+					Vec2 *= -1.f;
+					break;
+				case InfoType::Entrance2:
+				case InfoType::Entrance3:
+				case InfoType::Exit1:
+				case InfoType::Exit2:
+				case InfoType::Exit3:
+				case InfoType::WayPoint:
+				case InfoType::WayPoint2:
+				case InfoType::AmmoBox:
+				case InfoType::None:
+				case InfoType::Max:
+				default:
+					break;
+				}
+			}
+			VecT = Vec1 + Vec2;
+			clsDx();
+			printfDx("(%5.2f,%5.2f,%5.2f)\n", VecT.x / Scale3DRate, VecT.y / Scale3DRate, VecT.z / Scale3DRate);
+		}
+		m_pVoxel.at(1)->SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), m_Offset + VecT,
 			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
 		m_pVoxel.at(1)->SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
 			PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
@@ -452,7 +448,6 @@ public:
 		m_Voxel.at(1).Dispose_Load();
 
 		SkyBoxID.Dispose();
-		this->m_MapInfo.clear();
 	}
 
 	void BGDraw(void) const noexcept {
@@ -470,7 +465,7 @@ public:
 		m_pVoxel.at(1)->Draw();
 		/*
 		{
-			for (auto& m : this->m_MapInfo) {
+			for (auto& m : GetMapInfo()) {
 				unsigned int Color = 0;
 				switch (m.m_InfoType) {
 				case InfoType::Entrance1:

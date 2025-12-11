@@ -7,7 +7,7 @@ void MainScene::Load_Sub(void) noexcept {
 	ObjectManager::Create();
 	PlayerManager::Create();
 	BackGround::Create();
-	BackGround::Instance()->Load(this->m_MapName.c_str());
+	BackGround::Instance()->Load();
 
 	PlayerManager::Instance()->Load();
 	ObjectManager::Instance()->LoadModel("data/model/Px4/");
@@ -49,8 +49,6 @@ void MainScene::Init_Sub(void) noexcept {
 	Player->SetMainGunUniqueID(this->m_MainGun->GetObjectID());
 	Player->SetSubGunUniqueID(this->m_HandGun->GetObjectID());
 
-	BackGround::Instance()->m_Offset = Util::VECTOR3D::vget(0.f, 0.f, 0.f) * Scale3DRate;
-	
 	for (auto& m : BackGround::Instance()->GetMapInfo()) {
 		if (m.m_InfoType == InfoType::Entrance1) {
 			Player->SetPos(BackGround::Instance()->GetWorldPos(m.m_pos));
@@ -288,14 +286,9 @@ void MainScene::Update_Sub(void) noexcept {
 			switch (m.m_InfoType) {
 			case InfoType::Exit1:
 				BackGround::Instance()->ChangeOffset();
-				//this->m_EntrancePoint = InfoType::Entrance1;
-				//this->m_MapName = "Map1";
-				//this->m_Exit = true;
 				break;
 			case InfoType::Exit2:
-				break;
 			case InfoType::Exit3:
-				break;
 			case InfoType::Entrance1:
 			case InfoType::Entrance2:
 			case InfoType::Entrance3:
