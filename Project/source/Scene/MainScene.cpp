@@ -280,14 +280,14 @@ void MainScene::Update_Sub(void) noexcept {
 	if (!m_Exit) {
 		for (auto& m : BackGround::Instance()->GetMapInfo()) {
 			if (m.m_InfoType == InfoType::None || m.m_InfoType == InfoType::Max) { continue; }
-			Util::VECTOR3D Vec = BackGround::Instance()->GetWorldPos(m.m_pos) - Player->GetMat().pos();
+			Util::VECTOR3D Vec = BackGround::Instance()->GetWorldPos(m.m_pos) + BackGround::Instance()->m_Offset - Player->GetMat().pos();
 			float Len = 0.125f * Scale3DRate;
 			if (std::fabsf(Vec.y) >= Len) { continue; }
 			Vec.y = 0.f;
 			if (Vec.sqrMagnitude() >= (Len + 0.35f * Scale3DRate) * (Len + 0.35f * Scale3DRate)) { continue; }
 			switch (m.m_InfoType) {
 			case InfoType::Exit1:
-				BackGround::Instance()->m_Offset = Util::VECTOR3D::vget(0.f, 0.f, -20.f) * Scale3DRate;
+				BackGround::Instance()->ChangeOffset();
 				//this->m_EntrancePoint = InfoType::Entrance1;
 				//this->m_MapName = "Map1";
 				//this->m_Exit = true;

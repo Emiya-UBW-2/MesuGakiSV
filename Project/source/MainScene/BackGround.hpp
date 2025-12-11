@@ -313,12 +313,15 @@ private:
 	};
 private:
 	std::vector<MapInfo>	m_MapInfo;
-	std::array<BG::VoxelControl,3>		m_Voxel;
+	std::array<BG::VoxelControl, 2>		m_Voxel;
+	std::array<BG::VoxelControl*, 2>	m_pVoxel{};
+	BG::VoxelControl::ThreadJobs					m_Jobs{};			// 生成用スレッド
 	Draw::MV1				SkyBoxID{};
 	std::string				m_MapName;
 	std::unique_ptr<WayPointClass>		m_WayPoint;
 public:
 	Util::VECTOR3D					m_Offset{};
+	int								m_VOfs{ 0 };
 private:
 	BackGround(void) noexcept {}
 	BackGround(const BackGround&) = delete;
@@ -328,40 +331,40 @@ private:
 	virtual ~BackGround(void) noexcept { Dispose(); }
 public:
 	auto			GetVoxelPoint(const Util::VECTOR3D& StartPos) const noexcept {
-		BG::Algorithm::Vector3Int Pos = m_Voxel.at(0).GetReferenceCells().GetVoxelPoint(StartPos);
-		Pos.x -= m_Voxel.at(0).GetReferenceCells().All / 2;
-		Pos.z -= m_Voxel.at(0).GetReferenceCells().All / 2;
+		BG::Algorithm::Vector3Int Pos = m_pVoxel.at(0)->GetReferenceCells().GetVoxelPoint(StartPos);
+		Pos.x -= m_pVoxel.at(0)->GetReferenceCells().All / 2;
+		Pos.z -= m_pVoxel.at(0)->GetReferenceCells().All / 2;
 		return Pos;
 	}
 	auto			GetWorldPos(const BG::Algorithm::Vector3Int& StartPos) const noexcept {
 		BG::Algorithm::Vector3Int Pos = StartPos;
-		//Pos.x += m_Voxel.at(0).GetReferenceCells().All / 2;
-		//Pos.z += m_Voxel.at(0).GetReferenceCells().All / 2;
-		return m_Voxel.at(0).GetReferenceCells().GetWorldPos(Pos);
+		//Pos.x += m_pVoxel.at(0)->GetReferenceCells().All / 2;
+		//Pos.z += m_pVoxel.at(0)->GetReferenceCells().All / 2;
+		return m_pVoxel.at(0)->GetReferenceCells().GetWorldPos(Pos);
 	}
 	int				CheckLine(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, Util::VECTOR3D* Normal = nullptr) const noexcept {
 		Util::VECTOR3D EP = *EndPos - m_Offset;
-		auto Answer = m_Voxel.at(0).CheckLine(StartPos - m_Offset, &EP, Normal);
+		auto Answer = m_pVoxel.at(0)->CheckLine(StartPos - m_Offset, &EP, Normal);
 		*EndPos = EP + m_Offset;
 		return Answer;
 	}
 	bool			CheckWall(const Util::VECTOR3D& StartPos, Util::VECTOR3D* EndPos, const Util::VECTOR3D& AddCapsuleMin, const Util::VECTOR3D& AddCapsuleMax, float Radius, const std::vector<const Draw::MV1*>& addonColObj) const noexcept {
 		Util::VECTOR3D EP = *EndPos - m_Offset;
-		auto Answer = m_Voxel.at(0).CheckWall(StartPos - m_Offset, &EP, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
+		auto Answer = m_pVoxel.at(0)->CheckWall(StartPos - m_Offset, &EP, AddCapsuleMin, AddCapsuleMax, Radius, addonColObj);
 		*EndPos = EP + m_Offset;
 		return Answer;
 	}
 	const auto&		GetMapInfo(void) const noexcept { return this->m_MapInfo; }
-	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { m_Voxel.at(0).SettingChange(DrawLOD, ShadowLOD); }
+	void			SettingChange(int DrawLOD, int ShadowLOD) noexcept { m_pVoxel.at(0)->SettingChange(DrawLOD, ShadowLOD); }
 	const auto&		GetWayPoint(void) const noexcept { return this->m_WayPoint; }
 public:
 	void Load(const char* MapName) noexcept {
 		this->m_MapName = MapName;
 		m_Voxel.at(0).Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
 		m_Voxel.at(1).Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
-		m_Voxel.at(2).Load(("data/" + this->m_MapName + "/tex.png").c_str());							// 事前読み込み
 
 		Draw::MV1::Load("data/model/SkyBox/model.mqoz", &SkyBoxID);
+
 	}
 	void Init(void) noexcept {
 		m_Voxel.at(0).InitStart();											// 初期化開始時処理
@@ -372,10 +375,16 @@ public:
 		m_Voxel.at(1).LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
 		m_Voxel.at(1).InitEnd();											// 初期化終了時処理
 
-		m_Voxel.at(2).InitStart();											// 初期化開始時処理
-		m_Voxel.at(2).LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
-		m_Voxel.at(2).InitEnd();											// 初期化終了時処理
-		this->m_WayPoint = std::make_unique<WayPointClass>();
+		m_pVoxel.at(0) = &m_Voxel.at(0);
+		m_pVoxel.at(1) = &m_Voxel.at(1);
+
+		m_Jobs.Init([&]() {
+			m_pVoxel.at(1)->InitStart2();											// 初期化開始時処理
+			m_pVoxel.at(1)->LoadCellsFile(("data/" + this->m_MapName + "/Map.txt").c_str());					// ボクセルデータの読み込み
+			m_pVoxel.at(1)->InitEnd();											// 初期化終了時処理
+			}, [&]() {}, true);
+
+			m_Jobs.JobStart();
 		this->m_MapInfo.clear();
 		if (std::filesystem::is_regular_file("data/" + this->m_MapName + "/Event.txt")) {
 			std::ifstream ifs("data/" + this->m_MapName + "/Event.txt");
@@ -405,121 +414,43 @@ public:
 				if (ifs.eof()) { break; }
 			}
 		}
-		//経路探索
-		{
-			for (size_t p1 = 0; p1 < this->m_MapInfo.size(); ++p1) {
-				auto& m = this->m_MapInfo.at(p1);
-				if (m.m_InfoType != InfoType::WayPoint) { continue; }
-				auto Pos1 = m_Voxel.at(0).GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
-				int ID = 0;
-				for (size_t p2 = 0; p2 < this->m_MapInfo.size(); ++p2) {
-					auto& m2 = this->m_MapInfo.at(p2);
-					if (p1 == p2) { continue; }
-					if (ID >= 8) { continue; }
-					if (m2.m_InfoType != InfoType::WayPoint) { continue; }
-					auto Pos2 = m_Voxel.at(0).GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
-					if (!CheckLine(Pos1, &Pos2)) {
-						//線分の間を埋める
-						auto Vec = Pos2 - Pos1;
-						int Len = static_cast<int>(Vec.magnitude()) + 1;
-						for (int loop = 0; loop <= Len; ++loop) {
-							float Per = static_cast<float>(loop) / static_cast<float>(Len);
-							this->m_MapInfo.emplace_back();
-							this->m_MapInfo.back().m_InfoType = InfoType::WayPoint2;
+	}
+	void ChangeOffset(void) noexcept {
+		this->m_Offset += Util::VECTOR3D::vget(0.f, 0.f, -20.f) * Scale3DRate;
+		++this->m_VOfs;
+		
+		m_pVoxel.at(0) = &m_Voxel.at((m_VOfs + 0) % 2);
+		m_pVoxel.at(1) = &m_Voxel.at((m_VOfs + 1) % 2);
 
-							auto Pos = Util::Lerp(Pos1, Pos2, Per) - Util::VECTOR3D::up() * (1.f * Scale3DRate);
-							auto Pos3 = Pos - Util::VECTOR3D::up() * (2.f * Scale3DRate);
-							if (CheckLine(Pos, &Pos3)) {
-								Pos = Pos3;
-							}
-
-							this->m_MapInfo.back().m_pos = m_Voxel.at(0).GetReferenceCells().GetVoxelPoint(Pos);
-						}
-						++ID;
-					}
-				}
-			}
-			for (size_t p1 = 0; p1 < this->m_MapInfo.size(); ++p1) {
-				auto& m = this->m_MapInfo.at(p1);
-				if (m.m_InfoType != InfoType::WayPoint2) { continue; }
-				for (size_t p2 = 0; p2 < this->m_MapInfo.size(); ++p2) {
-					auto& m2 = this->m_MapInfo.at(p2);
-					if (p1 == p2) { continue; }
-					if (!(m2.m_InfoType == InfoType::WayPoint2)) { continue; }
-					if ((m.m_pos == m2.m_pos) ||
-						(m.m_pos.x == m2.m_pos.x && m.m_pos.y == m2.m_pos.y + 1 && m.m_pos.z == m2.m_pos.z) ||
-						(m.m_pos.x == m2.m_pos.x && m.m_pos.y == m2.m_pos.y + 2 && m.m_pos.z == m2.m_pos.z)
-						) {
-						this->m_MapInfo.erase(this->m_MapInfo.begin() + static_cast<int64_t>(p1));
-						--p1;
-						break;
-					}
-				}
-			}
-			int count = 0;
-			for (auto& m : this->m_MapInfo) {
-				if ((m.m_InfoType == InfoType::WayPoint2)) {
-					++count;
-				}
-			}
-			this->m_WayPoint->Init(count);
-			for (auto& m : this->m_MapInfo) {
-				if (!((m.m_InfoType == InfoType::WayPoint2))) { continue; }
-				auto Pos1 = m_Voxel.at(0).GetReferenceCells().GetWorldPos(m.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
-				auto& bu = this->m_WayPoint->AddWayPoint(
-					Pos1 + Util::VECTOR3D::vget(1.f, 1.f, 1.f) * (-0.125f * Scale3DRate),
-					Pos1 + Util::VECTOR3D::vget(1.f, 9.f, 1.f) * (0.125f * Scale3DRate)
-				);
-				int ID = 0;
-				for (auto& m2 : this->m_MapInfo) {
-					if (ID >= 8) { continue; }
-					if (&m == &m2) { continue; }
-					if (!((m2.m_InfoType == InfoType::WayPoint2))) { continue; }
-					auto Pos2 = m_Voxel.at(0).GetReferenceCells().GetWorldPos(m2.m_pos) + Util::VECTOR3D::up() * (1.f * Scale3DRate);
-					auto Vec = Pos2 - Pos1;
-					if (Vec.magnitude() >= 0.4f * Scale3DRate) { continue; }
-					if (!CheckLine(Pos1, &Pos2)) {
-						bu.SetLinkBuffer(ID, Pos2);
-						++ID;
-					}
-				}
-			}
-			//リンクを確立
-			this->m_WayPoint->Setup();
-		}
+		m_Jobs.JobStart();
 	}
 	void Update(void) noexcept {
 		auto* CameraParts = Camera::Camera3D::Instance();
 		auto* PostPassParts = Draw::PostPassEffect::Instance();
 		// ボクセル処理
-		m_Voxel.at(0).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), Util::VECTOR3D::vget(0.f, 0.f, 0.f) * Scale3DRate,
+		m_pVoxel.at(0)->SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), m_Offset + Util::VECTOR3D::vget(0.f, 0.f, 0.f) * Scale3DRate,
 			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(0).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+		m_pVoxel.at(0)->SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
 			PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(0).Update();
+		m_pVoxel.at(0)->Update();
 
-		m_Voxel.at(1).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), Util::VECTOR3D::vget(0.f, 0.f, 20.f) * Scale3DRate,
+		m_pVoxel.at(1)->SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), m_Offset + Util::VECTOR3D::vget(0.f, 0.f, -20.f) * Scale3DRate,
 			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(1).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
+		m_pVoxel.at(1)->SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
 			PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(1).Update();
+		m_pVoxel.at(1)->Update();
 
-		m_Voxel.at(2).SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), Util::VECTOR3D::vget(0.f, 0.f, -20.f)*Scale3DRate,
-			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(2).SetShadowDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(),
-			PostPassParts->GetAmbientLightVec());// シャドウマップに描画する際の描画中心座標と描画する向きを指定
-		m_Voxel.at(2).Update();
+		SkyBoxID.SetMatrix(Util::Matrix4x4::Mtrans(CameraParts->GetCameraForDraw().GetCamPos()));
+		m_Jobs.Update(true);
 	}
 	void Dispose(void) noexcept {
+		m_Jobs.Dispose();
 		m_Voxel.at(0).Dispose();
 		m_Voxel.at(0).Dispose_Load();
 
 		m_Voxel.at(1).Dispose();
 		m_Voxel.at(1).Dispose_Load();
 
-		m_Voxel.at(2).Dispose();
-		m_Voxel.at(2).Dispose_Load();
-		this->m_WayPoint.reset();
 		SkyBoxID.Dispose();
 		this->m_MapInfo.clear();
 	}
@@ -530,15 +461,13 @@ public:
 		DxLib::SetUseLighting(TRUE);
 	}
 	void SetShadowDrawRigid(void) const noexcept {
-		m_Voxel.at(0).DrawByShader();
-		m_Voxel.at(1).DrawByShader();
-		m_Voxel.at(2).DrawByShader();
+		m_pVoxel.at(0)->DrawByShader();
+		m_pVoxel.at(1)->DrawByShader();
 	}
 	void SetShadowDraw(void) const noexcept {}
 	void Draw(void) const noexcept {
-		m_Voxel.at(0).Draw();
-		m_Voxel.at(1).Draw();
-		m_Voxel.at(2).Draw();
+		m_pVoxel.at(0)->Draw();
+		m_pVoxel.at(1)->Draw();
 		/*
 		{
 			for (auto& m : this->m_MapInfo) {
@@ -567,15 +496,14 @@ public:
 				default:
 					break;
 				}
-				DrawSphere3D(m_Voxel.at(0).GetReferenceCells().GetWorldPos(m.m_pos).get(), 0.125f * Scale3DRate, 8, Color, GetColor(0, 0, 0), TRUE);
+				DrawSphere3D(m_pVoxel.at(0)->GetReferenceCells().GetWorldPos(m.m_pos).get(), 0.125f * Scale3DRate, 8, Color, GetColor(0, 0, 0), TRUE);
 			}
 		}
 		//*/
 	}
 	void ShadowDrawFar(void) const noexcept {
-		m_Voxel.at(0).DrawShadow();
-		m_Voxel.at(1).DrawShadow();
-		m_Voxel.at(2).DrawShadow();
+		m_pVoxel.at(0)->DrawShadow();
+		m_pVoxel.at(1)->DrawShadow();
 	}
 	void ShadowDraw(void) const noexcept {}
 };

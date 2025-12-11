@@ -276,6 +276,94 @@ namespace BG {
 
 	// ボクセル描画、コリジョン生成クラス
 	class VoxelControl {
+	public:
+		// スレッド実行処理
+		class ThreadJobs {
+			std::thread						m_Job;// 作業スレッド
+			bool							m_JobEnd{};// ジョブ終了通知
+			bool							m_IsDoOnce{};// 1回だけ実行するフラグ
+			bool							m_isDoing{ false };// 
+			bool							m_IsDoEnd{};// ジョブ終了後作業終了通知
+			char		padding[4]{};
+			std::function<void()>			m_Doing{ nullptr };// ジョブ
+			std::function<void()>			m_EndDoing{ nullptr };// ジョブ終了後作業
+		public:
+			ThreadJobs(void) noexcept {}
+			ThreadJobs(const ThreadJobs&) = delete;
+			ThreadJobs(ThreadJobs&&) = delete;
+			ThreadJobs& operator=(const ThreadJobs&) = delete;
+			ThreadJobs& operator=(ThreadJobs&&) = delete;
+			virtual ~ThreadJobs(void) noexcept {
+				Dispose();
+			}
+		public:
+			// ジョブを強制開始させる
+			void JobStart(void) noexcept {
+				if (!this->m_isDoing) {
+					this->m_isDoing = true;
+					this->m_JobEnd = true;
+					this->m_IsDoEnd = false;
+				}
+			}
+		public:
+			// ジョブの開始 行うジョブとジョブ完了時に行う内容を指定
+			void Init(std::function<void()> Doing, std::function<void()> EndDoing, bool IsDoOnce) noexcept {
+				this->m_Doing = Doing;
+				this->m_EndDoing = EndDoing;
+				this->m_IsDoOnce = IsDoOnce;
+				JobStart();
+			}
+			// 毎フレーム更新する内容
+			void Update(bool isActive) noexcept {
+				if (isActive) {
+					if (this->m_JobEnd) {
+						this->m_JobEnd = false;
+						if (this->m_IsDoEnd) {
+							this->m_IsDoEnd = false;
+							if (this->m_EndDoing) {
+								this->m_EndDoing();
+							}
+						}
+						// 1回だけの実行をしない場合
+						if (!this->m_IsDoOnce) {
+							this->m_isDoing = true;
+						}
+						if (this->m_isDoing) {
+							if (this->m_Job.joinable()) {
+								this->m_Job.detach();
+							}
+							std::thread tmp([&]() {
+								if (this->m_Doing) {
+									this->m_Doing();
+								}
+								this->m_JobEnd = true;
+								this->m_isDoing = false;
+								this->m_IsDoEnd = true;
+								});
+							this->m_Job.swap(tmp);
+							// 強制待機
+							// this->m_Job.join();
+						}
+					}
+				}
+				else {
+					// 1回だけ実行する場合はオンにしといて次回実行に備える
+					if (this->m_IsDoOnce) {
+						this->m_isDoing = true;
+					}
+				}
+			}
+			// 終了
+			void Dispose(void) noexcept {
+				if (this->m_Job.joinable()) {
+					this->m_Job.join();
+					// this->m_Job.detach();
+				}
+				this->m_Doing = nullptr;
+				this->m_EndDoing = nullptr;
+			}
+		};
+	private:
 		// 描画ポリゴンデータ
 		class CellsData {
 			// セル一つ一つに含まれる情報
@@ -421,92 +509,6 @@ namespace BG {
 			}
 			void				Dispose(void) noexcept {
 				this->m_CellBuffer.clear();
-			}
-		};
-		// スレッド実行処理
-		class ThreadJobs {
-			std::thread						m_Job;// 作業スレッド
-			bool							m_JobEnd{};// ジョブ終了通知
-			bool							m_IsDoOnce{};// 1回だけ実行するフラグ
-			bool							m_isDoing{ false };// 
-			bool							m_IsDoEnd{};// ジョブ終了後作業終了通知
-			char		padding[4]{};
-			std::function<void()>			m_Doing{ nullptr };// ジョブ
-			std::function<void()>			m_EndDoing{ nullptr };// ジョブ終了後作業
-		public:
-			ThreadJobs(void) noexcept {}
-			ThreadJobs(const ThreadJobs&) = delete;
-			ThreadJobs(ThreadJobs&&) = delete;
-			ThreadJobs& operator=(const ThreadJobs&) = delete;
-			ThreadJobs& operator=(ThreadJobs&&) = delete;
-			virtual ~ThreadJobs(void) noexcept {
-				Dispose();
-			}
-		public:
-			// ジョブを強制開始させる
-			void JobStart(void) noexcept {
-				if (!this->m_isDoing) {
-					this->m_isDoing = true;
-					this->m_JobEnd = true;
-					this->m_IsDoEnd = false;
-				}
-			}
-		public:
-			// ジョブの開始 行うジョブとジョブ完了時に行う内容を指定
-			void Init(std::function<void()> Doing, std::function<void()> EndDoing, bool IsDoOnce) noexcept {
-				this->m_Doing = Doing;
-				this->m_EndDoing = EndDoing;
-				this->m_IsDoOnce = IsDoOnce;
-				JobStart();
-			}
-			// 毎フレーム更新する内容
-			void Update(bool isActive) noexcept {
-				if (isActive) {
-					if (this->m_JobEnd) {
-						this->m_JobEnd = false;
-						if (this->m_IsDoEnd) {
-							this->m_IsDoEnd = false;
-							if (this->m_EndDoing) {
-								this->m_EndDoing();
-							}
-						}
-						// 1回だけの実行をしない場合
-						if (!this->m_IsDoOnce) {
-							this->m_isDoing = true;
-						}
-						if (this->m_isDoing) {
-							if (this->m_Job.joinable()) {
-								this->m_Job.detach();
-							}
-							std::thread tmp([&]() {
-								if (this->m_Doing) {
-									this->m_Doing();
-								}
-								this->m_JobEnd = true;
-								this->m_isDoing = false;
-								this->m_IsDoEnd = true;
-								});
-							this->m_Job.swap(tmp);
-							// 強制待機
-							// this->m_Job.join();
-						}
-					}
-				}
-				else {
-					// 1回だけ実行する場合はオンにしといて次回実行に備える
-					if (this->m_IsDoOnce) {
-						this->m_isDoing = true;
-					}
-				}
-			}
-			// 終了
-			void Dispose(void) noexcept {
-				if (this->m_Job.joinable()) {
-					this->m_Job.join();
-					// this->m_Job.detach();
-				}
-				this->m_Doing = nullptr;
-				this->m_EndDoing = nullptr;
 			}
 		};
 		// Polygon32bitIndexed3Dで描画をするためのクラス
@@ -758,6 +760,9 @@ namespace BG {
 		void			Load(const char* Path) noexcept;				// 事前読み込みが必要なデータのロード
 		void			InitStart(void) noexcept;			// 各データの用意開始
 		void			InitEnd(void) noexcept;				// 構成したデータのセットアップ
+
+		void			InitStart2(void) noexcept;			// 各データの用意開始
+		void			InitEnd2(void) noexcept;				// 構成したデータのセットアップ
 		void			Update(void) noexcept;				// 毎フレームよぶ更新処理
 		void			DrawShadow(void) const noexcept;	// 影用描画
 		void			Draw(void) const noexcept;			// 実描画

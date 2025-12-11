@@ -831,6 +831,38 @@ namespace BG {
 		Param.Power = 500.0f;													// スペキュラハイライトの鮮明度
 		SetMaterialParam(Param);
 	}
+
+	void		VoxelControl::InitStart2(void) noexcept {
+		// 全階層の初期化
+		for (int loop = 0; loop < TotalCellLayer; ++loop) {
+			CellsData& cellx = this->m_CellxN[static_cast<size_t>(loop)];
+			//cellx.Init(loop);
+		}
+	}
+	void		VoxelControl::InitEnd2(void) noexcept {
+		// 簡略版を制作
+		for (int loop = 0; loop < TotalCellLayer; ++loop) {
+			if (ReferenceCell == loop) { continue; }
+			CellsData& cellx = this->m_CellxN[static_cast<size_t>(loop)];
+			for (int Xvoxel = 0; Xvoxel < cellx.All; ++Xvoxel) {
+				for (int Yvoxel = 0; Yvoxel < cellx.All; ++Yvoxel) {
+					for (int Zvoxel = 0; Zvoxel < cellx.All; ++Zvoxel) {
+						cellx.SetCellBuf(Xvoxel, Yvoxel, Zvoxel).SetID(GetReferenceCells().isFill(Xvoxel, Yvoxel, Zvoxel, cellx.ScaleRate));
+					}
+				}
+			}
+		}
+		// 遮蔽検索
+		for (auto& cellx : this->m_CellxN) {
+			for (int Xvoxel = 0; Xvoxel < cellx.All; ++Xvoxel) {
+				for (int Yvoxel = 0; Yvoxel < cellx.All; ++Yvoxel) {
+					for (int Zvoxel = 0; Zvoxel < cellx.All; ++Zvoxel) {
+						cellx.CalcOcclusion(Xvoxel, Yvoxel, Zvoxel);
+					}
+				}
+			}
+		}
+	}
 	void		VoxelControl::Update(void) noexcept {
 		for (int loop = 0; loop < TotalCellLayer; ++loop) {
 			if ((loop != 0) && (loop != this->m_ThreadCounter)) { continue; }
