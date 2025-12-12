@@ -334,8 +334,12 @@ public:
 
 	}
 	void Init(void) noexcept {
-		m_NextMap = (GetRand(100) < 50) ? "Map2" : "Map1";
+		m_pVoxel.at(0) = &m_Voxel.at(0);
+		m_pVoxel.at(1) = &m_Voxel.at(1);
 
+		{
+			m_NextMap = "Map" + std::to_string(GetRand(100) % (3 - 1) + 2);
+		}
 
 		m_Voxel.at(0).InitStart();											// 初期化開始時処理
 		m_Voxel.at(0).LoadCellsFile("Map1");					// ボクセルデータの読み込み
@@ -344,9 +348,6 @@ public:
 		m_Voxel.at(1).InitStart();											// 初期化開始時処理
 		m_Voxel.at(1).LoadCellsFile(m_NextMap);					// ボクセルデータの読み込み
 		m_Voxel.at(1).InitEnd();											// 初期化終了時処理
-
-		m_pVoxel.at(0) = &m_Voxel.at(0);
-		m_pVoxel.at(1) = &m_Voxel.at(1);
 
 		m_Jobs.Init([&]() {
 			m_pVoxel.at(1)->InitStart2();											// 初期化開始時処理
@@ -365,8 +366,13 @@ public:
 		m_pVoxel.at(0) = &m_Voxel.at(static_cast<size_t>((m_VOfs + 0) % 2));
 		m_pVoxel.at(1) = &m_Voxel.at(static_cast<size_t>((m_VOfs + 1) % 2));
 
-		m_NextMap = (GetRand(100) < 50) ? "Map2" : "Map1";
-	
+		if ((this->m_VOfs - 1) % 5 == 0) {
+			m_NextMap = "Map" + std::to_string(1);
+		}
+		else {
+			m_NextMap = "Map" + std::to_string(GetRand(100) % (3 - 1) + 2);
+		}
+
 		m_Jobs.JobStart();
 	}
 	void Update(void) noexcept {
@@ -427,8 +433,8 @@ public:
 				}
 			}
 			VecT = Vec1 + Vec2;
-			clsDx();
-			printfDx("(%5.2f,%5.2f,%5.2f)\n", VecT.x / Scale3DRate, VecT.y / Scale3DRate, VecT.z / Scale3DRate);
+			//clsDx();
+			//printfDx("(%5.2f,%5.2f,%5.2f)\n", VecT.x / Scale3DRate, VecT.y / Scale3DRate, VecT.z / Scale3DRate);
 		}
 		m_pVoxel.at(1)->SetDrawInfo(CameraParts->GetCameraForDraw().GetCamPos(), m_Offset + VecT,
 			(CameraParts->GetCameraForDraw().GetCamVec() - CameraParts->GetCameraForDraw().GetCamPos()).normalized());// 描画する際の描画中心座標と描画する向きを指定
