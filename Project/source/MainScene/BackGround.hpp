@@ -338,7 +338,7 @@ public:
 		m_pVoxel.at(1) = &m_Voxel.at(1);
 
 		{
-			m_NextMap = "Map" + std::to_string(GetRand(100) % (3 - 1) + 2);
+			m_NextMap = "Map" + std::to_string(GetRand(100) % (5 - 1) + 2);
 		}
 
 		m_Voxel.at(0).InitStart();											// 初期化開始時処理
@@ -370,7 +370,7 @@ public:
 			m_NextMap = "Map" + std::to_string(1);
 		}
 		else {
-			m_NextMap = "Map" + std::to_string(GetRand(100) % (3 - 1) + 2);
+			m_NextMap = "Map" + std::to_string(GetRand(100) % (5 - 1) + 2);
 		}
 
 		m_Jobs.JobStart();
