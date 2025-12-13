@@ -19,19 +19,56 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Draw\Camera.cpp" />
+    <ClCompile Include="source\Draw\DrawUISystem.cpp" />
+    <ClCompile Include="source\Draw\FontDraw.cpp" />
+    <ClCompile Include="source\Draw\ImageDraw.cpp" />
+    <ClCompile Include="source\Draw\KeyGuide.cpp" />
+    <ClCompile Include="source\Draw\Light.cpp" />
+    <ClCompile Include="source\Draw\MainDraw.cpp" />
+    <ClCompile Include="source\Draw\MV1.cpp" />
+    <ClCompile Include="source\Draw\PostPass.cpp" />
+    <ClCompile Include="source\File\FileStream.cpp" />
     <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\Manage\MainDraw.cpp" />
-    <ClCompile Include="source\Manage\SceneManager.cpp" />
-    <ClCompile Include="source\Manage\Util.cpp" />
-    <ClCompile Include="source\Scene\SampleScene.cpp" />
+    <ClCompile Include="source\MainScene\BaseObject.cpp" />
+    <ClCompile Include="source\OptionWindow.cpp" />
+    <ClCompile Include="source\PauseUI.cpp" />
+    <ClCompile Include="source\Scene\MainScene.cpp" />
+    <ClCompile Include="source\Scene\TitleScene.cpp" />
+    <ClCompile Include="source\TitleUI.cpp" />
+    <ClCompile Include="source\Util\Key.cpp" />
+    <ClCompile Include="source\Util\Localize.cpp" />
+    <ClCompile Include="source\Util\Option.cpp" />
+    <ClCompile Include="source\Util\SceneManager.cpp" />
+    <ClCompile Include="source\Util\Sound.cpp" />
+    <ClCompile Include="source\Util\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Manage\Enum.hpp" />
-    <ClInclude Include="source\Manage\MainDraw.hpp" />
-    <ClInclude Include="source\Manage\SceneManager.hpp" />
-    <ClInclude Include="source\Manage\Util.hpp" />
-    <ClInclude Include="source\Scene\SampleScene.hpp" />
-    <ClInclude Include="source\Scene\SceneEnum.hpp" />
+    <ClInclude Include="source\Draw\Camera.hpp" />
+    <ClInclude Include="source\Draw\DrawUISystem.hpp" />
+    <ClInclude Include="source\Draw\FontDraw.hpp" />
+    <ClInclude Include="source\Draw\ImageDraw.hpp" />
+    <ClInclude Include="source\Draw\KeyGuide.hpp" />
+    <ClInclude Include="source\Draw\Light.hpp" />
+    <ClInclude Include="source\Draw\MainDraw.hpp" />
+    <ClInclude Include="source\Draw\MV1.hpp" />
+    <ClInclude Include="source\Draw\PostPass.hpp" />
+    <ClInclude Include="source\File\FileStream.hpp" />
+    <ClInclude Include="source\File\json.hpp" />
+    <ClInclude Include="source\MainScene\BaseObject.hpp" />
+    <ClInclude Include="source\OptionWindow.hpp" />
+    <ClInclude Include="source\PauseUI.hpp" />
+    <ClInclude Include="source\Scene\MainScene.hpp" />
+    <ClInclude Include="source\Scene\TitleScene.hpp" />
+    <ClInclude Include="source\TitleUI.hpp" />
+    <ClInclude Include="source\Util\Algorithm.hpp" />
+    <ClInclude Include="source\Util\Enum.hpp" />
+    <ClInclude Include="source\Util\Key.hpp" />
+    <ClInclude Include="source\Util\Localize.hpp" />
+    <ClInclude Include="source\Util\Option.hpp" />
+    <ClInclude Include="source\Util\SceneManager.hpp" />
+    <ClInclude Include="source\Util\Sound.hpp" />
+    <ClInclude Include="source\Util\Util.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -134,7 +171,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
@@ -151,7 +188,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
