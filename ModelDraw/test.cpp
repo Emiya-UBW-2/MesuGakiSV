@@ -52,7 +52,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	DX DXParam;
 
 
-	int MV1 = MV1LoadModel("data/model/model.pmx");
+	int MV1 = MV1LoadModel("data/model2/model.pmx");
 	int AttachIndex = MV1AttachAnim(MV1, 0);
 
 	// é©ï™ÇÃç¿ïWÇ∆å¸Ç´ÇéwíË
@@ -91,7 +91,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 		if (CheckHitKey(KEY_INPUT_F3) != 0) {
 			Xrad = -0.f * DX_PI_F / 180.f;
-			Yrad = -0.f * DX_PI_F / 180.f;
+			Yrad = -180.f * DX_PI_F / 180.f;
 		}
 
 		bool PressLeft = (GetMouseInput() & MOUSE_INPUT_LEFT) != 0;

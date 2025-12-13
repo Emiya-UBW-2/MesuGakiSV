@@ -1,0 +1,7 @@
+MakeEnemy(Enemy01,300);
+MakeEnemy(Enemy01,310);
+MakeEnemy(Enemy01,320);
+MakeEnemy(Enemy01,330);
+MakeEnemy(Enemy01,340);
+MakeEnemy(Enemy01,350);
+MakeEnemy(Enemy01,360);

@@ -1,0 +1,14 @@
+Time(0);
+	ToPoint(100,0);
+Time(60);
+	ToPoint(100,100);
+Time(120);
+	ToPoint(100,500);
+Time(180);
+	ToPoint(100,500);
+Time(240);
+	ToPoint(100,100);
+Time(300);
+	ToPoint(100,0);
+Time(360);
+	Erase();
