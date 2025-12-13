@@ -512,22 +512,17 @@ class Character :public CharacterCommon {
 	float				m_YradProne{};
 	float				m_YradUpper{};
 	float				m_RadLimit{};
-	float				m_PunchPower{};
 	bool				m_PrevIsFPSView{};
 	bool				m_IsFPS{};
 	bool				m_IsActive{};
 	bool				m_AnimMoving{ false };
 	bool				m_ShotSwitch{ false };
-	bool				m_PunchAttack{ false };
 	bool				m_DiveAttack{ false };
-	bool				m_ArmlockInjector{ false };
-	bool				m_CanArmlock{ false };
 	bool				m_CanAim{ false };
 	bool				m_IsFall{ false };
 	char		padding2[2]{};
 	Sound::SoundUniqueID	m_heartID{ InvalidID };
 	Sound::SoundUniqueID	m_PunchID{ InvalidID };
-	Sound::SoundUniqueID	m_KickID{ InvalidID };
 	Sound::SoundUniqueID	HitHumanID{ InvalidID };
 	Sound::SoundUniqueID DownHumanID{ InvalidID };
 
@@ -545,13 +540,6 @@ class Character :public CharacterCommon {
 	Util::HandAnimID	m_Now{};
 	int					m_Equip{ InvalidID };
 	int					m_PrevEquip{ InvalidID };
-	int					m_ArmlockID = InvalidID;
-	char		padding[4]{};
-
-	SpecialAction		m_Punch;
-	SpecialAction		m_Armlock;
-	SpecialAction		m_Armlocked;
-	int					m_ArmlockedPos{};
 
 	SpecialAction		m_Dive;
 
@@ -570,7 +558,6 @@ class Character :public CharacterCommon {
 	float				m_DownPower{ 0.f };
 	int					m_TotalAmmo{ 0 };//予備弾数
 	int					m_CanHaveAmmo{ 17*2 };//予備弾数
-	Draw::MV1			m_Injector{};
 public:
 	Character(void) noexcept {}
 	Character(const Character&) = delete;
@@ -620,13 +607,6 @@ public:
 
 	bool IsFPSView(void) const noexcept { return this->m_IsFPS; }
 	bool IsShotSwitch(void) const noexcept { return this->m_ShotSwitch; }
-	bool CanDamage(void) const noexcept {
-		return !this->m_Armlock.IsActive() && !this->m_Armlocked.IsActive() && this->m_Armlocked.m_Time == 0.f;
-	}
-	bool CanArmlock(void) const noexcept {
-		return this->m_CanArmlock;
-	}
-	bool CanArmlockInjector(void) const noexcept { return (this->m_Armlock.IsActive() && !this->m_Armlock.m_End); }
 	auto GetStyle(void) const noexcept { return this->m_CharaStyle; }
 
 	bool HasLens() const noexcept;
@@ -638,9 +618,6 @@ public:
 	int CanHaveAmmo(void) const noexcept { return this->m_CanHaveAmmo; }
 	bool NeedReload(void) const noexcept;
 	bool IsFreeView(void) const noexcept {
-		if (this->m_Armlock.IsActive()) {
-			return false;
-		}
 		auto* KeyMngr = Util::KeyParam::Instance();
 		return KeyMngr->GetBattleKeyPress(Util::EnumBattle::Aim) && !IsFPSView();
 	}
@@ -678,23 +655,9 @@ public:
 	void SetEquip(int value) noexcept { this->m_Equip = value; }
 
 	bool ChanChangeWeapon() const noexcept {
-		return  (!this->GetIsReloading() && !this->m_Punch.IsActive() && !this->m_Armlock.IsActive());
+		return  (!this->GetIsReloading());
 	}
 	//
-	void		SetArmlocked(int UniqueID) noexcept {
-		this->m_ArmlockedPos = UniqueID;
-		this->m_Armlocked.SetActive();
-		this->m_Punch.m_Active = false;
-		SetAnim(static_cast<int>(CharaAnim::ArmlockedStart)).SetTime(0.f);
-	}
-	void		SetArmlockedEnd() noexcept {
-		if (!this->m_Armlocked.m_End) {
-			this->m_Armlocked.m_End = true;
-			SetAnim(static_cast<int>(CharaAnim::ArmlockedEnd)).SetTime(0.f);
-			//this->m_DownBottomTimer = 3.f;
-			this->m_DownPower = 1.f;
-		}
-	}
 	void		SetHit(const Util::VECTOR3D& Vec) noexcept {
 		//のけぞり
 		Util::VECTOR3D A = GetMat().zvec(); A.y = 0.f;
@@ -719,19 +682,11 @@ public:
 	bool IsPlayer(void) noexcept override { return true; }
 
 	void Load_Chara(void) noexcept override {
-		DownHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/DownHuman.wav", true);
-
+		this->DownHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/DownHuman.wav", true);
 		this->m_heartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/heart.wav", true);
 		this->HitHumanID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/HitHuman.wav", true);
-
-		this->ArmlockStartID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/ArmlockStart.wav", true);
-		this->ArmlockID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Armlock.wav", true);
-		this->StimID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Stim.wav", true);
-
 		this->m_PunchID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Punch.wav", true);
-		this->m_KickID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/move/Kick.wav", true);
 		//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, heartID)->Play3D(GetMat().pos(), 10.f * Scale3DRate);
-		Draw::MV1::Load("data/model/Injector/model.mv1", &m_Injector);
 	}
 	void Init_Chara(void) noexcept override {
 		this->m_StandAnimIndex = Util::HandAnimPool::Instance()->Add("data/CharaAnim/Stand.anh");
@@ -753,18 +708,9 @@ public:
 
 		this->m_WakeBottom = false;
 
-		this->m_Armlock.Init();
-		this->m_Armlocked.Init();
-
 		this->m_TotalAmmo = this->m_CanHaveAmmo;
 	}
 	void Update_Chara(void) noexcept override;
-	void Draw_Chara(void) const noexcept override {
-		if (this->m_ArmlockInjector) {
-			m_Injector.DrawModel();
-		}
-	}
-	void Dispose_Chara(void) noexcept override {
-		m_Injector.Dispose();
-	}
+	void Draw_Chara(void) const noexcept override {}
+	void Dispose_Chara(void) noexcept override {}
 };

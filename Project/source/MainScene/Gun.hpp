@@ -313,16 +313,13 @@ public:
 				switch (pHitBox->GetColType()) {
 					case HB::HitType::Head:
 						((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos(), 1.f);
-						((std::shared_ptr<EarlyCharacter>&)c)->SetDrug(((std::shared_ptr<EarlyCharacter>&)c)->GetDrugPerMax() * 100.f / 100.f);
 						break;
 					case HB::HitType::Body:
 						((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos(), 0.35f);
-						((std::shared_ptr<EarlyCharacter>&)c)->SetDrug(((std::shared_ptr<EarlyCharacter>&)c)->GetDrugPerMax() * 51.f / 100.f);
 						break;
 					case HB::HitType::Arm:
 					case HB::HitType::Leg:
 						((std::shared_ptr<EarlyCharacter>&)c)->SetHit(Target - GetMat().pos(), 0.35f);
-						((std::shared_ptr<EarlyCharacter>&)c)->SetDrug(((std::shared_ptr<EarlyCharacter>&)c)->GetDrugPerMax() * 34.f / 100.f);
 						break;
 					case HB::HitType::Armor:
 					case HB::HitType::Helmet:

@@ -414,67 +414,8 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	}
 	AmmoBoxPool::Instance()->DrawUI();
 	{
-		for (auto& c : PlayerManager::Instance()->GetCharacter()) {
-			if (c->IsPlayer()) { continue; }
-			auto& ec = ((std::shared_ptr<EarlyCharacter>&)c);
-			if (ec->GetCanSeePer() == 0.f) { continue; }
-			if (ec->GetDrugPer() == ec->GetDrugPerMax() * 2.f) { continue; }
-			auto Pos = ec->GetUIPos();
-
-			/*
-			auto Len = std::clamp(
-				(Pos - Util::VECTOR2D::vget(DrawerMngr->GetDispWidth() / 2, DrawerMngr->GetDispHeight() / 2)).magnitude() - 100.f,
-				0.f, 500.f);
-			//*/
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA,
-				std::clamp(static_cast<int>(255.f *
-					//(1.f - Len / 500.f)*
-					ec->GetCanSeePer()
-					), 0, 255));
-
-			DrawLine(
-				static_cast<int>(Pos.x), static_cast<int>(Pos.y),
-				static_cast<int>(Pos.x) + 24, static_cast<int>(Pos.y) - 24,
-				ColorPalette::Green, 3);
-
-			DrawBox(
-				static_cast<int>(Pos.x) + 24, static_cast<int>(Pos.y) - 24 - 10,
-				static_cast<int>(Pos.x) + 24 + static_cast<int>(64.f * std::clamp(ec->GetDrugPer(), 0.f, ec->GetDrugPerMax()) / ec->GetDrugPerMax()), static_cast<int>(Pos.y) - 24,
-				ColorPalette::Yellow, true);
-
-			DrawBox(
-				static_cast<int>(Pos.x) + 24, static_cast<int>(Pos.y) - 24 - 10,
-				static_cast<int>(Pos.x) + 24 + static_cast<int>(64.f * std::clamp(ec->GetDrugPer() - ec->GetDrugPerMax(), 0.f, ec->GetDrugPerMax()) / ec->GetDrugPerMax()), static_cast<int>(Pos.y) - 24,
-				ColorPalette::Red, true);
-
-			DrawBox(
-				static_cast<int>(Pos.x) + 24, static_cast<int>(Pos.y) - 24 - 10,
-				static_cast<int>(Pos.x) + 24 + 64, static_cast<int>(Pos.y) - 24,
-				ColorPalette::Green, false, 3);
-		}
-		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-	}
-	{
 		int xpos = DrawerMngr->GetDispWidth() / 2;
 		int ypos = DrawerMngr->GetDispHeight() * 3 / 4;
-
-		if (Player->CanArmlock()) {
-			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack));
-			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
-				Draw::FontXCenter::MIDDLE, Draw::FontYCenter::TOP,
-				xpos, ypos + 18,
-				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(341)));
-			ypos += 52;
-		}
-
-		if (Player->CanArmlockInjector()) {
-			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim));
-			Draw::FontPool::Instance()->Get(Draw::FontType::MS_Gothic, LineHeight, 3)->DrawString(
-				Draw::FontXCenter::MIDDLE, Draw::FontYCenter::TOP,
-				xpos, ypos + 18,
-				ColorPalette::White, ColorPalette::Black, Util::SjistoUTF8(Localize->Get(342)));
-			ypos += 52;
-		}
 
 		if (Player->NeedReload()) {
 			KeyGuideParts->DrawButton(xpos - 24 / 2, ypos - 24 / 2, DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Reload));
