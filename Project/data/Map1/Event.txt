@@ -42,7 +42,3 @@ Type=Exit2
 X=131
 Y=160
 Z=87
-Type=WayPoint
-X=131
-Y=160
-Z=87

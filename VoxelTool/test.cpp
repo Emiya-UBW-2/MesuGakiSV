@@ -56,7 +56,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Voxel.Load();												// 事前読み込み
 
 	Voxel.InitStart();											// 初期化開始時処理
-	//Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
+	Voxel.LoadCellsFile("data/Map.txt");						// ボクセルデータの読み込み
+	if (false)
 	{
 		int XSize{}, YSize{};
 		int SoftImage1F = LoadSoftImage("data/map1F.bmp");
@@ -104,7 +105,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		DeleteSoftImage(SoftImage1F);
 		DeleteSoftImage(SoftImage1FColor);
 	}
-	//if(false)
+	if(false)
 	{
 		int XSize{}, YSize{};
 		int SoftImage2F = LoadSoftImage("data/map2F.bmp");

@@ -359,22 +359,7 @@ public:
 
 		m_Jobs.JobStart();
 	}
-	void ChangeOffset(void) noexcept {
-		this->m_Offset += VecT;
-		++this->m_VOfs;
-		
-		m_pVoxel.at(0) = &m_Voxel.at(static_cast<size_t>((m_VOfs + 0) % 2));
-		m_pVoxel.at(1) = &m_Voxel.at(static_cast<size_t>((m_VOfs + 1) % 2));
-
-		if ((this->m_VOfs - 1) % 5 == 0) {
-			m_NextMap = "Map" + std::to_string(1);
-		}
-		else {
-			m_NextMap = "Map" + std::to_string(GetRand(100) % (5 - 1) + 2);
-		}
-
-		m_Jobs.JobStart();
-	}
+	void ChangeOffset(void) noexcept;
 	void Update(void) noexcept {
 		auto* CameraParts = Camera::Camera3D::Instance();
 		auto* PostPassParts = Draw::PostPassEffect::Instance();
