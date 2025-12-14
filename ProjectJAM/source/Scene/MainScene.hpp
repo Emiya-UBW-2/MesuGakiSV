@@ -12,22 +12,36 @@
 
 #include "../Util/SceneManager.hpp"
 
-struct Move {
-	Util::VECTOR2D					m_Pos{};
-	float							m_Rad{};
-};
 
 class Object2DBase {
+private:
+	struct Move {
+		Util::VECTOR2D					m_Pos{};
+		float							m_Rad{};
+	};
+private:
 	const Draw::GraphHandle* m_Pic{};
 	Move					m_Pos{};
-	std::array<Move, 3>	m_PosRe{};
-	bool						m_IsActive{ true };
+	std::array<Move, 3>		m_PosRe{};
+	int						m_UniqueID{};
+	bool					m_IsActive{ true };
+	char		padding[3]{};
+public:
+	Object2DBase(void) noexcept {}
+	virtual ~Object2DBase(void) noexcept {}
+	Object2DBase(const Object2DBase&) = delete;
+	Object2DBase(Object2DBase&&) = delete;
+	Object2DBase& operator=(const Object2DBase&) = delete;
+	Object2DBase& operator=(Object2DBase&&) = delete;
 public:
 	Move& SetPos() noexcept { return m_Pos; }
 public:
 	void SetPtr(const Draw::GraphHandle* ptr) noexcept { m_Pic = ptr; }
 	void SetActive(bool IsActive) noexcept { m_IsActive = IsActive; }
 	bool IsActive() const noexcept { return m_IsActive; }
+
+	void SetUniqueID(int UniqueID) noexcept { m_UniqueID = UniqueID; }
+	int GetUniqueID() const noexcept { return m_UniqueID; }
 public:
 	void Init(void) noexcept {
 		// フレーム
@@ -69,6 +83,7 @@ private:
 private:
 	std::vector<SharedObj2D>		m_ObjectList;
 	int							m_LastUniqueID{ 0 };
+	char		padding[4]{};
 private:
 	Object2DManager(void) noexcept {
 		this->m_ObjectList.reserve(256);
@@ -77,14 +92,26 @@ private:
 	Object2DManager(Object2DManager&&) = delete;
 	Object2DManager& operator=(const Object2DManager&) = delete;
 	Object2DManager& operator=(Object2DManager&&) = delete;
+	virtual ~Object2DManager(void) noexcept {
+		this->m_ObjectList.clear();
+		this->m_ObjectList.shrink_to_fit();
+	}
 public:
 	void			AddObject(const SharedObj2D& pObj) noexcept {
 		this->m_ObjectList.emplace_back(pObj);
 		this->m_ObjectList.back()->Init();
+		this->m_ObjectList.back()->SetUniqueID(m_LastUniqueID);
+		++m_LastUniqueID;
 	}
 public:
 	SharedObj2D* GetObj(int UniqueID) noexcept {
-
+		for (auto& object : this->m_ObjectList) {
+			if (!object) { continue; }
+			if (object->GetUniqueID() == UniqueID) {
+				return &object;
+			}
+		}
+		return nullptr;
 	}
 public:
 	void			UpdateObject(void) noexcept {
@@ -112,10 +139,16 @@ public:
 	}
 };
 
-
 class ObjectAmmo : public Object2DBase {
 public:
 	Util::VECTOR2D					m_Vec{};
+public:
+	ObjectAmmo(void) noexcept {}
+	virtual ~ObjectAmmo(void) noexcept {}
+	ObjectAmmo(const ObjectAmmo&) = delete;
+	ObjectAmmo(ObjectAmmo&&) = delete;
+	ObjectAmmo& operator=(const ObjectAmmo&) = delete;
+	ObjectAmmo& operator=(ObjectAmmo&&) = delete;
 public:
 	void Init_Sub(void) noexcept override {
 	}
@@ -129,16 +162,59 @@ public:
 	void Dispose_Sub(void) noexcept override {
 	}
 };
+class AmmoPool : public Util::SingletonBase<AmmoPool> {
+private:
+	friend class Util::SingletonBase<AmmoPool>;
+private:
+	std::vector<std::shared_ptr<ObjectAmmo>>			m_AmmoPos{};
+private:
+	AmmoPool(void) noexcept {
+		this->m_AmmoPos.reserve(256);
+	}
+	virtual ~AmmoPool(void) noexcept {
+		this->m_AmmoPos.clear();
+		this->m_AmmoPos.shrink_to_fit();
+	}
+	AmmoPool(const AmmoPool&) = delete;
+	AmmoPool(AmmoPool&&) = delete;
+	AmmoPool& operator=(const AmmoPool&) = delete;
+	AmmoPool& operator=(AmmoPool&&) = delete;
+public:
+	void SetAmmo(const Util::VECTOR2D& pos, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr) noexcept {
+		for (auto& a : m_AmmoPos) {
+			if (!a->IsActive()) {
+				a->SetActive(true);
+				a->SetPos().m_Pos = pos;
+				a->SetPos().m_Rad = Util::deg2rad(GetRand(90));
+				a->m_Vec = vec;
+				a->SetPtr(ptr);
+				return;
+			}
+		}
+		m_AmmoPos.emplace_back();
+		auto& a = m_AmmoPos.back();
+		a = std::make_shared<ObjectAmmo>();
+		Object2DManager::Instance()->AddObject(a);
+		a->SetActive(true);
+		a->SetPos().m_Pos = pos;
+		a->SetPos().m_Rad = Util::deg2rad(GetRand(90));
+		a->m_Vec = vec;
+		a->SetPtr(ptr);
+
+	}
+};
 
 
 struct EnemyPicture {
 	const Draw::GraphHandle* m_picture{};
 	int								m_EndAnim{};
+	char		padding[4]{};
 };
 struct EnemyMove {
 	int				m_Frame{};
 	Util::VECTOR2D	m_Pos;
 	bool			m_IsEnd{ false };
+	char		padding[3]{};
 };
 
 class EnemyData {
@@ -211,11 +287,19 @@ class ObjectEnemy : public Object2DBase {
 public:
 	EnemyData* m_EnemyData{};
 	int							m_Anim{};
+	char		padding[4]{};
 	size_t						m_Frame{};
 
 	float						m_MoveAnim{};
+	char		padding2[4]{};
 	size_t						m_MoveFrame{};
-
+public:
+	ObjectEnemy(void) noexcept {}
+	virtual ~ObjectEnemy(void) noexcept {}
+	ObjectEnemy(const ObjectEnemy&) = delete;
+	ObjectEnemy(ObjectEnemy&&) = delete;
+	ObjectEnemy& operator=(const ObjectEnemy&) = delete;
+	ObjectEnemy& operator=(ObjectEnemy&&) = delete;
 public:
 	void InitEnemy(EnemyData* pEnemyData) noexcept {
 		m_EnemyData = pEnemyData;
@@ -243,8 +327,8 @@ public:
 			if (m_EnemyData->m_Move.size() - 1 > m_MoveFrame) {
 				auto& Now = m_EnemyData->m_Move.at(m_MoveFrame);
 				auto& Next = m_EnemyData->m_Move.at(m_MoveFrame + 1);
-				auto MoveAnimPer = static_cast<float>(m_MoveAnim - Now.m_Frame) / static_cast<float>(Next.m_Frame - Now.m_Frame);
-				if (Next.m_Frame <= m_MoveAnim) {
+				auto MoveAnimPer = static_cast<float>(m_MoveAnim - static_cast<float>(Now.m_Frame)) / static_cast<float>(Next.m_Frame - Now.m_Frame);
+				if (static_cast<float>(Next.m_Frame) <= m_MoveAnim) {
 					++m_MoveFrame;
 				}
 				SetPos().m_Pos = Util::Lerp(Now.m_Pos, Next.m_Pos, MoveAnimPer);
@@ -263,8 +347,44 @@ public:
 	void Dispose_Sub(void) noexcept override {
 	}
 };
+
+class EnemyPool : public Util::SingletonBase<EnemyPool> {
+private:
+	friend class Util::SingletonBase<EnemyPool>;
+public:
+	std::vector<std::shared_ptr<ObjectEnemy>>			m_EnemyPos{};
+private:
+	EnemyPool(void) noexcept {
+		this->m_EnemyPos.reserve(256);
+	}
+	virtual ~EnemyPool(void) noexcept {
+		this->m_EnemyPos.clear();
+		this->m_EnemyPos.shrink_to_fit();
+	}
+	EnemyPool(const EnemyPool&) = delete;
+	EnemyPool(EnemyPool&&) = delete;
+	EnemyPool& operator=(const EnemyPool&) = delete;
+	EnemyPool& operator=(EnemyPool&&) = delete;
+public:
+	void SetEnemy(EnemyData* ptr) noexcept {
+		m_EnemyPos.emplace_back();
+		auto& a = m_EnemyPos.back();
+		a = std::make_shared<ObjectEnemy>();
+		Object2DManager::Instance()->AddObject(a);
+		a->SetActive(true);
+		a->InitEnemy(ptr);
+	}
+};
+
 class ObjectOption : public Object2DBase {
 	const Draw::GraphHandle* m_ReimuOption{};
+public:
+	ObjectOption(void) noexcept {}
+	virtual ~ObjectOption(void) noexcept {}
+	ObjectOption(const ObjectOption&) = delete;
+	ObjectOption(ObjectOption&&) = delete;
+	ObjectOption& operator=(const ObjectOption&) = delete;
+	ObjectOption& operator=(ObjectOption&&) = delete;
 public:
 	void Init_Sub(void) noexcept override {
 		m_ReimuOption = Draw::GraphPool::Instance()->Get("data/Image/Option.png")->Get();
@@ -281,62 +401,21 @@ class ObjectMine : public Object2DBase {
 	const Draw::GraphHandle* m_ReimuStay{};
 	const Draw::GraphHandle* m_ReimuLeft{};
 	const Draw::GraphHandle* m_ReimuRight{};
-	float							m_ReimuSpeed{};
-public:
 	const Draw::GraphHandle* m_Ammo00{};
 	const Draw::GraphHandle* m_Ammo01{};
 	std::shared_ptr<ObjectOption>	m_ReimuOpt0{};
 	std::shared_ptr<ObjectOption>	m_ReimuOpt1{};
 	float							m_ReimuSlowPer{};
-
-	std::vector<std::shared_ptr<ObjectAmmo>>			m_Ammo00Pos{};
-	std::vector<std::shared_ptr<ObjectAmmo>>			m_Ammo01Pos{};
 	float							m_Ammo00ShotTimer{};
 	float							m_Ammo01ShotTimer{};
+	float							m_ReimuSpeed{};
 public:
-	void SetAmmo00(const Util::VECTOR2D& pos, const Util::VECTOR2D& vec) noexcept {
-		for (auto& a : m_Ammo00Pos) {
-			if (!a->IsActive()) {
-				a->SetActive(true);
-				a->SetPos().m_Pos = pos;
-				a->SetPos().m_Rad = Util::deg2rad(GetRand(90));
-				a->m_Vec = vec;
-				a->SetPtr(m_Ammo00);
-				return;
-			}
-		}
-		m_Ammo00Pos.emplace_back();
-		auto& a = m_Ammo00Pos.back();
-		a = std::make_shared<ObjectAmmo>();
-		Object2DManager::Instance()->AddObject(a);
-		a->SetActive(true);
-		a->SetPos().m_Pos = pos;
-		a->SetPos().m_Rad = Util::deg2rad(GetRand(90));
-		a->m_Vec = vec;
-		a->SetPtr(m_Ammo00);
-
-	}
-	void SetAmmo01(const Util::VECTOR2D& pos, const Util::VECTOR2D& vec) noexcept {
-		for (auto& a : m_Ammo01Pos) {
-			if (!a->IsActive()) {
-				a->SetActive(true);
-				a->SetPos().m_Pos = pos;
-				a->SetPos().m_Rad = Util::deg2rad(GetRand(90));
-				a->m_Vec = vec;
-				a->SetPtr(m_Ammo01);
-				return;
-			}
-		}
-		m_Ammo01Pos.emplace_back();
-		auto& a = m_Ammo01Pos.back();
-		a = std::make_shared<ObjectAmmo>();
-		Object2DManager::Instance()->AddObject(a);
-		a->SetActive(true);
-		a->SetPos().m_Pos = pos;
-		a->SetPos().m_Rad = Util::deg2rad(GetRand(90));
-		a->m_Vec = vec;
-		a->SetPtr(m_Ammo01);
-	}
+	ObjectMine(void) noexcept {}
+	virtual ~ObjectMine(void) noexcept {}
+	ObjectMine(const ObjectMine&) = delete;
+	ObjectMine(ObjectMine&&) = delete;
+	ObjectMine& operator=(const ObjectMine&) = delete;
+	ObjectMine& operator=(ObjectMine&&) = delete;
 public:
 	void Init_Sub(void) noexcept override {
 		m_ReimuStay = Draw::GraphPool::Instance()->Get("data/Image/stay00.png")->Get();
@@ -393,16 +472,16 @@ public:
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo00ShotTimer = 0.1f;
 					if (IsSlow) {
-						SetAmmo00(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), Util::VECTOR2D::vget(-100.f, -1200.f));
-						SetAmmo00(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f));
-						SetAmmo00(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f));
-						SetAmmo00(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), Util::VECTOR2D::vget(100.f, -1200.f));
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), Util::VECTOR2D::vget(-100.f, -1200.f), m_Ammo00);
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00);
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00);
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), Util::VECTOR2D::vget(100.f, -1200.f), m_Ammo00);
 					}
 					else {
-						SetAmmo00(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), Util::VECTOR2D::vget(-200.f, -1200.f));
-						SetAmmo00(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f));
-						SetAmmo00(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f));
-						SetAmmo00(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), Util::VECTOR2D::vget(200.f, -1200.f));
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), Util::VECTOR2D::vget(-200.f, -1200.f), m_Ammo00);
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00);
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00);
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), Util::VECTOR2D::vget(200.f, -1200.f), m_Ammo00);
 					}
 				}
 			}
@@ -413,12 +492,12 @@ public:
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo01ShotTimer = 0.1f;
 					if (IsSlow) {
-						SetAmmo01(m_ReimuOpt0->SetPos().m_Pos, Util::VECTOR2D::vget(-1200.f, -1200.f));
-						SetAmmo01(m_ReimuOpt1->SetPos().m_Pos, Util::VECTOR2D::vget(1200.f, -1200.f));
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01);
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01);
 					}
 					else {
-						SetAmmo01(m_ReimuOpt0->SetPos().m_Pos, Util::VECTOR2D::vget(-1200.f, -1200.f));
-						SetAmmo01(m_ReimuOpt1->SetPos().m_Pos, Util::VECTOR2D::vget(1200.f, -1200.f));
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01);
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01);
 					}
 				}
 			}
@@ -434,17 +513,17 @@ public:
 };
 
 struct StageData {
-	std::string m_Enemy;
-	int			m_Frame;
+	std::string m_Enemy{};
+	int			m_Frame{};
+	char		padding[4]{};
 };
 class StageScript {
-public:
 	std::vector<EnemyData>	m_EnemyData;
 	std::vector<StageData>	m_StageData;
-	std::vector<std::shared_ptr<ObjectEnemy>>	m_ObjectEnemy;
 	int							m_Anim{};
 	bool						m_IsStory = false;
 	bool						m_IsClear = false;
+	char		padding[2]{};
 public:
 	EnemyData* GetEnemyData(std::string Make) noexcept {
 		for (auto& e : m_EnemyData) {
@@ -464,9 +543,7 @@ public:
 public:
 	bool IsClear() { return m_IsClear; }
 	bool IsStory() { return m_IsStory; }
-	void SetStoryEnd() noexcept {
-		m_IsStory = false;
-	}
+	void SetStoryEnd() noexcept { m_IsStory = false; }
 public:
 	void Load() noexcept {
 		m_EnemyData.clear();
@@ -490,21 +567,17 @@ public:
 		}
 		FileStream.Close();
 
-		m_ObjectEnemy.clear();
 		for (auto& s : m_StageData) {
 			auto* ptr = GetEnemyData(s.m_Enemy);
 			if (ptr) {
-				m_ObjectEnemy.emplace_back();
-				m_ObjectEnemy.back() = std::make_shared<ObjectEnemy>();
-				Object2DManager::Instance()->AddObject(m_ObjectEnemy.back());
-				m_ObjectEnemy.back()->InitEnemy(ptr);
+				EnemyPool::Instance()->SetEnemy(ptr);
 			}
 		}
 	}
 
 	void Update() noexcept {
-		for (auto& e : m_ObjectEnemy) {
-			int index = static_cast<int>(&e - &m_ObjectEnemy.front());
+		for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
+			size_t index = static_cast<size_t>(&e - &EnemyPool::Instance()->m_EnemyPos.front());
 			if (m_Anim < m_StageData.at(index).m_Frame) {
 				e->SetActive(false);
 			}
@@ -520,10 +593,10 @@ public:
 			if (m_Anim == 3999) {
 				m_IsStory = true;
 			}
-			if (m_Anim >= 4000) {
+			if (m_Anim > 4000) {
 				//全ての敵が消えていたらクリア
 				bool IsClearAll = true;
-				for (auto& e : m_ObjectEnemy) {
+				for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
 					if (e->IsActive()) {
 						IsClearAll = false;
 						break;
@@ -556,6 +629,7 @@ class SpeakScript {
 	size_t m_NowPoint = 0;
 	bool m_IsStart = false;
 	bool m_IsEnd = false;
+	char		padding[6]{};
 public:
 	bool IsEnd() const noexcept { return m_IsEnd; }
 	void SetStoryStart() noexcept {
@@ -610,8 +684,8 @@ public:
 			auto* KeyMngr = Util::KeyParam::Instance();
 			if (m_NowPoint < m_SpeakData.size()) {
 				auto& Now = m_SpeakData.at(m_NowPoint);
-				total_Mes1 = Now.m_Mes1.length() / 2;
-				total_Mes2 = Now.m_Mes2.length() / 2;
+				total_Mes1 = static_cast<int>(Now.m_Mes1.length() / 2);
+				total_Mes2 = static_cast<int>(Now.m_Mes2.length() / 2);
 
 				seek_Mes += DeltaTime / 0.1f;
 
@@ -665,12 +739,12 @@ public:
 					Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
 					1920 / 2 - 864 / 2 + 64 + 64, 1080 - 36 - 12 - 125 + 62 / 2,
 					ColorPalette::White, ColorPalette::Black,
-					Util::SjistoUTF8(Now.m_Mes1.substr(0, std::clamp(static_cast<int>(seek_Mes), 0, total_Mes1) * 2)));
+					Util::SjistoUTF8(Now.m_Mes1.substr(0, static_cast<size_t>(std::clamp(static_cast<int>(seek_Mes), 0, total_Mes1) * 2))));
 				Font->Get(Draw::FontType::DIZ_UD_Gothic, 32, 3)->DrawString(
 					Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
 					1920 / 2 - 864 / 2 + 64 + 64, 1080 - 36 - 12 - 125 + 62 + 62 / 2,
 					ColorPalette::White, ColorPalette::Black,
-					Util::SjistoUTF8(Now.m_Mes2.substr(0, std::clamp(static_cast<int>(seek_Mes) - total_Mes1, 0, total_Mes2) * 2)));
+					Util::SjistoUTF8(Now.m_Mes2.substr(0, static_cast<size_t>(std::clamp(static_cast<int>(seek_Mes) - total_Mes1, 0, total_Mes2) * 2))));
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 		}
@@ -688,9 +762,10 @@ class MainScene : public Util::SceneBase {
 	float							m_Fade{ 1.f };
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
 	Sound::SoundUniqueID			m_EnviID{ InvalidID };
-	const Draw::GraphHandle*		m_BackScreen{};
 
-	std::shared_ptr<ObjectMine>		m_Mine{};
+	Sound::SoundUniqueID			m_NormalBGMID{ InvalidID };
+	Sound::SoundUniqueID			m_BOSSBGMID{ InvalidID };
+	const Draw::GraphHandle*		m_BackScreen{};
 
 	StageScript						m_StageScript{};
 	SpeakScript						m_SpeakScript{};

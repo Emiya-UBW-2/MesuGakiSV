@@ -1,9 +1,16 @@
-﻿#include "MainScene.hpp"
+﻿#pragma warning(disable:5259)
+
+#include "MainScene.hpp"
 
 const Object2DManager* Util::SingletonBase<Object2DManager>::m_Singleton = nullptr;
 
+const AmmoPool* Util::SingletonBase<AmmoPool>::m_Singleton = nullptr;
+const EnemyPool* Util::SingletonBase<EnemyPool>::m_Singleton = nullptr;
+
 void MainScene::Load_Sub(void) noexcept {
 	Object2DManager::Create();
+	AmmoPool::Create();
+	EnemyPool::Create();
 
 	m_BackScreen = Draw::GraphPool::Instance()->Get("data/Image/BackScreen.png")->Get();
 }
@@ -13,6 +20,9 @@ void MainScene::Init_Sub(void) noexcept {
 
 	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
 	this->m_EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
+
+	this->m_NormalBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Normal.wav", false);
+	this->m_BOSSBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Boss.wav", false);
 
 	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.9f, -0.5f, -0.3f).normalized();
 	//Util::VECTOR3D LightVec = Util::VECTOR3D::vget(0.02f, -1.f, 0.02f).normalized();
@@ -59,12 +69,14 @@ void MainScene::Init_Sub(void) noexcept {
 	KeyGuideParts->SetGuideFlip();
 
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->Play(DX_PLAYTYPE_LOOP, TRUE);
+
+	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
+
 	m_IsResetMouse = true;
 	
-	m_Mine = std::make_shared<ObjectMine>();
-	Object2DManager::Instance()->AddObject(m_Mine);
-
-	m_Mine->SetPos().m_Pos = Util::VECTOR2D::vget(1920.f / 2.f, 1080.f - 128.f);
+	std::shared_ptr<ObjectMine>		Mine = std::make_shared<ObjectMine>();
+	Object2DManager::Instance()->AddObject(Mine);
+	Mine->SetPos().m_Pos = Util::VECTOR2D::vget(1920.f / 2.f, 1080.f - 128.f);
 
 	m_StageScript.Load();
 
@@ -134,8 +146,6 @@ void MainScene::Update_Sub(void) noexcept {
 
 	Object2DManager::Instance()->UpdateObject();
 	//更新
-	auto* DrawerMngr = Draw::MainDraw::Instance();
-
 	Util::VECTOR3D CamPosition;
 	Util::VECTOR3D CamTarget;
 
@@ -204,8 +214,12 @@ void MainScene::UIDraw_Sub(void) noexcept {
 }
 void MainScene::Dispose_Sub(void) noexcept {
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->StopAll();
-	Object2DManager::Instance()->DeleteAll();
+	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->StopAll();
+
 	this->m_PauseUI.Dispose();
 	this->m_OptionWindow.Dispose();
+	AmmoPool::Release();
+	EnemyPool::Release();
+	Object2DManager::Instance()->DeleteAll();
 	Object2DManager::Release();
 }
