@@ -52,7 +52,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	DX DXParam;
 
 
-	int MV1 = MV1LoadModel("data/model2/model.pmx");
+	int MV1 = MV1LoadModel("data/model3/model.pmx");
 	int AttachIndex = MV1AttachAnim(MV1, 0);
 
 	// 自分の座標と向きを指定
@@ -140,7 +140,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			SetCameraNearFar(0.5f, 100.0f);			// 描画する奥行き方向の範囲を設定
 			SetupCamera_Ortho(2.f* static_cast<float>(Lange));
 
-			MV1SetAttachAnimTime(MV1, AttachIndex, 0.f);
+			MV1SetAttachAnimTime(MV1, AttachIndex, 15.f);
 			MV1DrawModel(MV1);
 		}
 		ScreenFlip();								// 裏画面の内容を表画面に反映

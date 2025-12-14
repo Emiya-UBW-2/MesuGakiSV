@@ -161,6 +161,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	int Graph = LoadGraph("data/movie.mp4");
 	PlayMovieToGraph(Graph);
 
+	MS = 90000;
+	SeekMovieToGraph(Graph, MS);
+
 	int MX{}, MY{};
 	int PMX{}, PMY{};
 	int LMX{}, LMY{};

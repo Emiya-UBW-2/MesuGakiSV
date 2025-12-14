@@ -1,0 +1,14 @@
+Time(691)
+	ToPoint(798,-11)
+Time(698)
+	ToPoint(798,56)
+Time(707)
+	ToPoint(798,114)
+Time(718)
+	ToPoint(810,198)
+Time(726)
+	ToPoint(850,254)
+Time(734)
+	ToPoint(913,276)
+Time(740);
+	Erase();
