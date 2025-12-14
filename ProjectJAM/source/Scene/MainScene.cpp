@@ -86,8 +86,8 @@ void MainScene::Update_Sub(void) noexcept {
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::S), "");
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::A), "");
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::D), Localize->Get(334));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack), Localize->Get(336));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(338));
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack), Localize->Get(306));
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(307));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Run), Localize->Get(308));
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Walk), Localize->Get(309));
 			}
@@ -192,8 +192,8 @@ void MainScene::Update_Sub(void) noexcept {
 
 	m_ReimuOpt0.SetPos().m_Pos = m_ReimuPos.SetPos().m_Pos + Util::Lerp(Util::VECTOR2D::vget(-50.f, 0.f), Util::VECTOR2D::vget(-20.f, -50.f), m_ReimuSlowPer);
 	m_ReimuOpt1.SetPos().m_Pos = m_ReimuPos.SetPos().m_Pos + Util::Lerp(Util::VECTOR2D::vget(50.f, -0.f), Util::VECTOR2D::vget(20.f, -50.f), m_ReimuSlowPer);
-	m_ReimuOpt0.SetPos().m_Rad += Util::deg2rad(360) * DeltaTime;
-	m_ReimuOpt1.SetPos().m_Rad -= Util::deg2rad(360) * DeltaTime;
+	m_ReimuOpt0.SetPos().m_Rad -= Util::deg2rad(360) * DeltaTime;
+	m_ReimuOpt1.SetPos().m_Rad += Util::deg2rad(360) * DeltaTime;
 
 	{
 		if (m_Ammo00ShotTimer <= 0.f) {
@@ -201,14 +201,14 @@ void MainScene::Update_Sub(void) noexcept {
 				m_Ammo00ShotTimer = 0.1f;
 				if (IsSlow) {
 					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), Util::VECTOR2D::vget(-100.f, -1200.f));
-					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(-6.f, -10.f), Util::VECTOR2D::vget(-50.f, -1200.f));
-					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(6.f, -10.f), Util::VECTOR2D::vget(50.f, -1200.f));
+					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f));
+					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f));
 					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), Util::VECTOR2D::vget(100.f, -1200.f));
 				}
 				else {
 					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), Util::VECTOR2D::vget(-200.f, -1200.f));
-					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(-6.f, -10.f), Util::VECTOR2D::vget(-100.f, -1200.f));
-					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(6.f, -10.f), Util::VECTOR2D::vget(100.f, -1200.f));
+					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f));
+					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f));
 					SetAmmo00(m_ReimuPos.SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), Util::VECTOR2D::vget(200.f, -1200.f));
 				}
 			}

@@ -1,14 +1,46 @@
-Time(0);
-	ToPoint(100,0);
-Time(60);
-	ToPoint(100,100);
-Time(120);
-	ToPoint(100,500);
-Time(180);
-	ToPoint(100,500);
-Time(240);
-	ToPoint(100,100);
-Time(300);
-	ToPoint(100,0);
-Time(360);
+Time(57)
+	ToPoint(132,-11)
+Time(66)
+	ToPoint(135,67)
+Time(75)
+	ToPoint(130,126)
+Time(84)
+	ToPoint(166,209)
+Time(92)
+	ToPoint(211,263)
+Time(102)
+	ToPoint(270,285)
+Time(112)
+	ToPoint(348,288)
+Time(120)
+	ToPoint(416,267)
+Time(128)
+	ToPoint(479,267)
+Time(136)
+	ToPoint(549,270)
+Time(145)
+	ToPoint(614,294)
+Time(153)
+	ToPoint(652,357)
+Time(162)
+	ToPoint(690,411)
+Time(172)
+	ToPoint(699,486)
+Time(181)
+	ToPoint(699,558)
+Time(190)
+	ToPoint(708,643)
+Time(201)
+	ToPoint(711,731)
+Time(208)
+	ToPoint(706,787)
+Time(218)
+	ToPoint(702,859)
+Time(227)
+	ToPoint(702,922)
+Time(235)
+	ToPoint(704,1017)
+Time(242)
+	ToPoint(711,1046)
+Time(250);
 	Erase();

@@ -134,7 +134,7 @@ public:
 	int							m_Anim{};
 	size_t						m_Frame{};
 
-	int							m_MoveAnim{};
+	float						m_MoveAnim{};
 	size_t						m_MoveFrame{};
 
 	bool						m_IsActive{ true };
@@ -174,7 +174,7 @@ public:
 				if (Now.m_IsEnd) {
 					m_IsActive = false;
 				}
-				m_MoveAnim++;
+				m_MoveAnim+=0.75f;//todo
 			}
 			else {
 				m_IsActive = false;

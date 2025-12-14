@@ -5,12 +5,124 @@
 #include <fstream>
 #include <filesystem>
 
+#pragma once
+#include <fstream>
+#include <string>
+#include <filesystem>
+
+#define USE_DXLIB (false)
+
+#if USE_DXLIB
+#define NOMINMAX
+#include "DxLib.h"
+#endif
+
+namespace File {
+	//ファイル読み込み
+	class InputFileStream {
+#if USE_DXLIB
+		int mdata{ InvalidID };
+#else
+		std::ifstream stream{};
+#endif
+	public:
+		//コンストラクタ
+		InputFileStream(void) noexcept {}
+		//宣言時にファイルオープン版
+		InputFileStream(std::string_view FilePath) noexcept { Open(FilePath); }
+
+		InputFileStream(const InputFileStream&) = delete;
+		InputFileStream(InputFileStream&&) = delete;
+		InputFileStream& operator=(const InputFileStream&) = delete;
+		InputFileStream& operator=(InputFileStream&&) = delete;
+
+		//デストラクタ
+		~InputFileStream(void) noexcept { Close(); }
+	public:
+		//ファイルを開き、探索ポイントを始点に移動
+		void Open(std::string_view FilePath) noexcept {
+#if USE_DXLIB
+			mdata = DxLib::FileRead_open(FilePath, FALSE);
+#else
+			stream.open(FilePath);
+#endif
+		}
+		// 1行そのまま取得し、次の行に探索ポイントを移る
+		std::string SeekLineAndGetStr(void) noexcept {
+#if USE_DXLIB
+			const int charLength = 512;
+			char mstr[charLength] = "";
+			DxLib::FileRead_gets(mstr, charLength, mdata);
+			return std::string(mstr);
+#else
+			std::string Buffer;
+			std::getline(stream, Buffer);
+			return Buffer;
+#endif
+		}
+		// 探索ポイントが終端(EOF)で終わる
+		bool ComeEof(void) const noexcept {
+#if USE_DXLIB
+			return DxLib::FileRead_eof(mdata) != 0;
+#else
+			return stream.eof();
+#endif
+		}
+		//　閉じる
+		void Close(void) noexcept {
+#if USE_DXLIB
+			if (mdata != InvalidID) {
+				DxLib::FileRead_close(mdata);
+				mdata = InvalidID;
+			}
+#else
+			stream.close();
+#endif
+		}
+	public:
+		// 文字列から=より右の値取得
+		static std::string getleft(const std::string& tempname, std::string_view DivWord) noexcept { return tempname.substr(0, tempname.find(DivWord)); }
+		// 文字列から=より右の値取得
+		static std::string getright(const std::string& tempname, std::string_view DivWord) noexcept { return tempname.substr(tempname.find(DivWord) + 1); }
+	};
+
+	//ファイル出力
+	class OutputFileStream {
+		std::ofstream stream{};
+	public:
+		//コンストラクタ
+		OutputFileStream(void) noexcept {}
+		//宣言時にファイルオープン版
+		OutputFileStream(std::string_view FilePath) noexcept { Open(FilePath); }
+
+		OutputFileStream(const OutputFileStream&) = delete;
+		OutputFileStream(OutputFileStream&&) = delete;
+		OutputFileStream& operator=(const OutputFileStream&) = delete;
+		OutputFileStream& operator=(OutputFileStream&&) = delete;
+
+		//デストラクタ
+		~OutputFileStream(void) noexcept { Close(); }
+	public:
+		//ファイルを開き、探索ポイントを始点に移動
+		void Open(std::string_view FilePath) noexcept {
+			stream.open(FilePath);
+		}
+		// 1行書き込む
+		void AddLine(const std::string& Str) noexcept {
+			stream << Str + "\n";
+		}
+		//　閉じる
+		void Close(void) noexcept {
+			stream.close();
+		}
+	};
+}
 class DX {
 	int ShadowMapHandle = -1;
 	VECTOR ShadowVec = VGet(0.1f, -0.3f, -0.1f);
 public:
 	DX() {
-		DxLib::SetGraphMode(1280, 1000, 32);
+		DxLib::SetGraphMode(640*2, 480, 32);
 		DxLib_Init();												// ＤＸライブラリ初期化処理
 		ChangeWindowMode(TRUE);										// ウィンドウモード
 		SetAlwaysRunFlag(TRUE);										// 非アクティブでも動くようにする
@@ -42,107 +154,110 @@ public:
 };
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
-	VECTOR MyPos = VGet(0.f, 0.f, 0.f);
-	VECTOR MyVec = VGet(0.f, 0.f, 0.f);
-	float Xrad = -45.f * DX_PI_F / 180.f;
-	float Yrad = 0.f;
-	float Speed = 0.f;
 	// 初期化
 	DX DXParam;
 
+	int MS = 0;
+	int Graph = LoadGraph("data/movie.mp4");
+	PlayMovieToGraph(Graph);
 
-	int MV1 = MV1LoadModel("data/model2/model.pmx");
-	int AttachIndex = MV1AttachAnim(MV1, 0);
-
-	// 自分の座標と向きを指定
-	MyPos = VGet(0.f, 0.f, 0.f);
-
-	int Lange = 10;
 	int MX{}, MY{};
 	int PMX{}, PMY{};
-	int DMX{}, DMY{};
-	bool PrevPressLeft = false;
+	int LMX{}, LMY{};
+	bool PrevPressSpace = false;
+
+	bool PrevPressLMouse = false;
+
+	bool PrevPressLEFT = false;
+	bool PrevPressRIGHT = false;
+
+	double Speed = 1.0;
+	File::OutputFileStream Ostream;
+	Ostream.Open("Path.txt");
 	// メインループ
 	while (ProcessMessage() == 0) {
 		PMX = MX;
 		PMY = MY;
 		GetMousePoint(&MX, &MY);
+		LMX = (MX-(640 + 32))* 864 /384;
+		LMY = (MY - 16) * 864 / 384;
 		//
-		if ((GetMouseInput() & MOUSE_INPUT_RIGHT) != 0) {
-			float X = static_cast<float>(MY - PMY) / 100.f;
-			float Y = static_cast<float>(MX - PMX) / 100.f;
-			if (CheckHitKey(KEY_INPUT_LSHIFT) != 0) {
-				X = 0.f;
+		{
+			bool Press = ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0);
+			if (Press && !PrevPressLMouse) {
+				if (Speed == 0.0) {
+					Ostream.AddLine("Time(" + std::to_string(MS / 30) + ")");
+					Ostream.AddLine("	ToPoint(" + std::to_string(LMX) + "," + std::to_string(LMY) + ")");
+				}
 			}
-			if (CheckHitKey(KEY_INPUT_LCONTROL) != 0) {
-				Y = 0.f;
+			PrevPressLMouse = Press;
+		}
+		{
+			bool Press = (CheckHitKey(KEY_INPUT_LEFT) != 0);
+			if (Press && !PrevPressLEFT) {
+				if (Speed == 0.0) {
+					if (CheckHitKey(KEY_INPUT_LSHIFT) != 0) {
+						MS -= 1000 / 60 * 30;
+					}
+					else {
+						MS -= 1000 / 60;
+					}
+					if (MS < 0) { MS = 0; }
+					SeekMovieToGraph(Graph, MS);
+				}
 			}
-			Xrad -= X;
-			Yrad += Y;
+			PrevPressLEFT = Press;
 		}
-		if (CheckHitKey(KEY_INPUT_F1) != 0) {
-			Xrad = -89.f * DX_PI_F / 180.f;
-			Yrad = -90.f * DX_PI_F / 180.f;
-		}
-		if (CheckHitKey(KEY_INPUT_F2) != 0) {
-			Xrad = -89.f * DX_PI_F / 180.f;
-			Yrad = -0.f * DX_PI_F / 180.f;
-		}
-		if (CheckHitKey(KEY_INPUT_F3) != 0) {
-			Xrad = -0.f * DX_PI_F / 180.f;
-			Yrad = -180.f * DX_PI_F / 180.f;
-		}
-
-		bool PressLeft = (GetMouseInput() & MOUSE_INPUT_LEFT) != 0;
-		if (PressLeft && !PrevPressLeft) {
-			VECTOR Near = ConvScreenPosToWorldPos(VGet(static_cast<float>(MX), static_cast<float>(MY), 0.f));
-			VECTOR Far = ConvScreenPosToWorldPos(VGet(static_cast<float>(MX), static_cast<float>(MY), 1.f));
-
-		}
-		PrevPressLeft = PressLeft;
-
-		Xrad = std::clamp(Xrad, -89.f * DX_PI_F / 180.f, 90.f * DX_PI_F / 180.f);
-		MATRIX Mat = MMult(MGetRotAxis(VGet(1.f, 0.f, 0.f), Xrad), MGetRotAxis(VGet(0.f, 1.f, 0.f), Yrad));
-		//
-		Lange -= GetMouseWheelRotVol();
-		Lange = std::clamp(Lange, 1, 20);
-		//
-		MyVec = VGet(0.f, 0.f, 0.f);
-		if ((GetMouseInput() & MOUSE_INPUT_MIDDLE) != 0) {
-			float X = static_cast<float>(MY - PMY) / 100.f;
-			float Y = static_cast<float>(MX - PMX) / 100.f;
-			if (CheckHitKey(KEY_INPUT_LSHIFT) != 0) {
-				X = 0.f;
+		{
+			bool Press = (CheckHitKey(KEY_INPUT_RIGHT) != 0);
+			if (Press && !PrevPressRIGHT) {
+				if (Speed == 0.0) {
+					if (CheckHitKey(KEY_INPUT_LSHIFT) != 0) {
+						MS += 1000 / 60 * 30;
+					}
+					else {
+						MS += 1000 / 60;
+					}
+					SeekMovieToGraph(Graph, MS);
+				}
 			}
-			if (CheckHitKey(KEY_INPUT_LCONTROL) != 0) {
-				Y = 0.f;
+			PrevPressRIGHT = Press;
+		}
+		{
+			bool Press = (CheckHitKey(KEY_INPUT_SPACE) != 0);
+			if (Press && !PrevPressSpace) {
+				if (Speed > 0.0) {
+					Speed = 0.0;
+				}
+				else {
+					Speed = 1.0;
+				}
+				SetPlaySpeedRateMovieToGraph(Graph, Speed);
 			}
-			MyVec = VAdd(MyVec, VTransform(VGet(Y * static_cast<float>(Lange) / 3.f, X * static_cast<float>(Lange) / 3.f, 0.f), Mat));
+			PrevPressSpace = Press;
+		}
+		if (Speed > 0.0) {
+			MS = TellMovieToGraph(Graph);
 		}
 
-
-
-		// 仮座標を反映
-		MyPos = VAdd(MyPos, MyVec);
-		// カメラ座標を指定
-		VECTOR CamPos = VSub(MyPos, VTransform(VGet(0.f, 0.f, -50.f), Mat));
-		VECTOR CamTarget = MyPos;// 自身が向いている方向を注視点とする
 		// FPSを表示
 		clsDx();
 		printfDx("%5.2f fps\n", GetFPS());
+		printfDx("%5d ms\n", MS);
+		printfDx("(%5d,%5d)\n", LMX, LMY);
+		printfDx("←→ 1F移動　LSHIFTで30Fとばし\n");
+		printfDx("SPACE再生/停止\n");
 		// シャドウマップに描画する範囲を設定
 		// 裏画面への描画
 		SetDrawScreen(DX_SCREEN_BACK);				// 描画先を裏画面に変更
 		ClearDrawScreen();											// 画面をクリア
 		{
-			SetCameraPositionAndTarget_UpVecY(CamPos, CamTarget);// カメラの位置と向きを設定
-			SetCameraNearFar(0.5f, 100.0f);			// 描画する奥行き方向の範囲を設定
-			SetupCamera_Ortho(2.f* static_cast<float>(Lange));
+			DrawGraph(640, 0, Graph, true);
 
-			MV1SetAttachAnimTime(MV1, AttachIndex, 0.f);
-			MV1DrawModel(MV1);
+			DrawLine(640 + 32, 16,MX,MY, GetColor(0, 255, 0), TRUE);
 		}
 		ScreenFlip();								// 裏画面の内容を表画面に反映
 	}
+	Ostream.Close();					//プロット
 	return 0;					// ソフトの終了
 }
