@@ -1,0 +1,10 @@
+speaker(—ì–²);
+position(LEFT);
+image(data/Image/reimu2.png);
+mes1(—Ç–ò‚Á‚Ä‚¢‚Á‚Ä‚à);
+
+speaker(—ì–²);
+position(LEFT);
+image(data/Image/reimu2.png);
+mes1(ˆù‚ñ‚Å‚Ý‚È‚¯‚è‚á‚í‚©‚ñ‚È‚¢‚¯‚Ç‚Ë);
+
