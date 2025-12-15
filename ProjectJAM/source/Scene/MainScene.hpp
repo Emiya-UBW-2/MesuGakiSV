@@ -335,7 +335,7 @@ public:
 				if (Now.m_IsEnd) {
 					SetActive(false);
 				}
-				m_MoveAnim += 0.75f;//todo
+				m_MoveAnim += 1.0;// 0.75f;//todo
 			}
 			else {
 				SetActive(false);
@@ -520,10 +520,14 @@ struct StageData {
 class StageScript {
 	std::vector<EnemyData>	m_EnemyData;
 	std::vector<StageData>	m_StageData;
+	int							m_StoryStart{};
 	int							m_Anim{};
 	bool						m_IsStory = false;
 	bool						m_IsClear = false;
 	char		padding[2]{};
+
+	int			m_StartFrame{};
+	int			m_SkipFrame{};
 public:
 	EnemyData* GetEnemyData(std::string Make) noexcept {
 		for (auto& e : m_EnemyData) {
@@ -563,6 +567,13 @@ public:
 					m_StageData.back().m_Frame = std::stoi(Args.at(2));
 					LoadEnemyData(m_StageData.back().m_Enemy);
 				}
+				if (Args.at(0) == "SkipWhenKillEnemyAll") {
+					m_StartFrame = std::stoi(Args.at(1));
+					m_SkipFrame = std::stoi(Args.at(2));
+				}
+				if (Args.at(0) == "StoryStart") {
+					m_StoryStart = std::stoi(Args.at(1));
+				}
 			}
 		}
 		FileStream.Close();
@@ -590,10 +601,26 @@ public:
 		}
 		else {
 			++m_Anim;
-			if (m_Anim == 3999) {
+			if (m_StartFrame < m_Anim && m_Anim <= m_SkipFrame) {
+				//全ての敵が消えていたらクリア
+				bool IsClearAll = true;
+				for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
+					if (e->IsActive()) {
+						IsClearAll = false;
+						break;
+					}
+				}
+				if (IsClearAll) {
+					//m_SkipEnemy;
+					m_Anim = m_SkipFrame;
+				}
+			}
+
+
+			if (m_Anim == m_StoryStart) {
 				m_IsStory = true;
 			}
-			if (m_Anim > 4000) {
+			if (m_Anim > m_StoryStart) {
 				//全ての敵が消えていたらクリア
 				bool IsClearAll = true;
 				for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
