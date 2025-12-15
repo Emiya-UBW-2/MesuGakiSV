@@ -69,7 +69,6 @@ void MainScene::Init_Sub(void) noexcept {
 	KeyGuideParts->SetGuideFlip();
 
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->Play(DX_PLAYTYPE_LOOP, TRUE);
-
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 
 	m_IsResetMouse = true;
@@ -175,6 +174,25 @@ void MainScene::Update_Sub(void) noexcept {
 	}
 	if (m_StageScript.IsStory()) {
 		//todo::射撃できない
+	}
+
+	for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
+		if (e->IsActive()) {
+			//
+			for (auto& a : AmmoPool::Instance()->m_AmmoPos) {
+				if (a->IsActive()) {
+					auto Vec = e->SetPos().m_Pos - a->SetPos().m_Pos;
+					if (Vec.magnitude() < 32.f) {
+						e->m_HP--;
+						if (e->m_HP <= 0) {
+							e->SetActive(false);
+						}
+						a->SetActive(false);
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	m_StageScript.Update();

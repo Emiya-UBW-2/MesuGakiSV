@@ -35,6 +35,12 @@ public:
 	Object2DBase& operator=(Object2DBase&&) = delete;
 public:
 	Move& SetPos() noexcept { return m_Pos; }
+	void SetPosition(const Util::VECTOR2D& pos) noexcept {
+		m_Pos.m_Pos=pos;
+		for (size_t loop = 0; loop < m_PosRe.size(); ++loop) {
+			m_PosRe.at(loop) = m_Pos;
+		}
+	}
 public:
 	void SetPtr(const Draw::GraphHandle* ptr) noexcept { m_Pic = ptr; }
 	void SetActive(bool IsActive) noexcept { m_IsActive = IsActive; }
@@ -155,7 +161,9 @@ public:
 	void Update_Sub(void) noexcept override {
 		SetPos().m_Pos += m_Vec * DeltaTime;
 		SetPos().m_Rad -= Util::deg2rad(60) * DeltaTime;
-		SetActive(SetPos().m_Pos.y >= -100.f);
+		if (SetPos().m_Pos.y <= -0.f) {
+			SetActive(false);
+		}
 	}
 	void Draw_Sub(void) const noexcept override {
 	}
@@ -165,7 +173,7 @@ public:
 class AmmoPool : public Util::SingletonBase<AmmoPool> {
 private:
 	friend class Util::SingletonBase<AmmoPool>;
-private:
+public:
 	std::vector<std::shared_ptr<ObjectAmmo>>			m_AmmoPos{};
 private:
 	AmmoPool(void) noexcept {
@@ -184,7 +192,7 @@ public:
 		for (auto& a : m_AmmoPos) {
 			if (!a->IsActive()) {
 				a->SetActive(true);
-				a->SetPos().m_Pos = pos;
+				a->SetPosition(pos);
 				a->SetPos().m_Rad = Util::deg2rad(GetRand(90));
 				a->m_Vec = vec;
 				a->SetPtr(ptr);
@@ -196,7 +204,7 @@ public:
 		a = std::make_shared<ObjectAmmo>();
 		Object2DManager::Instance()->AddObject(a);
 		a->SetActive(true);
-		a->SetPos().m_Pos = pos;
+		a->SetPosition(pos);
 		a->SetPos().m_Rad = Util::deg2rad(GetRand(90));
 		a->m_Vec = vec;
 		a->SetPtr(ptr);
@@ -287,7 +295,7 @@ class ObjectEnemy : public Object2DBase {
 public:
 	EnemyData* m_EnemyData{};
 	int							m_Anim{};
-	char		padding[4]{};
+	int							m_HP{};
 	size_t						m_Frame{};
 
 	float						m_MoveAnim{};
@@ -303,6 +311,7 @@ public:
 public:
 	void InitEnemy(EnemyData* pEnemyData) noexcept {
 		m_EnemyData = pEnemyData;
+		m_HP = m_EnemyData->m_HP;
 	}
 public:
 	void Init_Sub(void) noexcept override{
@@ -620,7 +629,7 @@ public:
 			if (m_Anim == m_StoryStart) {
 				m_IsStory = true;
 			}
-			if (m_Anim > m_StoryStart) {
+			if (m_Anim > m_StoryStart + 1) {
 				//全ての敵が消えていたらクリア
 				bool IsClearAll = true;
 				for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
@@ -716,7 +725,7 @@ public:
 
 				seek_Mes += DeltaTime / 0.1f;
 
-				if (KeyMngr->GetBattleKeyRepeat(Util::EnumBattle::Attack)) {
+				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack) || KeyMngr->GetBattleKeyRepeat(Util::EnumBattle::Walk)) {
 					if (static_cast<int>(seek_Mes) >= total_Mes1 + total_Mes2) {
 						++m_NowPoint;
 						seek_Mes = 0.f;
