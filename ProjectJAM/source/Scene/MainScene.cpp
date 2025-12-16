@@ -4,6 +4,7 @@
 
 const Object2DManager* Util::SingletonBase<Object2DManager>::m_Singleton = nullptr;
 
+const AmmoImages* Util::SingletonBase<AmmoImages>::m_Singleton = nullptr;
 const AmmoPool* Util::SingletonBase<AmmoPool>::m_Singleton = nullptr;
 const EnemyPool* Util::SingletonBase<EnemyPool>::m_Singleton = nullptr;
 
@@ -11,20 +12,10 @@ void MainScene::Load_Sub(void) noexcept {
 	Object2DManager::Create();
 	AmmoPool::Create();
 	EnemyPool::Create();
+	AmmoImages::Create();
 
 	m_BackScreen = Draw::GraphPool::Instance()->Get("data/Image/BackScreen.png")->Get();
 
-	m_Ammobig = Draw::GraphPool::Instance()->Get("data/Image/big.png")->Get();
-	m_Ammomiddle = Draw::GraphPool::Instance()->Get("data/Image/middle.png")->Get();
-	m_Ammoellipse = Draw::GraphPool::Instance()->Get("data/Image/ellispe.png")->Get();
-	m_Ammorice = Draw::GraphPool::Instance()->Get("data/Image/rice.png")->Get();
-
-	for (int i = 0; i < 8; ++i) {
-		m_AmmoBig.at(static_cast<size_t>(i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammobig);
-		m_AmmoMiddle.at(static_cast<size_t>(i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammomiddle);
-		m_AmmoEllipse.at(static_cast<size_t>(i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammoellipse);
-		m_AmmoRice.at(static_cast<size_t>(i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammorice);
-	}
 }
 void MainScene::Init_Sub(void) noexcept {
 	this->m_Exit = false;
@@ -241,10 +232,6 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
-
-	DxLib::SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-	m_AmmoMiddle.at(0).DrawGraph(100, 100, TRUE);
-	DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 }
 void MainScene::Dispose_Sub(void) noexcept {
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->StopAll();
@@ -256,6 +243,7 @@ void MainScene::Dispose_Sub(void) noexcept {
 	this->m_OptionWindow.Dispose();
 	AmmoPool::Release();
 	EnemyPool::Release();
+	AmmoImages::Release();
 	Object2DManager::Instance()->DeleteAll();
 	Object2DManager::Release();
 }

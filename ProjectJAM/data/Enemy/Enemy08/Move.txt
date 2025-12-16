@@ -10,6 +10,13 @@ Time(462)
 	ToPoint(789,200)
 Time(468)
 	ToPoint(789,200)
+	Ammo(ToMine, 0,0, 400, -105, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  -70, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  -35, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,    0, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,   35, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,   70, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  105, 0.075f, 8);
 Time(477)
 	ToPoint(789,200)
 Time(486)

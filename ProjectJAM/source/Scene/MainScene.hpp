@@ -18,8 +18,9 @@ private:
 	struct Move {
 		Util::VECTOR2D					m_Pos{};
 		float							m_Rad{};
+		float							m_Scale{ 1.0f };
 	};
-private:
+protected:
 	const Draw::GraphHandle* m_Pic{};
 	Move					m_Pos{};
 	std::array<Move, 3>		m_PosRe{};
@@ -48,6 +49,16 @@ public:
 
 	void SetUniqueID(int UniqueID) noexcept { m_UniqueID = UniqueID; }
 	int GetUniqueID() const noexcept { return m_UniqueID; }
+
+	void DrawCommon(void) const noexcept {
+		if (m_Pic) {
+			for (size_t loop = 0; loop < m_PosRe.size(); ++loop) {
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255 * (loop + 1) / m_PosRe.size()), 0, 255));
+				m_Pic->DrawRotaGraph(static_cast<int>(m_PosRe.at(loop).m_Pos.x), static_cast<int>(m_PosRe.at(loop).m_Pos.y), m_PosRe.at(loop).m_Scale, m_PosRe.at(loop).m_Rad, true);
+			}
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		}
+	}
 public:
 	void Init(void) noexcept {
 		// フレーム
@@ -64,13 +75,6 @@ public:
 	void Draw(void) const noexcept {
 		if (!IsActive()) { return; }
 		Draw_Sub();
-		if (m_Pic) {
-			for (size_t loop = 0; loop < m_PosRe.size(); ++loop) {
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255 * (loop + 1) / m_PosRe.size()), 0, 255));
-				m_Pic->DrawRotaGraph(static_cast<int>(m_PosRe.at(loop).m_Pos.x), static_cast<int>(m_PosRe.at(loop).m_Pos.y), 1.f, m_PosRe.at(loop).m_Rad, true);
-			}
-			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-		}
 	}
 	void Dispose() noexcept {
 		Dispose_Sub();
@@ -160,10 +164,11 @@ public:
 	int ShooterID(void) const noexcept {
 		return this->m_ShooterID;
 	}
-	void Shot(const Util::VECTOR2D& pos, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, int ID) noexcept {
+	void Shot(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, int ID) noexcept {
 		SetActive(true);
 		SetPosition(pos);
 		SetPos().m_Rad = Util::deg2rad(GetRand(90));
+		SetPos().m_Scale = scale;
 		m_Vec = vec;
 		SetPtr(ptr);
 		m_ShooterID = ID;
@@ -179,6 +184,11 @@ public:
 		}
 	}
 	void Draw_Sub(void) const noexcept override {
+		if (m_Pic) {
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+			m_Pic->DrawRotaGraph(static_cast<int>(m_Pos.m_Pos.x), static_cast<int>(m_Pos.m_Pos.y), m_Pos.m_Scale, m_Pos.m_Rad, true);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		}
 	}
 	void Dispose_Sub(void) noexcept override {
 	}
@@ -201,10 +211,10 @@ private:
 	AmmoPool& operator=(const AmmoPool&) = delete;
 	AmmoPool& operator=(AmmoPool&&) = delete;
 public:
-	void SetAmmo(const Util::VECTOR2D& pos, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, int ID) noexcept {
+	void SetAmmo(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, int ID) noexcept {
 		for (auto& a : m_AmmoPos) {
 			if (!a->IsActive()) {
-				a->Shot(pos, vec, ptr, ID);
+				a->Shot(pos, scale, vec, ptr, ID);
 				return;
 			}
 		}
@@ -212,7 +222,7 @@ public:
 		auto& a = m_AmmoPos.back();
 		a = std::make_shared<ObjectAmmo>();
 		Object2DManager::Instance()->AddObject(a);
-		a->Shot(pos, vec, ptr, ID);
+		a->Shot(pos, scale, vec, ptr, ID);
 	}
 };
 
@@ -222,11 +232,26 @@ struct EnemyPicture {
 	int								m_EndAnim{};
 	char		padding[4]{};
 };
+
+enum class AmmoType : int {
+	Normal,
+	ToMine,
+};
+struct EnemyAmmo {
+	AmmoType		m_AmmoType{ AmmoType::Normal };
+	Util::VECTOR2D	m_AmmoPos;
+	float			m_AmmoScale{ 1.f };
+	float			m_AmmoSpeed{ 1.f };
+	float			m_AmmoDeg;
+	int				m_AmmoID{ -1 };
+};
 struct EnemyMove {
 	int				m_Frame{};
 	Util::VECTOR2D	m_Pos;
 	bool			m_IsEnd{ false };
 	char		padding[3]{};
+	//
+	std::vector<EnemyAmmo> m_EnemyAmmo{};
 };
 
 class EnemyData {
@@ -278,6 +303,7 @@ public:
 						m_Move.emplace_back();
 						if (m_Move.size() > 1) {
 							m_Move.at(m_Move.size() - 1) = m_Move.at(m_Move.size() - 1 - 1);
+							m_Move.at(m_Move.size() - 1).m_EnemyAmmo.clear();
 						}
 						m_Move.back().m_Frame = std::stoi(Args.at(1));
 					}
@@ -288,11 +314,59 @@ public:
 					else if (Args.at(0) == "Erace") {
 						m_Move.back().m_IsEnd = true;
 					}
+					else if (Args.at(0) == "Ammo") {
+						m_Move.back().m_EnemyAmmo.emplace_back();
+
+						if (Args.at(1) == "Normal") {
+							m_Move.back().m_EnemyAmmo.back().m_AmmoType == AmmoType::Normal;
+						}
+						else if (Args.at(1) == "ToMine") {
+							m_Move.back().m_EnemyAmmo.back().m_AmmoType == AmmoType::ToMine;
+						}
+						m_Move.back().m_EnemyAmmo.back().m_AmmoPos = Util::VECTOR2D::vget(std::stof(Args.at(2)), std::stof(Args.at(3)));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoSpeed = std::stof(Args.at(4));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoDeg = std::stof(Args.at(5));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoScale = std::stof(Args.at(6));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoID = std::stof(Args.at(7));
+					}
 				}
 			}
 			FileStream.Close();
 		}
 	}
+};
+
+class AmmoImages : public Util::SingletonBase<AmmoImages> {
+private:
+	friend class Util::SingletonBase<AmmoImages>;
+public:
+	const Draw::GraphHandle* m_Ammobig{};
+	const Draw::GraphHandle* m_Ammomiddle{};
+	const Draw::GraphHandle* m_Ammoellipse{};
+	const Draw::GraphHandle* m_Ammorice{};
+
+	std::array<Draw::GraphHandle, 32>		m_Ammo{};
+private:
+	AmmoImages(void) noexcept {
+		m_Ammobig = Draw::GraphPool::Instance()->Get("data/Image/big.png")->Get();
+		m_Ammomiddle = Draw::GraphPool::Instance()->Get("data/Image/middle.png")->Get();
+		m_Ammoellipse = Draw::GraphPool::Instance()->Get("data/Image/ellispe.png")->Get();
+		m_Ammorice = Draw::GraphPool::Instance()->Get("data/Image/rice.png")->Get();
+
+		for (int i = 0; i < 8; ++i) {
+			m_Ammo.at(static_cast<size_t>(8 * 0 + i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammobig);
+			m_Ammo.at(static_cast<size_t>(8 * 1 + i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammomiddle);
+			m_Ammo.at(static_cast<size_t>(8 * 2 + i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammoellipse);
+			m_Ammo.at(static_cast<size_t>(8 * 3 + i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammorice);
+		}
+	}
+	virtual ~AmmoImages(void) noexcept {
+	}
+	AmmoImages(const AmmoImages&) = delete;
+	AmmoImages(AmmoImages&&) = delete;
+	AmmoImages& operator=(const AmmoImages&) = delete;
+	AmmoImages& operator=(AmmoImages&&) = delete;
+public:
 };
 
 class ObjectEnemy : public Object2DBase {
@@ -302,7 +376,7 @@ public:
 	int							m_HP{};
 	size_t						m_Frame{};
 
-	float						m_MoveAnim{};
+	int							m_MoveAnim{};
 	char		padding2[4]{};
 	size_t						m_MoveFrame{};
 public:
@@ -340,15 +414,37 @@ public:
 			if (m_EnemyData->m_Move.size() - 1 > m_MoveFrame) {
 				auto& Now = m_EnemyData->m_Move.at(m_MoveFrame);
 				auto& Next = m_EnemyData->m_Move.at(m_MoveFrame + 1);
-				auto MoveAnimPer = static_cast<float>(m_MoveAnim - static_cast<float>(Now.m_Frame)) / static_cast<float>(Next.m_Frame - Now.m_Frame);
-				if (static_cast<float>(Next.m_Frame) <= m_MoveAnim) {
+				auto MoveAnimPer = static_cast<float>(m_MoveAnim - Now.m_Frame) / static_cast<float>(Next.m_Frame - Now.m_Frame);
+				if (Next.m_Frame <= m_MoveAnim) {
 					++m_MoveFrame;
+					//
+					for (auto& e : Next.m_EnemyAmmo) {
+						if (e.m_AmmoID != -1) {
+
+
+							switch (e.m_AmmoType) {
+							case AmmoType::Normal:
+								break;
+							case AmmoType::ToMine:
+								break;
+							default:
+								break;
+							}
+
+							AmmoPool::Instance()->SetAmmo(
+								SetPos().m_Pos + e.m_AmmoPos,
+								e.m_AmmoScale,
+								Util::VECTOR2D::vget(std::sin(Util::deg2rad(e.m_AmmoDeg)), std::cos(Util::deg2rad(e.m_AmmoDeg))) * e.m_AmmoSpeed,
+								&AmmoImages::Instance()->m_Ammo.at(e.m_AmmoID),
+								this->GetUniqueID());
+						}
+					}
 				}
 				SetPos().m_Pos = Util::Lerp(Now.m_Pos, Next.m_Pos, MoveAnimPer);
 				if (Now.m_IsEnd) {
 					SetActive(false);
 				}
-				m_MoveAnim += 1.0;// 0.75f;//todo
+				m_MoveAnim++;
 			}
 			else {
 				SetActive(false);
@@ -356,6 +452,7 @@ public:
 		}
 	}
 	void Draw_Sub(void) const noexcept override {
+		DrawCommon();
 	}
 	void Dispose_Sub(void) noexcept override {
 	}
@@ -406,6 +503,7 @@ public:
 		SetPtr(m_ReimuOption);
 	}
 	void Draw_Sub(void) const noexcept override {
+		DrawCommon();
 	}
 	void Dispose_Sub(void) noexcept override {
 	}
@@ -485,16 +583,16 @@ public:
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo00ShotTimer = 0.1f;
 					if (IsSlow) {
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), Util::VECTOR2D::vget(-100.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), Util::VECTOR2D::vget(100.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-100.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(100.f, -1200.f), m_Ammo00, this->GetUniqueID());
 					}
 					else {
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), Util::VECTOR2D::vget(-200.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), Util::VECTOR2D::vget(200.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-200.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(200.f, -1200.f), m_Ammo00, this->GetUniqueID());
 					}
 				}
 			}
@@ -505,12 +603,12 @@ public:
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo01ShotTimer = 0.1f;
 					if (IsSlow) {
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
 					}
 					else {
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
 					}
 				}
 			}
@@ -520,6 +618,7 @@ public:
 		}
 	}
 	void Draw_Sub(void) const noexcept override {
+		DrawCommon();
 	}
 	void Dispose_Sub(void) noexcept override {
 		m_ReimuOpt0.reset();
@@ -808,16 +907,6 @@ class MainScene : public Util::SceneBase {
 	Sound::SoundUniqueID			m_NormalBGMID{ InvalidID };
 	Sound::SoundUniqueID			m_BOSSBGMID{ InvalidID };
 	const Draw::GraphHandle*		m_BackScreen{};
-
-	const Draw::GraphHandle* m_Ammobig{};
-	const Draw::GraphHandle* m_Ammomiddle{};
-	const Draw::GraphHandle* m_Ammoellipse{};
-	const Draw::GraphHandle* m_Ammorice{};
-
-	std::array<Draw::GraphHandle, 8>		m_AmmoBig{};
-	std::array<Draw::GraphHandle, 8>		m_AmmoMiddle{};
-	std::array<Draw::GraphHandle, 8>		m_AmmoEllipse{};
-	std::array<Draw::GraphHandle, 8>		m_AmmoRice{};
 
 	StageScript						m_StageScript{};
 	SpeakScript						m_SpeakScript{};

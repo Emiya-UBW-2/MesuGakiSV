@@ -10,13 +10,14 @@ Time(371)
 	ToPoint(81,200)
 Time(378)
 	ToPoint(74,200)
-Time(387)
-	ToPoint(74,200)
 Time(395)
-	ToPoint(74,200)
-Time(403)
-	ToPoint(74,200)
-Time(411)
+	Ammo(ToMine, 0,0, 400, -105, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  -70, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  -35, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,    0, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,   35, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,   70, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  105, 0.075f, 8);
 	ToPoint(74,200)
 Time(420)
 	ToPoint(49,213)
