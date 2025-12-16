@@ -13,6 +13,18 @@ void MainScene::Load_Sub(void) noexcept {
 	EnemyPool::Create();
 
 	m_BackScreen = Draw::GraphPool::Instance()->Get("data/Image/BackScreen.png")->Get();
+
+	m_Ammobig = Draw::GraphPool::Instance()->Get("data/Image/big.png")->Get();
+	m_Ammomiddle = Draw::GraphPool::Instance()->Get("data/Image/middle.png")->Get();
+	m_Ammoellipse = Draw::GraphPool::Instance()->Get("data/Image/ellispe.png")->Get();
+	m_Ammorice = Draw::GraphPool::Instance()->Get("data/Image/rice.png")->Get();
+
+	for (int i = 0; i < 8; ++i) {
+		m_AmmoBig.at(static_cast<size_t>(i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammobig);
+		m_AmmoMiddle.at(static_cast<size_t>(i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammomiddle);
+		m_AmmoEllipse.at(static_cast<size_t>(i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammoellipse);
+		m_AmmoRice.at(static_cast<size_t>(i)).DerivationGraph(512 * i, 0, 512, 512, *m_Ammorice);
+	}
 }
 void MainScene::Init_Sub(void) noexcept {
 	this->m_Exit = false;
@@ -73,7 +85,7 @@ void MainScene::Init_Sub(void) noexcept {
 
 	m_IsResetMouse = true;
 	
-	std::shared_ptr<ObjectMine>		Mine = std::make_shared<ObjectMine>();
+	Mine = std::make_shared<ObjectMine>();
 	Object2DManager::Instance()->AddObject(Mine);
 	Mine->SetPos().m_Pos = Util::VECTOR2D::vget(1920.f / 2.f, 1080.f - 128.f);
 
@@ -180,7 +192,7 @@ void MainScene::Update_Sub(void) noexcept {
 		if (e->IsActive()) {
 			//
 			for (auto& a : AmmoPool::Instance()->m_AmmoPos) {
-				if (a->IsActive()) {
+				if (a->IsActive() && a->ShooterID() == Mine->GetUniqueID()) {
 					auto Vec = e->SetPos().m_Pos - a->SetPos().m_Pos;
 					if (Vec.magnitude() < 32.f) {
 						e->m_HP--;
@@ -229,10 +241,16 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	}
+
+	DxLib::SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+	m_AmmoMiddle.at(0).DrawGraph(100, 100, TRUE);
+	DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 }
 void MainScene::Dispose_Sub(void) noexcept {
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->StopAll();
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->StopAll();
+
+	Mine.reset();
 
 	this->m_PauseUI.Dispose();
 	this->m_OptionWindow.Dispose();
