@@ -227,12 +227,12 @@ void MainScene::Update_Sub(void) noexcept {
 
 	DxLib::SetMouseDispFlag(true);
 
-	this->m_Fade = std::clamp(this->m_Fade + (this->m_Exit ? 1.f : -1.f) * DeltaTime / 0.1f, 0.f, 1.f);
+	this->m_Fade = std::clamp(this->m_Fade + (this->m_Exit ? 1.f : -1.f) * DeltaTime, 0.f, 1.f);
 	if (!m_Exit) {
 	}
 	else {
 		if (this->m_Fade >= 1.f) {
-			SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Main)));
+			SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Title)));
 			Util::SceneBase::SetEndScene();
 		}
 	}
@@ -264,6 +264,9 @@ void MainScene::Update_Sub(void) noexcept {
 		m_SpeakScript.SetStoryStart();
 		if (m_SpeakScript.IsEnd()) {
 			m_StageScript.SetStoryEnd();
+			this->m_Exit = true;
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->StopAll();
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_BOSSBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 		}
 	}
 	if (m_StageScript.IsClear()) {
@@ -297,6 +300,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 void MainScene::Dispose_Sub(void) noexcept {
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->StopAll();
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->StopAll();
+	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_BOSSBGMID)->StopAll();
 
 	Mine.reset();
 

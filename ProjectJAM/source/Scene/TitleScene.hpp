@@ -20,6 +20,8 @@ class TitleScene : public Util::SceneBase {
 	OptionWindow	m_OptionWindow;
 	TitleUI			m_TitleUI;
 	EndUI			m_EndUI;
+
+	Sound::SoundUniqueID			m_TitleBGMID{ InvalidID };
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
 	TitleScene(const TitleScene&) = delete;
@@ -32,6 +34,8 @@ protected:
 	}
 	void Init_Sub(void) noexcept override {
 		this->m_OptionWindow.Init();
+
+		this->m_TitleBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Title.wav", false);
 
 		this->m_TitleUI.Init();
 		this->m_TitleUI.SetEvent(0, [this]() {
@@ -53,6 +57,8 @@ protected:
 
 		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 		KeyGuideParts->SetGuideFlip();
+
+		Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_TitleBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 	}
 	void Update_Sub(void) noexcept override {
 		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
@@ -103,5 +109,7 @@ protected:
 		this->m_TitleUI.Dispose();
 		this->m_OptionWindow.Dispose();
 		this->m_EndUI.Dispose();
+
+		Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_TitleBGMID)->StopAll();
 	}
 };

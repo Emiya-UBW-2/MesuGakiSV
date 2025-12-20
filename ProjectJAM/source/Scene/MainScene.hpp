@@ -797,6 +797,11 @@ public:
 		FileStream.Close();
 		m_IsEnd = false;
 		float_Mes = 1080.f;
+
+		seek_Mes = 0.f;
+		m_NowPoint = 0;
+		m_IsStart = false;
+		m_IsEnd = false;
 	}
 
 	void Update() noexcept {
