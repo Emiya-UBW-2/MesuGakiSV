@@ -1,0 +1,16 @@
+W,0=UP
+W,1=NONE
+S,0=DOWN
+S,1=NONE
+A,0=LEFT
+A,1=NONE
+D,0=RIGHT
+D,1=NONE
+Attack,0=Z
+Attack,1=NONE
+Aim,0=X
+Aim,1=NONE
+Run,0=LSHIFT
+Run,1=NONE
+Walk,0=LCTRL
+Walk,1=NONE
