@@ -264,13 +264,15 @@ void MainScene::Update_Sub(void) noexcept {
 		m_SpeakScript.SetStoryStart();
 		if (m_SpeakScript.IsEnd()) {
 			m_StageScript.SetStoryEnd();
-			this->m_Exit = true;
 			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->StopAll();
 			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_BOSSBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 		}
 	}
 	if (m_StageScript.IsClear()) {
 		m_ClearScript.SetStoryStart();
+		if (m_ClearScript.IsEnd()) {
+			this->m_Exit = true;
+		}
 	}
 	m_SpeakScript.Update();
 	m_ClearScript.Update();
