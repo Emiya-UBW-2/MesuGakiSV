@@ -12,26 +12,25 @@
 
 #include "../Util/SceneManager.hpp"
 
+constexpr int MesColumn = 3;
 
 struct SpeakData {
-	std::string m_Speaker;
-	const Draw::GraphHandle* m_Image{};
-	Util::VECTOR2D m_Pos;
-	std::string m_Mes1;
-	std::string m_Mes2;
+	std::string							m_Speaker;
+	const Draw::GraphHandle*			m_Image{};
+	Util::VECTOR2D						m_Pos;
+	size_t								MesMax{ 0 };
+	std::array<std::string, MesColumn>	m_Mes;
 };
 class SpeakScript {
-	std::vector<SpeakData>	m_SpeakData;
-	int total_Mes1{};
-	int total_Mes2{};
-
-	float float_Mes{};
-
-	float seek_Mes{};
-	size_t m_NowPoint = 0;
-	bool m_IsStart = false;
-	bool m_IsEnd = false;
+	std::vector<SpeakData>		m_SpeakData{};
+	float						float_Mes{};
+	float						seek_Mes{};
+	size_t						m_NowPoint = 0;
+	bool						m_IsStart = false;
+	bool						m_IsEnd = false;
 	char		padding[6]{};
+	std::array<int, MesColumn>	m_MesMax{};
+	char		padding2[4]{};
 public:
 	bool IsEnd() const noexcept { return m_IsEnd; }
 	void SetStoryStart() noexcept {
@@ -49,13 +48,15 @@ public:
 			File::GetArgs(FileStream.SeekLineAndGetStr(), &Args);
 			//
 			{
-				if (Args.at(0) == "speaker") {
+				if (Args.at(0) == "Speaker") {
 					m_SpeakData.emplace_back();
 					m_SpeakData.back().m_Speaker = Args.at(1);
-					m_SpeakData.back().m_Mes1 = "";
-					m_SpeakData.back().m_Mes2 = "";
+					m_SpeakData.back().MesMax = 0;
+					m_SpeakData.back().m_Mes.at(0) = "";
+					m_SpeakData.back().m_Mes.at(1) = "";
+					m_SpeakData.back().m_Mes.at(2) = "";
 				}
-				else if (Args.at(0) == "position") {
+				else if (Args.at(0) == "Position") {
 					if (Args.at(1) == "LEFT") {
 						m_SpeakData.back().m_Pos.x = 1920 / 2 - 864 / 2 - 100 + 512 / 2;
 						m_SpeakData.back().m_Pos.y = 1080 - 512 / 2;
@@ -65,14 +66,12 @@ public:
 						m_SpeakData.back().m_Pos.y = 1080 - 512 / 2;
 					}
 				}
-				else if (Args.at(0) == "image") {
+				else if (Args.at(0) == "Image") {
 					m_SpeakData.back().m_Image = Draw::GraphPool::Instance()->Get(Args.at(1))->Get();
 				}
-				else if (Args.at(0) == "mes1") {
-					m_SpeakData.back().m_Mes1 = Args.at(1);
-				}
-				else if (Args.at(0) == "mes2") {
-					m_SpeakData.back().m_Mes2 = Args.at(1);
+				else if (Args.at(0) == "Mes") {
+					m_SpeakData.back().m_Mes.at(m_SpeakData.back().MesMax) = Args.at(1);
+					m_SpeakData.back().MesMax++;
 				}
 			}
 		}
@@ -91,18 +90,23 @@ public:
 			auto* KeyMngr = Util::KeyParam::Instance();
 			if (m_NowPoint < m_SpeakData.size()) {
 				auto& Now = m_SpeakData.at(m_NowPoint);
-				total_Mes1 = static_cast<int>(Now.m_Mes1.length() / 2);
-				total_Mes2 = static_cast<int>(Now.m_Mes2.length() / 2);
+				for (int loop2 = 0; loop2 < MesColumn; ++loop2) {
+					m_MesMax.at(static_cast<size_t>(loop2)) = static_cast<int>(Now.m_Mes.at(static_cast<size_t>(loop2)).length() / 2);
+				}
 
-				seek_Mes += DeltaTime / 0.1f;
+				seek_Mes += DeltaTime / 0.05f;
 
+				int Max = 0;
+				for (int loop2 = 0; loop2 < MesColumn; ++loop2) {
+					Max += m_MesMax.at(static_cast<size_t>(loop2));
+				}
 				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack) || KeyMngr->GetBattleKeyRepeat(Util::EnumBattle::Walk)) {
-					if (static_cast<int>(seek_Mes) >= total_Mes1 + total_Mes2) {
+					if (static_cast<int>(seek_Mes) >= Max) {
 						++m_NowPoint;
 						seek_Mes = 0.f;
 					}
 					else {
-						seek_Mes = static_cast<float>(total_Mes1 + total_Mes2);
+						seek_Mes = static_cast<float>(Max);
 					}
 				}
 			}
@@ -132,26 +136,33 @@ public:
 				Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
 
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>((1080.f - float_Mes) / 1080.f * 128.f));
+
+				int X1 = 1920 / 2 - 1440 / 2 + 64;
+				int Y1 = 1080 - 36 - 12 - 200;
+				int X2 = 1920 / 2 + 1440 / 2 - 64;
+				int Y2 = 1080 - 36 - 12;
+
 				DxLib::DrawBox(
-					1920 / 2 - 864 / 2 + 64, 1080 - 36 - 12 - 125,
-					1920 / 2 + 864 / 2 - 64, 1080 - 36 - 12,
+					X1, Y1,
+					X2, Y2,
 					ColorPalette::Gray50, TRUE);
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>((1080.f - float_Mes) / 1080.f * 255.f));
-				Font->Get(Draw::FontType::DIZ_UD_Gothic, 24, 3)->DrawString(
+				Font->Get(Draw::FontType::DIZ_UD_Gothic, 32, 3)->DrawString(
 					Draw::FontXCenter::LEFT, Draw::FontYCenter::BOTTOM,
-					1920 / 2 - 864 / 2 + 64 + 32, 1080 - 36 - 12 - 125 - 6,
+					X1 + 32, Y1 - 6,
 					ColorPalette::White, ColorPalette::Black,
 					Util::SjistoUTF8(Now.m_Speaker));
-				Font->Get(Draw::FontType::DIZ_UD_Gothic, 32, 3)->DrawString(
-					Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
-					1920 / 2 - 864 / 2 + 64 + 64, 1080 - 36 - 12 - 125 + 62 / 2,
-					ColorPalette::White, ColorPalette::Black,
-					Util::SjistoUTF8(Now.m_Mes1.substr(0, static_cast<size_t>(std::clamp(static_cast<int>(seek_Mes), 0, total_Mes1) * 2))));
-				Font->Get(Draw::FontType::DIZ_UD_Gothic, 32, 3)->DrawString(
-					Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
-					1920 / 2 - 864 / 2 + 64 + 64, 1080 - 36 - 12 - 125 + 62 + 62 / 2,
-					ColorPalette::White, ColorPalette::Black,
-					Util::SjistoUTF8(Now.m_Mes2.substr(0, static_cast<size_t>(std::clamp(static_cast<int>(seek_Mes) - total_Mes1, 0, total_Mes2) * 2))));
+
+				int Min = 0;
+				for (int loop2 = 0; loop2 < MesColumn; ++loop2) {
+					Font->Get(Draw::FontType::DIZ_UD_Gothic, 24, 3)->DrawString(
+						Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
+						X1 + 64, Y1 + 62 * loop2 + 62 / 2,
+						ColorPalette::White, ColorPalette::Black,
+						Util::SjistoUTF8(Now.m_Mes.at(static_cast<size_t>(loop2)).substr(0, static_cast<size_t>(std::clamp(static_cast<int>(seek_Mes) - Min, 0, m_MesMax.at(static_cast<size_t>(loop2))) * 2))));
+					Min += m_MesMax.at(static_cast<size_t>(loop2));
+				}
+
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 		}
@@ -172,7 +183,6 @@ class MainScene : public Util::SceneBase {
 	Sound::SoundUniqueID			m_EnviID{ InvalidID };
 
 	Sound::SoundUniqueID			m_NormalBGMID{ InvalidID };
-	const Draw::GraphHandle*		m_BackScreen{};
 
 	SpeakScript						m_SpeakScript{};
 public:

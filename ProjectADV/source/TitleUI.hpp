@@ -16,7 +16,7 @@ private:
 	int										m_UIBase{ InvalidID };
 	int										m_ButtonID[3] = { InvalidID,InvalidID,InvalidID };
 	bool									m_IsActive{};
-	char		padding[3]{};
+	char		padding[7]{};
 	std::array<std::function<void()>, 3>	m_ButtonDo{};
 
 	Sound::SoundUniqueID					m_cancelID{ InvalidID };

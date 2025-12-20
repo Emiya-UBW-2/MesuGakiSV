@@ -3,7 +3,6 @@
 #include "MainScene.hpp"
 
 void MainScene::Load_Sub(void) noexcept {
-	m_BackScreen = Draw::GraphPool::Instance()->Get("data/Image/BackScreen.png")->Get();
 }
 void MainScene::Init_Sub(void) noexcept {
 	this->m_Exit = false;
@@ -165,16 +164,23 @@ void MainScene::Update_Sub(void) noexcept {
 }
 void MainScene::UIDraw_Sub(void) noexcept {
 	auto* DrawerMngr = Draw::MainDraw::Instance();
-	/*
-	DxLib::DrawBox(
-		DrawerMngr->GetDispWidth() * (1920 / 2 - 864 / 2) / 1920, DrawerMngr->GetDispHeight() * 36 / 1080,
-		DrawerMngr->GetDispWidth() * (1920 / 2 + 864 / 2) / 1920, DrawerMngr->GetDispHeight() * (1080 - 36) / 1080,
-		ColorPalette::Black, true);
-	//*/
+	{
+		int X1 = 0;
+		int Y1 = 0;
+		int X2 = 1920;
+		int Y2 = 1080;
+		DxLib::DrawBox(X1, Y1, X2, Y2, ColorPalette::Gray25, true);
+	}
+	{
+		int X1 = 1920 / 2 - 1440 / 2;
+		int Y1 = 0;
+		int X2 = 1920 / 2 + 1440 / 2;
+		int Y2 = 1080;
+		DxLib::DrawBox(X1, Y1, X2, Y2, ColorPalette::White, true);
+	}
 	//
 	m_SpeakScript.Draw();
 	//
-	m_BackScreen->DrawExtendGraph(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), true);
 	this->m_PauseUI.Draw();
 	this->m_OptionWindow.Draw();
 	{
