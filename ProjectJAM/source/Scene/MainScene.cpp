@@ -81,9 +81,12 @@ void MainScene::Init_Sub(void) noexcept {
 	this->m_Exit = false;
 	this->m_Fade = 1.f;
 
-	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
+	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/decide.wav", false);
 	this->m_EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
 
+	this->m_HitEnemyID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/enemy_vanish.wav", false);
+	this->m_DamageEnemyID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/enemy_damage.wav", false);
+	
 	this->m_NormalBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Normal.wav", false);
 	this->m_BOSSBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Boss.wav", false);
 
@@ -236,9 +239,7 @@ void MainScene::Update_Sub(void) noexcept {
 			Util::SceneBase::SetEndScene();
 		}
 	}
-	if (m_StageScript.IsStory()) {
-		//todo::射撃できない
-	}
+	Mine->SetCanShot(!(m_StageScript.IsStory() || m_StageScript.IsClear()));
 
 	for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
 		if (e->IsActive()) {
@@ -247,9 +248,15 @@ void MainScene::Update_Sub(void) noexcept {
 				if (a->IsActive() && a->ShooterID() == Mine->GetUniqueID()) {
 					auto Vec = e->SetPos().m_Pos - a->SetPos().m_Pos;
 					if (Vec.magnitude() < 32.f) {
+
 						e->m_HP--;
 						if (e->m_HP <= 0) {
 							e->SetActive(false);
+
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_HitEnemyID)->Play(DX_PLAYTYPE_BACK, TRUE);
+						}
+						else {
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_DamageEnemyID)->Play(DX_PLAYTYPE_BACK, TRUE);
 						}
 						a->SetActive(false);
 						break;

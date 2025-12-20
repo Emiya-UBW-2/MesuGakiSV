@@ -496,6 +496,10 @@ class ObjectMine : public Object2DBase {
 	float							m_Ammo00ShotTimer{};
 	float							m_Ammo01ShotTimer{};
 	float							m_ReimuSpeed{};
+
+	Sound::SoundUniqueID			m_Shot1ID{ InvalidID };
+	Sound::SoundUniqueID			m_Shot2ID{ InvalidID };
+	bool							m_CanShot{};
 public:
 	ObjectMine(void) noexcept {}
 	virtual ~ObjectMine(void) noexcept {}
@@ -503,6 +507,10 @@ public:
 	ObjectMine(ObjectMine&&) = delete;
 	ObjectMine& operator=(const ObjectMine&) = delete;
 	ObjectMine& operator=(ObjectMine&&) = delete;
+public:
+	void SetCanShot(bool value) noexcept {
+		m_CanShot = value;
+	}
 public:
 	void Init_Sub(void) noexcept override {
 		m_ReimuStay = Draw::GraphPool::Instance()->Get("data/Image/stay00.png")->Get();
@@ -517,6 +525,9 @@ public:
 
 		m_ReimuOpt1 = std::make_shared<ObjectOption>();
 		Object2DManager::Instance()->AddObject(m_ReimuOpt1);
+
+		this->m_Shot1ID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/shot1.wav", false);
+		this->m_Shot2ID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/shot2.wav", false);
 	}
 	void Update_Sub(void) noexcept override {
 		auto* KeyMngr = Util::KeyParam::Instance();
@@ -553,8 +564,7 @@ public:
 		m_ReimuOpt0->SetPos().m_Rad -= Util::deg2rad(360) * DeltaTime;
 		m_ReimuOpt1->SetPos().m_Rad += Util::deg2rad(360) * DeltaTime;
 
-		{
-
+		if (m_CanShot) {
 			if (m_Ammo00ShotTimer <= 0.f) {
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo00ShotTimer = 0.1f;
@@ -570,6 +580,7 @@ public:
 						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
 						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(200.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
 					}
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_Shot1ID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 			}
 			else {
@@ -586,6 +597,7 @@ public:
 						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
 						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
 					}
+					//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_Shot2ID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
 			}
 			else {
@@ -885,8 +897,11 @@ class MainScene : public Util::SceneBase {
 	bool							m_IsPauseActive{ false };
 	bool							m_IsResetMouse{ false };
 	float							m_Fade{ 1.f };
+
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
 	Sound::SoundUniqueID			m_EnviID{ InvalidID };
+	Sound::SoundUniqueID			m_HitEnemyID{ InvalidID };
+	Sound::SoundUniqueID			m_DamageEnemyID{ InvalidID };
 
 	Sound::SoundUniqueID			m_NormalBGMID{ InvalidID };
 	Sound::SoundUniqueID			m_BOSSBGMID{ InvalidID };
