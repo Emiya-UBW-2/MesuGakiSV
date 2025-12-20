@@ -96,7 +96,7 @@ private:
 	char		padding[4]{};
 private:
 	Object2DManager(void) noexcept {
-		this->m_ObjectList.reserve(256);
+		this->m_ObjectList.reserve(6000);
 	}
 	Object2DManager(const Object2DManager&) = delete;
 	Object2DManager(Object2DManager&&) = delete;
@@ -153,6 +153,7 @@ class ObjectAmmo : public Object2DBase {
 public:
 	Util::VECTOR2D					m_Vec{};
 	int								m_ShooterID{};
+	bool							m_IsFixedRot{ false };
 public:
 	ObjectAmmo(void) noexcept {}
 	virtual ~ObjectAmmo(void) noexcept {}
@@ -164,12 +165,19 @@ public:
 	int ShooterID(void) const noexcept {
 		return this->m_ShooterID;
 	}
-	void Shot(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, int ID) noexcept {
+	void Shot(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, bool IsFixed, int ID) noexcept {
 		SetActive(true);
 		SetPosition(pos);
-		SetPos().m_Rad = Util::deg2rad(GetRand(90));
-		SetPos().m_Scale = scale;
+
+		m_IsFixedRot = IsFixed;
 		m_Vec = vec;
+		if (m_IsFixedRot) {
+			SetPos().m_Rad = -std::atan2f(m_Vec.x, m_Vec.y);
+		}
+		else {
+			SetPos().m_Rad = Util::deg2rad(GetRand(90));
+		}
+		SetPos().m_Scale = scale;
 		SetPtr(ptr);
 		m_ShooterID = ID;
 	}
@@ -178,7 +186,11 @@ public:
 	}
 	void Update_Sub(void) noexcept override {
 		SetPos().m_Pos += m_Vec * DeltaTime;
-		SetPos().m_Rad -= Util::deg2rad(60) * DeltaTime;
+		if (m_IsFixedRot) {
+		}
+		else {
+			SetPos().m_Rad -= Util::deg2rad(60) * DeltaTime;
+		}
 		if (SetPos().m_Pos.y <= -0.f) {
 			SetActive(false);
 		}
@@ -211,10 +223,10 @@ private:
 	AmmoPool& operator=(const AmmoPool&) = delete;
 	AmmoPool& operator=(AmmoPool&&) = delete;
 public:
-	void SetAmmo(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, int ID) noexcept {
+	void SetAmmo(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, bool IsFixed, int ID) noexcept {
 		for (auto& a : m_AmmoPos) {
 			if (!a->IsActive()) {
-				a->Shot(pos, scale, vec, ptr, ID);
+				a->Shot(pos, scale, vec, ptr, IsFixed, ID);
 				return;
 			}
 		}
@@ -222,7 +234,7 @@ public:
 		auto& a = m_AmmoPos.back();
 		a = std::make_shared<ObjectAmmo>();
 		Object2DManager::Instance()->AddObject(a);
-		a->Shot(pos, scale, vec, ptr, ID);
+		a->Shot(pos, scale, vec, ptr, IsFixed, ID);
 	}
 };
 
@@ -242,7 +254,7 @@ struct EnemyAmmo {
 	Util::VECTOR2D	m_AmmoPos;
 	float			m_AmmoScale{ 1.f };
 	float			m_AmmoSpeed{ 1.f };
-	float			m_AmmoDeg;
+	float			m_AmmoDeg{ 0.f };
 	int				m_AmmoID{ -1 };
 };
 struct EnemyMove {
@@ -318,16 +330,31 @@ public:
 						m_Move.back().m_EnemyAmmo.emplace_back();
 
 						if (Args.at(1) == "Normal") {
-							m_Move.back().m_EnemyAmmo.back().m_AmmoType == AmmoType::Normal;
+							m_Move.back().m_EnemyAmmo.back().m_AmmoType = AmmoType::Normal;
 						}
 						else if (Args.at(1) == "ToMine") {
-							m_Move.back().m_EnemyAmmo.back().m_AmmoType == AmmoType::ToMine;
+							m_Move.back().m_EnemyAmmo.back().m_AmmoType = AmmoType::ToMine;
 						}
 						m_Move.back().m_EnemyAmmo.back().m_AmmoPos = Util::VECTOR2D::vget(std::stof(Args.at(2)), std::stof(Args.at(3)));
 						m_Move.back().m_EnemyAmmo.back().m_AmmoSpeed = std::stof(Args.at(4));
 						m_Move.back().m_EnemyAmmo.back().m_AmmoDeg = std::stof(Args.at(5));
 						m_Move.back().m_EnemyAmmo.back().m_AmmoScale = std::stof(Args.at(6));
-						m_Move.back().m_EnemyAmmo.back().m_AmmoID = std::stof(Args.at(7));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoID = std::stoi(Args.at(7));
+					}
+					else if (Args.at(0) == "AmmoOffset") {
+						m_Move.back().m_EnemyAmmo.emplace_back();
+
+						if (Args.at(1) == "Normal") {
+							m_Move.back().m_EnemyAmmo.back().m_AmmoType = AmmoType::Normal;
+						}
+						else if (Args.at(1) == "ToMine") {
+							m_Move.back().m_EnemyAmmo.back().m_AmmoType = AmmoType::ToMine;
+						}
+						m_Move.back().m_EnemyAmmo.back().m_AmmoPos = Util::VECTOR2D::vget(std::stof(Args.at(2)), std::stof(Args.at(3)));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoSpeed = std::stof(Args.at(4));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoDeg = std::stof(Args.at(5))+ std::stof(Args.at(6));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoScale = std::stof(Args.at(7));
+						m_Move.back().m_EnemyAmmo.back().m_AmmoID = std::stoi(Args.at(8));
 					}
 				}
 			}
@@ -396,61 +423,7 @@ public:
 		SetActive(true);
 		m_Frame = 0;
 	}
-	void Update_Sub(void) noexcept override {
-		{
-			m_Anim++;
-			if (m_Anim > m_EnemyData->m_PicTotalFrame) {
-				m_Anim = 0;
-			}
-			if (m_EnemyData->m_Picture.size() > 0) {
-				auto& f = m_EnemyData->m_Picture.at(m_Frame);
-				SetPtr(f.m_picture);
-				if (m_Anim >= f.m_EndAnim) {
-					++m_Frame %= m_EnemyData->m_Picture.size();
-				}
-			}
-		}
-		{
-			if (m_EnemyData->m_Move.size() - 1 > m_MoveFrame) {
-				auto& Now = m_EnemyData->m_Move.at(m_MoveFrame);
-				auto& Next = m_EnemyData->m_Move.at(m_MoveFrame + 1);
-				auto MoveAnimPer = static_cast<float>(m_MoveAnim - Now.m_Frame) / static_cast<float>(Next.m_Frame - Now.m_Frame);
-				if (Next.m_Frame <= m_MoveAnim) {
-					++m_MoveFrame;
-					//
-					for (auto& e : Next.m_EnemyAmmo) {
-						if (e.m_AmmoID != -1) {
-
-
-							switch (e.m_AmmoType) {
-							case AmmoType::Normal:
-								break;
-							case AmmoType::ToMine:
-								break;
-							default:
-								break;
-							}
-
-							AmmoPool::Instance()->SetAmmo(
-								SetPos().m_Pos + e.m_AmmoPos,
-								e.m_AmmoScale,
-								Util::VECTOR2D::vget(std::sin(Util::deg2rad(e.m_AmmoDeg)), std::cos(Util::deg2rad(e.m_AmmoDeg))) * e.m_AmmoSpeed,
-								&AmmoImages::Instance()->m_Ammo.at(e.m_AmmoID),
-								this->GetUniqueID());
-						}
-					}
-				}
-				SetPos().m_Pos = Util::Lerp(Now.m_Pos, Next.m_Pos, MoveAnimPer);
-				if (Now.m_IsEnd) {
-					SetActive(false);
-				}
-				m_MoveAnim++;
-			}
-			else {
-				SetActive(false);
-			}
-		}
-	}
+	void Update_Sub(void) noexcept override;
 	void Draw_Sub(void) const noexcept override {
 		DrawCommon();
 	}
@@ -458,11 +431,14 @@ public:
 	}
 };
 
+class ObjectMine;
+
 class EnemyPool : public Util::SingletonBase<EnemyPool> {
 private:
 	friend class Util::SingletonBase<EnemyPool>;
 public:
 	std::vector<std::shared_ptr<ObjectEnemy>>			m_EnemyPos{};
+	std::shared_ptr<ObjectMine>*						m_pMine{};
 private:
 	EnemyPool(void) noexcept {
 		this->m_EnemyPos.reserve(256);
@@ -571,7 +547,7 @@ public:
 		SetPos().m_Pos.x = std::clamp(SetPos().m_Pos.x, static_cast<float>(1920 / 2 - 864 / 2 + 50), static_cast<float>(1920 / 2 + 864 / 2 - 50));
 		SetPos().m_Pos.y = std::clamp(SetPos().m_Pos.y, static_cast<float>(36 + 50), static_cast<float>(1080 - 36 - 50));
 
-		m_ReimuSlowPer = std::clamp(m_ReimuSlowPer + (IsSlow ? DeltaTime : -DeltaTime), 0.f, 1.f);
+		m_ReimuSlowPer = std::clamp(m_ReimuSlowPer + (IsSlow ? DeltaTime : -DeltaTime) / 0.25f, 0.f, 1.f);
 		m_ReimuOpt0->SetPos().m_Pos = SetPos().m_Pos + Util::Lerp(Util::VECTOR2D::vget(-50.f, 0.f), Util::VECTOR2D::vget(-20.f, -50.f), m_ReimuSlowPer);
 		m_ReimuOpt1->SetPos().m_Pos = SetPos().m_Pos + Util::Lerp(Util::VECTOR2D::vget(50.f, -0.f), Util::VECTOR2D::vget(20.f, -50.f), m_ReimuSlowPer);
 		m_ReimuOpt0->SetPos().m_Rad -= Util::deg2rad(360) * DeltaTime;
@@ -583,16 +559,16 @@ public:
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo00ShotTimer = 0.1f;
 					if (IsSlow) {
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-100.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(100.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-100.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(100.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
 					}
 					else {
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-200.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(200.f, -1200.f), m_Ammo00, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-200.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(200.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
 					}
 				}
 			}
@@ -603,12 +579,12 @@ public:
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo01ShotTimer = 0.1f;
 					if (IsSlow) {
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
 					}
 					else {
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
 					}
 				}
 			}
@@ -698,6 +674,9 @@ public:
 				EnemyPool::Instance()->SetEnemy(ptr);
 			}
 		}
+		m_Anim = 0;
+		m_IsStory = false;
+		m_IsClear = false;
 	}
 
 	void Update() noexcept {

@@ -90,7 +90,7 @@ MakeEnemy(Enemy41,988, 0, 0);
 MakeEnemy(Enemy41,998, 0, 0);
 
 MakeEnemy(Enemy43,1200, 0, 0);
-SkipWhenKillEnemyAll(1200, 2030)
+SkipWhenKillEnemyAll(1200, 2350)
 
 MakeEnemy(Enemy39,2375, 0, 0);
 MakeEnemy(Enemy39,2385, 0, 0);

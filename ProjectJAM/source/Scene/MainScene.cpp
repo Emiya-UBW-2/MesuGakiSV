@@ -8,6 +8,66 @@ const AmmoImages* Util::SingletonBase<AmmoImages>::m_Singleton = nullptr;
 const AmmoPool* Util::SingletonBase<AmmoPool>::m_Singleton = nullptr;
 const EnemyPool* Util::SingletonBase<EnemyPool>::m_Singleton = nullptr;
 
+void ObjectEnemy::Update_Sub(void) noexcept {
+	{
+		m_Anim++;
+		if (m_Anim > m_EnemyData->m_PicTotalFrame) {
+			m_Anim = 0;
+		}
+		if (m_EnemyData->m_Picture.size() > 0) {
+			auto& f = m_EnemyData->m_Picture.at(m_Frame);
+			SetPtr(f.m_picture);
+			if (m_Anim >= f.m_EndAnim) {
+				++m_Frame %= m_EnemyData->m_Picture.size();
+			}
+		}
+	}
+	{
+		if (m_EnemyData->m_Move.size() - 1 > m_MoveFrame) {
+			auto& Now = m_EnemyData->m_Move.at(m_MoveFrame);
+			auto& Next = m_EnemyData->m_Move.at(m_MoveFrame + 1);
+			auto MoveAnimPer = static_cast<float>(m_MoveAnim - Now.m_Frame) / static_cast<float>(Next.m_Frame - Now.m_Frame);
+			if (Next.m_Frame <= m_MoveAnim) {
+				++m_MoveFrame;
+				//
+				for (auto& e : Next.m_EnemyAmmo) {
+					if (e.m_AmmoID != -1) {
+						float Rad = 0.f;
+
+						switch (e.m_AmmoType) {
+						case AmmoType::Normal:
+							break;
+						case AmmoType::ToMine:
+						{
+							Util::VECTOR2D Vec = (*EnemyPool::Instance()->m_pMine)->SetPos().m_Pos - (SetPos().m_Pos + e.m_AmmoPos);
+							Rad = std::atan2f(Vec.x, Vec.y);
+						}
+						break;
+						default:
+							break;
+						}
+
+						AmmoPool::Instance()->SetAmmo(
+							SetPos().m_Pos + e.m_AmmoPos,
+							e.m_AmmoScale,
+							Util::VECTOR2D::vget(std::sin(Rad + Util::deg2rad(e.m_AmmoDeg)), std::cos(Rad + Util::deg2rad(e.m_AmmoDeg))) * e.m_AmmoSpeed,
+							&AmmoImages::Instance()->m_Ammo.at(static_cast<size_t>(e.m_AmmoID)),
+							e.m_AmmoID>=16, 
+							this->GetUniqueID());
+					}
+				}
+			}
+			SetPos().m_Pos = Util::Lerp(Now.m_Pos, Next.m_Pos, MoveAnimPer);
+			if (Now.m_IsEnd) {
+				SetActive(false);
+			}
+			m_MoveAnim++;
+		}
+		else {
+			SetActive(false);
+		}
+	}
+}
 void MainScene::Load_Sub(void) noexcept {
 	Object2DManager::Create();
 	AmmoPool::Create();
@@ -79,6 +139,7 @@ void MainScene::Init_Sub(void) noexcept {
 	Mine = std::make_shared<ObjectMine>();
 	Object2DManager::Instance()->AddObject(Mine);
 	Mine->SetPos().m_Pos = Util::VECTOR2D::vget(1920.f / 2.f, 1080.f - 128.f);
+	EnemyPool::Instance()->m_pMine = &Mine;
 
 	m_StageScript.Load();
 
@@ -247,3 +308,4 @@ void MainScene::Dispose_Sub(void) noexcept {
 	Object2DManager::Instance()->DeleteAll();
 	Object2DManager::Release();
 }
+
