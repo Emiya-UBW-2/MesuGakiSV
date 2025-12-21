@@ -126,4 +126,4 @@ MakeEnemy(Enemy41,2598, 0, 0);
 
 StoryStart(2799)
 
-MakeEnemy(Enemy44,2800, 0, 0);
+MakeEnemy(Enemy43,2800, 0, 0);

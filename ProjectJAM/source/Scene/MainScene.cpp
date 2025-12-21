@@ -296,6 +296,25 @@ void MainScene::Update_Sub(void) noexcept {
 		}
 	}
 
+	for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
+		if (e->IsActive()) {
+			auto Vec = e->SetPos().m_Pos - Mine->SetPos().m_Pos;
+			if (Vec.magnitude() < 32.f) {
+				Mine->SetActive(false);
+				this->m_Exit = true;
+			}
+		}
+	}
+	for (auto& a : AmmoPool::Instance()->m_AmmoPos) {
+		if (a->IsActive() && a->ShooterID() != Mine->GetUniqueID()) {
+			auto Vec = a->SetPos().m_Pos - Mine->SetPos().m_Pos;
+			if (Vec.magnitude() < 32.f) {
+				Mine->SetActive(false);
+				this->m_Exit = true;
+			}
+		}
+	}
+
 	m_StageScript.Update();
 	if (m_StageScript.IsStory()) {
 		m_SpeakScript.SetStoryStart();
