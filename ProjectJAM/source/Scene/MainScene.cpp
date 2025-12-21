@@ -8,6 +8,36 @@ const AmmoImages* Util::SingletonBase<AmmoImages>::m_Singleton = nullptr;
 const AmmoPool* Util::SingletonBase<AmmoPool>::m_Singleton = nullptr;
 const EnemyPool* Util::SingletonBase<EnemyPool>::m_Singleton = nullptr;
 
+void ObjectAmmo::Update_Sub(void) noexcept {
+	if (m_IsHoming) {
+		float Len2 = 1000000.f;
+		Util::VECTOR2D Pos;
+		for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
+			if (e->IsActive()) {
+				float Len = (e->SetPos().m_Pos - SetPos().m_Pos).sqrMagnitude();
+				if (Len2 > Len) {
+					Len2 = Len;
+					Pos = e->SetPos().m_Pos;
+				}
+			}
+		}
+		if (Len2 != 1000000.f) {
+			Util::VECTOR2D Vec = Pos - SetPos().m_Pos;
+			float rad = (Util::VECTOR2D::Cross(m_Vec, Vec) < 0.f) ? Util::deg2rad(360) * DeltaTime : -Util::deg2rad(360) * DeltaTime;
+			m_Vec = Util::VECTOR2D::vget(m_Vec.x * std::cos(rad) + m_Vec.y * std::sin(rad), -m_Vec.x * std::sin(rad) + m_Vec.y * std::cos(rad));
+		}
+	}
+	SetPos().m_Pos += m_Vec * DeltaTime;
+	if (m_IsFixedRot) {
+	}
+	else {
+		SetPos().m_Rad -= Util::deg2rad(60) * DeltaTime;
+	}
+	if (SetPos().m_Pos.y <= -0.f) {
+		SetActive(false);
+	}
+}
+
 void ObjectEnemy::Update_Sub(void) noexcept {
 	{
 		m_Anim++;
@@ -52,7 +82,7 @@ void ObjectEnemy::Update_Sub(void) noexcept {
 							e.m_AmmoScale,
 							Util::VECTOR2D::vget(std::sin(Rad + Util::deg2rad(e.m_AmmoDeg)), std::cos(Rad + Util::deg2rad(e.m_AmmoDeg))) * e.m_AmmoSpeed,
 							&AmmoImages::Instance()->m_Ammo.at(static_cast<size_t>(e.m_AmmoID)),
-							e.m_AmmoID>=16, 
+							e.m_AmmoID>=16, false,
 							this->GetUniqueID());
 					}
 				}
@@ -321,4 +351,3 @@ void MainScene::Dispose_Sub(void) noexcept {
 	Object2DManager::Instance()->DeleteAll();
 	Object2DManager::Release();
 }
-

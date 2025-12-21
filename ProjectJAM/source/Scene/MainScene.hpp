@@ -154,6 +154,7 @@ public:
 	Util::VECTOR2D					m_Vec{};
 	int								m_ShooterID{};
 	bool							m_IsFixedRot{ false };
+	bool							m_IsHoming{ false };
 public:
 	ObjectAmmo(void) noexcept {}
 	virtual ~ObjectAmmo(void) noexcept {}
@@ -165,11 +166,12 @@ public:
 	int ShooterID(void) const noexcept {
 		return this->m_ShooterID;
 	}
-	void Shot(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, bool IsFixed, int ID) noexcept {
+	void Shot(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, bool IsFixed, bool IsHoming, int ID) noexcept {
 		SetActive(true);
 		SetPosition(pos);
 
 		m_IsFixedRot = IsFixed;
+		m_IsHoming = IsHoming;
 		m_Vec = vec;
 		if (m_IsFixedRot) {
 			SetPos().m_Rad = -std::atan2f(m_Vec.x, m_Vec.y);
@@ -184,17 +186,7 @@ public:
 public:
 	void Init_Sub(void) noexcept override {
 	}
-	void Update_Sub(void) noexcept override {
-		SetPos().m_Pos += m_Vec * DeltaTime;
-		if (m_IsFixedRot) {
-		}
-		else {
-			SetPos().m_Rad -= Util::deg2rad(60) * DeltaTime;
-		}
-		if (SetPos().m_Pos.y <= -0.f) {
-			SetActive(false);
-		}
-	}
+	void Update_Sub(void) noexcept override;
 	void Draw_Sub(void) const noexcept override {
 		if (m_Pic) {
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
@@ -223,10 +215,10 @@ private:
 	AmmoPool& operator=(const AmmoPool&) = delete;
 	AmmoPool& operator=(AmmoPool&&) = delete;
 public:
-	void SetAmmo(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, bool IsFixed, int ID) noexcept {
+	void SetAmmo(const Util::VECTOR2D& pos, float scale, const Util::VECTOR2D& vec, const Draw::GraphHandle* ptr, bool IsFixed, bool IsHoming, int ID) noexcept {
 		for (auto& a : m_AmmoPos) {
 			if (!a->IsActive()) {
-				a->Shot(pos, scale, vec, ptr, IsFixed, ID);
+				a->Shot(pos, scale, vec, ptr, IsFixed, IsHoming, ID);
 				return;
 			}
 		}
@@ -234,7 +226,7 @@ public:
 		auto& a = m_AmmoPos.back();
 		a = std::make_shared<ObjectAmmo>();
 		Object2DManager::Instance()->AddObject(a);
-		a->Shot(pos, scale, vec, ptr, IsFixed, ID);
+		a->Shot(pos, scale, vec, ptr, IsFixed, IsHoming, ID);
 	}
 };
 
@@ -569,16 +561,16 @@ public:
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo00ShotTimer = 0.1f;
 					if (IsSlow) {
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-100.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(100.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-100.f, -1200.f), m_Ammo00, false, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(100.f, -1200.f), m_Ammo00, false, false, this->GetUniqueID());
 					}
 					else {
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-200.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(200.f, -1200.f), m_Ammo00, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-18.f, -10.f), 1.f, Util::VECTOR2D::vget(-200.f, -1200.f), m_Ammo00, false, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(-12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(12.f, -10.f), 1.f, Util::VECTOR2D::vget(0.f, -1200.f), m_Ammo00, false, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(SetPos().m_Pos + Util::VECTOR2D::vget(18.f, -10.f), 1.f, Util::VECTOR2D::vget(200.f, -1200.f), m_Ammo00, false, false, this->GetUniqueID());
 					}
 					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_Shot1ID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}
@@ -590,12 +582,12 @@ public:
 				if (KeyMngr->GetBattleKeyPress(Util::EnumBattle::Attack)) {
 					m_Ammo01ShotTimer = 0.1f;
 					if (IsSlow) {
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, false, true, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, false, true, this->GetUniqueID());
 					}
 					else {
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
-						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, false, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt0->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(-1200.f, -1200.f), m_Ammo01, false, true, this->GetUniqueID());
+						AmmoPool::Instance()->SetAmmo(m_ReimuOpt1->SetPos().m_Pos, 1.f, Util::VECTOR2D::vget(1200.f, -1200.f), m_Ammo01, false, true, this->GetUniqueID());
 					}
 					//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_Shot2ID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				}

@@ -169,7 +169,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		int Y1 = 0;
 		int X2 = 1920;
 		int Y2 = 1080;
-		DxLib::DrawBox(X1, Y1, X2, Y2, ColorPalette::Gray25, true);
+		DxLib::DrawBox(X1, Y1, X2, Y2, ColorPalette::Gray85, true);
 	}
 	{
 		int X1 = 1920 / 2 - 1440 / 2;
