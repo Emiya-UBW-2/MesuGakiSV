@@ -123,23 +123,26 @@ public:
 		for (size_t loop = 0; loop < m_SpeakData.size(); ++loop) {
 			auto& Now = m_SpeakData.at(loop);
 			if (loop < m_NowPoint) {
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-				SetDrawBright(0, 0, 0);
-				Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
-				SetDrawBright(255, 255, 255);
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-				Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+				if (Now.m_Image) {
+					DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+					SetDrawBright(0, 0, 0);
+					Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
+					SetDrawBright(255, 255, 255);
+					DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+					Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
+					DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+				}
 			}
 			if (loop == m_NowPoint) {
 				//DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f* seek_Mes), 0, 255));
-				Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
-
+				if (Now.m_Image) {
+					Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
+				}
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>((1080.f - float_Mes) / 1080.f * 128.f));
 
-				int X1 = 1920 / 2 - 1440 / 2 + 64;
+				int X1 = 1920 / 2 - 1920 / 2 + 64;
 				int Y1 = 1080 - 36 - 12 - 200;
-				int X2 = 1920 / 2 + 1440 / 2 - 64;
+				int X2 = 1920 / 2 + 1920 / 2 - 64;
 				int Y2 = 1080 - 36 - 12;
 
 				DxLib::DrawBox(
