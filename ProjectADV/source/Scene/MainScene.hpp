@@ -20,6 +20,7 @@ enum class SpeakEnum : size_t {
 	BlackOut,
 	BlackIn,
 	ResetImage,
+	SetBG,
 };
 
 struct SpeakData {
@@ -104,6 +105,10 @@ class SpeakScript {
 	float						m_Fade{ 1.f };
 	float						m_FadeTimer{ 1.f };
 	size_t						m_ResetImage{};
+	const Draw::GraphHandle*				m_PrevBGImage{};
+	const Draw::GraphHandle*				m_NowBGImage{};
+	float						m_BGFade{ 1.f };
+	float						m_BGFadeTimer{ 1.f };
 public:
 	bool IsEnd() const noexcept { return m_IsEnd; }
 	void SetStoryStart() noexcept {
@@ -173,6 +178,13 @@ public:
 					m_SpeakData.back().m_SpeakEnum = SpeakEnum::ResetImage;
 					m_SpeakData.back().m_ResetImage = m_SpeakData.size();
 				}
+				else if (Args.at(0) == "SetBG") {
+					m_SpeakData.emplace_back();
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::SetBG;
+					m_SpeakData.back().m_Image = Draw::GraphPool::Instance()->Get(Args.at(1))->Get();
+					m_SpeakData.back().m_Time = std::stof(Args.at(2)) / 1000.f;
+				}
 			}
 		}
 		FileStream.Close();
@@ -187,6 +199,10 @@ public:
 		this->m_Fade = 1.f;
 		this->m_FadeTimer = 1.f;
 		this->m_ResetImage = 0;
+		m_PrevBGImage = nullptr;
+		m_NowBGImage = nullptr;
+		this->m_BGFade = 1.f;
+		this->m_BGFadeTimer = 1.f;
 	}
 
 	void Update() noexcept {
@@ -237,6 +253,17 @@ public:
 						this->m_ResetImage = Now.m_ResetImage;
 					}
 					break;
+				case SpeakEnum::SetBG:
+					if (Now.m_Seek != 0.f) {
+						++m_NowPoint;
+					}
+					else {
+						this->m_PrevBGImage = this->m_NowBGImage;
+						this->m_NowBGImage = Now.m_Image;
+						this->m_BGFadeTimer = Now.m_Time;
+						this->m_BGFade = 0.f;
+					}
+					break;
 				default:
 					break;
 				}
@@ -249,6 +276,12 @@ public:
 		Util::Easing(&float_Mes, ((!m_IsStart || m_IsEnd) ? 1080.f : 0.f), 0.9f);
 
 		this->m_Fade = std::clamp(this->m_Fade + (this->m_Exit ? 1.f : -1.f) * DeltaTime / this->m_FadeTimer, 0.f, 1.f);
+		if (this->m_BGFadeTimer == 0.f) {
+			this->m_BGFade = 1.f;
+		}
+		else {
+			this->m_BGFade = std::clamp(this->m_BGFade + DeltaTime / this->m_BGFadeTimer, 0.f, 1.f);
+		}
 	}
 
 	void Draw() noexcept {
@@ -263,15 +296,26 @@ public:
 				break;
 			}
 		}
+		//背景
+		if (m_PrevBGImage) {
+			m_PrevBGImage->DrawRotaGraph(1920 / 2, 1080 / 2, 1.f, 0.f, false);
+		}
+		if (m_NowBGImage) {
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * this->m_BGFade), 0, 255));
+			m_NowBGImage->DrawRotaGraph(1920 / 2, 1080 / 2, 1.f, 0.f, false);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		}
 		//イメージ
 		for (auto& Now : m_SpeakData) {
 			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
-			if (index == m_NowPoint) {
-				Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 255);
-			}
-			else {
-				if (this->m_ResetImage <= index && index <= LaskSpeak) {
-					Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 128);
+			if (Now.m_SpeakEnum == SpeakEnum::Speak) {
+				if (index == m_NowPoint) {
+					Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 255);
+				}
+				else {
+					if (this->m_ResetImage <= index && index <= LaskSpeak) {
+						Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 128);
+					}
 				}
 			}
 		}

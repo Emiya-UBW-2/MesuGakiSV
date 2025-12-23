@@ -1,9 +1,11 @@
+SetBG(data/BG/pic_black.jpg, 0);
 Speaker();
 	Mes(罰ゲームで告白をしたら結婚した);
 Speaker();
 	Mes(何を言っているかわからないと思うがそういうことになってしまったのだ);
 Speaker();
 	Mes(告白をしたのはそう……高校3年生の時);
+SetBG(data/BG/pic1.jpg, 500);
 Speaker();
 	Mes(俺は……友人との勝負に負けて罰ゲームをすることになってしまった);
 Speaker();
