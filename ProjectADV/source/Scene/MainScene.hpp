@@ -12,14 +12,38 @@
 
 #include "../Util/SceneManager.hpp"
 
-constexpr int MesColumn = 3;
+constexpr size_t MesColumn = 3;
 
 struct SpeakData {
-	std::string							m_Speaker;
-	const Draw::GraphHandle*			m_Image{};
-	Util::VECTOR2D						m_Pos;
-	size_t								MesMax{ 0 };
-	std::array<std::string, MesColumn>	m_Mes;
+	std::u32string							m_Speaker;
+	const Draw::GraphHandle*				m_Image{};
+	Util::VECTOR2D							m_Pos;
+	std::array<std::pair<std::u32string, size_t>, MesColumn>	m_Mes;
+	size_t									m_MesMaxAll{ 0 };
+public:
+	void Init() noexcept {
+		m_Speaker = U"";
+		m_Image = nullptr;
+		m_Pos.Set(0.f, 0.f);
+		for (auto& m : this->m_Mes) {
+			m.first = U"";
+			m.second = 0;
+		}
+		this->m_MesMaxAll = 0;
+	}
+	void DrawImage(Util::VECTOR2D pos, int alpha) noexcept {
+		if (this->m_Image) {
+			if (alpha != 255) {
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+				SetDrawBright(0, 0, 0);
+				this->m_Image->DrawRotaGraph(static_cast<int>(pos.x), static_cast<int>(pos.y), 1.f, 0.f, true);
+				SetDrawBright(255, 255, 255);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+			}
+			this->m_Image->DrawRotaGraph(static_cast<int>(pos.x), static_cast<int>(pos.y), 1.f, 0.f, true);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		}
+	}
 };
 class SpeakScript {
 	std::vector<SpeakData>		m_SpeakData{};
@@ -29,8 +53,6 @@ class SpeakScript {
 	bool						m_IsStart = false;
 	bool						m_IsEnd = false;
 	char		padding[6]{};
-	std::array<int, MesColumn>	m_MesMax{};
-	char		padding2[4]{};
 public:
 	bool IsEnd() const noexcept { return m_IsEnd; }
 	void SetStoryStart() noexcept {
@@ -42,6 +64,7 @@ public:
 
 		File::InputFileStream FileStream;
 		FileStream.Open(Path);
+		size_t	SeekMes{ 0 };
 		while (true) {
 			if (FileStream.ComeEof()) { break; }
 			std::vector<std::string> Args;
@@ -50,11 +73,9 @@ public:
 			{
 				if (Args.at(0) == "Speaker") {
 					m_SpeakData.emplace_back();
-					m_SpeakData.back().m_Speaker = Args.at(1);
-					m_SpeakData.back().MesMax = 0;
-					m_SpeakData.back().m_Mes.at(0) = "";
-					m_SpeakData.back().m_Mes.at(1) = "";
-					m_SpeakData.back().m_Mes.at(2) = "";
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_Speaker = Util::utf8_to_char32(Args.at(1));
+					SeekMes = 0;
 				}
 				else if (Args.at(0) == "Position") {
 					if (Args.at(1) == "LEFT") {
@@ -70,8 +91,11 @@ public:
 					m_SpeakData.back().m_Image = Draw::GraphPool::Instance()->Get(Args.at(1))->Get();
 				}
 				else if (Args.at(0) == "Mes") {
-					m_SpeakData.back().m_Mes.at(m_SpeakData.back().MesMax) = Args.at(1);
-					m_SpeakData.back().MesMax++;
+					auto& m = m_SpeakData.back().m_Mes.at(SeekMes);
+					m.first = Util::utf8_to_char32(Args.at(1));
+					m.second = m.first.length();
+					m_SpeakData.back().m_MesMaxAll += m.second;
+					++SeekMes;
 				}
 			}
 		}
@@ -90,23 +114,16 @@ public:
 			auto* KeyMngr = Util::KeyParam::Instance();
 			if (m_NowPoint < m_SpeakData.size()) {
 				auto& Now = m_SpeakData.at(m_NowPoint);
-				for (int loop2 = 0; loop2 < MesColumn; ++loop2) {
-					m_MesMax.at(static_cast<size_t>(loop2)) = static_cast<int>(Now.m_Mes.at(static_cast<size_t>(loop2)).length() / 2);
-				}
 
 				seek_Mes += DeltaTime / 0.05f;
 
-				int Max = 0;
-				for (int loop2 = 0; loop2 < MesColumn; ++loop2) {
-					Max += m_MesMax.at(static_cast<size_t>(loop2));
-				}
 				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack) || KeyMngr->GetBattleKeyRepeat(Util::EnumBattle::Walk)) {
-					if (static_cast<int>(seek_Mes) >= Max) {
+					if (static_cast<size_t>(seek_Mes) >= Now.m_MesMaxAll) {
 						++m_NowPoint;
 						seek_Mes = 0.f;
 					}
 					else {
-						seek_Mes = static_cast<float>(Max);
+						seek_Mes = static_cast<float>(Now.m_MesMaxAll);
 					}
 				}
 			}
@@ -119,25 +136,14 @@ public:
 
 	void Draw() noexcept {
 		auto* Font = Draw::FontPool::Instance();
-
-		for (size_t loop = 0; loop < m_SpeakData.size(); ++loop) {
-			auto& Now = m_SpeakData.at(loop);
-			if (loop < m_NowPoint) {
-				if (Now.m_Image) {
-					DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-					SetDrawBright(0, 0, 0);
-					Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
-					SetDrawBright(255, 255, 255);
-					DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-					Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
-					DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-				}
+		for (auto& Now : m_SpeakData) {
+			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
+			if (index < m_NowPoint) {
+				Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 128);
 			}
-			if (loop == m_NowPoint) {
-				//DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f* seek_Mes), 0, 255));
-				if (Now.m_Image) {
-					Now.m_Image->DrawRotaGraph(static_cast<int>(Now.m_Pos.x), static_cast<int>(Now.m_Pos.y + float_Mes), 1.f, 0.f, true);
-				}
+			if (index == m_NowPoint) {
+				Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 255);
+
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>((1080.f - float_Mes) / 1080.f * 128.f));
 
 				int X1 = 1920 / 2 - 1920 / 2 + 64;
@@ -154,16 +160,19 @@ public:
 					Draw::FontXCenter::LEFT, Draw::FontYCenter::BOTTOM,
 					X1 + 32, Y1 - 6,
 					ColorPalette::White, ColorPalette::Black,
-					Util::SjistoUTF8(Now.m_Speaker));
+					Util::char32_to_utf8(Now.m_Speaker));
 
-				int Min = 0;
-				for (int loop2 = 0; loop2 < MesColumn; ++loop2) {
+				size_t Min = 0;
+				for (auto& m : Now.m_Mes) {
+					size_t index2 = static_cast<size_t>(&m - &Now.m_Mes.front());
 					Font->Get(Draw::FontType::DIZ_UD_Gothic, 24, 3)->DrawString(
 						Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
-						X1 + 64, Y1 + 62 * loop2 + 62 / 2,
+						X1 + 64, Y1 + 62 * static_cast<int>(index2) + 62 / 2,
 						ColorPalette::White, ColorPalette::Black,
-						Util::SjistoUTF8(Now.m_Mes.at(static_cast<size_t>(loop2)).substr(0, static_cast<size_t>(std::clamp(static_cast<int>(seek_Mes) - Min, 0, m_MesMax.at(static_cast<size_t>(loop2))) * 2))));
-					Min += m_MesMax.at(static_cast<size_t>(loop2));
+						Util::char32_to_utf8(m.first.substr(0, 
+							static_cast<size_t>(std::clamp<int>(static_cast<int>(seek_Mes) - static_cast<int>(Min), 0, static_cast<int>(m.second)))
+						)));
+					Min += m.second;
 				}
 
 				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);

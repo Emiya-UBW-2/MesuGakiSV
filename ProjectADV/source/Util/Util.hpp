@@ -7,14 +7,21 @@
 #pragma warning(disable:4711)
 #pragma warning(disable:5039)
 #pragma warning(disable:5045)
+
+#pragma warning(disable : 4996)
+
 #pragma warning( push, 3 )
 #include "DxLib.h"
 #include<string>
 #include<filesystem>
+
+#include <codecvt>
+
 #pragma warning( pop )
 
 #include "Enum.hpp"
 #include "Algorithm.hpp"
+
 
 namespace Util {
 	// --------------------------------------------------------------------------------------------------
@@ -283,6 +290,16 @@ namespace Util {
 		return ret;
 	}
 
+	static inline std::u32string utf8_to_char32(const std::string& s)
+	{
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+		return convert.from_bytes(s);
+	}
+	static inline std::string char32_to_utf8(const std::u32string& s)
+	{
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+		return convert.to_bytes(s);
+	}
 	//
 
 	//	o1 Angleが0の場合の左上座標
