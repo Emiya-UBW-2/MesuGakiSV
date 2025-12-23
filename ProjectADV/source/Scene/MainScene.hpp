@@ -14,12 +14,24 @@
 
 constexpr size_t MesColumn = 3;
 
+enum class SpeakEnum : size_t {
+	Speak,
+	WaitTime,
+	BlackOut,
+	BlackIn,
+	ResetImage,
+};
+
 struct SpeakData {
+	SpeakEnum								m_SpeakEnum{};
 	std::u32string							m_Speaker;
 	const Draw::GraphHandle*				m_Image{};
 	Util::VECTOR2D							m_Pos;
 	std::array<std::pair<std::u32string, size_t>, MesColumn>	m_Mes;
-	size_t									m_MesMaxAll{ 0 };
+	float									m_Time{ 0 };
+	float									m_SeekMax{ 0 };
+	float									m_Seek{};
+	size_t									m_ResetImage{};
 public:
 	void Init() noexcept {
 		m_Speaker = U"";
@@ -29,7 +41,9 @@ public:
 			m.first = U"";
 			m.second = 0;
 		}
-		this->m_MesMaxAll = 0;
+		this->m_Time = 0.f;
+		this->m_SeekMax = 0.f;
+		this->m_Seek = 0.f;
 	}
 	void DrawImage(Util::VECTOR2D pos, int alpha) noexcept {
 		if (this->m_Image) {
@@ -44,15 +58,52 @@ public:
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
 	}
+	void DrawStr(int alpha) noexcept {
+		auto* Font = Draw::FontPool::Instance();
+
+		int X1 = 1920 / 2 - 1920 / 2 + 64;
+		int Y1 = 1080 - 36 - 12 - 200;
+		int X2 = 1920 / 2 + 1920 / 2 - 64;
+		int Y2 = 1080 - 36 - 12;
+
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha * 1 / 2);
+		DxLib::DrawBox(
+			X1, Y1,
+			X2, Y2,
+			ColorPalette::Gray50, TRUE);
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+		Font->Get(Draw::FontType::DIZ_UD_Gothic, 32, 3)->DrawString(
+			Draw::FontXCenter::LEFT, Draw::FontYCenter::BOTTOM,
+			X1 + 32, Y1 - 6,
+			ColorPalette::White, ColorPalette::Black,
+			Util::char32_to_utf8(this->m_Speaker));
+
+		size_t Min = 0;
+		for (auto& m : this->m_Mes) {
+			size_t index2 = static_cast<size_t>(&m - &this->m_Mes.front());
+			Font->Get(Draw::FontType::DIZ_UD_Gothic, 24, 3)->DrawString(
+				Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
+				X1 + 64, Y1 + 62 * static_cast<int>(index2) + 62 / 2,
+				ColorPalette::White, ColorPalette::Black,
+				Util::char32_to_utf8(m.first.substr(0,
+					static_cast<size_t>(std::clamp<int>(static_cast<int>(this->m_Seek / 0.05f) - static_cast<int>(Min), 0, static_cast<int>(m.second)))
+				)));
+			Min += m.second;
+		}
+		DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+	}
 };
 class SpeakScript {
 	std::vector<SpeakData>		m_SpeakData{};
-	float						float_Mes{};
-	float						seek_Mes{};
 	size_t						m_NowPoint = 0;
+	float						float_Mes{};
 	bool						m_IsStart = false;
 	bool						m_IsEnd = false;
-	char		padding[6]{};
+	bool						m_Exit{ false };
+	char		padding[2]{};
+	float						m_Fade{ 1.f };
+	float						m_FadeTimer{ 1.f };
+	size_t						m_ResetImage{};
 public:
 	bool IsEnd() const noexcept { return m_IsEnd; }
 	void SetStoryStart() noexcept {
@@ -74,6 +125,7 @@ public:
 				if (Args.at(0) == "Speaker") {
 					m_SpeakData.emplace_back();
 					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::Speak;
 					m_SpeakData.back().m_Speaker = Util::utf8_to_char32(Args.at(1));
 					SeekMes = 0;
 				}
@@ -94,8 +146,32 @@ public:
 					auto& m = m_SpeakData.back().m_Mes.at(SeekMes);
 					m.first = Util::utf8_to_char32(Args.at(1));
 					m.second = m.first.length();
-					m_SpeakData.back().m_MesMaxAll += m.second;
+					m_SpeakData.back().m_SeekMax += static_cast<float>(m.second) * 0.05f;
 					++SeekMes;
+				}
+				else if (Args.at(0) == "BlackOut") {
+					m_SpeakData.emplace_back();
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::BlackOut;
+					m_SpeakData.back().m_Time = std::stof(Args.at(1)) / 1000.f;
+				}
+				else if (Args.at(0) == "BlackIn") {
+					m_SpeakData.emplace_back();
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::BlackIn;
+					m_SpeakData.back().m_Time = std::stof(Args.at(1)) / 1000.f;
+				}
+				else if (Args.at(0) == "WaitMS") {
+					m_SpeakData.emplace_back();
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::WaitTime;
+					m_SpeakData.back().m_SeekMax = std::stof(Args.at(1))/1000.f;
+				}
+				else if (Args.at(0) == "ResetImage") {
+					m_SpeakData.emplace_back();
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::ResetImage;
+					m_SpeakData.back().m_ResetImage = m_SpeakData.size();
 				}
 			}
 		}
@@ -103,10 +179,14 @@ public:
 		m_IsEnd = false;
 		float_Mes = 1080.f;
 
-		seek_Mes = 0.f;
 		m_NowPoint = 0;
 		m_IsStart = false;
 		m_IsEnd = false;
+
+		this->m_Exit = false;
+		this->m_Fade = 1.f;
+		this->m_FadeTimer = 1.f;
+		this->m_ResetImage = 0;
 	}
 
 	void Update() noexcept {
@@ -115,67 +195,104 @@ public:
 			if (m_NowPoint < m_SpeakData.size()) {
 				auto& Now = m_SpeakData.at(m_NowPoint);
 
-				seek_Mes += DeltaTime / 0.05f;
-
-				if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack) || KeyMngr->GetBattleKeyRepeat(Util::EnumBattle::Walk)) {
-					if (static_cast<size_t>(seek_Mes) >= Now.m_MesMaxAll) {
+				switch (Now.m_SpeakEnum) {
+				case SpeakEnum::Speak:
+					if (KeyMngr->GetBattleKeyTrigger(Util::EnumBattle::Attack) || KeyMngr->GetBattleKeyRepeat(Util::EnumBattle::Walk)) {
+						if (Now.m_Seek >= Now.m_SeekMax) {
+							++m_NowPoint;
+						}
+						else {
+							Now.m_Seek = Now.m_SeekMax;
+						}
+					}
+					break;
+				case SpeakEnum::WaitTime:
+					if (Now.m_Seek >= Now.m_SeekMax) {
 						++m_NowPoint;
-						seek_Mes = 0.f;
+					}
+					break;
+				case SpeakEnum::BlackOut:
+					if (Now.m_Seek != 0.f) {
+						++m_NowPoint;
 					}
 					else {
-						seek_Mes = static_cast<float>(Now.m_MesMaxAll);
+						this->m_Exit = true;
+						this->m_FadeTimer = Now.m_Time;
 					}
+					break;
+				case SpeakEnum::BlackIn:
+					if (Now.m_Seek != 0.f) {
+						++m_NowPoint;
+					}
+					else {
+						this->m_Exit = false;
+						this->m_FadeTimer = Now.m_Time;
+					}
+					break;
+				case SpeakEnum::ResetImage:
+					if (Now.m_Seek != 0.f) {
+						++m_NowPoint;
+					}
+					else {
+						this->m_ResetImage = Now.m_ResetImage;
+					}
+					break;
+				default:
+					break;
 				}
+				Now.m_Seek += DeltaTime;
 			}
 			else {
 				m_IsEnd = true;
 			}
 		}
 		Util::Easing(&float_Mes, ((!m_IsStart || m_IsEnd) ? 1080.f : 0.f), 0.9f);
+
+		this->m_Fade = std::clamp(this->m_Fade + (this->m_Exit ? 1.f : -1.f) * DeltaTime / this->m_FadeTimer, 0.f, 1.f);
 	}
 
 	void Draw() noexcept {
 		auto* Font = Draw::FontPool::Instance();
+		size_t LaskSpeak = 0;
 		for (auto& Now : m_SpeakData) {
 			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
-			if (index < m_NowPoint) {
-				Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 128);
+			if (Now.m_SpeakEnum == SpeakEnum::Speak) {
+				LaskSpeak = index;
 			}
 			if (index == m_NowPoint) {
+				break;
+			}
+		}
+		//イメージ
+		for (auto& Now : m_SpeakData) {
+			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
+			if (index == m_NowPoint) {
 				Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 255);
-
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>((1080.f - float_Mes) / 1080.f * 128.f));
-
-				int X1 = 1920 / 2 - 1920 / 2 + 64;
-				int Y1 = 1080 - 36 - 12 - 200;
-				int X2 = 1920 / 2 + 1920 / 2 - 64;
-				int Y2 = 1080 - 36 - 12;
-
-				DxLib::DrawBox(
-					X1, Y1,
-					X2, Y2,
-					ColorPalette::Gray50, TRUE);
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>((1080.f - float_Mes) / 1080.f * 255.f));
-				Font->Get(Draw::FontType::DIZ_UD_Gothic, 32, 3)->DrawString(
-					Draw::FontXCenter::LEFT, Draw::FontYCenter::BOTTOM,
-					X1 + 32, Y1 - 6,
-					ColorPalette::White, ColorPalette::Black,
-					Util::char32_to_utf8(Now.m_Speaker));
-
-				size_t Min = 0;
-				for (auto& m : Now.m_Mes) {
-					size_t index2 = static_cast<size_t>(&m - &Now.m_Mes.front());
-					Font->Get(Draw::FontType::DIZ_UD_Gothic, 24, 3)->DrawString(
-						Draw::FontXCenter::LEFT, Draw::FontYCenter::MIDDLE,
-						X1 + 64, Y1 + 62 * static_cast<int>(index2) + 62 / 2,
-						ColorPalette::White, ColorPalette::Black,
-						Util::char32_to_utf8(m.first.substr(0, 
-							static_cast<size_t>(std::clamp<int>(static_cast<int>(seek_Mes) - static_cast<int>(Min), 0, static_cast<int>(m.second)))
-						)));
-					Min += m.second;
+			}
+			else {
+				if (this->m_ResetImage <= index && index <= LaskSpeak) {
+					Now.DrawImage(Util::VECTOR2D::vget(Now.m_Pos.x, Now.m_Pos.y + float_Mes), 128);
 				}
-
-				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+			}
+		}
+		//ブラックアウト
+		{
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * this->m_Fade), 0, 255));
+			DxLib::DrawBox(0, 0, 1920, 1080, ColorPalette::Black, true);
+			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		}
+		//テキスト
+		for (auto& Now : m_SpeakData) {
+			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
+			if (index == m_NowPoint) {
+				if (Now.m_SpeakEnum == SpeakEnum::Speak) {
+					Now.DrawStr(static_cast<int>((1080.f - float_Mes) / 1080.f * 255.f));
+				}
+			}
+			else {
+				if (index == LaskSpeak) {
+					Now.DrawStr(static_cast<int>((1080.f - float_Mes) / 1080.f * 255.f));
+				}
 			}
 		}
 	}

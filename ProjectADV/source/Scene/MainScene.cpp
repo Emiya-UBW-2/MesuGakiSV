@@ -164,6 +164,7 @@ void MainScene::Update_Sub(void) noexcept {
 }
 void MainScene::UIDraw_Sub(void) noexcept {
 	auto* DrawerMngr = Draw::MainDraw::Instance();
+	//*
 	{
 		int X1 = 0;
 		int Y1 = 0;
@@ -178,6 +179,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 		int Y2 = 1080;
 		DxLib::DrawBox(X1, Y1, X2, Y2, ColorPalette::White, true);
 	}
+	//*/
 	//
 	m_SpeakScript.Draw();
 	//
