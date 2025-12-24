@@ -254,7 +254,7 @@ namespace Util {
 		KEY_INPUT_AT,
 		KEY_INPUT_BACKSLASH,
 		KEY_INPUT_COMMA,
-		KEY_INPUT_KANJI,
+		KEY_INPUT_CONVERT,//KEY_INPUT_KANJI,
 		KEY_INPUT_CONVERT,
 		KEY_INPUT_NOCONVERT,
 		KEY_INPUT_KANA,
@@ -587,24 +587,24 @@ namespace Util {
 	};
 
 	enum class EnumBattle :size_t {
+		Attack,
+		Aim,
 		W,
 		S,
 		A,
 		D,
-		Attack,
-		Aim,
 		Run,
 		Walk,
 
 		Max,
 	};
 	static const char* BattleStr[static_cast<size_t>(EnumBattle::Max)] = {
+		"Attack",
+		"Aim",
 		"W",
 		"S",
 		"A",
 		"D",
-		"Attack",
-		"Aim",
 		"Run",
 		"Walk",
 	};
@@ -690,8 +690,8 @@ namespace Util {
 					AssignID(EnumMenu::Esc, 0, EnumInput::Key_ESCAPE);
 					AssignID(EnumMenu::Tab, 0, EnumInput::Key_TAB);
 					//
-					AssignID(EnumMenu::Diside, 0, EnumInput::Mouse_Left);
-					AssignID(EnumMenu::Diside, 1, EnumInput::Key_Z);
+					AssignID(EnumMenu::Diside, 0, EnumInput::Key_Z);
+					AssignID(EnumMenu::Diside, 1, EnumInput::Mouse_Left);
 					AssignID(EnumMenu::Cancel, 0, EnumInput::Mouse_Right);
 					AssignID(EnumMenu::Cancel, 1, EnumInput::Key_X);
 					AssignID(EnumMenu::LEFT, 0, EnumInput::Key_LEFT);

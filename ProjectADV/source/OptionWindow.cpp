@@ -60,6 +60,7 @@ void OptionWindow::UpdateColumnStr(void) noexcept {
 	break;
 	case 2:
 	{
+		/*
 		for (int loop = 0; loop < 2; ++loop) {
 			auto& param = this->m_Param[loop];
 			auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::XSensing)));
@@ -74,6 +75,12 @@ void OptionWindow::UpdateColumnStr(void) noexcept {
 		for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
 			auto& param = this->m_Param[loop];
 			param.m_Str = Util::KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(static_cast<Util::EnumBattle>(loop - 2), 0));
+			this->m_DrawUI->Get(param.m_MaxID).SetActive(true);
+		}
+		//*/
+		for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+			auto& param = this->m_Param[loop];
+			param.m_Str = Util::KeyParam::GetKeyStr(KeyMngr->GetKeyAssign(static_cast<Util::EnumBattle>(loop), 0));
 			this->m_DrawUI->Get(param.m_MaxID).SetActive(true);
 		}
 	}
@@ -324,6 +331,7 @@ void OptionWindow::Update(void) noexcept {
 			break;
 			case 2:
 			{
+				/*
 				for (int loop = 0; loop < 2; ++loop) {
 					auto& param = this->m_Param[loop];
 					auto Type = pOption->GetOptionType(static_cast<Util::OptionType>(loop + static_cast<int>(Util::OptionType::XSensing)));
@@ -339,6 +347,14 @@ void OptionWindow::Update(void) noexcept {
 					auto& param = this->m_Param[loop];
 					if (this->m_DrawUI->Get(param.m_MaxID).IsActive() && this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
 						Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
+						KeyMngr->AssignBattleID(Battle, 0, KeyMngr->GetDefaultKeyAssign(Battle, 0));
+					}
+				}
+				//*/
+				for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+					auto& param = this->m_Param[loop];
+					if (this->m_DrawUI->Get(param.m_MaxID).IsActive() && this->m_DrawUI->Get(param.m_MaxID).IsSelectButton()) {
+						Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop);
 						KeyMngr->AssignBattleID(Battle, 0, KeyMngr->GetDefaultKeyAssign(Battle, 0));
 					}
 				}
@@ -368,9 +384,29 @@ void OptionWindow::Update(void) noexcept {
 		}
 		if (this->m_NowSelectTab == 2) {
 			bool IsChange = false;
+			/*
 			for (int loop = 2; loop < this->m_NowTabMax; ++loop) {
 				auto& param = this->m_Param[loop];
 				Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop - 2);
+				if (this->m_DrawUI->Get(param.m_ID).IsSelectButton()) {
+					for (int loop2 = static_cast<int>(Util::EnumInput::Begin); loop2 < static_cast<int>(Util::EnumInput::Max); ++loop2) {
+						Util::EnumInput Input = static_cast<Util::EnumInput>(loop2);
+						if (KeyMngr->GetKeyPress(Input, true)) {
+							if (Input != KeyMngr->GetKeyAssign(Battle, 0)) {
+								Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+							}
+							KeyMngr->AssignBattleID(Battle, 0, Input);
+							IsChange = true;
+							break;
+						}
+					}
+				}
+				if (IsChange) { break; }
+			}
+			//*/
+			for (int loop = 0; loop < this->m_NowTabMax; ++loop) {
+				auto& param = this->m_Param[loop];
+				Util::EnumBattle Battle = static_cast<Util::EnumBattle>(loop);
 				if (this->m_DrawUI->Get(param.m_ID).IsSelectButton()) {
 					for (int loop2 = static_cast<int>(Util::EnumInput::Begin); loop2 < static_cast<int>(Util::EnumInput::Max); ++loop2) {
 						Util::EnumInput Input = static_cast<Util::EnumInput>(loop2);

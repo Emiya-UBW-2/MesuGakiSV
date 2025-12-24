@@ -20,6 +20,7 @@ class TitleScene : public Util::SceneBase {
 	OptionWindow	m_OptionWindow;
 	TitleUI			m_TitleUI;
 	EndUI			m_EndUI;
+	ContinueUI		m_ContinueUI;
 
 	Sound::SoundUniqueID			m_TitleBGMID{ InvalidID };
 public:
@@ -42,9 +43,12 @@ protected:
 			this->m_TitleUI.SetEnd();
 			});
 		this->m_TitleUI.SetEvent(1, [this]() {
+			this->m_ContinueUI.SetActive(true);
+			});
+		this->m_TitleUI.SetEvent(2, [this]() {
 			this->m_OptionWindow.SetActive(true);
 			});
-		this->m_TitleUI.SetEvent(2, []() {
+		this->m_TitleUI.SetEvent(3, []() {
 			});
 
 		this->m_EndUI.Init();
@@ -52,6 +56,14 @@ protected:
 			Util::SceneBase::SetEndGame();
 			});
 		this->m_EndUI.SetActive(false);
+
+		this->m_ContinueUI.Init();
+		this->m_ContinueUI.SetEvent([this]() {
+			//決定時の
+			this->m_ContinueUI.SetActive(false);
+			this->m_TitleUI.SetEnd();
+			});
+		this->m_ContinueUI.SetActive(false);
 
 		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 		KeyGuideParts->SetGuideFlip();
@@ -75,7 +87,8 @@ protected:
 		DxLib::SetMouseDispFlag(true);
 		this->m_EndUI.Update();
 		if (this->m_EndUI.IsActive()) { return; }
-		this->m_TitleUI.SetActive(!this->m_OptionWindow.IsActive());
+		this->m_ContinueUI.Update();
+		this->m_TitleUI.SetActive(!this->m_OptionWindow.IsActive() && !this->m_ContinueUI.IsActive());
 		this->m_TitleUI.Update();
 		if (this->m_TitleUI.IsEnd()) {
 			this->m_OptionWindow.SetActive(false);
@@ -101,11 +114,13 @@ protected:
 	void UIDraw_Sub(void) noexcept override {
 		this->m_TitleUI.Draw();
 		this->m_OptionWindow.Draw();
+		this->m_ContinueUI.Draw();
 		this->m_EndUI.Draw();
 	}
 	void Dispose_Sub(void) noexcept override {
 		this->m_TitleUI.Dispose();
 		this->m_OptionWindow.Dispose();
+		this->m_ContinueUI.Draw();
 		this->m_EndUI.Dispose();
 
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_TitleBGMID)->StopAll();

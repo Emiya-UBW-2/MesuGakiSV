@@ -137,6 +137,32 @@ namespace Draw {
 #if _DEBUG		//デバッグ表示
 		//DxLib::printfDx("FPS:[%4.1f]\n", DxLib::GetFPS());
 #endif
+		this->m_BufferScreen.SetDraw_Screen(false);
+		{
+			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontXCenter::RIGHT, FontYCenter::TOP,
+				this->GetDispWidth() - 32, 0 + 32 + 24 * 0,
+				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
+				"%05.2f FPS", DxLib::GetFPS());
+
+			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontXCenter::RIGHT, FontYCenter::TOP,
+				this->GetDispWidth() - 32, 0 + 32 + 24 * 1,
+				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
+				"Calc %05.2f ms", this->m_CalcTimer);
+
+			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontXCenter::RIGHT, FontYCenter::TOP,
+				this->GetDispWidth() - 32, 0 + 32 + 24 * 2,
+				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
+				"Draw %05.2f ms", this->m_DrawTimer);
+
+			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
+				FontXCenter::RIGHT, FontYCenter::TOP,
+				this->GetDispWidth() - 32, 0 + 32 + 24 * 3,
+				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
+				"DrawCall %3d", DxLib::GetDrawCallCount());
+		}
 		DxLib::SetDrawScreen(DX_SCREEN_BACK);
 		DxLib::ClearDrawScreen();
 		{
@@ -147,30 +173,6 @@ namespace Draw {
 				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2, this->m_WindowDrawHeight / 2 + this->m_WindowHeight / 2,
 				false);
 			DxLib::SetDrawMode(prev);
-
-			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
-				FontXCenter::RIGHT, FontYCenter::TOP,
-				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2 - 32, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2 + 32 + 24 * 0,
-				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
-				"%05.2f FPS", DxLib::GetFPS());
-
-			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
-				FontXCenter::RIGHT, FontYCenter::TOP,
-				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2 - 32, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2 + 32 + 24 * 1,
-				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
-				"Calc %05.2f ms", this->m_CalcTimer);
-
-			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
-				FontXCenter::RIGHT, FontYCenter::TOP,
-				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2 - 32, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2 + 32 + 24 * 2,
-				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
-				"Draw %05.2f ms", this->m_DrawTimer);
-
-			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
-				FontXCenter::RIGHT, FontYCenter::TOP,
-				this->m_WindowDrawWidth / 2 + this->m_WindowWidth / 2 - 32, this->m_WindowDrawHeight / 2 - this->m_WindowHeight / 2 + 32 + 24 * 3,
-				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
-				"DrawCall %3d", DxLib::GetDrawCallCount());
 		}
 		DxLib::ScreenFlip();
 		if (!this->m_WaitVSync) {

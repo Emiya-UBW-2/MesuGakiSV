@@ -3,6 +3,7 @@
 #include "MainScene.hpp"
 
 void MainScene::Load_Sub(void) noexcept {
+	m_SpeakScript.Load("data/message00.txt");
 }
 void MainScene::Init_Sub(void) noexcept {
 	this->m_Exit = false;
@@ -61,8 +62,7 @@ void MainScene::Init_Sub(void) noexcept {
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 
 	m_IsResetMouse = true;
-	
-	m_SpeakScript.Load("data/message00.txt");
+	m_SpeakScript.SetStoryStart();
 }
 void MainScene::Update_Sub(void) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
@@ -76,15 +76,8 @@ void MainScene::Update_Sub(void) noexcept {
 			auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 			if (!this->m_IsPauseActive) {
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
-
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::W), "");
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::S), "");
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::A), "");
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::D), Localize->Get(334));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack), Localize->Get(306));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(307));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Run), Localize->Get(308));
-				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Walk), Localize->Get(309));
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Attack), Localize->Get(302));
+				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumBattle::Aim), Localize->Get(303));
 			}
 			else {
 				KeyGuideParts->AddGuide(DXLibRef::KeyGuide::GetPADStoOffset(Util::EnumMenu::Tab), Localize->Get(333));
@@ -114,8 +107,7 @@ void MainScene::Update_Sub(void) noexcept {
 		}
 		this->m_PauseUI.Update();
 		if (this->m_IsSceneEnd && this->m_PauseUI.IsEnd()) {
-			SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Title)));
-			SceneBase::SetEndScene();
+			this->m_Exit = true;
 		}
 		this->m_OptionWindow.Update();
 	}
@@ -154,11 +146,8 @@ void MainScene::Update_Sub(void) noexcept {
 		}
 	}
 
-	if (true) {
-		m_SpeakScript.SetStoryStart();
-		if (m_SpeakScript.IsEnd()) {
-			this->m_Exit = true;
-		}
+	if (m_SpeakScript.IsEnd()) {
+		this->m_Exit = true;
 	}
 	m_SpeakScript.Update();
 }
