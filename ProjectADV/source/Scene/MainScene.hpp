@@ -16,10 +16,13 @@ constexpr size_t MesColumn = 3;
 
 enum class SpeakEnum : size_t {
 	Speak,
+	Model,
+	Image,
 	WaitTime,
 	BlackOut,
 	BlackIn,
 	ResetImage,
+	ResetModel,
 	SetBG,
 };
 
@@ -27,9 +30,10 @@ struct SpeakData {
 	SpeakEnum								m_SpeakEnum{};
 	std::u32string							m_Speaker;
 	const Draw::Graphhave*					m_Image{};
+	const Draw::MV1have*					m_MV1{};
 	Util::VECTOR2D							m_Pos;
 	std::array<std::pair<std::u32string, size_t>, MesColumn>	m_Mes;
-	size_t									m_ResetImage{};
+	size_t									m_MV1AnimSelect{ 0 };
 	float									m_Timer{ 0 };
 	float									m_SeekMax{ 0 };
 	float									m_TimeMax{ 0 };
@@ -39,9 +43,11 @@ struct SpeakData {
 	bool									m_AutoGoNext{};
 	char		padding2[7]{};
 public:
-	void Init() noexcept {
+	void Init(void) noexcept {
 		m_Speaker = U"";
 		m_Image = nullptr;
+		m_MV1 = nullptr;
+		m_MV1AnimSelect = 0;
 		m_Pos.Set(0.f, 0.f);
 		for (auto& m : this->m_Mes) {
 			m.first = U"";
@@ -63,6 +69,11 @@ public:
 			}
 			this->m_Image->Get()->DrawRotaGraph(static_cast<int>(pos.x), static_cast<int>(pos.y), 1.f, 0.f, true);
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		}
+	}
+	void DrawModel(void) const noexcept {
+		if (this->m_MV1) {
+			this->m_MV1->Get()->DrawModel();
 		}
 	}
 	void DrawStr(float seek, int alpha) const noexcept {
@@ -111,25 +122,23 @@ public:
 };
 class SpeakScript {
 	std::vector<SpeakData>		m_SpeakData{};
-	size_t						m_NowPoint = 0;
-	size_t						m_ResetImage{};
+	size_t						m_NowPoint{ 0 };
 	float						m_Fade{ 1.f };
 	float						m_FadeTimer{ 1.f };
 	float						m_BGFade{ 1.f };
 	float						m_BGFadeTimer{ 1.f };
-	float						m_Seek{};
-	float						m_Time{};
-	bool						m_IsStart = false;
-	bool						m_IsEnd = false;
+	float						m_Seek{ 0.f };
+	float						m_Time{ 0.f };
+
+	bool						m_IsStart{ false };
+	bool						m_IsEnd{ false };
 	bool						m_Exit{ false };
-	char		padding[1]{};
+	char		padding[5]{};
 	const Draw::Graphhave*				m_PrevBGImage{};
 	const Draw::Graphhave*				m_NowBGImage{};
 public:
-	bool IsEnd() const noexcept { return m_IsEnd; }
-	void SetStoryStart() noexcept {
-		m_IsStart = true;
-	}
+	bool IsEnd(void) const noexcept { return m_IsEnd; }
+	void SetStoryStart(void) noexcept { m_IsStart = true; }
 public:
 	void Load(const char* Path) noexcept {
 		m_SpeakData.clear();
@@ -150,19 +159,6 @@ public:
 					m_SpeakData.back().m_Speaker = Util::utf8_to_char32(Args.at(1));
 					SeekMes = 0;
 				}
-				else if (Args.at(0) == "Position") {
-					if (Args.at(1) == "LEFT") {
-						m_SpeakData.back().m_Pos.x = 1920 / 2 - 864 / 2 - 100 + 512 / 2;
-						m_SpeakData.back().m_Pos.y = 1080 - 512 / 2;
-					}
-					else if (Args.at(1) == "RIGHT") {
-						m_SpeakData.back().m_Pos.x = 1920 / 2 + 864 / 2 + 100 - 512 / 2;
-						m_SpeakData.back().m_Pos.y = 1080 - 512 / 2;
-					}
-				}
-				else if (Args.at(0) == "Image") {
-					m_SpeakData.back().m_Image = Draw::GraphPool::Instance()->Get(Args.at(1)).get();
-				}
 				else if (Args.at(0) == "MesColor") {
 					m_SpeakData.back().m_Color = GetColor(std::stoi(Args.at(1)), std::stoi(Args.at(2)), std::stoi(Args.at(3)));
 				}
@@ -178,6 +174,33 @@ public:
 					m.second = m.first.length();
 					m_SpeakData.back().m_SeekMax += static_cast<float>(m.second);
 					++SeekMes;
+				}
+				else if (Args.at(0) == "Model") {
+					m_SpeakData.emplace_back();
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::Model;
+					if (Args.at(1) != "NULL") {
+						m_SpeakData.back().m_MV1 = Draw::MV1Pool::Instance()->Get(Args.at(1)).get();
+					}
+					m_SpeakData.back().m_MV1AnimSelect = static_cast<size_t>(std::stoi(Args.at(2)));
+				}
+				else if (Args.at(0) == "Image") {
+					m_SpeakData.emplace_back();
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::Image;
+					if (Args.at(1) != "NULL") {
+						m_SpeakData.back().m_Image = Draw::GraphPool::Instance()->Get(Args.at(1)).get();
+					}
+				}
+				else if (Args.at(0) == "Position") {
+					if (Args.at(1) == "LEFT") {
+						m_SpeakData.back().m_Pos.x = 1920 / 2 - 864 / 2 - 100 + 512 / 2;
+						m_SpeakData.back().m_Pos.y = 1080 - 512 / 2;
+					}
+					else if (Args.at(1) == "RIGHT") {
+						m_SpeakData.back().m_Pos.x = 1920 / 2 + 864 / 2 + 100 - 512 / 2;
+						m_SpeakData.back().m_Pos.y = 1080 - 512 / 2;
+					}
 				}
 				else if (Args.at(0) == "BlackOut") {
 					m_SpeakData.emplace_back();
@@ -201,7 +224,11 @@ public:
 					m_SpeakData.emplace_back();
 					m_SpeakData.back().Init();
 					m_SpeakData.back().m_SpeakEnum = SpeakEnum::ResetImage;
-					m_SpeakData.back().m_ResetImage = m_SpeakData.size();
+				}
+				else if (Args.at(0) == "ResetModel") {
+					m_SpeakData.emplace_back();
+					m_SpeakData.back().Init();
+					m_SpeakData.back().m_SpeakEnum = SpeakEnum::ResetModel;
 				}
 				else if (Args.at(0) == "SetBG") {
 					m_SpeakData.emplace_back();
@@ -214,30 +241,77 @@ public:
 		}
 		FileStream.Close();
 
-		m_NowPoint = 0;
-		m_IsStart = false;
-		m_IsEnd = false;
-
-		this->m_Exit = false;
+		this->m_NowPoint = 0;
 		this->m_Fade = 1.f;
 		this->m_FadeTimer = 1.f;
-		this->m_ResetImage = 0;
-		m_PrevBGImage = nullptr;
-		m_NowBGImage = nullptr;
+
 		this->m_BGFade = 1.f;
 		this->m_BGFadeTimer = 1.f;
 
-		m_Seek = 0.f;
-		m_Time = 0.f;
+		this->m_PrevBGImage = nullptr;
+		this->m_NowBGImage = nullptr;
+
+		this->m_IsStart = false;
+		this->m_IsEnd = false;
+		this->m_Exit = false;
+		this->m_Seek = 0.f;
+		this->m_Time = 0.f;
+	}
+	void Step(void) noexcept {
+		if (m_NowPoint < m_SpeakData.size()) {
+			const auto& Now = m_SpeakData.at(m_NowPoint);
+			switch (Now.m_SpeakEnum) {
+			case SpeakEnum::Speak:
+				++m_NowPoint;
+				break;
+			case SpeakEnum::Model:
+				++m_NowPoint;
+				if (Now.m_MV1) {
+					auto* pModel = (Draw::MV1*)Now.m_MV1->Get();
+					pModel->SetAnim(Now.m_MV1AnimSelect).SetTime(0.f);
+				}
+				break;
+			case SpeakEnum::Image:
+				++m_NowPoint;
+				break;
+			case SpeakEnum::WaitTime:
+				++m_NowPoint;
+				break;
+			case SpeakEnum::BlackOut:
+				this->m_Exit = true;
+				this->m_FadeTimer = Now.m_Timer;
+				++m_NowPoint;
+				break;
+			case SpeakEnum::BlackIn:
+				this->m_Exit = false;
+				this->m_FadeTimer = Now.m_Timer;
+				++m_NowPoint;
+				break;
+			case SpeakEnum::ResetImage:
+				++m_NowPoint;
+				break;
+			case SpeakEnum::ResetModel:
+				++m_NowPoint;
+				break;
+			case SpeakEnum::SetBG:
+				this->m_PrevBGImage = this->m_NowBGImage;
+				this->m_NowBGImage = Now.m_Image;
+				this->m_BGFadeTimer = Now.m_Timer;
+				this->m_BGFade = 0.f;
+				++m_NowPoint;
+				break;
+			default:
+				break;
+			}
+		}
 	}
 
-	void Update() noexcept {
+	void Update(void) noexcept {
+		printfDx("NowPoint[%d]\n", m_NowPoint);
 		if (m_IsStart && !m_IsEnd) {
 			auto* KeyMngr = Util::KeyParam::Instance();
 			if (m_NowPoint < m_SpeakData.size()) {
 				const auto& Now = m_SpeakData.at(m_NowPoint);
-
-
 				switch (Now.m_SpeakEnum) {
 				case SpeakEnum::Speak:
 					this->m_Seek += DeltaTime / 0.05f;
@@ -257,6 +331,16 @@ public:
 						}
 					}
 					break;
+				case SpeakEnum::Model:
+					++m_NowPoint;
+					if (Now.m_MV1) {
+						auto* pModel = (Draw::MV1*)Now.m_MV1->Get();
+						pModel->SetAnim(Now.m_MV1AnimSelect).SetTime(0.f);
+					}
+					break;
+				case SpeakEnum::Image:
+					++m_NowPoint;
+					break;
 				case SpeakEnum::WaitTime:
 					this->m_Time += DeltaTime;
 					if (this->m_Time >= Now.m_TimeMax) {
@@ -275,7 +359,9 @@ public:
 					++m_NowPoint;
 					break;
 				case SpeakEnum::ResetImage:
-					this->m_ResetImage = Now.m_ResetImage;
+					++m_NowPoint;
+					break;
+				case SpeakEnum::ResetModel:
 					++m_NowPoint;
 					break;
 				case SpeakEnum::SetBG:
@@ -300,19 +386,45 @@ public:
 		else {
 			this->m_BGFade = std::clamp(this->m_BGFade + DeltaTime / this->m_BGFadeTimer, 0.f, 1.f);
 		}
-	}
-
-	void Draw() noexcept {
-		size_t LaskSpeak = 0;
-		for (const auto& Now : m_SpeakData) {
-			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
-			if (Now.m_SpeakEnum == SpeakEnum::Speak) {
-				LaskSpeak = index;
+		{
+			size_t LaskMV1 = 0;
+			for (const auto& Now : m_SpeakData) {
+				size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
+				if (Now.m_SpeakEnum == SpeakEnum::Model) {
+					if (Now.m_MV1) {
+						LaskMV1 = index;
+					}
+				}
+				if (index == m_NowPoint) {
+					break;
+				}
 			}
-			if (index == m_NowPoint) {
-				break;
+			const auto& Now = m_SpeakData.at(LaskMV1);
+			if (Now.m_MV1) {
+				auto* pModel = (Draw::MV1*)Now.m_MV1->Get();
+
+				//どれか1にしておく
+				bool AllZero = true;
+				for (size_t loop = 0; loop < pModel->GetAnimNum(); ++loop) {
+					if (pModel->SetAnim(loop).GetPer() > 0.5f) {
+						AllZero = false;
+						break;
+					}
+				}
+				if (AllZero) {
+					pModel->SetAnim(Now.m_MV1AnimSelect).SetPer(1.f);
+				}
+
+				for (size_t loop = 0; loop < pModel->GetAnimNum(); ++loop) {
+					pModel->SetAnim(loop).SetPer(std::clamp(pModel->SetAnim(loop).GetPer() + ((Now.m_MV1AnimSelect == loop) ? DeltaTime : -DeltaTime) / 0.25f, 0.f, 1.f));
+					pModel->SetAnim(loop).Update(false, 1.0f);
+				}
+				pModel->PhysicsCalculation(DeltaTime);
+				pModel->FlipAnimAll();
 			}
 		}
+	}
+	void DrawBG(void) noexcept {
 		//背景
 		if (m_PrevBGImage) {
 			m_PrevBGImage->Get()->DrawRotaGraph(1920 / 2, 1080 / 2, 1.f, 0.f, false);
@@ -322,18 +434,66 @@ public:
 			m_NowBGImage->Get()->DrawRotaGraph(1920 / 2, 1080 / 2, 1.f, 0.f, false);
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
+	}
+	void Draw3D(void) noexcept {
+		size_t LaskImage = 0;
+		size_t ResetImage = 0;
+		size_t LaskMV1 = 0;
+		size_t ResetMV1 = 0;
+		for (const auto& Now : m_SpeakData) {
+			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
+			if (Now.m_SpeakEnum == SpeakEnum::Image) {
+				LaskImage = index;
+			}
+			if (Now.m_SpeakEnum == SpeakEnum::ResetImage) {
+				ResetImage = index;
+			}
+			if (Now.m_SpeakEnum == SpeakEnum::Model) {
+				if (Now.m_MV1) {
+					LaskMV1 = index;
+				}
+			}
+			if (Now.m_SpeakEnum == SpeakEnum::ResetModel) {
+				ResetMV1 = index;
+			}
+			if (index == m_NowPoint) {
+				break;
+			}
+		}
 		//イメージ
 		for (const auto& Now : m_SpeakData) {
 			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
-			if (Now.m_SpeakEnum == SpeakEnum::Speak) {
-				if (index == m_NowPoint) {
+			if (Now.m_SpeakEnum == SpeakEnum::Image) {
+				if (index == LaskImage) {
 					Now.DrawImage(Now.m_Pos, 255);
 				}
 				else {
-					if (this->m_ResetImage <= index && index <= LaskSpeak) {
+					if (ResetImage <= index && index < LaskImage) {
 						Now.DrawImage(Now.m_Pos, 128);
 					}
 				}
+			}
+			if (Now.m_SpeakEnum == SpeakEnum::Model) {
+				if (index == LaskMV1) {
+					Now.DrawModel();
+				}
+				else {
+					if (ResetMV1 <= index && index < LaskMV1) {
+						Now.DrawModel();
+					}
+				}
+			}
+		}
+	}
+	void Draw(void) noexcept {
+		size_t LaskSpeak = 0;
+		for (const auto& Now : m_SpeakData) {
+			size_t index = static_cast<size_t>(&Now - &m_SpeakData.front());
+			if (Now.m_SpeakEnum == SpeakEnum::Speak) {
+				LaskSpeak = index;
+			}
+			if (index == m_NowPoint) {
+				break;
 			}
 		}
 		//ブラックアウト
@@ -370,7 +530,6 @@ class MainScene : public Util::SceneBase {
 	float							m_Fade{ 1.f };
 
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
-	Sound::SoundUniqueID			m_EnviID{ InvalidID };
 
 	Sound::SoundUniqueID			m_NormalBGMID{ InvalidID };
 
@@ -387,10 +546,10 @@ protected:
 	void Load_Sub(void) noexcept override;
 	void Init_Sub(void) noexcept override;
 	void Update_Sub(void) noexcept override;
-	void BGDraw_Sub(void) noexcept override {}
+	void BGDraw_Sub(void) noexcept override;
 	void SetShadowDrawRigid_Sub(void) noexcept override {}
 	void SetShadowDraw_Sub(void) noexcept override {}
-	void Draw_Sub(void) noexcept override {}
+	void Draw_Sub(void) noexcept override;
 	void DepthDraw_Sub(void) noexcept override {}
 	void ShadowDrawFar_Sub(void) noexcept override {}
 	void ShadowDraw_Sub(void) noexcept override {}

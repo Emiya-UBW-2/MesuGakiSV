@@ -6,16 +6,15 @@ void MainScene::Load_Sub(void) noexcept {
 	m_SpeakScript.Load("data/message00.txt");
 }
 void MainScene::Init_Sub(void) noexcept {
+	Draw::MV1Pool::Instance()->SetModelAll();
 	this->m_Exit = false;
 	this->m_Fade = 1.f;
 
 	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
-	this->m_EnviID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Envi.wav", false);
 
 	this->m_NormalBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Normal.wav", false);
 
-	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.9f, -0.5f, -0.3f).normalized();
-	//Util::VECTOR3D LightVec = Util::VECTOR3D::vget(0.02f, -1.f, 0.02f).normalized();
+	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.5f, -0.9f).normalized();
 
 	auto* PostPassParts = Draw::PostPassEffect::Instance();
 	PostPassParts->SetShadowScale(0.5f);
@@ -24,15 +23,15 @@ void MainScene::Init_Sub(void) noexcept {
 	SetLightEnable(false);
 	auto* LightParts = Draw::LightPool::Instance();
 	auto& FirstLight = LightParts->Put(Draw::LightType::DIRECTIONAL, LightVec);
-	SetLightAmbColorHandle(FirstLight.get(), GetColorF(1.f, 1.f, 1.f, 1.0f));
-	SetLightDifColorHandle(FirstLight.get(), GetColorF(1.0f, 1.0f, 1.0f, 1.0f));
+	SetLightAmbColorHandle(FirstLight.get(), GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
+	SetLightDifColorHandle(FirstLight.get(), GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
 
 	//DoF
 	PostPassParts->SetDoFNearFar(
 		(Scale3DRate * 0.15f), Scale3DRate * 5.0f,
 		(Scale3DRate * 0.05f), Scale3DRate * 30.0f);
 
-	PostPassParts->SetGodRayPer(0.5f);
+	PostPassParts->SetGodRayPer(0.25f);
 
 	this->m_IsSceneEnd = false;
 	this->m_IsPauseActive = false;
@@ -58,11 +57,16 @@ void MainScene::Init_Sub(void) noexcept {
 	auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 	KeyGuideParts->SetGuideFlip();
 
-	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 
 	m_IsResetMouse = true;
 	m_SpeakScript.SetStoryStart();
+	//セーブデータから目標の会話データ番号を探る//TODO
+	int TargetPoint = 0;//1997;
+	//目標地点まで最速スキップ
+	for (int loop = 0; loop < TargetPoint; ++loop) {
+		m_SpeakScript.Step();
+	}
 }
 void MainScene::Update_Sub(void) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
@@ -121,16 +125,8 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamPosition;
 	Util::VECTOR3D CamTarget;
 
-	Util::VECTOR3D CamPosition1;
-	Util::VECTOR3D CamTarget1;
-	Util::VECTOR3D CamPosition2;
-	Util::VECTOR3D CamTarget2;
-	Util::Matrix4x4 EyeMat;
-	CamPosition1 = EyeMat.pos();
-	CamTarget1 = CamPosition1 + EyeMat.zvec() * (-10.f * Scale3DRate);
-
-	CamPosition = Util::Lerp(CamPosition2, CamPosition1, 1.f);
-	CamTarget = Util::Lerp(CamTarget2, CamTarget1, 1.f);
+	CamPosition = Util::VECTOR3D::vget(0.f, 15.f, -20.f);
+	CamTarget = Util::VECTOR3D::vget(0.f, 15.f, 0.f);
 
 	CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
 
@@ -151,24 +147,14 @@ void MainScene::Update_Sub(void) noexcept {
 	}
 	m_SpeakScript.Update();
 }
+void MainScene::BGDraw_Sub(void) noexcept {
+	m_SpeakScript.DrawBG();
+}
+void MainScene::Draw_Sub(void) noexcept {
+	m_SpeakScript.Draw3D();
+}
 void MainScene::UIDraw_Sub(void) noexcept {
 	auto* DrawerMngr = Draw::MainDraw::Instance();
-	/*
-	{
-		int X1 = 0;
-		int Y1 = 0;
-		int X2 = 1920;
-		int Y2 = 1080;
-		DxLib::DrawBox(X1, Y1, X2, Y2, ColorPalette::Gray85, true);
-	}
-	{
-		int X1 = 1920 / 2 - 1920 / 2;
-		int Y1 = 0;
-		int X2 = 1920 / 2 + 1920 / 2;
-		int Y2 = 1080;
-		DxLib::DrawBox(X1, Y1, X2, Y2, ColorPalette::White, true);
-	}
-	//*/
 	//
 	m_SpeakScript.Draw();
 	//
@@ -181,8 +167,9 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	}
 }
 void MainScene::Dispose_Sub(void) noexcept {
-	Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_EnviID)->StopAll();
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->StopAll();
+
+	Sound::SoundPool::Instance()->Delete(Sound::SoundType::BGM, this->m_NormalBGMID);
 
 	this->m_PauseUI.Dispose();
 	this->m_OptionWindow.Dispose();
