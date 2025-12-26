@@ -12,7 +12,9 @@ namespace Sound {
 		auto* pOption = Util::OptionParam::Instance();
 		float Vol = 1.0f;
 		switch (this->m_SoundType) {
-		case SoundType::VOICE:		//Vol = OptionParts->GetParamFloat(EnumSaveParam::VOICE);			break;
+		case SoundType::VOICE:
+			Vol = static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::VOICEVolume))->GetSelect()) / 100.f;
+			Vol *= static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::MasterVolume))->GetSelect()) / 100.f;
 			break;
 		case SoundType::SE:
 			Vol = static_cast<float>(pOption->GetParam(pOption->GetOptionType(Util::OptionType::SEVolume))->GetSelect()) / 100.f;

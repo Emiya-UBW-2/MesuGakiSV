@@ -62,22 +62,22 @@ namespace Draw {
 	public:
 		const LightHandle& Put(LightType Lighttype, const Util::VECTOR3D& pos) noexcept {
 			size_t prev = this->m_now;
-			handles[m_now].Dispose();
-			// handles[m_now].time = GetNowHiPerformanceCount();
+			handles[this->m_now].Dispose();
+			// handles[this->m_now].time = GetNowHiPerformanceCount();
 			switch (Lighttype) {
 			case LightType::POINT:
-				handles[m_now].CreatePoint(pos, 2.5f, 0.5f, 1.5f, 0.5f);
+				handles[this->m_now].CreatePoint(pos, 2.5f, 0.5f, 1.5f, 0.5f);
 				break;
 			case LightType::SPOT:
-				handles[m_now].CreateSpot(pos, Util::VECTOR3D::down(), DX_PI_F / 2, DX_PI_F / 4, 2.5f, 0.5f, 1.5f, 0.5f);
+				handles[this->m_now].CreateSpot(pos, Util::VECTOR3D::down(), DX_PI_F / 2, DX_PI_F / 4, 2.5f, 0.5f, 1.5f, 0.5f);
 				break;
 			case LightType::DIRECTIONAL:
-				handles[m_now].CreateDir(pos);
+				handles[this->m_now].CreateDir(pos);
 				break;
 			default:
 				break;
 			}
-			++m_now %= Size;
+			++this->m_now %= Size;
 			return handles[prev];
 		}
 		void			Update(void) noexcept {

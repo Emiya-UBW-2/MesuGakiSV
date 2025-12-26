@@ -8,8 +8,6 @@
 #include "../Draw/KeyGuide.hpp"
 #include "../Draw/FontDraw.hpp"
 
-#include "../MainScene/BaseObject.hpp"
-
 #pragma warning(disable:4710)
 #pragma warning( push, 3 )
 #include <vector>

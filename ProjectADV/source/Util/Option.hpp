@@ -51,6 +51,7 @@ namespace Util {
 		MasterVolume,
 		BGMVolume,
 		SEVolume,
+		VOICEVolume,
 
 		XSensing,
 		YSensing,
@@ -84,6 +85,7 @@ namespace Util {
 		"MasterVolume",
 		"BGMVolume",
 		"SEVolume",
+		"VOICEVolume",
 
 		"XSensing",
 		"YSensing",
@@ -237,7 +239,7 @@ namespace Util {
 
 		std::vector<Param>									m_ParamList;
 		std::array<int, static_cast<int>(OptionType::Max)>	m_OptionID;
-		char		padding[4]{};
+		//char		padding[4]{};
 	private:
 		//コンストラクタ
 		OptionParam(void) noexcept {
@@ -284,15 +286,17 @@ namespace Util {
 		int GetOptionType(OptionType ID) const noexcept { return this->m_OptionID.at(static_cast<size_t>(ID)); }
 	public:
 		void Load(void) noexcept {
-			File::InputFileStream Istream("Save/Option.dat");
-			while (!Istream.ComeEof()) {
-				std::string Line = File::InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
-				std::string Left = File::InputFileStream::getleft(Line, "=");
-				std::string Right = File::InputFileStream::getright(Line, "=");
-				for (auto& param : this->m_ParamList) {
-					if (param.GetType() == Left) {
-						param.SetSelect(Right);
-						break;
+			if (Util::IsFileExist("Save/Option.dat")) {
+				File::InputFileStream Istream("Save/Option.dat");
+				while (!Istream.ComeEof()) {
+					std::string Line = File::InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
+					std::string Left = File::InputFileStream::getleft(Line, "=");
+					std::string Right = File::InputFileStream::getright(Line, "=");
+					for (auto& param : this->m_ParamList) {
+						if (param.GetType() == Left) {
+							param.SetSelect(Right);
+							break;
+						}
 					}
 				}
 			}

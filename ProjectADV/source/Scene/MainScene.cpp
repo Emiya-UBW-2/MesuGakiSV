@@ -3,7 +3,7 @@
 #include "MainScene.hpp"
 
 void MainScene::Load_Sub(void) noexcept {
-	m_SpeakScript.Load("data/message00.txt");
+	this->m_SpeakScript.Load("data/message00.txt");
 }
 void MainScene::Init_Sub(void) noexcept {
 	Draw::MV1Pool::Instance()->SetModelAll();
@@ -53,20 +53,39 @@ void MainScene::Init_Sub(void) noexcept {
 		auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 		KeyGuideParts->SetGuideFlip();
 		});
+	this->m_PauseUI.SetEvent(3, [this]() {
+		this->m_SaveUI.SetActive(true);
+		});
+	this->m_PauseUI.SetEvent(4, [this]() {
+		this->m_ContinueUI.SetActive(true);
+		});
+
+	this->m_SaveUI.Init();
+	this->m_SaveUI.SetEvent([this]() {
+		//決定時の
+		Param::CommonParam::Instance()->m_IsLoad = this->m_SaveUI.GetSelect();
+		Save(Param::CommonParam::Instance()->m_IsLoad);
+		this->m_SaveUI.SetActive(false);
+		});
+	this->m_SaveUI.SetActive(false);
+
+	this->m_ContinueUI.Init();
+	this->m_ContinueUI.SetEvent([this]() {
+		//決定時の
+		this->m_ContinueUI.SetActive(false);
+		Param::CommonParam::Instance()->m_IsLoad = this->m_ContinueUI.GetSelect();
+		Start();
+		this->m_IsPauseActive = false;
+		});
+	this->m_ContinueUI.SetActive(false);
 
 	auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 	KeyGuideParts->SetGuideFlip();
 
 	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 
-	m_IsResetMouse = true;
-	m_SpeakScript.SetStoryStart();
-	//セーブデータから目標の会話データ番号を探る//TODO
-	int TargetPoint = 0;//1997;
-	//目標地点まで最速スキップ
-	for (int loop = 0; loop < TargetPoint; ++loop) {
-		m_SpeakScript.Step();
-	}
+	this->m_IsResetMouse = true;
+	Start();
 }
 void MainScene::Update_Sub(void) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
@@ -105,19 +124,28 @@ void MainScene::Update_Sub(void) noexcept {
 			this->m_IsPauseActive ^= 1;
 			KeyGuideParts->SetGuideFlip();
 		}
-		this->m_PauseUI.SetActive(this->m_IsPauseActive && !this->m_OptionWindow.IsActive());
+		this->m_PauseUI.SetActive(
+			this->m_IsPauseActive
+			&& !this->m_OptionWindow.IsActive()
+			&& !this->m_SaveUI.IsActive()
+			&& !this->m_ContinueUI.IsActive()
+		);
 		if (!this->m_IsPauseActive) {
 			this->m_OptionWindow.SetActive(false);
+			this->m_SaveUI.SetActive(false);
+			this->m_ContinueUI.SetActive(false);
 		}
 		this->m_PauseUI.Update();
 		if (this->m_IsSceneEnd && this->m_PauseUI.IsEnd()) {
 			this->m_Exit = true;
 		}
 		this->m_OptionWindow.Update();
+		this->m_SaveUI.Update();
+		this->m_ContinueUI.Update();
 	}
 	if (this->m_IsPauseActive) {
 		DxLib::SetMouseDispFlag(true);
-		m_IsResetMouse = true;
+		this->m_IsResetMouse = true;
 		return;
 	}
 
@@ -133,7 +161,7 @@ void MainScene::Update_Sub(void) noexcept {
 	DxLib::SetMouseDispFlag(true);
 
 	this->m_Fade = std::clamp(this->m_Fade + (this->m_Exit ? 1.f : -1.f) * DeltaTime, 0.f, 1.f);
-	if (!m_Exit) {
+	if (!this->m_Exit) {
 	}
 	else {
 		if (this->m_Fade >= 1.f) {
@@ -142,24 +170,26 @@ void MainScene::Update_Sub(void) noexcept {
 		}
 	}
 
-	if (m_SpeakScript.IsEnd()) {
+	if (this->m_SpeakScript.IsEnd()) {
 		this->m_Exit = true;
 	}
-	m_SpeakScript.Update();
+	this->m_SpeakScript.Update();
 }
 void MainScene::BGDraw_Sub(void) noexcept {
-	m_SpeakScript.DrawBG();
+	this->m_SpeakScript.DrawBG();
 }
 void MainScene::Draw_Sub(void) noexcept {
-	m_SpeakScript.Draw3D();
+	this->m_SpeakScript.Draw3D();
 }
 void MainScene::UIDraw_Sub(void) noexcept {
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	//
-	m_SpeakScript.Draw();
+	this->m_SpeakScript.Draw();
 	//
 	this->m_PauseUI.Draw();
 	this->m_OptionWindow.Draw();
+	this->m_SaveUI.Draw();
+	this->m_ContinueUI.Draw();
 	{
 		DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::clamp(static_cast<int>(255.f * this->m_Fade), 0, 255));
 		DxLib::DrawBox(0, 0, DrawerMngr->GetDispWidth(), DrawerMngr->GetDispHeight(), ColorPalette::Black, true);
@@ -173,5 +203,7 @@ void MainScene::Dispose_Sub(void) noexcept {
 
 	this->m_PauseUI.Dispose();
 	this->m_OptionWindow.Dispose();
+	this->m_SaveUI.Dispose();
+	this->m_ContinueUI.Dispose();
 }
 

@@ -237,7 +237,7 @@ namespace Sound {
 			auto ID = this->m_SoundID;
 			//末尾に追加
 			this->m_SoundHas[static_cast<size_t>(Type)].emplace_back(std::make_unique<Soundhave>(this->m_SoundID, buffersize, path_t, Type, is3Dsound));
-			++m_SoundID;
+			++this->m_SoundID;
 			return ID;
 		}
 		// 特定のIDのサウンドを取得

@@ -40,6 +40,7 @@ protected:
 
 		this->m_TitleUI.Init();
 		this->m_TitleUI.SetEvent(0, [this]() {
+			Param::CommonParam::Instance()->m_IsLoad = InvalidID;
 			this->m_TitleUI.SetEnd();
 			});
 		this->m_TitleUI.SetEvent(1, [this]() {
@@ -61,6 +62,7 @@ protected:
 		this->m_ContinueUI.SetEvent([this]() {
 			//決定時の
 			this->m_ContinueUI.SetActive(false);
+			Param::CommonParam::Instance()->m_IsLoad = this->m_ContinueUI.GetSelect();
 			this->m_TitleUI.SetEnd();
 			});
 		this->m_ContinueUI.SetActive(false);

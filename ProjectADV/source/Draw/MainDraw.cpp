@@ -145,6 +145,7 @@ namespace Draw {
 				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
 				"%05.2f FPS", DxLib::GetFPS());
 
+#if _DEBUG		//デバッグ表示
 			Font->Get(FontType::DIZ_UD_Gothic, 18, 3)->DrawString(
 				FontXCenter::RIGHT, FontYCenter::TOP,
 				this->GetDispWidth() - 32, 0 + 32 + 24 * 1,
@@ -162,6 +163,7 @@ namespace Draw {
 				this->GetDispWidth() - 32, 0 + 32 + 24 * 3,
 				ColorPalette::UIGreen, ColorPalette::UIDarkGreen,
 				"DrawCall %3d", DxLib::GetDrawCallCount());
+#endif
 		}
 		DxLib::SetDrawScreen(DX_SCREEN_BACK);
 		DxLib::ClearDrawScreen();

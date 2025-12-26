@@ -184,7 +184,8 @@ private:
 	int						m_UIBase{ InvalidID };
 	int						m_ButtonID[5] = { InvalidID,InvalidID,InvalidID,InvalidID,InvalidID };
 	int						m_CloseButtonID{ InvalidID };
-	char		padding[4]{};
+	int						m_SelectButtonID{ InvalidID };
+	//char		padding[4]{};
 	std::function<void()>	m_ButtonDo{};
 	Sound::SoundUniqueID	m_cancelID{ InvalidID };
 	Sound::SoundUniqueID	m_cursorID{ InvalidID };
@@ -204,6 +205,8 @@ public:
 	bool		IsActive(void) const noexcept { return this->m_DrawUI->Get(this->m_UIBase).IsActive(); }
 	void		SetActive(bool value) noexcept { this->m_DrawUI->Get(this->m_UIBase).SetActive(value); }
 	void		SetEvent(const std::function<void()>& value) noexcept { this->m_ButtonDo = value; }
+
+	int			GetSelect(void) const noexcept { return m_SelectButtonID; }
 public:
 	void		Init(void) noexcept {
 		this->m_cancelID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/cancel.wav", false);
@@ -225,8 +228,11 @@ public:
 	void		Update(void) noexcept {
 		auto* KeyMngr = Util::KeyParam::Instance();
 		if (IsActive()) {
+			m_SelectButtonID = InvalidID;
+
 			for (int loop = 1; loop < 5; ++loop) {
-				this->m_DrawUI->Get(this->m_ButtonID[loop]).SetActive(false);
+				std::string Path = "Save/Slot" + std::to_string(loop) + ".dat";
+				this->m_DrawUI->Get(this->m_ButtonID[loop]).SetActive(Util::IsFileExist(Path.c_str()));
 			}
 
 			bool IsSelect = false;
@@ -259,7 +265,7 @@ public:
 				for (int loop = 0; loop < 5; ++loop) {
 					if (this->m_DrawUI->Get(this->m_ButtonID[loop]).IsSelectButton()) {
 						if (this->m_DrawUI->Get(this->m_ButtonID[loop]).IsActive()) {
-							//TODO:該当の場所に行く
+							m_SelectButtonID = loop;
 							this->m_ButtonDo();
 						}
 					}

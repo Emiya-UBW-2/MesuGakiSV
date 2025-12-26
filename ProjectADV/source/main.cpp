@@ -13,6 +13,7 @@
 #include "Draw/MainDraw.hpp"
 #include "Draw/Light.hpp"
 #include "Draw/KeyGuide.hpp"
+#include "Draw/MV1.hpp"
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Util::OptionParam::Create();
@@ -30,6 +31,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Draw::LightPool::Create();
 	DXLibRef::KeyGuide::Create();
 	Sound::SoundPool::Create();
+	Param::CommonParam::Create();
 
 	auto* DrawerMngr = Draw::MainDraw::Instance();
 	auto* pOption = Util::OptionParam::Instance();
@@ -126,6 +128,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 	}
 
+	Param::CommonParam::Release();
 	Sound::SoundPool::Release();
 	DXLibRef::KeyGuide::Release();
 	Draw::LightPool::Release();

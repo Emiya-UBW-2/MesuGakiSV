@@ -1,4 +1,5 @@
-﻿#include "MV1.hpp"
+﻿#pragma warning(disable:5259)
+#include "MV1.hpp"
 const Draw::MV1Pool* Util::SingletonBase<Draw::MV1Pool>::m_Singleton = nullptr;
 
 namespace Draw {

@@ -456,3 +456,19 @@ namespace Util {
 		return (Result->SegA_SegB_MinDist_Square <= (len * len));
 	}
 }
+
+namespace Param {
+	class CommonParam : public Util::SingletonBase<CommonParam> {
+	private:
+		friend class SingletonBase<CommonParam>;
+	private:
+		CommonParam(void) noexcept {}
+		CommonParam(const CommonParam&) = delete;
+		CommonParam(CommonParam&&) = delete;
+		CommonParam& operator=(const CommonParam&) = delete;
+		CommonParam& operator=(CommonParam&&) = delete;
+		virtual ~CommonParam(void) noexcept {}
+	public:
+		int m_IsLoad{ InvalidID };
+	};
+}
