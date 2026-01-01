@@ -471,22 +471,26 @@ public:
 		for (const auto& Now : this->m_SpeakData) {
 			size_t index = static_cast<size_t>(&Now - &this->m_SpeakData.front());
 			if (Now.m_SpeakEnum == SpeakEnum::Image) {
-				if (index == LaskImage) {
-					Now.DrawImage(Now.m_Pos, 255);
-				}
-				else {
-					if (ResetImage <= index && index < LaskImage) {
-						Now.DrawImage(Now.m_Pos, 128);
+				if (ResetImage <= index) {
+					if (index == LaskImage) {
+						Now.DrawImage(Now.m_Pos, 255);
+					}
+					else {
+						if (index < LaskImage) {
+							Now.DrawImage(Now.m_Pos, 128);
+						}
 					}
 				}
 			}
 			if (Now.m_SpeakEnum == SpeakEnum::Model) {
-				if (index == LaskMV1) {
-					Now.DrawModel();
-				}
-				else {
-					if (ResetMV1 <= index && index < LaskMV1) {
+				if (ResetMV1 <= index) {
+					if (index == LaskMV1) {
 						Now.DrawModel();
+					}
+					else {
+						if (index < LaskMV1) {
+							Now.DrawModel();
+						}
 					}
 				}
 			}

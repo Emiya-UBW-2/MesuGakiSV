@@ -66,7 +66,6 @@ Speaker(友人A);
 	MesColor(255,255,0);
 	MesEdgeColor(64,64,0);
 	Mes(というかそろそろ時間だろ？頑張れよ、応援してるぜ！);
-Reset
 ResetModel();
 Speaker();
 	Mes(そう言って、そいつは立ち去った);
