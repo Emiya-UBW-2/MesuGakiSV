@@ -907,7 +907,8 @@ class MainScene : public Util::SceneBase {
 	Sound::SoundUniqueID			m_DamageEnemyID{ InvalidID };
 
 	Sound::SoundUniqueID			m_HitMeID{ InvalidID };
-
+	Sound::SoundUniqueID			m_GrazeID{ InvalidID };
+	
 	Sound::SoundUniqueID			m_NormalBGMID{ InvalidID };
 	Sound::SoundUniqueID			m_BOSSBGMID{ InvalidID };
 	const Draw::GraphHandle*		m_BackScreen{};
