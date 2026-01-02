@@ -418,6 +418,17 @@ public:
 	void Update_Sub(void) noexcept override;
 	void Draw_Sub(void) const noexcept override {
 		DrawCommon();
+		if (m_HP > 1) {
+			for (int loop = 0; loop < 360 * m_HP / m_EnemyData->m_HP; loop++) {
+				DrawLine(
+					static_cast<int>(m_PosRe.at(0).m_Pos.x + 64.f * std::sinf(Util::deg2rad(180 + loop))),
+					static_cast<int>(m_PosRe.at(0).m_Pos.y + 64.f * std::cosf(Util::deg2rad(180 + loop))),
+					static_cast<int>(m_PosRe.at(0).m_Pos.x + 64.f * std::sinf(Util::deg2rad(180 + loop + 1))),
+					static_cast<int>(m_PosRe.at(0).m_Pos.y + 64.f * std::cosf(Util::deg2rad(180 + loop + 1))),
+					GetColor(255, 200, 200),
+					5);
+			}
+		}
 	}
 	void Dispose_Sub(void) noexcept override {
 	}
@@ -894,6 +905,8 @@ class MainScene : public Util::SceneBase {
 	Sound::SoundUniqueID			m_EnviID{ InvalidID };
 	Sound::SoundUniqueID			m_HitEnemyID{ InvalidID };
 	Sound::SoundUniqueID			m_DamageEnemyID{ InvalidID };
+
+	Sound::SoundUniqueID			m_HitMeID{ InvalidID };
 
 	Sound::SoundUniqueID			m_NormalBGMID{ InvalidID };
 	Sound::SoundUniqueID			m_BOSSBGMID{ InvalidID };

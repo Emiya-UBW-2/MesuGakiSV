@@ -117,6 +117,8 @@ void MainScene::Init_Sub(void) noexcept {
 	this->m_HitEnemyID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/enemy_vanish.wav", false);
 	this->m_DamageEnemyID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/enemy_damage.wav", false);
 	
+	this->m_HitMeID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/death.wav", false);
+
 	this->m_NormalBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Normal.wav", false);
 	this->m_BOSSBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Boss.wav", false);
 
@@ -296,21 +298,25 @@ void MainScene::Update_Sub(void) noexcept {
 		}
 	}
 
-	for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
-		if (e->IsActive()) {
-			auto Vec = e->SetPos().m_Pos - Mine->SetPos().m_Pos;
-			if (Vec.magnitude() < 32.f) {
-				Mine->SetActive(false);
-				this->m_Exit = true;
+	if (Mine->IsActive()) {
+		for (auto& e : EnemyPool::Instance()->m_EnemyPos) {
+			if (e->IsActive()) {
+				auto Vec = e->SetPos().m_Pos - Mine->SetPos().m_Pos;
+				if (Vec.magnitude() < 32.f) {
+					Mine->SetActive(false);
+					this->m_Exit = true;
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_HitMeID)->Play(DX_PLAYTYPE_BACK, TRUE);
+				}
 			}
 		}
-	}
-	for (auto& a : AmmoPool::Instance()->m_AmmoPos) {
-		if (a->IsActive() && a->ShooterID() != Mine->GetUniqueID()) {
-			auto Vec = a->SetPos().m_Pos - Mine->SetPos().m_Pos;
-			if (Vec.magnitude() < 32.f) {
-				Mine->SetActive(false);
-				this->m_Exit = true;
+		for (auto& a : AmmoPool::Instance()->m_AmmoPos) {
+			if (a->IsActive() && a->ShooterID() != Mine->GetUniqueID()) {
+				auto Vec = a->SetPos().m_Pos - Mine->SetPos().m_Pos;
+				if (Vec.magnitude() < 32.f) {
+					Mine->SetActive(false);
+					this->m_Exit = true;
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, this->m_HitMeID)->Play(DX_PLAYTYPE_BACK, TRUE);
+				}
 			}
 		}
 	}
