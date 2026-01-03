@@ -16,12 +16,32 @@
 
 #include "../Draw/MainDraw.hpp"
 
+class CreditControl {
+	static const int			CharMax = 256;
+	int							m_CreditCoulm{ 0 };
+	std::array<std::pair<char[CharMax], char[CharMax]>, 64>	m_CreditStr{};
+public:
+	CreditControl(void) noexcept;
+	CreditControl(const CreditControl&) = delete;
+	CreditControl(CreditControl&&) = delete;
+	CreditControl& operator=(const CreditControl&) = delete;
+	CreditControl& operator=(CreditControl&&) = delete;
+
+	virtual ~CreditControl(void) noexcept;
+public:
+	void Draw(int xmin, int ymin, int xmax) const noexcept;
+};
+
 class TitleScene : public Util::SceneBase {
 	OptionWindow	m_OptionWindow;
 	TitleUI			m_TitleUI;
 	EndUI			m_EndUI;
 
+	Sound::SoundUniqueID			m_OKID{ InvalidID };
+
 	Sound::SoundUniqueID			m_TitleBGMID{ InvalidID };
+	std::unique_ptr<CreditControl>		m_CreditControl{};
+	bool								m_IsActiveCredit{};
 public:
 	TitleScene(void) noexcept { SetID(static_cast<int>(EnumScene::Title)); }
 	TitleScene(const TitleScene&) = delete;
@@ -33,7 +53,13 @@ protected:
 	void Load_Sub(void) noexcept override {
 	}
 	void Init_Sub(void) noexcept override {
+		// クレジット
+		this->m_CreditControl = std::make_unique<CreditControl>();
+		m_IsActiveCredit = false;
+
 		this->m_OptionWindow.Init();
+
+		this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/SE/Toho/decide.wav", false);
 
 		this->m_TitleBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Title.wav", false);
 
@@ -44,7 +70,8 @@ protected:
 		this->m_TitleUI.SetEvent(1, [this]() {
 			this->m_OptionWindow.SetActive(true);
 			});
-		this->m_TitleUI.SetEvent(2, []() {
+		this->m_TitleUI.SetEvent(2, [this]() {
+			m_IsActiveCredit = true;
 			});
 
 		this->m_EndUI.Init();
@@ -75,7 +102,7 @@ protected:
 		DxLib::SetMouseDispFlag(true);
 		this->m_EndUI.Update();
 		if (this->m_EndUI.IsActive()) { return; }
-		this->m_TitleUI.SetActive(!this->m_OptionWindow.IsActive());
+		this->m_TitleUI.SetActive(!this->m_OptionWindow.IsActive() && !m_IsActiveCredit);
 		this->m_TitleUI.Update();
 		if (this->m_TitleUI.IsEnd()) {
 			this->m_OptionWindow.SetActive(false);
@@ -87,6 +114,13 @@ protected:
 			if (KeyMngr->GetMenuKeyReleaseTrigger(Util::EnumMenu::Esc)) {
 				//Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
 				this->m_EndUI.SetActive(true);
+			}
+		}
+		if (m_IsActiveCredit) {
+			auto* KeyMngr = Util::KeyParam::Instance();
+			if (KeyMngr->GetMenuKeyTrigger(Util::EnumMenu::Diside)) {
+				Sound::SoundPool::Instance()->Get(Sound::SoundType::SE, m_OKID)->Play(DX_PLAYTYPE_BACK, TRUE);
+				m_IsActiveCredit = false;
 			}
 		}
 		this->m_OptionWindow.Update();
@@ -102,11 +136,20 @@ protected:
 		this->m_TitleUI.Draw();
 		this->m_OptionWindow.Draw();
 		this->m_EndUI.Draw();
+		if (m_IsActiveCredit) {
+			{
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+				DxLib::DrawBox(0, 0, 1920, 1080, ColorPalette::Black, true);
+				DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+			}
+			this->m_CreditControl->Draw(1920 / 2 - 640 * 3 / 4, 1080 / 2 - 320, 1920 / 2 + 640 * 3 / 4);
+		}
 	}
 	void Dispose_Sub(void) noexcept override {
 		this->m_TitleUI.Dispose();
 		this->m_OptionWindow.Dispose();
 		this->m_EndUI.Dispose();
+		this->m_CreditControl.reset();
 
 		Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_TitleBGMID)->StopAll();
 	}
