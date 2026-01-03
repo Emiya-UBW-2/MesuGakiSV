@@ -1,0 +1,2 @@
+Picture(10,data/Image/enemy01_000.png);
+HitPoint(10);

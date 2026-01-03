@@ -1,0 +1,338 @@
+Time(0);
+	ToPoint(690,-31)
+Time(6);
+	ToPoint(594,47)
+Time(18);
+	ToPoint(477,164)
+Time(26);
+	ToPoint(441,216)
+Time(35);
+	ToPoint(429,213)
+Time(61);
+	ToPoint(429,213)
+Time(78);
+	ToPoint(432,195)
+Time(99);
+	ToPoint(429,74)
+Time(128);
+	ToPoint(429,74)
+Time(138);
+	ToPoint(429,74)
+Time(150);
+	ToPoint(429,74)
+Time(190);
+	ToPoint(450,99)
+Time(190);
+	ToPoint(450,99)
+Time(198);
+	ToPoint(510,240)
+Time(210);
+	ToPoint(528,301)
+Time(219);
+	ToPoint(528,303)
+Time(244);
+	ToPoint(510,303)
+Time(256);
+	ToPoint(510,303)
+Time(270);
+	ToPoint(513,285)
+Time(279);
+	ToPoint(560,168)
+Time(291);
+	ToPoint(587,128)
+Time(302);
+	ToPoint(591,112)
+Time(327);
+	ToPoint(594,101)
+Time(341);
+	ToPoint(594,101)
+Time(353);
+	ToPoint(594,101)
+Time(364);
+	ToPoint(594,101)
+Time(378);
+	ToPoint(526,263)
+Time(392);
+	ToPoint(510,297)
+Time(403);
+	ToPoint(510,319)
+Time(417);
+	ToPoint(510,319)
+Time(429);
+	ToPoint(510,319)
+Time(429);
+	ToPoint(510,288)
+Time(452);
+	ToPoint(510,288)
+Time(465);
+	ToPoint(510,288)
+Time(475);
+	ToPoint(510,288)
+Time(488);
+	ToPoint(510,288)
+Time(498);
+	ToPoint(510,288)
+Time(529);
+	ToPoint(697,168)
+Time(585);
+	ToPoint(697,168)
+Time(598);
+	ToPoint(697,168)
+Time(612);
+	ToPoint(697,168)
+Time(632);
+	ToPoint(567,342)
+Time(642);
+	ToPoint(567,342)
+Time(653);
+	ToPoint(567,342)
+Time(670);
+	ToPoint(567,342)
+Time(684);
+	ToPoint(567,342)
+Time(697);
+	ToPoint(567,342)
+Time(708);
+	ToPoint(375,243)
+Time(719);
+	ToPoint(375,243)
+Time(730);
+	ToPoint(375,243)
+Time(745);
+	ToPoint(375,243)
+Time(760);
+	ToPoint(375,243)
+Time(793);
+	ToPoint(375,243)
+Time(808);
+	ToPoint(497,229)
+Time(823);
+	ToPoint(591,218)
+Time(836);
+	ToPoint(616,218)
+Time(853);
+	ToPoint(612,227)
+Time(868);
+	ToPoint(612,227)
+Time(906);
+	ToPoint(589,213)
+Time(924);
+	ToPoint(589,213)
+Time(947);
+	ToPoint(375,182)
+Time(962);
+	ToPoint(375,180)
+Time(976);
+	ToPoint(396,175)
+Time(1004);
+	ToPoint(396,175)
+Time(1020);
+	ToPoint(261,207)
+Time(1035);
+	ToPoint(175,211)
+Time(1050);
+	ToPoint(175,211)
+Time(1065);
+	ToPoint(186,211)
+Time(1085);
+	ToPoint(186,211)
+Time(1098);
+	ToPoint(186,211)
+Time(1114);
+	ToPoint(186,211)
+Time(1130);
+	ToPoint(292,141)
+Time(1142);
+	ToPoint(348,121)
+Time(1155);
+	ToPoint(402,105)
+Time(1168);
+	ToPoint(396,108)
+Time(1180);
+	ToPoint(355,128)
+Time(1199);
+	ToPoint(391,164)
+Time(1216);
+	ToPoint(409,198)
+Time(1232);
+	ToPoint(409,202)
+Time(1267);
+	ToPoint(434,245)
+Time(1334);
+	ToPoint(434,245)
+Time(1353);
+	ToPoint(434,245)
+Time(1429);
+	ToPoint(434,245)
+Time(1471);
+	ToPoint(434,245)
+Time(1488);
+	ToPoint(279,144)
+Time(1504);
+	ToPoint(198,105)
+Time(1530);
+	ToPoint(198,105)
+Time(1570);
+	ToPoint(198,105)
+Time(1602);
+	ToPoint(198,105)
+Time(1654);
+	ToPoint(198,105)
+Time(1713);
+	ToPoint(218,326)
+Time(1776);
+	ToPoint(218,326)
+Time(1812);
+	ToPoint(218,326)
+Time(1858);
+	ToPoint(218,326)
+Time(1904);
+	ToPoint(369,108)
+Time(1920);
+	ToPoint(366,108)
+Time(1965);
+	ToPoint(366,108)
+Time(1990);
+	ToPoint(366,108)
+Time(2022);
+	ToPoint(366,108)
+Time(2044);
+	ToPoint(366,108)
+Time(2044);
+	ToPoint(366,108)
+Time(2093);
+	ToPoint(366,108)
+Time(2132);
+	ToPoint(366,108)
+Time(2152);
+	ToPoint(272,247)
+Time(2179);
+	ToPoint(231,274)
+Time(2203);
+	ToPoint(231,274)
+Time(2234);
+	ToPoint(231,274)
+Time(2263);
+	ToPoint(231,274)
+Time(2295);
+	ToPoint(308,117)
+Time(2312);
+	ToPoint(308,101)
+Time(2370);
+	ToPoint(308,94)
+Time(2400);
+	ToPoint(308,94)
+Time(2427);
+	ToPoint(108,204)
+Time(2497);
+	ToPoint(105,207)
+Time(2547);
+	ToPoint(153,319)
+Time(2580);
+	ToPoint(153,319)
+Time(2627);
+	ToPoint(182,119)
+Time(2648);
+	ToPoint(186,114)
+Time(2684);
+	ToPoint(186,114)
+Time(2723);
+	ToPoint(186,114)
+Time(2755);
+	ToPoint(362,195)
+Time(2755);
+	ToPoint(362,195)
+Time(2782);
+	ToPoint(362,195)
+Time(2838);
+	ToPoint(362,195)
+Time(2887);
+	ToPoint(546,195)
+Time(2914);
+	ToPoint(546,195)
+Time(2942);
+	ToPoint(546,195)
+Time(2959);
+	ToPoint(569,321)
+Time(2980);
+	ToPoint(569,321)
+Time(3011);
+	ToPoint(569,321)
+Time(3037);
+	ToPoint(569,321)
+Time(3063);
+	ToPoint(436,229)
+Time(3082);
+	ToPoint(414,218)
+Time(3100);
+	ToPoint(414,211)
+Time(3132);
+	ToPoint(414,211)
+Time(3158);
+	ToPoint(414,211)
+Time(3184);
+	ToPoint(414,211)
+Time(3217);
+	ToPoint(414,105)
+Time(3236);
+	ToPoint(414,105)
+Time(3265);
+	ToPoint(414,105)
+Time(3285);
+	ToPoint(517,220)
+Time(3304);
+	ToPoint(517,220)
+Time(3324);
+	ToPoint(517,220)
+Time(3348);
+	ToPoint(501,220)
+Time(3377);
+	ToPoint(501,220)
+Time(3400);
+	ToPoint(501,220)
+Time(3418);
+	ToPoint(364,139)
+Time(3430);
+	ToPoint(265,119)
+Time(3447);
+	ToPoint(360,119)
+Time(3467);
+	ToPoint(402,108)
+Time(3492);
+	ToPoint(418,108)
+Time(3512);
+	ToPoint(418,108)
+Time(3538);
+	ToPoint(418,108)
+Time(3557);
+	ToPoint(418,108)
+Time(3578);
+	ToPoint(418,108)
+Time(3593);
+	ToPoint(567,193)
+Time(3663);
+	ToPoint(472,227)
+Time(3683);
+	ToPoint(472,227)
+Time(3705);
+	ToPoint(472,227)
+Time(3727);
+	ToPoint(472,227)
+Time(3750);
+	ToPoint(472,227)
+Time(3775);
+	ToPoint(472,227)
+Time(3857);
+	ToPoint(645,238)
+Time(3904);
+	ToPoint(645,238)
+Time(3944);
+	ToPoint(645,238)
+Time(3944);
+	ToPoint(641,94)
+Time(3957);
+	ToPoint(641,-22)
+Time(3957);
+	ToPoint(641,-22)
+Time(3957);
+	Erase();

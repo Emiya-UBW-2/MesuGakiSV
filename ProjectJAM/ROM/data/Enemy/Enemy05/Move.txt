@@ -1,0 +1,29 @@
+Time(340)
+	ToPoint(72,-24)
+Time(348)
+	ToPoint(72,33)
+Time(355)
+	ToPoint(76,99)
+Time(363)
+	ToPoint(78,166)
+Time(371)
+	ToPoint(81,200)
+Time(378)
+	ToPoint(74,200)
+Time(395)
+	Ammo(ToMine, 0,0, 400, -105, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  -70, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  -35, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,    0, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,   35, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,   70, 0.075f, 8);
+	Ammo(ToMine, 0,0, 400,  105, 0.075f, 8);
+	ToPoint(74,200)
+Time(420)
+	ToPoint(49,213)
+Time(429)
+	ToPoint(-13,202)
+Time(438)
+	ToPoint(-49,166)
+Time(440);
+	Erase();

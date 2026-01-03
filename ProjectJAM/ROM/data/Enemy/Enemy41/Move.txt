@@ -1,0 +1,38 @@
+Time(0);
+	ToPoint(157,-15)
+Time(12);
+	ToPoint(141,90)
+Time(25);
+	ToPoint(157,202)
+Time(36);
+	ToPoint(227,281)
+Time(46);
+	ToPoint(285,294)
+Time(56);
+	ToPoint(364,306)
+Time(67);
+	ToPoint(470,283)
+Time(79);
+	ToPoint(582,261)
+Time(89);
+	ToPoint(634,310)
+Time(99);
+	ToPoint(686,378)
+Time(110);
+	ToPoint(704,452)
+Time(123);
+	ToPoint(713,555)
+Time(134);
+	ToPoint(713,623)
+Time(145);
+	ToPoint(715,717)
+Time(154);
+	ToPoint(713,798)
+Time(165);
+	ToPoint(713,891)
+Time(175);
+	ToPoint(713,981)
+Time(184);
+	ToPoint(713,1039)
+Time(192);
+	Erase();
