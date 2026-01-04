@@ -1,0 +1,88 @@
+{
+	"MainParts": [
+		{
+			"Name": "Column1",
+			"Type": "Json",
+			"OfsNoRad": [ 0, 0 ],
+			"BaseColor": [ 255, 255, 255, 0 ],
+			"FilePath": "data/UI/Option/TabChild001.json",
+			"Override": [
+				{
+					"Target": "String1",
+					"FontID": 100
+				}
+			]
+		},
+		{
+			"Name": "Column2",
+			"Type": "Json",
+			"OfsNoRad": [ 0, 45 ],
+			"BaseColor": [ 255, 255, 255, 0 ],
+			"FilePath": "data/UI/Option/TabChild001.json",
+			"Override": [
+				{
+					"Target": "String1",
+					"FontID": 101
+				}
+			]
+		},
+		{
+			"Name": "Column3",
+			"Type": "Json",
+			"OfsNoRad": [ 0, 90 ],
+			"BaseColor": [ 255, 255, 255, 0 ],
+			"FilePath": "data/UI/Option/TabChild001.json",
+			"Override": [
+				{
+					"Target": "String1",
+					"FontID": 102
+				}
+			]
+		},
+		{
+			"Name": "Column4",
+			"Type": "Json",
+			"OfsNoRad": [ 0, 135 ],
+			"BaseColor": [ 255, 255, 255, 0 ],
+			"FilePath": "data/UI/Option/TabChild001.json",
+			"Override": [
+				{
+					"Target": "String1",
+					"FontID": 103
+				}
+			]
+		}
+	],
+	"Anim":[
+		{
+			"Type":"Normal",
+			"Loop":true,
+			"Anim": [
+				{
+					"Target": "Column1",
+					"Color": [ 255, 255, 255, 255 ],
+					"StartFrame": 0,
+					"EndFrame": 12
+				},
+				{
+					"Target": "Column2",
+					"Color": [ 255, 255, 255, 255 ],
+					"StartFrame": 0,
+					"EndFrame": 12
+				},
+				{
+					"Target": "Column3",
+					"Color": [ 255, 255, 255, 255 ],
+					"StartFrame": 0,
+					"EndFrame": 12
+				},
+				{
+					"Target": "Column4",
+					"Color": [ 255, 255, 255, 255 ],
+					"StartFrame": 0,
+					"EndFrame": 12
+				}
+			]
+		}
+	]
+}
