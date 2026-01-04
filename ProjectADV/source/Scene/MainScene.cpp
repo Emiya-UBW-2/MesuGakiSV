@@ -12,8 +12,6 @@ void MainScene::Init_Sub(void) noexcept {
 
 	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
 
-	this->m_NormalBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Normal.wav", false);
-
 	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.5f, -0.9f).normalized();
 
 	auto* PostPassParts = Draw::PostPassEffect::Instance();
@@ -81,8 +79,6 @@ void MainScene::Init_Sub(void) noexcept {
 
 	auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 	KeyGuideParts->SetGuideFlip();
-
-	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
 
 	this->m_IsResetMouse = true;
 	Start();
@@ -197,9 +193,7 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	}
 }
 void MainScene::Dispose_Sub(void) noexcept {
-	Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NormalBGMID)->StopAll();
-
-	Sound::SoundPool::Instance()->Delete(Sound::SoundType::BGM, this->m_NormalBGMID);
+	this->m_SpeakScript.Dispose();
 
 	this->m_PauseUI.Dispose();
 	this->m_OptionWindow.Dispose();

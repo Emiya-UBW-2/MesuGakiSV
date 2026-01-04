@@ -36,7 +36,7 @@ protected:
 	void Init_Sub(void) noexcept override {
 		this->m_OptionWindow.Init();
 
-		this->m_TitleBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/Title.wav", false);
+		this->m_TitleBGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, "data/Sound/BGM/BGM1.wav", false);
 
 		this->m_TitleUI.Init();
 		this->m_TitleUI.SetEvent(0, [this]() {

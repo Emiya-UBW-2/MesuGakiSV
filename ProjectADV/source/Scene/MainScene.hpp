@@ -27,6 +27,7 @@ enum class SpeakEnum : size_t {
 	ResetImage,
 	ResetModel,
 	SetBG,
+	SetBGM,
 };
 
 struct SpeakData {
@@ -37,6 +38,7 @@ struct SpeakData {
 	Util::VECTOR2D							m_Pos;
 	std::array<std::pair<std::u32string, size_t>, MesColumn>	m_Mes;
 	size_t									m_MV1AnimSelect{ 0 };
+	Sound::SoundUniqueID					m_BGMID{ InvalidID };
 	float									m_Timer{ 0 };
 	float									m_SeekMax{ 0 };
 	float									m_TimeMax{ 0 };
@@ -51,6 +53,7 @@ public:
 		this->m_Image = nullptr;
 		this->m_MV1 = nullptr;
 		this->m_MV1AnimSelect = 0;
+		this->m_BGMID = InvalidID;
 		this->m_Pos.Set(0.f, 0.f);
 		for (auto& m : this->m_Mes) {
 			m.first = U"";
@@ -130,6 +133,9 @@ class SpeakScript {
 	float						m_FadeTimer{ 1.f };
 	float						m_BGFade{ 1.f };
 	float						m_BGFadeTimer{ 1.f };
+
+	float						m_BGMFade{ 1.f };
+	float						m_BGMFadeTimer{ 1.f };
 	float						m_Seek{ 0.f };
 	float						m_Time{ 0.f };
 
@@ -139,6 +145,9 @@ class SpeakScript {
 	char		padding[5]{};
 	const Draw::Graphhave*				m_PrevBGImage{};
 	const Draw::Graphhave*				m_NowBGImage{};
+
+	Sound::SoundUniqueID			m_PrevBGMID{ InvalidID };
+	Sound::SoundUniqueID			m_NowBGMID{ InvalidID };
 public:
 	bool IsEnd(void) const noexcept { return this->m_IsEnd; }
 	void SetStoryStart(void) noexcept { this->m_IsStart = true; }
@@ -241,6 +250,18 @@ public:
 					this->m_SpeakData.back().m_Image = Draw::GraphPool::Instance()->Get(Args.at(1)).get();
 					this->m_SpeakData.back().m_Timer = std::stof(Args.at(2)) / 1000.f;
 				}
+				else if (Args.at(0) == "SetBGM") {
+					this->m_SpeakData.emplace_back();
+					this->m_SpeakData.back().Init();
+					this->m_SpeakData.back().m_SpeakEnum = SpeakEnum::SetBGM;
+					if (Args.at(1) == "NULL" || Args.at(1) == "") {
+						this->m_SpeakData.back().m_BGMID = InvalidID;
+					}
+					else {
+						this->m_SpeakData.back().m_BGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, Args.at(1), false);
+					}
+					this->m_SpeakData.back().m_Timer = std::stof(Args.at(2)) / 1000.f;
+				}
 			}
 		}
 		FileStream.Close();
@@ -252,6 +273,18 @@ public:
 
 		this->m_BGFade = 1.f;
 		this->m_BGFadeTimer = 1.f;
+
+		this->m_BGMFade = 1.f;
+		this->m_BGMFadeTimer = 1.f;
+
+		if (this->m_PrevBGMID != InvalidID) {
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_PrevBGMID)->StopAll();
+		}
+		if (this->m_NowBGMID != InvalidID) {
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NowBGMID)->StopAll();
+		}
+		this->m_PrevBGMID = InvalidID;
+		this->m_NowBGMID = InvalidID;
 
 		this->m_PrevBGImage = nullptr;
 		this->m_NowBGImage = nullptr;
@@ -303,6 +336,13 @@ public:
 				this->m_NowBGImage = Now.m_Image;
 				this->m_BGFadeTimer = Now.m_Timer;
 				this->m_BGFade = 0.f;
+				++this->m_NowPoint;
+				break;
+			case SpeakEnum::SetBGM:
+				this->m_PrevBGMID = this->m_NowBGMID;
+				this->m_NowBGMID = Now.m_BGMID;
+				this->m_BGMFadeTimer = Now.m_Timer;
+				this->m_BGMFade = 0.f;
 				++this->m_NowPoint;
 				break;
 			default:
@@ -378,6 +418,22 @@ public:
 					this->m_BGFade = 0.f;
 					++this->m_NowPoint;
 					break;
+				case SpeakEnum::SetBGM:
+					//BGM強制停止
+					if (this->m_BGMFade != 1.f) {
+						if (this->m_PrevBGMID != InvalidID) {
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_PrevBGMID)->StopAll();
+						}
+						if (this->m_NowBGMID != InvalidID) {
+							Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NowBGMID)->StopAll();
+						}
+					}
+					this->m_PrevBGMID = this->m_NowBGMID;
+					this->m_NowBGMID = Now.m_BGMID;
+					this->m_BGMFadeTimer = Now.m_Timer;
+					this->m_BGMFade = 0.f;
+					++this->m_NowPoint;
+					break;
 				default:
 					break;
 				}
@@ -392,6 +448,33 @@ public:
 		}
 		else {
 			this->m_BGFade = std::clamp(this->m_BGFade + DeltaTime / this->m_BGFadeTimer, 0.f, 1.f);
+		}
+		{
+			float Prev = this->m_BGMFade;
+			if (this->m_BGMFadeTimer == 0.f) {
+				this->m_BGMFade = 1.f;
+			}
+			else {
+				this->m_BGMFade = std::clamp(this->m_BGMFade + DeltaTime / this->m_BGMFadeTimer, 0.f, 1.f);
+			}
+			if ((Prev != this->m_BGMFade)) {
+				if (Prev == 0.f) {
+					if (this->m_NowBGMID != InvalidID) {
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NowBGMID)->Play(DX_PLAYTYPE_LOOP, TRUE);
+					}
+				}
+				if (this->m_PrevBGMID != InvalidID) {
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_PrevBGMID)->SetLocalVolume(static_cast<int>((1.f - this->m_BGMFade) * 255.f));
+				}
+				if (this->m_NowBGMID != InvalidID) {
+					Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NowBGMID)->SetLocalVolume(static_cast<int>((this->m_BGMFade) * 255.f));
+				}
+				if (this->m_BGMFade == 1.f) {
+					if (this->m_PrevBGMID != InvalidID) {
+						Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_PrevBGMID)->StopAll();
+					}
+				}
+			}
 		}
 		{
 			size_t LaskMV1 = 0;
@@ -431,6 +514,16 @@ public:
 			}
 		}
 	}
+
+	void Dispose(void) noexcept {
+		if (this->m_PrevBGMID != InvalidID) {
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_PrevBGMID)->StopAll();
+		}
+		if (this->m_NowBGMID != InvalidID) {
+			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_NowBGMID)->StopAll();
+		}
+	}
+
 	void DrawBG(void) noexcept {
 		//背景
 		if (this->m_PrevBGImage) {
@@ -544,8 +637,6 @@ class MainScene : public Util::SceneBase {
 	float							m_Fade{ 1.f };
 
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
-
-	Sound::SoundUniqueID			m_NormalBGMID{ InvalidID };
 
 	SpeakScript						m_SpeakScript{};
 
