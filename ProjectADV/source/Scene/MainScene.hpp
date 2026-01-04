@@ -142,7 +142,8 @@ class SpeakScript {
 	bool						m_IsStart{ false };
 	bool						m_IsEnd{ false };
 	bool						m_Exit{ false };
-	char		padding[5]{};
+	char		padding[1]{};
+	int							m_GoNext{ InvalidID };
 	const Draw::Graphhave*				m_PrevBGImage{};
 	const Draw::Graphhave*				m_NowBGImage{};
 
@@ -152,6 +153,7 @@ public:
 	bool IsEnd(void) const noexcept { return this->m_IsEnd; }
 	void SetStoryStart(void) noexcept { this->m_IsStart = true; }
 	size_t GetNowPoint(void) const noexcept { return this->m_NowPoint; }
+	int GetNext(void) const noexcept { return this->m_GoNext; }
 public:
 	void Load(const char* Path) noexcept {
 		this->m_SpeakData.clear();
@@ -261,6 +263,9 @@ public:
 						this->m_SpeakData.back().m_BGMID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::BGM, 1, Args.at(1), false);
 					}
 					this->m_SpeakData.back().m_Timer = std::stof(Args.at(2)) / 1000.f;
+				}
+				else if (Args.at(0) == "SetNext") {
+					this->m_GoNext = std::stoi(Args.at(1));
 				}
 			}
 		}
@@ -634,6 +639,8 @@ class MainScene : public Util::SceneBase {
 	bool							m_IsSceneEnd{ false };
 	bool							m_IsPauseActive{ false };
 	bool							m_IsResetMouse{ false };
+	bool							m_IsSeek{ true };
+	char		padding[3]{};
 	float							m_Fade{ 1.f };
 
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
@@ -641,7 +648,8 @@ class MainScene : public Util::SceneBase {
 	SpeakScript						m_SpeakScript{};
 
 	int								m_TargetPoint{ 0 };
-	char		padding[4]{};
+	int								m_NowPhase{ 0 };
+	//char		padding[4]{};
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;
@@ -658,9 +666,11 @@ private:
 				std::string Line = File::InputFileStream::getleft(Istream.SeekLineAndGetStr(), "//");
 				std::string Left = File::InputFileStream::getleft(Line, "=");
 				std::string Right = File::InputFileStream::getright(Line, "=");
-				if ("NowPoint" == Left) {
+				if ("NowPhase" == Left) {
+					m_NowPhase = std::stoi(Right);
+				}
+				else if ("NowPoint" == Left) {
 					m_TargetPoint = std::stoi(Right);
-					break;
 				}
 				else {
 					break;
@@ -672,18 +682,25 @@ private:
 		std::string Path = "Save/Slot" + std::to_string(Slot) + ".dat";
 		File::OutputFileStream Ostream(Path);
 		{
+			std::string Line = (std::string)("NowPhase") + "=" + std::to_string(m_NowPhase);
+			Ostream.AddLine(Line);
+		}
+		{
 			std::string Line = (std::string)("NowPoint") + "=" + std::to_string(this->m_SpeakScript.GetNowPoint());
 			Ostream.AddLine(Line);
 		}
 	}
 private:
-	void Start(void) noexcept {
+	void Seek(void) noexcept {
 		if (Param::CommonParam::Instance()->m_IsLoad == InvalidID) {
+			m_NowPhase = 0;
 			m_TargetPoint = 0;
 		}
 		else {
 			Load(Param::CommonParam::Instance()->m_IsLoad);
 		}
+	}
+	void Start(void) noexcept {
 		this->m_SpeakScript.Start();
 		//目標地点まで最速スキップ
 		for (int loop = 0; loop < m_TargetPoint; ++loop) {

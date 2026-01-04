@@ -3,7 +3,11 @@
 #include "MainScene.hpp"
 
 void MainScene::Load_Sub(void) noexcept {
-	this->m_SpeakScript.Load("data/message00.txt");
+	if (m_IsSeek) {
+		Seek();
+	}
+	m_IsSeek = true;
+	this->m_SpeakScript.Load(("data/message" + std::to_string(m_NowPhase) + ".txt").c_str());
 }
 void MainScene::Init_Sub(void) noexcept {
 	Draw::MV1Pool::Instance()->SetModelAll();
@@ -72,7 +76,9 @@ void MainScene::Init_Sub(void) noexcept {
 		//決定時の
 		this->m_ContinueUI.SetActive(false);
 		Param::CommonParam::Instance()->m_IsLoad = this->m_ContinueUI.GetSelect();
-		Start();
+
+		SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Main)));
+		Util::SceneBase::SetEndScene();
 		this->m_IsPauseActive = false;
 		});
 	this->m_ContinueUI.SetActive(false);
@@ -167,7 +173,15 @@ void MainScene::Update_Sub(void) noexcept {
 	}
 
 	if (this->m_SpeakScript.IsEnd()) {
-		this->m_Exit = true;
+		if (this->m_SpeakScript.GetNext() != InvalidID) {
+			m_NowPhase = this->m_SpeakScript.GetNext();
+			m_IsSeek = false;
+			SceneBase::SetNextScene(Util::SceneManager::Instance()->GetScene(static_cast<int>(EnumScene::Main)));
+			Util::SceneBase::SetEndScene();
+		}
+		else {
+			this->m_Exit = true;
+		}
 	}
 	this->m_SpeakScript.Update();
 }
