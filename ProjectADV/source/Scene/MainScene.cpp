@@ -3,6 +3,7 @@
 #include "MainScene.hpp"
 
 void MainScene::Load_Sub(void) noexcept {
+	Draw::MV1Pool::Instance()->DeleteAll();
 	if (m_IsSeek) {
 		Seek();
 	}

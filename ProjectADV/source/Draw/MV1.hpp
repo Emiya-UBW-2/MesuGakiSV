@@ -328,6 +328,13 @@ namespace Draw {
 			this->m_Pools.emplace_back(std::make_unique<MV1have>(FilePath));
 			return this->m_Pools.back();
 		}
+		void DeleteAll(void) noexcept {
+			for (auto& p : this->m_Pools) {
+				((MV1*)p->Get())->Dispose();
+				p.reset();
+			}
+			this->m_Pools.clear();
+		}
 		void SetModelAll(void) noexcept {
 			for (auto& p : this->m_Pools) {
 				MV1::SetAnime((MV1*)p->Get(), *p->Get());

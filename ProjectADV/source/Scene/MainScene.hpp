@@ -157,6 +157,7 @@ public:
 public:
 	void Load(const char* Path) noexcept {
 		this->m_SpeakData.clear();
+		this->m_GoNext = InvalidID;
 
 		File::InputFileStream FileStream;
 		FileStream.Open(Path);

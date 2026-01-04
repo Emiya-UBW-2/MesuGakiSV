@@ -1244,7 +1244,7 @@ Speaker();
 BlackOut(500);
 WaitMS(1000);
 SetBG(data/BG/pic20.jpg, 0);
-SetBGM(data/Sound/BGM/BGM12.wav,1000);
+SetBGM(NULL,1000);
 ResetModel();
 BlackIn(500);
 WaitMS(500);
