@@ -531,6 +531,7 @@ public:
 	}
 
 	void DrawBG(void) noexcept {
+		/*
 		//背景
 		if (this->m_PrevBGImage) {
 			this->m_PrevBGImage->Get()->DrawRotaGraph(1920 / 2, 1080 / 2, 1.f, 0.f, false);
@@ -540,6 +541,7 @@ public:
 			this->m_NowBGImage->Get()->DrawRotaGraph(1920 / 2, 1080 / 2, 1.f, 0.f, false);
 			DxLib::SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		}
+		//*/
 	}
 	void Draw3D(void) noexcept {
 		size_t LaskImage = 0;
@@ -646,6 +648,8 @@ class MainScene : public Util::SceneBase {
 
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
 
+	Draw::MV1						m_Stage{};
+
 	SpeakScript						m_SpeakScript{};
 
 	int								m_TargetPoint{ 0 };
@@ -714,12 +718,12 @@ protected:
 	void Init_Sub(void) noexcept override;
 	void Update_Sub(void) noexcept override;
 	void BGDraw_Sub(void) noexcept override;
-	void SetShadowDrawRigid_Sub(void) noexcept override {}
-	void SetShadowDraw_Sub(void) noexcept override {}
+	void SetShadowDrawRigid_Sub(void) noexcept override;
+	void SetShadowDraw_Sub(void) noexcept override;
 	void Draw_Sub(void) noexcept override;
 	void DepthDraw_Sub(void) noexcept override {}
 	void ShadowDrawFar_Sub(void) noexcept override {}
-	void ShadowDraw_Sub(void) noexcept override {}
+	void ShadowDraw_Sub(void) noexcept override;
 	void UIDraw_Sub(void) noexcept override;
 	void Dispose_Sub(void) noexcept override;
 };

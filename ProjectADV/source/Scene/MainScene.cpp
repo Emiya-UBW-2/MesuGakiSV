@@ -9,6 +9,8 @@ void MainScene::Load_Sub(void) noexcept {
 	}
 	m_IsSeek = true;
 	this->m_SpeakScript.Load(("data/message" + std::to_string(m_NowPhase) + ".txt").c_str());
+
+	Draw::MV1::Load("data/model/Stage/model.mv1", &m_Stage);
 }
 void MainScene::Init_Sub(void) noexcept {
 	Draw::MV1Pool::Instance()->SetModelAll();
@@ -17,10 +19,10 @@ void MainScene::Init_Sub(void) noexcept {
 
 	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
 
-	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.3f, -0.5f, -0.9f).normalized();
+	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.1f, -0.3f, 0.9f).normalized();
 
 	auto* PostPassParts = Draw::PostPassEffect::Instance();
-	PostPassParts->SetShadowScale(0.5f);
+	PostPassParts->SetShadowScale(1.f);
 	PostPassParts->SetAmbientLight(LightVec);
 
 	SetLightEnable(false);
@@ -156,7 +158,7 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamPosition;
 	Util::VECTOR3D CamTarget;
 
-	CamPosition = Util::VECTOR3D::vget(0.f, 15.f, -20.f);
+	CamPosition = Util::VECTOR3D::vget(40.f, 40.f, -40.f);
 	CamTarget = Util::VECTOR3D::vget(0.f, 15.f, 0.f);
 
 	CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
@@ -188,8 +190,20 @@ void MainScene::Update_Sub(void) noexcept {
 }
 void MainScene::BGDraw_Sub(void) noexcept {
 	this->m_SpeakScript.DrawBG();
+	DrawBox(0, 0, 1920, 1080, ColorPalette::Black, true);
 }
 void MainScene::Draw_Sub(void) noexcept {
+	m_Stage.DrawModel();
+	this->m_SpeakScript.Draw3D();
+}
+void MainScene::SetShadowDrawRigid_Sub(void) noexcept {
+	m_Stage.DrawModel();
+}
+void MainScene::SetShadowDraw_Sub(void) noexcept {
+	this->m_SpeakScript.Draw3D();
+}
+void MainScene::ShadowDraw_Sub(void) noexcept {
+	m_Stage.DrawModel();
 	this->m_SpeakScript.Draw3D();
 }
 void MainScene::UIDraw_Sub(void) noexcept {
@@ -208,6 +222,8 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	}
 }
 void MainScene::Dispose_Sub(void) noexcept {
+	m_Stage.Dispose();
+
 	this->m_SpeakScript.Dispose();
 
 	this->m_PauseUI.Dispose();

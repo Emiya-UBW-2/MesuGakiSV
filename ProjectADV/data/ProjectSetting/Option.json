@@ -49,7 +49,7 @@
 			"Type": "Shadow",
 			"SelectType": "Select",
 			"Value": [ "OFF", "Low", "Middle", "High" ],
-			"DefaultValue": "OFF"
+			"DefaultValue": "High"
 		},
 		{
 			"Type": "SSAO",
