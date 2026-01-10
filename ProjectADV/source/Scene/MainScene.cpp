@@ -11,6 +11,10 @@ void MainScene::Load_Sub(void) noexcept {
 	this->m_SpeakScript.Load(("data/message" + std::to_string(m_NowPhase) + ".txt").c_str());
 
 	Draw::MV1::Load("data/model/Stage/model.mv1", &m_Stage);
+	for (auto& t : m_Table) {
+		Draw::MV1::Load("data/model/Table/model.mv1", &t);
+	}
+	m_Pic = Draw::GraphPool::Instance()->Get("data/Image/pic1.png")->Get();
 }
 void MainScene::Init_Sub(void) noexcept {
 	Draw::MV1Pool::Instance()->SetModelAll();
@@ -19,7 +23,7 @@ void MainScene::Init_Sub(void) noexcept {
 
 	this->m_OKID = Sound::SoundPool::Instance()->GetUniqueID(Sound::SoundType::SE, 3, "data/Sound/UI/ok.wav", false);
 
-	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.1f, -0.3f, 0.9f).normalized();
+	Util::VECTOR3D LightVec = Util::VECTOR3D::vget(-0.9f, -0.3f, 0.1f).normalized();
 
 	auto* PostPassParts = Draw::PostPassEffect::Instance();
 	PostPassParts->SetShadowScale(1.f);
@@ -91,6 +95,22 @@ void MainScene::Init_Sub(void) noexcept {
 
 	this->m_IsResetMouse = true;
 	Start();
+
+	int x = 0, y = 0;
+	for (auto& t : m_Table) {
+		t.SetMatrix(
+			Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(
+			1.25f * (static_cast<float>(x) - 5.f / 2.f) + 1.f / 2.f,
+			0.f,
+			1.5f * (static_cast<float>(y) - 4.f / 2.f)
+			)
+			* Scale3DRate));
+		++x;
+		if (x >= 5) {
+			x = 0;
+			y++;
+		}
+	}
 }
 void MainScene::Update_Sub(void) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
@@ -158,7 +178,11 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamPosition;
 	Util::VECTOR3D CamTarget;
 
-	CamPosition = Util::VECTOR3D::vget(40.f, 40.f, -40.f);
+	CamPosition =
+		Util::Matrix4x4::Vtrans(
+			Util::VECTOR3D::vget(0.f, 30.f, -47.f),
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-135))
+		);
 	CamTarget = Util::VECTOR3D::vget(0.f, 15.f, 0.f);
 
 	CameraParts->SetCamPos(CamPosition, CamTarget, Util::VECTOR3D::vget(0, 1.f, 0));
@@ -190,20 +214,32 @@ void MainScene::Update_Sub(void) noexcept {
 }
 void MainScene::BGDraw_Sub(void) noexcept {
 	this->m_SpeakScript.DrawBG();
-	DrawBox(0, 0, 1920, 1080, ColorPalette::Black, true);
+	DrawBox(0, 0, 1920, 1080, ColorPalette::White, true);
 }
 void MainScene::Draw_Sub(void) noexcept {
 	m_Stage.DrawModel();
+	for (auto& t : m_Table) {
+		t.DrawModel();
+	}
+	SetUseZBufferFlag(true);
+	DrawBillboard3D(VGet(0.f, 0.f, 0.f), 0.5f, 0.f, 2.f * Scale3DRate, 0.f, m_Pic->get(), true);
+	DrawBillboard3D(VGet(20.f, 0.f, 0.f), 0.5f, 0.f, 2.f * Scale3DRate, 0.f, m_Pic->get(), true);
 	this->m_SpeakScript.Draw3D();
 }
 void MainScene::SetShadowDrawRigid_Sub(void) noexcept {
 	m_Stage.DrawModel();
+	for (auto& t : m_Table) {
+		t.DrawModel();
+	}
 }
 void MainScene::SetShadowDraw_Sub(void) noexcept {
 	this->m_SpeakScript.Draw3D();
 }
 void MainScene::ShadowDraw_Sub(void) noexcept {
 	m_Stage.DrawModel();
+	for (auto& t : m_Table) {
+		t.DrawModel();
+	}
 	this->m_SpeakScript.Draw3D();
 }
 void MainScene::UIDraw_Sub(void) noexcept {
@@ -223,6 +259,9 @@ void MainScene::UIDraw_Sub(void) noexcept {
 }
 void MainScene::Dispose_Sub(void) noexcept {
 	m_Stage.Dispose();
+	for (auto& t : m_Table) {
+		t.Dispose();
+	}
 
 	this->m_SpeakScript.Dispose();
 

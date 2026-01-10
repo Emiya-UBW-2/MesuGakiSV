@@ -649,6 +649,8 @@ class MainScene : public Util::SceneBase {
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
 
 	Draw::MV1						m_Stage{};
+	std::array<Draw::MV1, 20>		m_Table{};
+	const Draw::GraphHandle*		m_Pic{};
 
 	SpeakScript						m_SpeakScript{};
 
