@@ -95,6 +95,9 @@
     <ClCompile Include="source\MainScene\BaseObject.cpp">
       <Filter>ソース ファイル\MainScene</Filter>
     </ClCompile>
+    <ClCompile Include="source\MainScene\Others.cpp">
+      <Filter>ソース ファイル\MainScene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\File\json.hpp">
@@ -170,6 +173,9 @@
       <Filter>ソース ファイル\Util</Filter>
     </ClInclude>
     <ClInclude Include="source\MainScene\BaseObject.hpp">
+      <Filter>ソース ファイル\MainScene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\MainScene\Others.hpp">
       <Filter>ソース ファイル\MainScene</Filter>
     </ClInclude>
   </ItemGroup>

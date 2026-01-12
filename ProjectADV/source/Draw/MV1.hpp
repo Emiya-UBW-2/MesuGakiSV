@@ -283,66 +283,6 @@ namespace Draw {
 		void			SetPrioritizePhysicsOverAnimFlag(bool flag) const noexcept { MV1SetPrioritizePhysicsOverAnimFlag(Util::DXHandle::get(), flag ? TRUE : FALSE); }
 	};
 
-
-	//
-	class MV1have {
-		// カスタム項目
-		std::string		m_FilePath;
-		MV1				m_Handle;
-	public:
-		MV1have(std::string_view FilePath) noexcept;
-		MV1have(const MV1have&) = delete;
-		MV1have(MV1have&&) = delete;
-		MV1have& operator=(const MV1have&) = delete;
-		MV1have& operator=(MV1have&&) = delete;
-
-		~MV1have(void) noexcept {
-			this->m_Handle.Dispose();
-		}
-	public:
-		bool			Equal(std::string_view FilePath) const noexcept {
-			return (this->m_FilePath == FilePath);
-		}
-	public:
-		const MV1* Get(void) const noexcept { return &this->m_Handle; }
-	};
-	// フォントプール
-	class MV1Pool : public Util::SingletonBase<MV1Pool> {
-	private:
-		friend class Util::SingletonBase<MV1Pool>;
-	public:
-	private:
-		std::vector<std::unique_ptr<MV1have>>	m_Pools;
-	private:
-		MV1Pool(void) noexcept {}
-		MV1Pool(const MV1Pool&) = delete;
-		MV1Pool(MV1Pool&&) = delete;
-		MV1Pool& operator=(const MV1Pool&) = delete;
-		MV1Pool& operator=(MV1Pool&&) = delete;
-	public:
-		std::unique_ptr<MV1have>& Get(std::string_view FilePath) noexcept {
-			auto Find = std::find_if(this->m_Pools.begin(), this->m_Pools.end(), [&](const std::unique_ptr<MV1have>& tgt) {return tgt->Equal(FilePath); });
-			if (Find != this->m_Pools.end()) {
-				return *Find;
-			}
-			this->m_Pools.emplace_back(std::make_unique<MV1have>(FilePath));
-			return this->m_Pools.back();
-		}
-		void DeleteAll(void) noexcept {
-			for (auto& p : this->m_Pools) {
-				((MV1*)p->Get())->Dispose();
-				p.reset();
-			}
-			this->m_Pools.clear();
-		}
-		void SetModelAll(void) noexcept {
-			for (auto& p : this->m_Pools) {
-				MV1::SetAnime((MV1*)p->Get(), *p->Get());
-			}
-		}
-	};
-
-
 	/*------------------------------------------------------------------------------------------------------------------------------------------*/
 	// IK
 	/*------------------------------------------------------------------------------------------------------------------------------------------*/

@@ -23,7 +23,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Util::SceneManager::Create();
 	Util::KeyParam::Create();
 	Draw::FontPool::Create();
-	Draw::MV1Pool::Create();
 	Draw::GraphPool::Create();
 	Util::LocalizePool::Create();
 	Camera::Camera3D::Create();
@@ -136,7 +135,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Camera::Camera3D::Release();
 	Util::LocalizePool::Release();
 	Draw::GraphPool::Release();
-	Draw::MV1Pool::Release();
 	Draw::FontPool::Release();
 	Util::KeyParam::Release();
 	Util::SceneManager::Release();

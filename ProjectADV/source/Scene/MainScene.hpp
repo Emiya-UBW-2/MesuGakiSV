@@ -14,6 +14,8 @@
 #include "../Util/SceneManager.hpp"
 
 #include "../Draw/MV1.hpp"
+#include "../MainScene/BaseObject.hpp"
+#include "../MainScene/Others.hpp"
 
 constexpr size_t MesColumn = 3;
 
@@ -28,13 +30,16 @@ enum class SpeakEnum : size_t {
 	ResetModel,
 	SetBG,
 	SetBGM,
+	MoveModel,
 };
 
 struct SpeakData {
 	SpeakEnum								m_SpeakEnum{};
 	std::u32string							m_Speaker;
 	const Draw::Graphhave*					m_Image{};
-	const Draw::MV1have*					m_MV1{};
+	//const Draw::MV1have*					m_MV1{};
+
+
 	Util::VECTOR2D							m_Pos;
 	std::array<std::pair<std::u32string, size_t>, MesColumn>	m_Mes;
 	size_t									m_MV1AnimSelect{ 0 };
@@ -47,11 +52,16 @@ struct SpeakData {
 	char		padding[4]{};
 	bool									m_AutoGoNext{};
 	char		padding2[7]{};
+
+	std::string								m_ObjPath;
+	int										m_ObjID{};
+	char		padding3[4]{};
+	Util::Matrix4x4							m_Matrix;
 public:
 	void Init(void) noexcept {
 		this->m_Speaker = U"";
 		this->m_Image = nullptr;
-		this->m_MV1 = nullptr;
+		//this->m_MV1 = nullptr;
 		this->m_MV1AnimSelect = 0;
 		this->m_BGMID = InvalidID;
 		this->m_Pos.Set(0.f, 0.f);
@@ -62,6 +72,10 @@ public:
 		this->m_Timer = 0.f;
 		this->m_SeekMax = 0.f;
 		this->m_TimeMax = 0.f;
+
+		m_ObjPath = "";
+		m_ObjID = 0;
+		m_Matrix;
 	}
 public:
 	void DrawImage(Util::VECTOR2D pos, int alpha) const noexcept {
@@ -78,9 +92,11 @@ public:
 		}
 	}
 	void DrawModel(void) const noexcept {
+		/*
 		if (this->m_MV1) {
 			this->m_MV1->Get()->DrawModel();
 		}
+		//*/
 	}
 	void DrawStr(float seek, int alpha) const noexcept {
 		auto* Font = Draw::FontPool::Instance();
@@ -149,6 +165,9 @@ class SpeakScript {
 
 	Sound::SoundUniqueID			m_PrevBGMID{ InvalidID };
 	Sound::SoundUniqueID			m_NowBGMID{ InvalidID };
+
+
+	std::vector<std::pair<std::shared_ptr<BaseObject>, int>>		m_Table{};
 public:
 	bool IsEnd(void) const noexcept { return this->m_IsEnd; }
 	void SetStoryStart(void) noexcept { this->m_IsStart = true; }
@@ -156,6 +175,9 @@ public:
 	int GetNext(void) const noexcept { return this->m_GoNext; }
 public:
 	void Load(const char* Path) noexcept {
+		m_Table.clear();
+		m_Table.reserve(64);
+
 		this->m_SpeakData.clear();
 		this->m_GoNext = InvalidID;
 
@@ -191,12 +213,37 @@ public:
 					this->m_SpeakData.back().m_SeekMax += static_cast<float>(m.second);
 					++SeekMes;
 				}
+
+				else if (Args.at(0) == "AddModel") {
+					ObjectManager::Instance()->LoadModel(Args.at(1));
+					this->m_Table.emplace_back();
+					auto& table = this->m_Table.at(static_cast<size_t>(this->m_Table.size()) - 1);
+					table.first = std::make_shared<Stage>();
+					ObjectManager::Instance()->InitObject(table.first, Args.at(1));
+					table.second = std::stoi(Args.at(2));
+				}
+				else if (Args.at(0) == "SetModelPosition") {
+					this->m_SpeakData.emplace_back();
+					this->m_SpeakData.back().Init();
+					this->m_SpeakData.back().m_SpeakEnum = SpeakEnum::MoveModel;
+					this->m_SpeakData.back().m_ObjPath = Args.at(1);
+					this->m_SpeakData.back().m_ObjID = std::stoi(Args.at(2));
+					this->m_SpeakData.back().m_Matrix =
+						Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(std::stof(Args.at(3)))) *
+						Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(
+							std::stof(Args.at(4)),
+							std::stof(Args.at(5)),
+							std::stof(Args.at(6))
+						)
+							* Scale3DRate);
+				}
+
 				else if (Args.at(0) == "Model") {
 					this->m_SpeakData.emplace_back();
 					this->m_SpeakData.back().Init();
 					this->m_SpeakData.back().m_SpeakEnum = SpeakEnum::Model;
 					if (Args.at(1) != "NULL") {
-						this->m_SpeakData.back().m_MV1 = Draw::MV1Pool::Instance()->Get(Args.at(1)).get();
+						//this->m_SpeakData.back().m_MV1 = Draw::MV1Pool::Instance()->Get(Args.at(1)).get();
 					}
 					this->m_SpeakData.back().m_MV1AnimSelect = static_cast<size_t>(std::stoi(Args.at(2)));
 				}
@@ -310,10 +357,12 @@ public:
 				break;
 			case SpeakEnum::Model:
 				++this->m_NowPoint;
+				/*
 				if (Now.m_MV1) {
-					auto* pModel = (Draw::MV1*)Now.m_MV1->Get();
-					pModel->SetAnim(Now.m_MV1AnimSelect).SetTime(0.f);
+					//auto* pModel = (Draw::MV1*)Now.m_MV1->Get();
+					//pModel->SetAnim(Now.m_MV1AnimSelect).SetTime(0.f);
 				}
+				//*/
 				break;
 			case SpeakEnum::Image:
 				++this->m_NowPoint;
@@ -351,6 +400,15 @@ public:
 				this->m_BGMFade = 0.f;
 				++this->m_NowPoint;
 				break;
+			case SpeakEnum::MoveModel:
+				for (auto& t : this->m_Table) {
+					if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
+						t.first->SetMatrix(Now.m_Matrix);
+						break;
+					}
+				}
+				++this->m_NowPoint;
+				break;
 			default:
 				break;
 			}
@@ -386,10 +444,12 @@ public:
 					break;
 				case SpeakEnum::Model:
 					++this->m_NowPoint;
+					/*
 					if (Now.m_MV1) {
-						auto* pModel = (Draw::MV1*)Now.m_MV1->Get();
-						pModel->SetAnim(Now.m_MV1AnimSelect).SetTime(0.f);
+						//auto* pModel = (Draw::MV1*)Now.m_MV1->Get();
+						//pModel->SetAnim(Now.m_MV1AnimSelect).SetTime(0.f);
 					}
+					//*/
 					break;
 				case SpeakEnum::Image:
 					++this->m_NowPoint;
@@ -440,6 +500,15 @@ public:
 					this->m_BGMFade = 0.f;
 					++this->m_NowPoint;
 					break;
+				case SpeakEnum::MoveModel:
+					for (auto& t : this->m_Table) {
+						if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
+							t.first->SetMatrix(Now.m_Matrix);
+							break;
+						}
+					}
+					++this->m_NowPoint;
+					break;
 				default:
 					break;
 				}
@@ -483,6 +552,7 @@ public:
 			}
 		}
 		{
+			/*
 			size_t LaskMV1 = 0;
 			for (const auto& Now : this->m_SpeakData) {
 				size_t index = static_cast<size_t>(&Now - &this->m_SpeakData.front());
@@ -518,10 +588,11 @@ public:
 				pModel->PhysicsCalculation(DeltaTime);
 				pModel->FlipAnimAll();
 			}
+			//*/
 		}
 	}
 
-	void Dispose(void) noexcept {
+	void Dispose(void) const noexcept {
 		if (this->m_PrevBGMID != InvalidID) {
 			Sound::SoundPool::Instance()->Get(Sound::SoundType::BGM, this->m_PrevBGMID)->StopAll();
 		}
@@ -556,11 +627,13 @@ public:
 			if (Now.m_SpeakEnum == SpeakEnum::ResetImage) {
 				ResetImage = index;
 			}
+			/*
 			if (Now.m_SpeakEnum == SpeakEnum::Model) {
 				if (Now.m_MV1) {
 					LaskMV1 = index;
 				}
 			}
+			//*/
 			if (Now.m_SpeakEnum == SpeakEnum::ResetModel) {
 				ResetMV1 = index;
 			}
@@ -641,15 +714,12 @@ class MainScene : public Util::SceneBase {
 	bool							m_Exit{ false };
 	bool							m_IsSceneEnd{ false };
 	bool							m_IsPauseActive{ false };
-	bool							m_IsResetMouse{ false };
 	bool							m_IsSeek{ true };
 	char		padding[3]{};
 	float							m_Fade{ 1.f };
 
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
 
-	Draw::MV1						m_Stage{};
-	std::array<Draw::MV1, 20>		m_Table{};
 	const Draw::GraphHandle*		m_Pic{};
 
 	SpeakScript						m_SpeakScript{};
@@ -657,6 +727,8 @@ class MainScene : public Util::SceneBase {
 	int								m_TargetPoint{ 0 };
 	int								m_NowPhase{ 0 };
 	//char		padding[4]{};
+	int								m_PrevMouseX{ 0 };
+	float							m_MouseXR{ 0.f };
 public:
 	MainScene(void) noexcept { SetID(static_cast<int>(EnumScene::Main)); }
 	MainScene(const MainScene&) = delete;

@@ -140,6 +140,7 @@ namespace File {
 	}
 	static void GetArgs(const std::string& str, std::vector<std::string> * Args) noexcept {
 		std::string ALL = ReplaceAll(ReplaceAll(str, " ", ""), "\t", "");
+		ALL = File::InputFileStream::getleft(ALL, "//");
 		auto Func = ALL.substr(0, ALL.find("("));
 		auto Arg = File::InputFileStream::getleft(File::InputFileStream::getright(ALL, "("), ")");
 		Args->clear();

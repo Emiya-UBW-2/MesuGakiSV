@@ -2,22 +2,20 @@
 
 #include "MainScene.hpp"
 
+#include "../MainScene/Others.hpp"
+
 void MainScene::Load_Sub(void) noexcept {
-	Draw::MV1Pool::Instance()->DeleteAll();
+	ObjectManager::Create();
+
 	if (m_IsSeek) {
 		Seek();
 	}
 	m_IsSeek = true;
 	this->m_SpeakScript.Load(("data/message" + std::to_string(m_NowPhase) + ".txt").c_str());
 
-	Draw::MV1::Load("data/model/Stage/model.mv1", &m_Stage);
-	for (auto& t : m_Table) {
-		Draw::MV1::Load("data/model/Table/model.mv1", &t);
-	}
 	m_Pic = Draw::GraphPool::Instance()->Get("data/Image/pic1.png")->Get();
 }
 void MainScene::Init_Sub(void) noexcept {
-	Draw::MV1Pool::Instance()->SetModelAll();
 	this->m_Exit = false;
 	this->m_Fade = 1.f;
 
@@ -93,30 +91,14 @@ void MainScene::Init_Sub(void) noexcept {
 	auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 	KeyGuideParts->SetGuideFlip();
 
-	this->m_IsResetMouse = true;
 	Start();
-
-	int x = 0, y = 0;
-	for (auto& t : m_Table) {
-		t.SetMatrix(
-			Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(
-			1.25f * (static_cast<float>(x) - 5.f / 2.f) + 1.f / 2.f,
-			0.f,
-			1.5f * (static_cast<float>(y) - 4.f / 2.f)
-			)
-			* Scale3DRate));
-		++x;
-		if (x >= 5) {
-			x = 0;
-			y++;
-		}
-	}
 }
 void MainScene::Update_Sub(void) noexcept {
 	auto* KeyMngr = Util::KeyParam::Instance();
 	auto* CameraParts = Camera::Camera3D::Instance();
 	auto* KeyGuideParts = DXLibRef::KeyGuide::Instance();
 	auto* PostPassParts = Draw::PostPassEffect::Instance();
+	auto* DrawerMngr = Draw::MainDraw::Instance();
 
 	KeyGuideParts->ChangeGuide(
 		[this]() {
@@ -170,7 +152,6 @@ void MainScene::Update_Sub(void) noexcept {
 	}
 	if (this->m_IsPauseActive) {
 		DxLib::SetMouseDispFlag(true);
-		this->m_IsResetMouse = true;
 		return;
 	}
 
@@ -178,10 +159,15 @@ void MainScene::Update_Sub(void) noexcept {
 	Util::VECTOR3D CamPosition;
 	Util::VECTOR3D CamTarget;
 
+	int mouseX = -std::clamp(m_PrevMouseX - DrawerMngr->GetMousePositionX(), -30, 30);
+	Util::Easing(&m_MouseXR, static_cast<float>(mouseX), 0.995f);
+
+	m_PrevMouseX = DrawerMngr->GetMousePositionX();
+
 	CamPosition =
 		Util::Matrix4x4::Vtrans(
 			Util::VECTOR3D::vget(0.f, 30.f, -47.f),
-			Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-135))
+			Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(-135 + m_MouseXR))
 		);
 	CamTarget = Util::VECTOR3D::vget(0.f, 15.f, 0.f);
 
@@ -211,35 +197,42 @@ void MainScene::Update_Sub(void) noexcept {
 		}
 	}
 	this->m_SpeakScript.Update();
+	ObjectManager::Instance()->UpdateObject();
+
+	/*
+	int x = 0, y = 0;
+	for (auto& t : m_Table) {
+		auto Str = std::to_string(1.25f * (static_cast<float>(x) - 5.f / 2.f) + 1.f / 2.f) + ",0," + std::to_string(1.5f * (static_cast<float>(y) - 4.f / 2.f));
+		OutputDebugString(Str.c_str());
+		++x;
+		if (x >= 5) {
+			x = 0;
+			y++;
+		}
+		OutputDebugString("\n");
+	}
+	OutputDebugString("\n");
+	//*/
 }
 void MainScene::BGDraw_Sub(void) noexcept {
 	this->m_SpeakScript.DrawBG();
-	DrawBox(0, 0, 1920, 1080, ColorPalette::White, true);
+	DrawBox(0, 0, 1920, 1080, ColorPalette::Gray25, true);
 }
 void MainScene::Draw_Sub(void) noexcept {
-	m_Stage.DrawModel();
-	for (auto& t : m_Table) {
-		t.DrawModel();
-	}
+	ObjectManager::Instance()->Draw();
 	SetUseZBufferFlag(true);
 	DrawBillboard3D(VGet(0.f, 0.f, 0.f), 0.5f, 0.f, 2.f * Scale3DRate, 0.f, m_Pic->get(), true);
 	DrawBillboard3D(VGet(20.f, 0.f, 0.f), 0.5f, 0.f, 2.f * Scale3DRate, 0.f, m_Pic->get(), true);
 	this->m_SpeakScript.Draw3D();
 }
 void MainScene::SetShadowDrawRigid_Sub(void) noexcept {
-	m_Stage.DrawModel();
-	for (auto& t : m_Table) {
-		t.DrawModel();
-	}
 }
 void MainScene::SetShadowDraw_Sub(void) noexcept {
+	ObjectManager::Instance()->Draw_SetShadow();
 	this->m_SpeakScript.Draw3D();
 }
 void MainScene::ShadowDraw_Sub(void) noexcept {
-	m_Stage.DrawModel();
-	for (auto& t : m_Table) {
-		t.DrawModel();
-	}
+	ObjectManager::Instance()->Draw_Shadow();
 	this->m_SpeakScript.Draw3D();
 }
 void MainScene::UIDraw_Sub(void) noexcept {
@@ -258,10 +251,10 @@ void MainScene::UIDraw_Sub(void) noexcept {
 	}
 }
 void MainScene::Dispose_Sub(void) noexcept {
-	m_Stage.Dispose();
-	for (auto& t : m_Table) {
-		t.Dispose();
-	}
+	ObjectManager::Instance()->DeleteAll();
+
+
+	ObjectManager::Release();
 
 	this->m_SpeakScript.Dispose();
 
