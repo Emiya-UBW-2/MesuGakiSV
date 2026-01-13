@@ -31,6 +31,9 @@ enum class SpeakEnum : size_t {
 	SetBG,
 	SetBGM,
 	MoveModel,
+	SetupMoveModel,
+	MoveBillboard,
+	SetupMoveBillboard,
 };
 
 struct SpeakData {
@@ -166,8 +169,8 @@ class SpeakScript {
 	Sound::SoundUniqueID			m_PrevBGMID{ InvalidID };
 	Sound::SoundUniqueID			m_NowBGMID{ InvalidID };
 
-
-	std::vector<std::pair<std::shared_ptr<BaseObject>, int>>		m_Table{};
+	std::vector<std::pair<std::shared_ptr<Stage>, int>>			m_Model{};
+	std::vector<std::pair<std::shared_ptr<Billboard>, int>>		m_Billboard{};
 public:
 	bool IsEnd(void) const noexcept { return this->m_IsEnd; }
 	void SetStoryStart(void) noexcept { this->m_IsStart = true; }
@@ -175,8 +178,10 @@ public:
 	int GetNext(void) const noexcept { return this->m_GoNext; }
 public:
 	void Load(const char* Path) noexcept {
-		m_Table.clear();
-		m_Table.reserve(64);
+		m_Model.clear();
+		m_Model.reserve(64);
+		m_Billboard.clear();
+		m_Billboard.reserve(64);
 
 		this->m_SpeakData.clear();
 		this->m_GoNext = InvalidID;
@@ -216,8 +221,8 @@ public:
 
 				else if (Args.at(0) == "AddModel") {
 					ObjectManager::Instance()->LoadModel(Args.at(1));
-					this->m_Table.emplace_back();
-					auto& table = this->m_Table.at(static_cast<size_t>(this->m_Table.size()) - 1);
+					this->m_Model.emplace_back();
+					auto& table = this->m_Model.at(static_cast<size_t>(this->m_Model.size()) - 1);
 					table.first = std::make_shared<Stage>();
 					ObjectManager::Instance()->InitObject(table.first, Args.at(1));
 					table.second = std::stoi(Args.at(2));
@@ -237,7 +242,70 @@ public:
 						)
 							* Scale3DRate);
 				}
+				else if (Args.at(0) == "SetupModelPosition") {
+					this->m_SpeakData.emplace_back();
+					this->m_SpeakData.back().Init();
+					this->m_SpeakData.back().m_SpeakEnum = SpeakEnum::SetupMoveModel;
+					this->m_SpeakData.back().m_ObjPath = Args.at(1);
+					this->m_SpeakData.back().m_ObjID = std::stoi(Args.at(2));
+					this->m_SpeakData.back().m_Matrix =
+						Util::Matrix4x4::RotAxis(Util::VECTOR3D::up(), Util::deg2rad(std::stof(Args.at(3)))) *
+						Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(
+							std::stof(Args.at(4)),
+							std::stof(Args.at(5)),
+							std::stof(Args.at(6))
+						)
+							* Scale3DRate);
+				}
 
+				else if (Args.at(0) == "AddBillboard") {
+					this->m_Billboard.emplace_back();
+					auto& billboard = this->m_Billboard.at(static_cast<size_t>(this->m_Billboard.size()) - 1);
+					auto BB = std::make_shared<Billboard>();
+					BB->SetFilePath(Args.at(1));
+					BB->SetupBillboardParam(
+						std::stof(Args.at(3)),//cx
+						std::stof(Args.at(4)),//cy
+						std::stof(Args.at(5)) * Scale3DRate,//scale
+						std::stof(Args.at(6))//angle
+					);
+					/*
+					AddBillboard(data / Image / pic1.png, 1, 0.5, 0.0, 2.0, 0.0);
+					SetBillboardPosition(data / Image / pic1.png, 0, 0.0, 0.0, 0.0);
+					//*/
+					billboard.first = BB; BB.reset();
+					ObjectManager::Instance()->InitObject(billboard.first);
+					billboard.second = std::stoi(Args.at(2));
+				}
+				else if (Args.at(0) == "SetBillboardPosition") {
+					this->m_SpeakData.emplace_back();
+					this->m_SpeakData.back().Init();
+					this->m_SpeakData.back().m_SpeakEnum = SpeakEnum::MoveBillboard;
+					this->m_SpeakData.back().m_ObjPath = Args.at(1);
+					this->m_SpeakData.back().m_ObjID = std::stoi(Args.at(2));
+					this->m_SpeakData.back().m_Matrix =
+						Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(
+							std::stof(Args.at(3)),
+							std::stof(Args.at(4)),
+							std::stof(Args.at(5))
+						)
+							* Scale3DRate);
+				}
+				else if (Args.at(0) == "SetupBillboardPosition") {
+					this->m_SpeakData.emplace_back();
+					this->m_SpeakData.back().Init();
+					this->m_SpeakData.back().m_SpeakEnum = SpeakEnum::SetupMoveBillboard;
+					this->m_SpeakData.back().m_ObjPath = Args.at(1);
+					this->m_SpeakData.back().m_ObjID = std::stoi(Args.at(2));
+					this->m_SpeakData.back().m_Matrix =
+						Util::Matrix4x4::Mtrans(Util::VECTOR3D::vget(
+							std::stof(Args.at(3)),
+							std::stof(Args.at(4)),
+							std::stof(Args.at(5))
+						)
+							* Scale3DRate);
+				}
+				
 				else if (Args.at(0) == "Model") {
 					this->m_SpeakData.emplace_back();
 					this->m_SpeakData.back().Init();
@@ -401,9 +469,36 @@ public:
 				++this->m_NowPoint;
 				break;
 			case SpeakEnum::MoveModel:
-				for (auto& t : this->m_Table) {
+				for (auto& t : this->m_Model) {
+					if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
+						t.first->SetMat(Now.m_Matrix);
+						break;
+					}
+				}
+				++this->m_NowPoint;
+				break;
+			case SpeakEnum::SetupMoveModel:
+				for (auto& t : this->m_Model) {
+					if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
+						t.first->SetupMat(Now.m_Matrix);
+						break;
+					}
+				}
+				++this->m_NowPoint;
+				break;
+			case SpeakEnum::MoveBillboard:
+				for (auto& t : this->m_Billboard) {
 					if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
 						t.first->SetMatrix(Now.m_Matrix);
+						break;
+					}
+				}
+				++this->m_NowPoint;
+				break;
+			case SpeakEnum::SetupMoveBillboard:
+				for (auto& t : this->m_Billboard) {
+					if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
+						t.first->SetupMat(Now.m_Matrix);
 						break;
 					}
 				}
@@ -501,9 +596,36 @@ public:
 					++this->m_NowPoint;
 					break;
 				case SpeakEnum::MoveModel:
-					for (auto& t : this->m_Table) {
+					for (auto& t : this->m_Model) {
+						if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
+							t.first->SetMat(Now.m_Matrix);
+							break;
+						}
+					}
+					++this->m_NowPoint;
+					break;
+				case SpeakEnum::SetupMoveModel:
+					for (auto& t : this->m_Model) {
+						if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
+							t.first->SetupMat(Now.m_Matrix);
+							break;
+						}
+					}
+					++this->m_NowPoint;
+					break;
+				case SpeakEnum::MoveBillboard:
+					for (auto& t : this->m_Billboard) {
 						if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
 							t.first->SetMatrix(Now.m_Matrix);
+							break;
+						}
+					}
+					++this->m_NowPoint;
+					break;
+				case SpeakEnum::SetupMoveBillboard:
+					for (auto& t : this->m_Billboard) {
+						if ((t.first->GetFilePath() == Now.m_ObjPath) && (t.second == Now.m_ObjID)) {
+							t.first->SetupMat(Now.m_Matrix);
 							break;
 						}
 					}
@@ -719,8 +841,6 @@ class MainScene : public Util::SceneBase {
 	float							m_Fade{ 1.f };
 
 	Sound::SoundUniqueID			m_OKID{ InvalidID };
-
-	const Draw::GraphHandle*		m_Pic{};
 
 	SpeakScript						m_SpeakScript{};
 

@@ -12,8 +12,6 @@ void MainScene::Load_Sub(void) noexcept {
 	}
 	m_IsSeek = true;
 	this->m_SpeakScript.Load(("data/message" + std::to_string(m_NowPhase) + ".txt").c_str());
-
-	m_Pic = Draw::GraphPool::Instance()->Get("data/Image/pic1.png")->Get();
 }
 void MainScene::Init_Sub(void) noexcept {
 	this->m_Exit = false;
@@ -220,9 +218,6 @@ void MainScene::BGDraw_Sub(void) noexcept {
 }
 void MainScene::Draw_Sub(void) noexcept {
 	ObjectManager::Instance()->Draw();
-	SetUseZBufferFlag(true);
-	DrawBillboard3D(VGet(0.f, 0.f, 0.f), 0.5f, 0.f, 2.f * Scale3DRate, 0.f, m_Pic->get(), true);
-	DrawBillboard3D(VGet(20.f, 0.f, 0.f), 0.5f, 0.f, 2.f * Scale3DRate, 0.f, m_Pic->get(), true);
 	this->m_SpeakScript.Draw3D();
 }
 void MainScene::SetShadowDrawRigid_Sub(void) noexcept {
